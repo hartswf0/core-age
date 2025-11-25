@@ -1,0 +1,1009 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WAG – Enhanced Stud Skeleton Binding</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "SF Mono", "Fira Code", monospace;
+            background: #050509;
+            color: #f4f4f4;
+            width: 100vw;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            align-items: stretch;
+            justify-content: center;
+        }
+
+        .app {
+            width: 100vw;
+            max-width: 1400px;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            padding: 12px;
+            gap: 10px;
+        }
+
+        header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+            padding: 8px 10px;
+            border-radius: 10px;
+            background: radial-gradient(circle at top left, #1f2937, #020617);
+            border: 1px solid #111827;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title-block h1 {
+            font-size: 14px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #e5e7eb;
+        }
+
+        .title-block p {
+            font-size: 11px;
+            color: #9ca3af;
+            max-width: 520px;
+        }
+
+        .controls {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .pill {
+            font-size: 10px;
+            padding: 4px 8px;
+            border-radius: 999px;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            background: #020617;
+            opacity: 0.9;
+        }
+
+        .pill strong {
+            color: #a5b4fc;
+        }
+
+        .slider-control {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 10px;
+            border-radius: 999px;
+            border: 1px solid #4b5563;
+            background: #020617;
+        }
+
+        .slider-control label {
+            font-size: 10px;
+            color: #9ca3af;
+            min-width: 60px;
+        }
+
+        .slider-control input[type="range"] {
+            width: 120px;
+            height: 4px;
+            background: #1f2937;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .slider-control input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+        }
+
+        .slider-control input[type="range"]::-moz-range-thumb {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #6366f1;
+            cursor: pointer;
+            border: none;
+        }
+
+        .slider-control .value {
+            font-size: 10px;
+            color: #a5b4fc;
+            font-weight: 600;
+            min-width: 28px;
+        }
+
+        .btn {
+            font-size: 10px;
+            padding: 5px 10px;
+            border-radius: 6px;
+            border: 1px solid #4b5563;
+            color: #e5e7eb;
+            background: linear-gradient(135deg, #1e293b, #020617);
+            cursor: pointer;
+            transition: all 120ms;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, #334155, #0f172a);
+            border-color: #6366f1;
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #6366f1, #4f46e5);
+            border-color: #818cf8;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            min-height: 0;
+        }
+
+        .pane {
+            flex: 1;
+            min-width: 0;
+            border-radius: 10px;
+            border: 1px solid #111827;
+            background: radial-gradient(circle at 0 0, #0b1120, #020617);
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .pane-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 6px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .pane-header span.label {
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: #e5e7eb;
+        }
+
+        .pane-header span.sub {
+            font-size: 10px;
+            opacity: 0.7;
+        }
+
+        .pane-body {
+            flex: 1;
+            border-radius: 8px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid #0f172a;
+            padding: 6px;
+            overflow: auto;
+            font-size: 11px;
+        }
+
+        pre.mpd-view {
+            font-family: "SF Mono", "Fira Code", monospace;
+            font-size: 11px;
+            line-height: 1.4;
+            white-space: pre;
+        }
+
+        .mpd-line {
+            padding: 2px 4px;
+            border-radius: 4px;
+            display: flex;
+            gap: 6px;
+            align-items: baseline;
+            cursor: default;
+            transition: all 150ms;
+        }
+
+        .mpd-line-index {
+            width: 28px;
+            text-align: right;
+            color: #4b5563;
+            flex-shrink: 0;
+        }
+
+        .mpd-line-text {
+            flex: 1;
+            transition: color 150ms;
+        }
+
+        .mpd-line-studs {
+            font-size: 10px;
+            color: #6b7280;
+            margin-left: 6px;
+            flex-shrink: 0;
+        }
+
+        .mpd-line.is-part {
+            cursor: pointer;
+        }
+
+        .mpd-line.is-part:hover {
+            background: rgba(55, 65, 81, 0.45);
+        }
+
+        .mpd-line.is-selected {
+            background: linear-gradient(90deg, rgba(59, 130, 246, 0.18), rgba(129, 140, 248, 0.08));
+            color: #e5e7eb;
+            border-left: 2px solid #6366f1;
+        }
+
+        .mpd-line.is-part .mpd-line-index::before {
+            content: "●";
+            font-size: 7px;
+            margin-right: 4px;
+            color: #4ade80;
+        }
+
+        .mpd-line.dim {
+            opacity: 0.3;
+        }
+
+        table.parts-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 11px;
+        }
+
+        table.parts-table thead tr {
+            background: rgba(15, 23, 42, 0.9);
+            position: sticky;
+            top: 0;
+            z-index: 1;
+        }
+
+        table.parts-table th,
+        table.parts-table td {
+            padding: 4px 5px;
+            border-bottom: 1px solid rgba(30, 41, 59, 0.7);
+            text-align: left;
+            white-space: nowrap;
+            transition: opacity 150ms;
+        }
+
+        table.parts-table th {
+            font-weight: 600;
+            color: #9ca3af;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            font-size: 10px;
+        }
+
+        table.parts-table tr {
+            cursor: default;
+            transition: all 150ms;
+        }
+
+        table.parts-table tr.part-row {
+            cursor: pointer;
+        }
+
+        table.parts-table tr.part-row:hover {
+            background: rgba(31, 41, 55, 0.6);
+        }
+
+        table.parts-table tr.part-row.selected {
+            background: rgba(37, 99, 235, 0.25);
+        }
+
+        table.parts-table tr.dim {
+            opacity: 0.3;
+        }
+
+        table.parts-table td.key {
+            font-family: "Fira Code", monospace;
+            color: #e5e7eb;
+        }
+
+        .stud-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            font-size: 10px;
+            color: #9ca3af;
+            margin-bottom: 6px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            background: rgba(15, 23, 42, 0.85);
+            border: 1px solid rgba(55, 65, 81, 0.9);
+            transition: all 150ms;
+            cursor: pointer;
+        }
+
+        .legend-item:hover {
+            background: rgba(31, 41, 55, 0.9);
+        }
+
+        .legend-item.dim {
+            opacity: 0.3;
+        }
+
+        .legend-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 999px;
+            flex-shrink: 0;
+            transition: all 150ms;
+        }
+
+        .canvas-wrap {
+            flex: 1;
+            border-radius: 8px;
+            border: 1px solid #020617;
+            background: radial-gradient(circle at top, #020617, #020617 40%, #020617);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 4px;
+            min-height: 180px;
+            position: relative;
+        }
+
+        canvas#studCanvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 6px;
+            background: radial-gradient(circle at bottom, #020617, #020617 60%, #020617);
+        }
+
+        .stud-meta {
+            margin-top: 4px;
+            font-size: 10px;
+            color: #9ca3af;
+            display: flex;
+            justify-content: space-between;
+            gap: 8px;
+            opacity: 0.9;
+        }
+
+        .stud-meta code {
+            font-family: "Fira Code", monospace;
+            font-size: 10px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 2px 4px;
+            border-radius: 4px;
+            border: 1px solid #020617;
+            color: #e5e7eb;
+        }
+
+        .data-flow-viz {
+            margin-top: 6px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            font-size: 10px;
+            color: #9ca3af;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 3px 6px;
+            border-radius: 4px;
+            background: rgba(30, 41, 59, 0.4);
+            transition: all 200ms;
+        }
+
+        .flow-step.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 2px solid #6366f1;
+        }
+
+        .flow-arrow {
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        .transform-viz {
+            margin-top: 4px;
+            padding: 6px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.5);
+            font-size: 10px;
+            color: #9ca3af;
+            font-family: "Fira Code", monospace;
+            line-height: 1.5;
+        }
+
+        .transform-viz .label {
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        .comparison-view {
+            display: flex;
+            gap: 6px;
+            margin-top: 6px;
+        }
+
+        .comparison-card {
+            flex: 1;
+            padding: 6px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            font-size: 10px;
+    .comparison-card .title {
+      color: #a5b4fc;
+      font-weight: 600;
+      margin-bottom: 4px;
+    }
+
+    .comparison-card .value {
+      color: #e5e7eb;
+      font-family: "Fira Code", monospace;
+    }
+
+    @media (max-width: 1100px) {
+      main {
+        flex-direction: column;
+      }
+      .app {
+        max-width: 720px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <div class="title-block">
+        <h1>Enhanced Stud Skeleton Binding – Media for Thinking</h1>
+        <p>
+          Interactive visualization of MPD parsing → part extraction → stud skeleton binding.
+          <strong>Try:</strong> Rotate view, adjust zoom, hover over elements, compare transformations.
+        </p>
+      </div>
+      <div class="controls">
+        <div class="slider-control">
+          <label>Rotation:</label>
+          <input type="range" id="rotationSlider" min="0" max="360" value="45" step="1">
+          <span class="value" id="rotationValue">45°</span>
+        </div>
+        <div class="slider-control">
+          <label>Zoom:</label>
+          <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
+          <span class="value" id="zoomValue">100%</span>
+        </div>
+        <button class="btn" id="showFlowBtn">Show Data Flow</button>
+        <button class="btn" id="compareBtn">Compare</button>
+        <div class="pill"><strong>Binding:</strong> stud.lineNum = part.lineIndex</div>
+      </div>
+    </header>
+
+    <main>
+      <section class="pane mpd-pane">
+        <div class="pane-header">
+          <span class="label">MPD Source</span>
+          <span class="sub">Click a part line (type 1) to select.</span>
+        </div>
+        <div class="pane-body">
+          <pre class="mpd-view" id="mpdView"></pre>
+          <div class="data-flow-viz" id="dataFlow" style="display: none;">
+            <div class="flow-step" data-step="1">
+              <span class="flow-arrow">➊</span>
+              <span>Parse MPD text into lines array</span>
+            </div>
+            <div class="flow-step" data-step="2">
+              <span class="flow-arrow">➋</span>
+              <span>Extract type 1 lines as part instances</span>
+            </div>
+            <div class="flow-step" data-step="3">
+              <span class="flow-arrow">➌</span>
+              <span>Generate local stud coordinates for each part</span>
+            </div>
+            <div class="flow-step" data-step="4">
+              <span class="flow-arrow">➍</span>
+              <span>Transform local → world via matrix multiplication</span>
+            </div>
+            <div class="flow-step" data-step="5">
+              <span class="flow-arrow">➎</span>
+              <span>Bind studs to parts via lineNum = lineIndex</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="pane parts-pane">
+        <div class="pane-header">
+          <span class="label">Parsed Parts</span>
+          <span class="sub">One row per MPD part instance.</span>
+        </div>
+        <div class="pane-body">
+          <table class="parts-table" id="partsTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>MPD Line</th>
+                <th>Color</th>
+                <th>Part</th>
+                <th>X</th>
+                <th>Y</th>
+                <th>Z</th>
+                <th>Studs</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+          <div class="transform-viz" id="transformViz" style="display: none;"></div>
+        </div>
+      </section>
+
+      <section class="pane studs-pane">
+        <div class="pane-header">
+          <span class="label">Stud Skeleton</span>
+          <span class="sub">Interactive 2D projection with live transforms.</span>
+        </div>
+        <div class="pane-body">
+          <div class="stud-legend" id="studLegend"></div>
+          <div class="canvas-wrap">
+            <canvas id="studCanvas"></canvas>
+          </div>
+          <div class="stud-meta">
+            <span id="metaSelection">No part selected.</span>
+            <span id="metaStudCount"></span>
+          </div>
+          <div class="comparison-view" id="comparisonView" style="display: none;">
+            <div class="comparison-card">
+              <div class="title">Local Space</div>
+              <div class="value" id="localCoords">—</div>
+            </div>
+            <div class="comparison-card">
+              <div class="title">World Space</div>
+              <div class="value" id="worldCoords">—</div>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <script>
+    const mpdSample = \`0 FILE simple_scene.mpd
+0 Name: WAG – Binding Demo
+0 !LDRAW_ORG Model
+0 // Minimal scene to demo binding
+0 // Only type 1 lines are parsed as parts.
+1 1 -60 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+1 4 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 0 60 1 0 0 0 1 0 0 0 1 3001.dat
+\`;
+
+    function parseMpdParts(text) {
+      const lines = text.split(/\r?\n/);
+      const parts = [];
+      lines.forEach((raw, lineIndex) => {
+        const line = raw.trim();
+        if (!line || !line.startsWith('1 ')) return;
+        const tokens = line.split(/\s+/);
+        if (tokens.length < 15) return;
+        const [, color, X, Y, Z,
+          a, b, c, d, e, f, g, h, i,
+          partId] = tokens;
+        parts.push({
+          lineIndex,
+          partIndex: parts.length,
+          color: Number(color),
+          partId,
+          transform: {
+            X: Number(X),
+            Y: Number(Y),
+            Z: Number(Z),
+            m: [
+              Number(a), Number(b), Number(c),
+              Number(d), Number(e), Number(f),
+              Number(g), Number(h), Number(i)
+            ]
+          }
+        });
+      });
+      return { lines, parts };
+    }
+
+    function generateLocalStudsForPart(partId) {
+      const base = [
+        { x: -10, y: 0, z: -10 },
+        { x: 10,  y: 0, z: -10 },
+        { x: 10,  y: 0, z: 10 },
+        { x: -10, y: 0, z: 10 }
+      ];
+      return base;
+    }
+
+    function localToWorld(local, transform) {
+      const { x: u, y: v, z: w } = local;
+      const { X, Y, Z, m } = transform;
+      const [a, b, c, d, e, f, g, h, i] = m;
+      return {
+        x: a * u + b * v + c * w + X,
+        y: d * u + e * v + f * w + Y,
+        z: g * u + h * v + i * w + Z
+      };
+    }
+
+    function quantizeLayer(y) {
+      const plateHeight = 8;
+      const baseOffset = 0;
+      return Math.round((y - baseOffset) / plateHeight);
+    }
+
+    function buildStudSkeleton(parts) {
+      const studs = [];
+      parts.forEach(part => {
+        const locals = generateLocalStudsForPart(part.partId);
+        locals.forEach((local, idx) => {
+          const world = localToWorld(local, part.transform);
+          studs.push({
+            kind: 'stud',
+            lineNum: part.lineIndex,
+            partIndex: part.partIndex,
+            partId: part.partId,
+            studIndex: idx,
+            local,
+            world,
+            layer: quantizeLayer(world.y)
+          });
+        });
+      });
+      return studs;
+    }
+
+    function renderMpdView(lines, parts, selectedLineIndex, dimOthers) {
+      const container = document.getElementById('mpdView');
+      container.innerHTML = '';
+      const partLineSet = new Set(parts.map(p => p.lineIndex));
+      lines.forEach((text, idx) => {
+        const lineEl = document.createElement('div');
+        lineEl.className = 'mpd-line';
+        const isPart = partLineSet.has(idx);
+        if (isPart) lineEl.classList.add('is-part');
+        if (idx === selectedLineIndex) lineEl.classList.add('is-selected');
+        if (dimOthers && selectedLineIndex != null && idx !== selectedLineIndex && isPart) {
+          lineEl.classList.add('dim');
+        }
+        const idxSpan = document.createElement('span');
+        idxSpan.className = 'mpd-line-index';
+        idxSpan.textContent = idx.toString().padStart(2, ' ');
+        const textSpan = document.createElement('span');
+        textSpan.className = 'mpd-line-text';
+        textSpan.textContent = text || ' ';
+        lineEl.appendChild(idxSpan);
+        lineEl.appendChild(textSpan);
+        if (isPart) {
+          const studCount = state.studs.filter(s => s.lineNum === idx).length;
+          const studSpan = document.createElement('span');
+          studSpan.className = 'mpd-line-studs';
+          studSpan.textContent = \`\${studCount} stud\${studCount === 1 ? '' : 's'}\`;
+          lineEl.appendChild(studSpan);
+          lineEl.addEventListener('click', () => {
+            state.selectedLineIndex = idx;
+            syncAll();
+          });
+        }
+        container.appendChild(lineEl);
+      });
+    }
+
+    function renderPartsTable(parts, selectedLineIndex, dimOthers) {
+      const tbody = document.querySelector('#partsTable tbody');
+      tbody.innerHTML = '';
+      parts.forEach(part => {
+        const tr = document.createElement('tr');
+        tr.className = 'part-row';
+        if (part.lineIndex === selectedLineIndex) tr.classList.add('selected');
+        if (dimOthers && selectedLineIndex != null && part.lineIndex !== selectedLineIndex) {
+          tr.classList.add('dim');
+        }
+        const mk = v => {
+          const td = document.createElement('td');
+          td.textContent = v;
+          return td;
+        };
+        tr.appendChild(mk(part.partIndex));
+        tr.appendChild(mk(part.lineIndex));
+        tr.appendChild(mk(part.color));
+        const partTd = mk(part.partId);
+        partTd.classList.add('key');
+        tr.appendChild(partTd);
+        tr.appendChild(mk(part.transform.X));
+        tr.appendChild(mk(part.transform.Y));
+        tr.appendChild(mk(part.transform.Z));
+        const studCount = state.studs.filter(s => s.lineNum === part.lineIndex).length;
+        tr.appendChild(mk(studCount));
+        tr.addEventListener('click', () => {
+          state.selectedLineIndex = part.lineIndex;
+          syncAll();
+        });
+        tbody.appendChild(tr);
+      });
+    }
+
+    function buildColorForPart(partIndex) {
+      const palette = [
+        '#60a5fa', '#f97316', '#22c55e', '#eab308', '#a855f7', '#ec4899'
+      ];
+      return palette[partIndex % palette.length];
+    }
+
+    function renderStudLegend(parts, selectedLineIndex, dimOthers) {
+      const legend = document.getElementById('studLegend');
+      legend.innerHTML = '';
+      parts.forEach(part => {
+        const item = document.createElement('div');
+        item.className = 'legend-item';
+        if (dimOthers && selectedLineIndex != null && part.lineIndex !== selectedLineIndex) {
+          item.classList.add('dim');
+        }
+        const dot = document.createElement('div');
+        dot.className = 'legend-dot';
+        dot.style.background = buildColorForPart(part.partIndex);
+        if (part.lineIndex === selectedLineIndex) {
+          dot.style.boxShadow = '0 0 0 2px rgba(96,165,250,0.8)';
+        }
+        const label = document.createElement('span');
+        label.textContent = \`#\${part.partIndex} (line \${part.lineIndex})\`;
+        item.appendChild(dot);
+        item.appendChild(label);
+        item.addEventListener('click', () => {
+          state.selectedLineIndex = part.lineIndex;
+          syncAll();
+        });
+        legend.appendChild(item);
+      });
+    }
+
+    function renderStudCanvas(studs, parts, selectedLineIndex, rotation, zoom) {
+      const canvas = document.getElementById('studCanvas');
+      const ctx = canvas.getContext('2d');
+      const rect = canvas.getBoundingClientRect();
+      canvas.width = rect.width * window.devicePixelRatio;
+      canvas.height = rect.height * window.devicePixelRatio;
+      ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+      ctx.clearRect(0, 0, rect.width, rect.height);
+
+      if (!studs.length) return;
+
+      const rad = (rotation * Math.PI) / 180;
+      const cos = Math.cos(rad);
+      const sin = Math.sin(rad);
+
+      const rotatedStuds = studs.map(s => {
+        const { x, z } = s.world;
+        return {
+          ...s,
+          rx: x * cos - z * sin,
+          rz: x * sin + z * cos
+        };
+      });
+
+      let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+      rotatedStuds.forEach(s => {
+        if (s.rx < minX) minX = s.rx;
+        if (s.rx > maxX) maxX = s.rx;
+        if (s.rz < minZ) minZ = s.rz;
+        if (s.rz > maxZ) maxZ = s.rz;
+      });
+      const padding = 20;
+      const spanX = (maxX - minX) || 1;
+      const spanZ = (maxZ - minZ) || 1;
+
+      function project(stud) {
+        const xNorm = (stud.rx - minX) / spanX;
+        const zNorm = (stud.rz - minZ) / spanZ;
+        const scale = zoom / 100;
+        const x = rect.width / 2 + (xNorm - 0.5) * (rect.width - padding * 2) * scale;
+        const y = rect.height / 2 + (0.5 - zNorm) * (rect.height - padding * 2) * scale;
+        return { x, y };
+      }
+
+      ctx.save();
+      ctx.strokeStyle = 'rgba(55,65,81,0.5)';
+      ctx.lineWidth = 1;
+      ctx.setLineDash([4, 4]);
+      ctx.strokeRect(padding + 0.5, padding + 0.5, rect.width - padding * 2 - 1, rect.height - padding * 2 - 1);
+      ctx.restore();
+
+      // Draw connections between studs of the same part
+      if (selectedLineIndex != null) {
+        const selectedStuds = rotatedStuds.filter(s => s.lineNum === selectedLineIndex);
+        ctx.save();
+        ctx.strokeStyle = 'rgba(99,102,241,0.3)';
+        ctx.lineWidth = 1;
+        ctx.beginPath();
+        selectedStuds.forEach((s, i) => {
+          const { x, y } = project(s);
+          if (i === 0) ctx.moveTo(x, y);
+          else ctx.lineTo(x, y);
+        });
+        ctx.closePath();
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      rotatedStuds.forEach(stud => {
+        const { x, y } = project(stud);
+        const isSelected = stud.lineNum === selectedLineIndex;
+        const color = buildColorForPart(stud.partIndex);
+        ctx.beginPath();
+        ctx.arc(x, y, isSelected ? 5 : 3, 0, Math.PI * 2);
+        ctx.fillStyle = isSelected ? color : 'rgba(148,163,184,0.4)';
+        ctx.fill();
+        if (isSelected) {
+          ctx.lineWidth = 1;
+          ctx.strokeStyle = 'rgba(15,23,42,0.9)';
+          ctx.stroke();
+        }
+      });
+    }
+
+    function renderTransformViz(part) {
+      const viz = document.getElementById('transformViz');
+      if (!part) {
+        viz.style.display = 'none';
+        return;
+      }
+      const { m, X, Y, Z } = part.transform;
+      viz.style.display = 'block';
+      viz.innerHTML = \`<span class="label">Transform Matrix for Part #\${part.partIndex}:</span>
+| \${m[0].toFixed(1)} \${m[1].toFixed(1)} \${m[2].toFixed(1)} | \${X.toFixed(1)} |
+| \${m[3].toFixed(1)} \${m[4].toFixed(1)} \${m[5].toFixed(1)} | \${Y.toFixed(1)} |
+| \${m[6].toFixed(1)} \${m[7].toFixed(1)} \${m[8].toFixed(1)} | \${Z.toFixed(1)} |
+
+local → world:
+x' = \${m[0]}*x + \${m[1]}*y + \${m[2]}*z + \${X}
+y' = \${m[3]}*x + \${m[4]}*y + \${m[5]}*z + \${Y}
+z' = \${m[6]}*x + \${m[7]}*y + \${m[8]}*z + \${Z}\`;
+    }
+
+    function renderComparison(part) {
+      const view = document.getElementById('comparisonView');
+      const localEl = document.getElementById('localCoords');
+      const worldEl = document.getElementById('worldCoords');
+      
+      if (!part || !state.showComparison) {
+        view.style.display = 'none';
+        return;
+      }
+      
+      view.style.display = 'flex';
+      const firstStud = state.studs.find(s => s.lineNum === part.lineIndex);
+      if (firstStud) {
+        localEl.textContent = \`x: \${firstStud.local.x.toFixed(1)}, y: \${firstStud.local.y.toFixed(1)}, z: \${firstStud.local.z.toFixed(1)}\`;
+        worldEl.textContent = \`x: \${firstStud.world.x.toFixed(1)}, y: \${firstStud.world.y.toFixed(1)}, z: \${firstStud.world.z.toFixed(1)}\`;
+      }
+    }
+
+    const state = {
+      lines: [],
+      parts: [],
+      studs: [],
+      selectedLineIndex: null,
+      rotation: 45,
+      zoom: 100,
+      showFlow: false,
+      showComparison: false,
+      dimOthers: false
+    };
+
+    function syncAll() {
+      renderMpdView(state.lines, state.parts, state.selectedLineIndex, state.dimOthers);
+      renderPartsTable(state.parts, state.selectedLineIndex, state.dimOthers);
+      renderStudLegend(state.parts, state.selectedLineIndex, state.dimOthers);
+      renderStudCanvas(state.studs, state.parts, state.selectedLineIndex, state.rotation, state.zoom);
+      
+      const metaSel = document.getElementById('metaSelection');
+      const metaCount = document.getElementById('metaStudCount');
+      const selectedPart = state.parts.find(p => p.lineIndex === state.selectedLineIndex);
+      
+      if (state.selectedLineIndex == null) {
+        metaSel.textContent = 'No part selected.';
+        renderTransformViz(null);
+        renderComparison(null);
+      } else {
+        if (selectedPart) {
+          const count = state.studs.filter(s => s.lineNum === selectedPart.lineIndex).length;
+          metaSel.innerHTML = \`Selected part <code>#\${selectedPart.partIndex}</code> (line <code>\${selectedPart.lineIndex}</code>, <code>\${selectedPart.partId}</code>) — \${count} studs bound via <code>lineNum</code>.\`;
+          renderTransformViz(selectedPart);
+          renderComparison(selectedPart);
+        }
+      }
+      metaCount.textContent = \`\${state.studs.length} studs total in skeleton.\`;
+
+      // Update flow steps
+      const steps = document.querySelectorAll('.flow-step');
+      steps.forEach((step, i) => {
+        step.classList.toggle('active', state.showFlow && i < 5);
+      });
+    }
+
+    function init() {
+      const { lines, parts } = parseMpdParts(mpdSample);
+      state.lines = mpdSample.split(/\r?\n/);
+      state.parts = parts;
+      state.studs = buildStudSkeleton(parts);
+      state.selectedLineIndex = parts.length ? parts[0].lineIndex : null;
+      
+      // Event listeners
+      const rotSlider = document.getElementById('rotationSlider');
+      const rotValue = document.getElementById('rotationValue');
+      rotSlider.addEventListener('input', (e) => {
+        state.rotation = Number(e.target.value);
+        rotValue.textContent = state.rotation + '°';
+        renderStudCanvas(state.studs, state.parts, state.selectedLineIndex, state.rotation, state.zoom);
+      });
+
+      const zoomSlider = document.getElementById('zoomSlider');
+      const zoomValue = document.getElementById('zoomValue');
+      zoomSlider.addEventListener('input', (e) => {
+        state.zoom = Number(e.target.value);
+        zoomValue.textContent = state.zoom + '%';
+        renderStudCanvas(state.studs, state.parts, state.selectedLineIndex, state.rotation, state.zoom);
+      });
+
+      const flowBtn = document.getElementById('showFlowBtn');
+      flowBtn.addEventListener('click', () => {
+        state.showFlow = !state.showFlow;
+        state.dimOthers = state.showFlow;
+        flowBtn.classList.toggle('active', state.showFlow);
+        document.getElementById('dataFlow').style.display = state.showFlow ? 'flex' : 'none';
+        syncAll();
+      });
+
+      const compareBtn = document.getElementById('compareBtn');
+      compareBtn.addEventListener('click', () => {
+        state.showComparison = !state.showComparison;
+        compareBtn.classList.toggle('active', state.showComparison);
+        renderComparison(state.parts.find(p => p.lineIndex === state.selectedLineIndex));
+      });
+
+      window.addEventListener('resize', () => {
+        renderStudCanvas(state.studs, state.parts, state.selectedLineIndex, state.rotation, state.zoom);
+      });
+
+      syncAll();
+    }
+
+    init();
+  </script>
+</body>
+</html>

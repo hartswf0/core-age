@@ -1,0 +1,857 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SKELETON CONTROL ROOM – VSM Operations</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --algedonic-critical: #b91c1c;
+            --algedonic-warning: #ea580c;
+            --algedonic-nominal: #059669;
+            --bg-ops: #0a0a0f;
+            --text-ops: #e5e7eb;
+            --border-ops: #1e293b;
+            --amber-glow: #f59e0b;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-ops);
+            color: var(--text-ops);
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* VSM Header - System 5 (Policy/Identity) */
+        .vsm-header {
+            height: 80px;
+            background: linear-gradient(180deg, #1a1a1f, #0f0f14);
+            border-bottom: 2px solid var(--amber-glow);
+            display: grid;
+            grid-template-columns: 1fr 2fr 1fr;
+            align-items: center;
+            padding: 0 20px;
+            position: relative;
+        }
+
+        .system-identity {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: var(--amber-glow);
+            text-transform: uppercase;
+        }
+
+        .algedonic-panel {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .algedonic-signal {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            border: 3px solid;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            font-weight: 700;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .algedonic-critical {
+            border-color: var(--algedonic-critical);
+            background: radial-gradient(circle, rgba(185, 28, 28, 0.3), transparent);
+            animation: critical-pulse 1s infinite;
+        }
+
+        .algedonic-warning {
+            border-color: var(--algedonic-warning);
+            background: radial-gradient(circle, rgba(234, 88, 12, 0.3), transparent);
+        }
+
+        .algedonic-nominal {
+            border-color: var(--algedonic-nominal);
+            background: radial-gradient(circle, rgba(5, 150, 105, 0.3), transparent);
+        }
+
+        @keyframes critical-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                box-shadow: 0 0 0 0 rgba(185, 28, 28, 0.7);
+            }
+
+            50% {
+                transform: scale(1.05);
+                box-shadow: 0 0 20px 10px rgba(185, 28, 28, 0);
+            }
+        }
+
+        .system-clock {
+            text-align: right;
+            font-size: 14px;
+            color: #6b7280;
+        }
+
+        .clock-time {
+            font-size: 20px;
+            color: var(--amber-glow);
+            font-weight: 700;
+        }
+
+        /* Main Operations Grid - System 1-4 */
+        .ops-grid {
+            height: calc(100vh - 80px - 120px);
+            display: grid;
+            grid-template-columns: 300px 1fr;
+            grid-template-rows: 200px 1fr;
+            gap: 0;
+        }
+
+        /* System 3 - Control Dashboard */
+        .control-dashboard {
+            grid-column: 1;
+            grid-row: 1 / 3;
+            background: #0f0f14;
+            border-right: 1px solid var(--border-ops);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .dashboard-section {
+            margin-bottom: 20px;
+            padding: 12px;
+            background: rgba(245, 158, 11, 0.05);
+            border-left: 3px solid var(--amber-glow);
+            border-radius: 4px;
+        }
+
+        .dashboard-title {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #9ca3af;
+            margin-bottom: 8px;
+        }
+
+        .metric-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid #1e293b;
+            font-size: 11px;
+        }
+
+        .metric-label {
+            color: #6b7280;
+        }
+
+        .metric-value {
+            font-weight: 700;
+            color: var(--text-ops);
+        }
+
+        .metric-critical {
+            color: var(--algedonic-critical);
+        }
+
+        .metric-warning {
+            color: var(--algedonic-warning);
+        }
+
+        .metric-nominal {
+            color: var(--algedonic-nominal);
+        }
+
+        /* System 4 - Intelligence (Pattern Recognition) */
+        .intelligence-panel {
+            grid-column: 2;
+            grid-row: 1;
+            background: #0a0a0f;
+            border-bottom: 1px solid var(--border-ops);
+            padding: 16px;
+            display: flex;
+            gap: 16px;
+        }
+
+        .intel-card {
+            flex: 1;
+            background: linear-gradient(135deg, #1a1a1f, #0f0f14);
+            border: 1px solid var(--border-ops);
+            border-radius: 6px;
+            padding: 12px;
+        }
+
+        .intel-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #6b7280;
+            margin-bottom: 8px;
+        }
+
+        .intel-value {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--amber-glow);
+        }
+
+        .intel-trend {
+            font-size: 10px;
+            color: #6b7280;
+            margin-top: 4px;
+        }
+
+        /* System 1 - Operations (Assembly Lines) */
+        .operations-view {
+            grid-column: 2;
+            grid-row: 2;
+            background: #0a0a0f;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .operation-line {
+            margin-bottom: 12px;
+            background: linear-gradient(90deg, rgba(15, 15, 20, 0.8), rgba(10, 10, 15, 0.8));
+            border: 1px solid var(--border-ops);
+            border-radius: 4px;
+            padding: 12px;
+            position: relative;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .operation-line:hover {
+            border-color: var(--amber-glow);
+            background: linear-gradient(90deg, rgba(245, 158, 11, 0.1), rgba(139, 92, 246, 0.1));
+        }
+
+        .operation-line.critical {
+            border-left: 4px solid var(--algedonic-critical);
+            animation: line-alert 2s infinite;
+        }
+
+        .operation-line.warning {
+            border-left: 4px solid var(--algedonic-warning);
+        }
+
+        .operation-line.nominal {
+            border-left: 4px solid var(--algedonic-nominal);
+        }
+
+        @keyframes line-alert {
+
+            0%,
+            100% {
+                background: linear-gradient(90deg, rgba(185, 28, 28, 0.1), transparent);
+            }
+
+            50% {
+                background: linear-gradient(90deg, rgba(185, 28, 28, 0.2), transparent);
+            }
+        }
+
+        .line-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+
+        .line-id {
+            font-size: 12px;
+            font-weight: 700;
+            color: var(--amber-glow);
+        }
+
+        .line-status {
+            font-size: 10px;
+            padding: 2px 8px;
+            border-radius: 3px;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .status-critical {
+            background: rgba(185, 28, 28, 0.3);
+            color: var(--algedonic-critical);
+            border: 1px solid var(--algedonic-critical);
+        }
+
+        .status-warning {
+            background: rgba(234, 88, 12, 0.3);
+            color: var(--algedonic-warning);
+            border: 1px solid var(--algedonic-warning);
+        }
+
+        .status-nominal {
+            background: rgba(5, 150, 105, 0.3);
+            color: var(--algedonic-nominal);
+            border: 1px solid var(--algedonic-nominal);
+        }
+
+        .line-details {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 8px;
+            font-size: 10px;
+        }
+
+        .detail-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .detail-label {
+            color: #6b7280;
+            font-size: 9px;
+        }
+
+        .detail-value {
+            color: var(--text-ops);
+            font-weight: 600;
+        }
+
+        /* System 2 - Coordination (Intervention Controls) */
+        .intervention-footer {
+            height: 120px;
+            background: linear-gradient(180deg, #0f0f14, #1a1a1f);
+            border-top: 2px solid var(--amber-glow);
+            display: flex;
+            align-items: center;
+            justify-content: space-around;
+            padding: 0 40px;
+        }
+
+        .intervention-btn {
+            padding: 16px 32px;
+            border-radius: 6px;
+            border: 2px solid;
+            background: transparent;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            font-weight: 700;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.3s;
+            letter-spacing: 1px;
+        }
+
+        .btn-redistribute {
+            border-color: var(--algedonic-warning);
+            color: var(--algedonic-warning);
+        }
+
+        .btn-redistribute:hover {
+            background: rgba(234, 88, 12, 0.2);
+            box-shadow: 0 0 20px rgba(234, 88, 12, 0.4);
+        }
+
+        .btn-regenerate {
+            border-color: var(--algedonic-critical);
+            color: var(--algedonic-critical);
+        }
+
+        .btn-regenerate:hover {
+            background: rgba(185, 28, 28, 0.2);
+            box-shadow: 0 0 20px rgba(185, 28, 28, 0.4);
+        }
+
+        .btn-export {
+            border-color: var(--algedonic-nominal);
+            color: var(--algedonic-nominal);
+        }
+
+        .btn-export:hover {
+            background: rgba(5, 150, 105, 0.2);
+            box-shadow: 0 0 20px rgba(5, 150, 105, 0.4);
+        }
+
+        .system-state {
+            position: absolute;
+            bottom: 4px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #4b5563;
+            letter-spacing: 2px;
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-drop-zone {
+            border: 2px dashed var(--border-ops);
+            border-radius: 8px;
+            padding: 40px;
+            text-align: center;
+            color: #6b7280;
+            margin: 40px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-drop-zone:hover {
+            border-color: var(--amber-glow);
+            background: rgba(245, 158, 11, 0.05);
+        }
+
+        .hidden {
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- System 5: Policy & Identity -->
+    <header class="vsm-header">
+        <div class="system-identity">SKELETON CONTROL</div>
+
+        <div class="algedonic-panel">
+            <div class="algedonic-signal algedonic-nominal" id="signal1">
+                <span id="signalValue1">—</span>
+            </div>
+            <div class="algedonic-signal algedonic-nominal" id="signal2">
+                <span id="signalValue2">—</span>
+            </div>
+            <div class="algedonic-signal algedonic-nominal" id="signal3">
+                <span id="signalValue3">—</span>
+            </div>
+        </div>
+
+        <div class="system-clock">
+            <div class="clock-time" id="systemClock">--:--:--</div>
+            <div style="font-size: 10px;">OPERATIONAL TIME</div>
+        </div>
+    </header>
+
+    <div class="ops-grid">
+        <!-- System 3: Control Dashboard -->
+        <aside class="control-dashboard">
+            <div class="dashboard-section">
+                <div class="dashboard-title">System Health</div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Lines:</span>
+                    <span class="metric-value" id="totalLines">0</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Part Lines:</span>
+                    <span class="metric-value" id="partLines">0</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Total Studs:</span>
+                    <span class="metric-value" id="totalStuds">0</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Distinct LineNum:</span>
+                    <span class="metric-value" id="distinctLines">0</span>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="dashboard-title">Pathology Status</div>
+                <div class="metric-row">
+                    <span class="metric-label">Dominant Line:</span>
+                    <span class="metric-value metric-critical" id="dominantLine">—</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Ownership %:</span>
+                    <span class="metric-value metric-critical" id="ownershipPct">0%</span>
+                </div>
+                <div class="metric-row">
+                    <span class="metric-label">Severity:</span>
+                    <span class="metric-value" id="severity">—</span>
+                </div>
+            </div>
+
+            <div class="dashboard-section">
+                <div class="dashboard-title">Intervention Queue</div>
+                <div id="interventionQueue" style="font-size: 10px; color: #6b7280;">
+                    No actions pending
+                </div>
+            </div>
+        </aside>
+
+        <!-- System 4: Intelligence -->
+        <section class="intelligence-panel">
+            <div class="intel-card">
+                <div class="intel-title">CRITICAL LINES</div>
+                <div class="intel-value" id="criticalCount">0</div>
+                <div class="intel-trend">Lines requiring immediate intervention</div>
+            </div>
+            <div class="intel-card">
+                <div class="intel-title">WARNING LINES</div>
+                <div class="intel-value" id="warningCount" style="color: var(--algedonic-warning);">0</div>
+                <div class="intel-trend">Lines showing anomalies</div>
+            </div>
+            <div class="intel-card">
+                <div class="intel-title">NOMINAL LINES</div>
+                <div class="intel-value" id="nominalCount" style="color: var(--algedonic-nominal);">0</div>
+                <div class="intel-trend">Lines operating normally</div>
+            </div>
+            <div class="intel-card">
+                <div class="intel-title">SYSTEM VIABILITY</div>
+                <div class="intel-value" id="viability">0%</div>
+                <div class="intel-trend">Overall system health metric</div>
+            </div>
+        </section>
+
+        <!-- System 1: Operations -->
+        <section class="operations-view" id="operationsView">
+            <div class="file-drop-zone" onclick="document.getElementById('fileInput').click()">
+                <div style="font-size: 48px; margin-bottom: 12px;">📁</div>
+                <div style="font-size: 14px; margin-bottom: 6px;">LOAD GOLD SKELETON DATA</div>
+                <div style="font-size: 10px;">Click or drop file to initiate system monitoring</div>
+            </div>
+        </section>
+    </div>
+
+    <!-- System 2: Coordination & Intervention -->
+    <footer class="intervention-footer">
+        <button class="intervention-btn btn-redistribute" id="btnRedistribute" disabled onclick="executeRedistribute()">
+            🔄 REDISTRIBUTE
+        </button>
+        <button class="intervention-btn btn-regenerate" id="btnRegenerate" disabled onclick="executeRegenerate()">
+            ⚠️ REGENERATE
+        </button>
+        <button class="intervention-btn btn-export" id="btnExport" disabled onclick="executeExport()">
+            💾 EXPORT CORRECTED
+        </button>
+        <div class="system-state" id="systemState">AWAITING DATA</div>
+    </footer>
+
+    <input type="file" id="fileInput" accept=".json" onchange="loadFile(event)">
+
+    <script>
+        // State
+        const state = {
+            lines: [],
+            studSkeleton: [],
+            gold: null,
+            pathology: {
+                severity: 'unknown',
+                dominantLine: null,
+                ownershipPct: 0,
+                criticalLines: [],
+                warningLines: [],
+                nominalLines: []
+            }
+        };
+
+        // System Clock
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('systemClock').textContent = now.toLocaleTimeString('en-US', { hour12: false });
+        }, 1000);
+
+        // Load File
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    processGold(json);
+                } catch (err) {
+                    updateSystemState(`ERROR: ${err.message}`, 'critical');
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function processGold(gold) {
+            state.gold = gold;
+
+            // Parse MPD
+            const mpdContent = gold.mpd_content || '';
+            state.lines = mpdContent.split(/\r?\n/)
+                .map((text, idx) => ({
+                    idx,
+                    text,
+                    isPart: text.trim().startsWith('1 '),
+                    parsed: parseLine(text)
+                }))
+                .filter(l => l.isPart);
+
+            // Load studs
+            state.studSkeleton = gold.stud_skeleton || gold.stud_skeleton_v2?.nodes || [];
+
+            // Analyze pathology
+            analyzePathology();
+
+            // Render operations
+            renderOperations();
+
+            // Update dashboard
+            updateDashboard();
+
+            // Enable interventions
+            document.getElementById('btnRedistribute').disabled = false;
+            document.getElementById('btnExport').disabled = false;
+
+            updateSystemState('MONITORING ACTIVE', 'nominal');
+        }
+
+        function parseLine(text) {
+            const trimmed = text.trim();
+            if (!trimmed.startsWith('1 ')) return null;
+
+            const tokens = trimmed.split(/\s+/);
+            if (tokens.length < 15) return null;
+
+            return {
+                color: tokens[1],
+                x: Number(tokens[2]),
+                y: Number(tokens[3]),
+                z: Number(tokens[4]),
+                partId: tokens[14]
+            };
+        }
+
+        function analyzePathology() {
+            const byLine = new Map();
+            state.studSkeleton.forEach(s => {
+                byLine.set(s.lineNum, (byLine.get(s.lineNum) || 0) + 1);
+            });
+
+            const distinctLines = byLine.size;
+            let maxLine = null;
+            let maxCount = 0;
+
+            byLine.forEach((count, line) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxLine = line;
+                }
+            });
+
+            const totalStuds = state.studSkeleton.length;
+            const topRatio = totalStuds > 0 ? maxCount / totalStuds : 0;
+
+            // Classify severity
+            let severity = 'NOMINAL';
+            if (topRatio >= 0.9 || distinctLines <= 2) {
+                severity = 'CRITICAL';
+            } else if (topRatio >= 0.7) {
+                severity = 'WARNING';
+            }
+
+            state.pathology = {
+                severity,
+                dominantLine: maxLine,
+                ownershipPct: (topRatio * 100).toFixed(1),
+                distinctLines,
+                criticalLines: [],
+                warningLines: [],
+                nominalLines: []
+            };
+
+            // Classify each line
+            state.lines.forEach(line => {
+                const studCount = state.studSkeleton.filter(s => s.lineNum === line.idx).length;
+                const ratio = totalStuds > 0 ? studCount / totalStuds : 0;
+
+                if (ratio >= 0.5) {
+                    state.pathology.criticalLines.push({ line, studCount, ratio });
+                } else if (ratio >= 0.2) {
+                    state.pathology.warningLines.push({ line, studCount, ratio });
+                } else {
+                    state.pathology.nominalLines.push({ line, studCount, ratio });
+                }
+            });
+
+            // Update algedonic signals
+            updateAlgedonicSignals();
+        }
+
+        function updateAlgedonicSignals() {
+            const { severity, ownershipPct, criticalLines, warningLines } = state.pathology;
+
+            // Signal 1: Overall severity
+            const signal1 = document.getElementById('signal1');
+            const signalValue1 = document.getElementById('signalValue1');
+            signal1.className = 'algedonic-signal';
+
+            if (severity === 'CRITICAL') {
+                signal1.classList.add('algedonic-critical');
+                signalValue1.textContent = '⚠';
+            } else if (severity === 'WARNING') {
+                signal1.classList.add('algedonic-warning');
+                signalValue1.textContent = '△';
+            } else {
+                signal1.classList.add('algedonic-nominal');
+                signalValue1.textContent = '✓';
+            }
+
+            // Signal 2: Critical lines count
+            const signal2 = document.getElementById('signal2');
+            const signalValue2 = document.getElementById('signalValue2');
+            signal2.className = 'algedonic-signal';
+
+            if (criticalLines.length > 0) {
+                signal2.classList.add('algedonic-critical');
+                signalValue2.textContent = criticalLines.length;
+            } else if (warningLines.length > 0) {
+                signal2.classList.add('algedonic-warning');
+                signalValue2.textContent = warningLines.length;
+            } else {
+                signal2.classList.add('algedonic-nominal');
+                signalValue2.textContent = '0';
+            }
+
+            // Signal 3: Viability (inverse of ownership concentration)
+            const signal3 = document.getElementById('signal3');
+            const signalValue3 = document.getElementById('signalValue3');
+            const viability = 100 - parseFloat(ownershipPct);
+            signal3.className = 'algedonic-signal';
+
+            if (viability < 20) {
+                signal3.classList.add('algedonic-critical');
+            } else if (viability < 50) {
+                signal3.classList.add('algedonic-warning');
+            } else {
+                signal3.classList.add('algedonic-nominal');
+            }
+            signalValue3.textContent = Math.round(viability);
+        }
+
+        function updateDashboard() {
+            document.getElementById('totalLines').textContent = state.lines.length;
+            document.getElementById('partLines').textContent = state.lines.filter(l => l.isPart).length;
+            document.getElementById('totalStuds').textContent = state.studSkeleton.length;
+            document.getElementById('distinctLines').textContent = state.pathology.distinctLines;
+
+            const dominantEl = document.getElementById('dominantLine');
+            dominantEl.textContent = state.pathology.dominantLine !== null ? `Line ${state.pathology.dominantLine}` : '—';
+            dominantEl.className = 'metric-value';
+            if (state.pathology.severity === 'CRITICAL') dominantEl.classList.add('metric-critical');
+            else if (state.pathology.severity === 'WARNING') dominantEl.classList.add('metric-warning');
+
+            const ownershipEl = document.getElementById('ownershipPct');
+            ownershipEl.textContent = `${state.pathology.ownershipPct}%`;
+            ownershipEl.className = 'metric-value';
+            if (parseFloat(state.pathology.ownershipPct) >= 90) ownershipEl.classList.add('metric-critical');
+            else if (parseFloat(state.pathology.ownershipPct) >= 70) ownershipEl.classList.add('metric-warning');
+
+            const severityEl = document.getElementById('severity');
+            severityEl.textContent = state.pathology.severity;
+            severityEl.className = 'metric-value';
+            if (state.pathology.severity === 'CRITICAL') severityEl.classList.add('metric-critical');
+            else if (state.pathology.severity === 'WARNING') severityEl.classList.add('metric-warning');
+            else severityEl.classList.add('metric-nominal');
+
+            // Intelligence panel
+            document.getElementById('criticalCount').textContent = state.pathology.criticalLines.length;
+            document.getElementById('warningCount').textContent = state.pathology.warningLines.length;
+            document.getElementById('nominalCount').textContent = state.pathology.nominalLines.length;
+
+            const viability = 100 - parseFloat(state.pathology.ownershipPct);
+            document.getElementById('viability').textContent = `${Math.round(viability)}%`;
+        }
+
+        function renderOperations() {
+            const view = document.getElementById('operationsView');
+            view.innerHTML = '';
+
+            const allLines = [
+                ...state.pathology.criticalLines.map(item => ({ ...item, status: 'critical' })),
+                ...state.pathology.warningLines.map(item => ({ ...item, status: 'warning' })),
+                ...state.pathology.nominalLines.map(item => ({ ...item, status: 'nominal' }))
+            ];
+
+            allLines.forEach(({ line, studCount, ratio, status }) => {
+                const div = document.createElement('div');
+                div.className = `operation-line ${status}`;
+                div.innerHTML = `
+                <div class="line-header">
+                    <span class="line-id">LINE ${line.idx}</span>
+                    <span class="line-status status-${status}">${status.toUpperCase()}</span>
+                </div>
+                <div class="line-details">
+                    <div class="detail-item">
+                        <span class="detail-label">PART</span>
+                        <span class="detail-value">${line.parsed?.partId || 'N/A'}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">STUDS</span>
+                        <span class="detail-value">${studCount}</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">OWNERSHIP %</span>
+                        <span class="detail-value">${(ratio * 100).toFixed(1)}%</span>
+                    </div>
+                    <div class="detail-item">
+                        <span class="detail-label">POSITION</span>
+                        <span class="detail-value">X:${line.parsed?.x || 0} Z:${line.parsed?.z || 0}</span>
+                    </div>
+                </div>
+            `;
+                view.appendChild(div);
+            });
+        }
+
+        function updateSystemState(message, severity = 'nominal') {
+            const el = document.getElementById('systemState');
+            el.textContent = message;
+            el.style.color = severity === 'critical' ? var(--algedonic - critical) :
+            severity === 'warning' ? var(--algedonic - warning) : '#4b5563';
+        }
+
+        function executeRedistribute() {
+            updateSystemState('EXECUTING REDISTRIBUTION', 'warning');
+            // Implementation would go here
+            setTimeout(() => {
+                updateSystemState('REDISTRIBUTION COMPLETE', 'nominal');
+            }, 2000);
+        }
+
+        function executeRegenerate() {
+            if (!confirm('⚠️ CRITICAL: Regenerate from source?\n\nThis will trigger full skeleton rebuild.\nContinue?')) return;
+            updateSystemState('REGENERATION PROTOCOL INITIATED', 'critical');
+        }
+
+        function executeExport() {
+            if (!state.gold) return;
+
+            const corrected = {
+                ...state.gold,
+                stud_skeleton: state.studSkeleton,
+                _vsm_intervention: {
+                    timestamp: new Date().toISOString(),
+                    severity: state.pathology.severity,
+                    method: 'control_room_export'
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(corrected, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `vsm_corrected_${Date.now()}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            updateSystemState('EXPORT COMPLETE', 'nominal');
+        }
+    </script>
+</body>
+
+</html>

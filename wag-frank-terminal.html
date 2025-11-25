@@ -1,0 +1,1034 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG FRANK // ORCHESTRATOR v5 // STANDARDIZED</title>
+    <link rel="stylesheet" href="frank-unified.css">
+    <script src="frank-base.js"></script>
+    <style>
+        :root {
+            /* TERMINAL PALETTE */
+            --bg-void: #020202;
+            --bg-surface: #0a0a0a;
+            --bg-panel: #0f0f0f;
+
+            --line-dim: #222;
+            --line-bright: #444;
+
+            --accent: #0f0;
+            --text-main: #e0e0e0;
+            --text-muted: #666;
+
+            --font-mono: 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        /* SCROLLBARS */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-void);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border: 1px solid #000;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* --- HEADER --- */
+        #header {
+            height: 36px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--line-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--accent);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .status-dot.online {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* --- MAIN AREA --- */
+        #main-area {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+        }
+
+        /* --- 1. GRID SECTION --- */
+        #grid-panel {
+            height: 50%;
+            min-height: 200px;
+            padding: 10px;
+            background: radial-gradient(circle at center, #111 0%, #000 90%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #grid-wrapper {
+            border: 1px solid var(--line-bright);
+            padding: 2px;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #grid-view {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: 42vh;
+            height: 42vh;
+            max-width: 450px;
+            max-height: 450px;
+            gap: 1px;
+            background: #222;
+        }
+
+        .cell {
+            background: #080808;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .cell:hover {
+            z-index: 10;
+            outline: 1px solid #fff;
+        }
+
+        /* Active Link Pulse */
+        .cell.highlight-group {
+            animation: cellPulse 1s infinite;
+            z-index: 5;
+        }
+
+        @keyframes cellPulse {
+            0% {
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            }
+
+            50% {
+                box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+            }
+
+            100% {
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        /* Colored Occupant */
+        .cell.occupied::after {
+            content: '';
+            width: 70%;
+            height: 70%;
+            background-color: var(--item-color, #555);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.4), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 0 5px var(--item-color);
+            border-radius: 2px;
+        }
+
+        .cell-label {
+            position: absolute;
+            bottom: 1px;
+            right: 2px;
+            font-size: 7px;
+            color: #444;
+            pointer-events: none;
+        }
+
+        #grid-tools {
+            width: 100%;
+            max-width: 450px;
+            margin-top: 8px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* Instructions hint */
+        .hint-text {
+            font-size: 9px;
+            opacity: 0.6;
+            text-transform: uppercase;
+        }
+
+        /* --- RESIZER --- */
+        #drag-handle {
+            height: 8px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--line-dim);
+            border-bottom: 1px solid var(--line-dim);
+            cursor: ns-resize;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        #drag-handle:hover,
+        #drag-handle.active {
+            background: #222;
+        }
+
+        #drag-handle::after {
+            content: '::::';
+            color: var(--line-bright);
+            font-size: 10px;
+            letter-spacing: 2px;
+        }
+
+        /* --- 2. CHAT STREAM --- */
+        #chat-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-void);
+            min-height: 150px;
+        }
+
+        #chat-header {
+            padding: 6px 16px;
+            background: var(--bg-panel);
+            border-bottom: 1px solid var(--line-dim);
+            font-size: 10px;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        #chat-stream {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* MESSAGE BUBBLES */
+        .msg {
+            display: flex;
+            flex-direction: column;
+            background: #0b0b0b;
+            border-left: 3px solid var(--item-color, #444);
+            padding: 6px 10px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            margin-right: 5px;
+            position: relative;
+        }
+
+        .msg:hover {
+            background: #151515;
+        }
+
+        .msg.selected {
+            background: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border-left-width: 6px;
+            padding-left: 7px;
+        }
+
+        /* Usage Counter Pill */
+        .usage-pill {
+            float: right;
+            background: #222;
+            color: #777;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+            transition: 0.2s;
+        }
+
+        .msg.selected .usage-pill {
+            color: #fff;
+            background: var(--item-color);
+            text-shadow: 0 0 2px #000;
+        }
+
+        .usage-pill.active {
+            color: var(--text-main);
+            border: 1px solid #444;
+        }
+
+        .color-swatch {
+            width: 8px;
+            height: 8px;
+            background: var(--item-color);
+            display: inline-block;
+            margin-right: 6px;
+            border-radius: 50%;
+            box-shadow: 0 0 5px var(--item-color);
+        }
+
+        .msg-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 9px;
+            color: #666;
+        }
+
+        .msg-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: #ccc;
+            margin-top: 2px;
+        }
+
+        /* System Messages */
+        .msg.type-sys {
+            border-left: none;
+            background: transparent;
+            padding: 2px 0;
+            cursor: default;
+        }
+
+        .msg.type-sys .msg-header {
+            color: var(--accent);
+            font-family: 'Courier New';
+            font-size: 10px;
+        }
+
+        /* --- FOOTER --- */
+        #input-bar {
+            padding: 8px 16px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--line-dim);
+            display: flex;
+            gap: 10px;
+            flex-shrink: 0;
+        }
+
+        .btn {
+            background: #111;
+            border: 1px solid var(--line-bright);
+            color: #aaa;
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+            min-width: 70px;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        /* OVERLAY */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #overlay.active {
+            display: flex;
+        }
+
+        #overlay-box {
+            width: 600px;
+            height: 400px;
+            background: #080808;
+            border: 1px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #333;
+            padding: 10px;
+            resize: none;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header id="header">
+        <div class="brand">
+            <div id="bus-light" class="status-dot" title="Bus Status"></div>
+            WAG FRANK // ORCHESTRATOR
+        </div>
+        <div style="font-size:9px; color:#555;">v5.0 // STANDARDIZED // SCENE MANAGEMENT</div>
+    </header>
+
+    <!-- SCENE SELECTOR -->
+    <div id="scene-bar" class="scene-bar">
+        <div class="scene-selector">
+            <label>◻ SCENE</label>
+            <select id="scene-select">
+                <option value="">Select scene...</option>
+            </select>
+        </div>
+        <div class="scene-actions">
+            <button id="btn-new-scene" class="btn btn-icon">+ NEW</button>
+            <button id="btn-import-scene" class="btn btn-icon">▼ IMPORT</button>
+            <button id="btn-rename-scene" class="btn btn-icon">⚊ RENAME</button>
+            <button id="btn-delete-scene" class="btn btn-icon">✕ DELETE</button>
+        </div>
+    </div>
+
+    <div id="main-area">
+
+        <!-- 1. GRID PANEL -->
+        <div id="grid-panel">
+            <div id="grid-wrapper">
+                <div id="grid-view"></div>
+            </div>
+            <div id="grid-tools">
+                <span id="grid-status">SYSTEM READY</span>
+                <span class="hint-text">Left Click: Paint // Right Click: Clear</span>
+            </div>
+        </div>
+
+        <!-- 2. RESIZER -->
+        <div id="drag-handle" title="Drag to Resize"></div>
+
+        <!-- 3. CHAT PANEL -->
+        <div id="chat-panel">
+            <div id="chat-header">
+                <span>DATA PACKETS</span>
+                <span id="packet-count">0 ITEMS</span>
+            </div>
+            <div id="chat-stream"></div>
+        </div>
+    </div>
+
+    <div id="input-bar">
+        <button id="btn-wipe" class="btn">Wipe Grid</button>
+        <button id="btn-samples" class="btn">Add Samples</button>
+        <div style="flex:1"></div>
+        <button id="btn-view" class="btn">Source</button>
+        <button id="btn-build" class="btn btn-primary">BUILD SCENE</button>
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="overlay">
+        <div id="overlay-box">
+            <div style="color:var(--accent); font-weight:bold;">MPD SOURCE</div>
+            <textarea id="overlay-text" spellcheck="false"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button id="btn-close-overlay" class="btn">Close</button>
+                <button id="btn-send-text" class="btn btn-primary">Send to Grace</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- FRANK BASE INTEGRATION ---
+        let frank; // FrankBase instance
+        const inbox = []; // Legacy inbox array
+        let grid = []; // Legacy grid array
+        let selectedInboxId = null;
+
+        // --- DOM REFERENCES ---
+        const dom = {
+            main: document.getElementById('main-area'),
+            gridPanel: document.getElementById('grid-panel'),
+            handle: document.getElementById('drag-handle'),
+            grid: document.getElementById('grid-view'),
+            chat: document.getElementById('chat-stream'),
+            status: document.getElementById('grid-status'),
+            count: document.getElementById('packet-count'),
+            busLight: document.getElementById('bus-light'),
+            overlay: document.getElementById('overlay'),
+            overlayText: document.getElementById('overlay-text'),
+            sceneSelect: document.getElementById('scene-select')
+        };
+
+        // --- INIT ---
+        function init() {
+            // Initialize FrankBase
+            frank = new FrankBase('terminal');
+
+            // Override hooks
+            frank.onSceneLoad = onSceneLoad;
+            frank.onSceneSwitch = onSceneSwitch;
+            frank.onInboxUpdate = onInboxUpdate;
+
+            // Sync legacy arrays with Frank
+            grid = frank.grid;
+
+            setupResizer();
+            setupGrid();
+            setupUI();
+            setupSceneUI();
+            renderSceneSelector();
+
+            // Frank sets up bus automatically
+            if (frank.messageHandler.bus) {
+                dom.busLight.classList.add('online');
+            }
+
+            // Load active scene
+            frank.loadActiveScene();
+            updateGridFromFrank();
+        }
+
+        // Scene management hooks
+        function onSceneLoad(scene) {
+            addSystemMsg(`SCENE LOADED: ${scene.name}`);
+            updateGridFromFrank();
+            updateInboxFromFrank();
+        }
+
+        function onSceneSwitch(sceneId) {
+            const scene = frank.sceneManager.getScene(sceneId);
+            addSystemMsg(`SWITCHED TO: ${scene.name}`);
+            updateGridFromFrank();
+            updateInboxFromFrank();
+        }
+
+        function onInboxUpdate(packet) {
+            inbox.push(packet);
+            processPacket(packet);
+        }
+
+        // Update grid visual from Frank state
+        function updateGridFromFrank() {
+            frank.grid.forEach((cell, i) => {
+                const div = dom.grid.children[i];
+                if (cell.occupantId) {
+                    const packet = inbox.find(p => p.id === cell.occupantId);
+                    if (packet) {
+                        div.classList.add('occupied');
+                        div.style.setProperty('--item-color', packet.color);
+                    }
+                } else {
+                    div.classList.remove('occupied');
+                    div.style.removeProperty('--item-color');
+                }
+            });
+            updateUsageCounts();
+        }
+
+        // Update inbox from Frank
+        function updateInboxFromFrank() {
+            // Clear and repopulate from Frank's inbox
+            inlet.length = 0;
+            frank.inbox.forEach(p => {
+                if (!inbox.find(existing => existing.id === p.id)) {
+                    inbox.push(p);
+                    renderPacketBubble(p);
+                }
+            });
+        }
+
+        // --- 1. RESIZER LOGIC ---
+        function setupResizer() {
+            let isDragging = false;
+            let startY = 0;
+            let startHeight = 0;
+
+            dom.handle.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startY = e.clientY;
+                startHeight = dom.gridPanel.offsetHeight;
+                dom.handle.classList.add('active');
+                document.body.style.cursor = 'ns-resize';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                e.preventDefault();
+                let newHeight = startHeight + (e.clientY - startY);
+                // Limits
+                const maxH = dom.main.offsetHeight - 100;
+                const minH = 150;
+                if (newHeight > maxH) newHeight = maxH;
+                if (newHeight < minH) newHeight = minH;
+                dom.gridPanel.style.height = `${newHeight}px`;
+                dom.gridPanel.style.flex = 'none';
+            });
+
+            window.addEventListener('mouseup', () => {
+                isDragging = false;
+                dom.handle.classList.remove('active');
+                document.body.style.cursor = 'default';
+            });
+        }
+
+        // --- 2. GRID SETUP & INTERACTION ---
+        function setupGrid() {
+            dom.grid.innerHTML = '';
+            for (let i = 0; i < 81; i++) {
+                const cell = { id: i, label: `${String.fromCharCode(65 + Math.floor(i / 9))}${i % 9 + 1}`, occupantId: null, row: Math.floor(i / 9), col: i % 9 };
+                grid.push(cell);
+
+                const div = document.createElement('div');
+                div.className = 'cell';
+                div.dataset.index = i;
+                div.innerHTML = `<span class="cell-label">${cell.label}</span>`;
+
+                // Left Click: Assign (Paint) or Select
+                div.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) onCellClick(i); // Left click
+                });
+
+                // Right Click: Clear
+                div.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    clearCell(i);
+                });
+
+                dom.grid.appendChild(div);
+            }
+        }
+
+        function onCellClick(idx) {
+            const cell = grid[idx];
+
+            // PAINT MODE: If we have a selected packet, assign it immediately
+            if (selectedInboxId) {
+                assignToCell(idx, selectedInboxId);
+                return;
+            }
+
+            // SELECT MODE: If cell has occupant, select corresponding packet
+            if (cell.occupantId) {
+                selectMessage(cell.occupantId, true); // true = scroll to it
+                dom.status.textContent = `VIEWING: ${cell.label}`;
+            } else {
+                dom.status.textContent = `CELL ${cell.label} (EMPTY)`;
+                highlightGridGroup(null); // clear highlights
+            }
+        }
+
+        function assignToCell(idx, packetId) {
+            const cell = grid[idx];
+            const packet = inbox.find(p => p.id === packetId);
+
+            if (!packet) return;
+
+            // Use Frank's method to handle persistence
+            frank.assignToCell(idx, packetId);
+
+            // Update Grid Visuals
+            const div = dom.grid.children[idx];
+            div.classList.add('occupied');
+            div.style.setProperty('--item-color', packet.color);
+
+            dom.status.innerHTML = `PAINTED <span style="color:${packet.color}">${packet.payload.name}</span> ON ${cell.label}`;
+
+            // Update Counts
+            updateUsageCounts();
+        }
+
+        function clearCell(idx) {
+            const cell = grid[idx];
+            if (!cell.occupantId) return;
+
+            // Use Frank's method to handle persistence
+            frank.clearCell(idx);
+
+            const div = dom.grid.children[idx];
+            div.classList.remove('occupied');
+            div.style.removeProperty('--item-color');
+
+            updateUsageCounts();
+            dom.status.textContent = `CLEARED ${cell.label}`;
+        }
+
+        // --- 3. COLOR & TRACKING ---
+        function getUniqueColor(str) {
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            return `hsl(${Math.abs(hash % 360)}, 85%, 60%)`;
+        }
+
+        function updateUsageCounts() {
+            // Calculate counts
+            const counts = {};
+            grid.forEach(c => {
+                if (c.occupantId) counts[c.occupantId] = (counts[c.occupantId] || 0) + 1;
+            });
+
+            // Update UI
+            inbox.forEach(packet => {
+                const count = counts[packet.id] || 0;
+                const el = document.getElementById(`pill-${packet.id}`);
+                if (el) {
+                    el.textContent = `x${count}`;
+                    if (count > 0) el.classList.add('active');
+                    else el.classList.remove('active');
+                }
+            });
+        }
+
+        function highlightGridGroup(packetId) {
+            // Clear all highlights first
+            const cells = dom.grid.querySelectorAll('.cell');
+            cells.forEach(c => c.classList.remove('highlight-group'));
+
+            if (!packetId) return;
+
+            // Highlight matching cells
+            grid.forEach((c, idx) => {
+                if (c.occupantId === packetId) {
+                    cells[idx].classList.add('highlight-group');
+                }
+            });
+        }
+
+        // --- 4. DATA LOGIC ---
+        function setupBus() {
+            if (bus) {
+                dom.busLight.classList.add('online');
+                bus.onmessage = (e) => onBusMessage(e.data);
+                addSystemMsg('BUS ONLINE: LISTENING...');
+                setInterval(() => bus.postMessage({ kind: 'frank-heartbeat', ts: Date.now() }), 5000);
+            } else {
+                addSystemMsg('BUS OFFLINE (Local Mode)');
+            }
+        }
+
+        function onBusMessage(data) {
+            if (!data || !data.kind) return;
+            processPacket({
+                id: 'msg-' + Date.now() + Math.random(),
+                kind: data.kind,
+                ts: Date.now(),
+                payload: data.payload || {},
+                source: data.source || 'BUS'
+            });
+        }
+
+        function processPacket(packet) {
+            packet.color = getUniqueColor(packet.id);
+            inbox.push(packet);
+            dom.count.textContent = `${inbox.length} PACKETS`;
+
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.id = `msg-${packet.id}`;
+            div.style.setProperty('--item-color', packet.color);
+
+            div.innerHTML = `
+        <div class="msg-header">
+          <span>${packet.kind.toUpperCase().replace('-MPD', '')}</span>
+          <span class="usage-pill" id="pill-${packet.id}">x0</span>
+        </div>
+        <div class="msg-title">
+          <span class="color-swatch"></span>
+          ${packet.payload.name || 'Unknown'}
+        </div>
+      `;
+
+            div.addEventListener('click', () => selectMessage(packet.id));
+            dom.chat.appendChild(div);
+            dom.chat.scrollTop = dom.chat.scrollHeight;
+        }
+
+        function selectMessage(id, scrollTo = false) {
+            selectedInboxId = id;
+
+            // Visual Selection in Chat
+            const allMsgs = dom.chat.querySelectorAll('.msg');
+            allMsgs.forEach(m => m.classList.remove('selected'));
+
+            const el = document.getElementById(`msg-${id}`);
+            if (el) {
+                el.classList.add('selected');
+                if (scrollTo) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            const packet = inbox.find(p => p.id === id);
+
+            // Status Update
+            dom.status.innerHTML = `SELECTED: <span style="color:${packet.color}">${packet.payload.name}</span> // CLICK GRID TO PAINT`;
+
+            // Highlight Grid Matches
+            highlightGridGroup(id);
+        }
+
+        // --- 5. UI HELPERS ---
+        function wipeGrid() {
+            grid.forEach(c => c.occupantId = null);
+            document.querySelectorAll('.cell').forEach(c => {
+                c.classList.remove('occupied', 'highlight-group');
+                c.style.removeProperty('--item-color');
+            });
+            updateUsageCounts();
+            addSystemMsg('GRID WIPED.');
+        }
+
+        function injectSamples() {
+            addSystemMsg('LOADING SAMPLES...');
+            const types = ['minifig-mpd', 'vehicle-mpd', 'prop-mpd'];
+            const names = ['Cyber Scout', 'Red Rover', 'Neon Lamp', 'Mech Unit', 'Data Node'];
+
+            for (let i = 0; i < 8; i++) {
+                setTimeout(() => {
+                    const name = names[i % names.length] + ' ' + (i + 1);
+                    processPacket({
+                        id: 'sample-' + Date.now() + i,
+                        kind: types[i % 3],
+                        ts: Date.now(),
+                        payload: { name: name, mpdLines: ['1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat'] },
+                        source: 'GEN'
+                    });
+                }, i * 100);
+            }
+        }
+
+        function addSystemMsg(text) {
+            const div = document.createElement('div');
+            div.className = 'msg type-sys';
+            div.innerHTML = `<div class="msg-header">> ${text}</div>`;
+            dom.chat.appendChild(div);
+            dom.chat.scrollTop = dom.chat.scrollHeight;
+        }
+
+        // --- SCENE UI FUNCTIONS ---
+        function renderSceneSelector() {
+            const scenes = frank.sceneManager.listScenes();
+            const activeSceneId = frank.sceneManager.activeSceneId;
+
+            dom.sceneSelect.innerHTML = '<option value="">Select scene...</option>';
+
+            scenes.forEach(scene => {
+                const option = document.createElement('option');
+                option.value = scene.id;
+                option.textContent = scene.name;
+                if (scene.id === activeSceneId) {
+                    option.selected = true;
+                }
+                dom.sceneSelect.appendChild(option);
+            });
+        }
+
+        function setupSceneUI() {
+            // Scene selector change
+            dom.sceneSelect.addEventListener('change', (e) => {
+                if (e.target.value) {
+                    frank.switchScene(e.target.value);
+                }
+            });
+
+            // New scene
+            document.getElementById('btn-new-scene').addEventListener('click', () => {
+                const name = prompt('Enter scene name:', `Scene ${frank.sceneManager.getSceneCount() + 1}`);
+                if (name) {
+                    const scene = frank.sceneManager.createScene(name);
+                    frank.switchScene(scene.id);
+                    renderSceneSelector();
+                }
+            });
+
+            // Rename scene
+            document.getElementById('btn-rename-scene').addEventListener('click', () => {
+                const activeScene = frank.sceneManager.getActiveScene();
+                if (!activeScene) {
+                    alert('No scene selected');
+                    return;
+                }
+                const name = prompt('Enter new name:', activeScene.name);
+                if (name) {
+                    frank.sceneManager.updateScene(activeScene.id, { name });
+                    renderSceneSelector();
+                    addSystemMsg(`RENAMED TO: ${name}`);
+                }
+            });
+
+            // Import scene
+            document.getElementById('btn-import-scene').addEventListener('click', () => {
+                const allScenes = frank.sceneManager.getAllScenesAcrossVariants();
+                const otherScenes = allScenes.filter(s => s.isFromOtherVariant);
+
+                if (otherScenes.length === 0) {
+                    alert('No scenes found in other variants');
+                    return;
+                }
+
+                const options = otherScenes.map((s, i) =>
+                    `${i + 1}. ${s.name} (from ${s.sourceVariant})`
+                ).join('\n');
+
+                const choice = prompt(`Select scene to import:\n\n${options}\n\nEnter number:`);
+                const idx = parseInt(choice) - 1;
+
+                if (idx >= 0 && idx < otherScenes.length) {
+                    const selected = otherScenes[idx];
+                    const imported = frank.sceneManager.importSceneFromVariant(selected.id, selected.sourceVariant);
+                    if (imported) {
+                        frank.switchScene(imported.id);
+                        renderSceneSelector();
+                        addSystemMsg(`IMPORTED: ${selected.name} from ${selected.sourceVariant}`);
+                    }
+                }
+            });
+
+            // Delete scene
+            document.getElementById('btn-delete-scene').addEventListener('click', () => {
+                const activeScene = frank.sceneManager.getActiveScene();
+                if (!activeScene) {
+                    alert('No scene selected');
+                    return;
+                }
+                if (frank.sceneManager.getSceneCount() <= 1) {
+                    alert('Cannot delete the only scene');
+                    return;
+                }
+                if (confirm(`Delete scene "${activeScene.name}"?`)) {
+                    frank.sceneManager.deleteScene(activeScene.id);
+                    // Switch to first available scene
+                    const scenes = frank.sceneManager.listScenes();
+                    if (scenes.length > 0) {
+                        frank.switchScene(scenes[0].id);
+                    }
+                    renderSceneSelector();
+                    addSystemMsg(`DELETED: ${activeScene.name}`);
+                }
+            });
+        }
+
+        function setupUI() {
+            document.getElementById('btn-wipe').addEventListener('click', wipeGrid);
+            document.getElementById('btn-samples').addEventListener('click', injectSamples);
+            document.getElementById('btn-view').addEventListener('click', viewSource);
+            document.getElementById('btn-build').addEventListener('click', buildScene);
+            document.getElementById('btn-close-overlay').addEventListener('click', () => dom.overlay.classList.remove('active'));
+            document.getElementById('btn-send-text').addEventListener('click', sendManualText);
+        }
+
+        // --- EXPORT LOGIC ---
+        function compose() {
+            const occupied = grid.filter(c => c.occupantId);
+            if (!occupied.length) return null;
+            const lines = ['0 FILE wag-frank.mpd', '0 Name: WAG FRANK SCENE'];
+            const SPACING = 160;
+            occupied.forEach(cell => {
+                const pack = inbox.find(i => i.id === cell.occupantId);
+                if (!pack) return;
+                const offsetX = (cell.col - 4) * SPACING;
+                const offsetZ = (cell.row - 4) * SPACING;
+                lines.push(`0 STEP`);
+                lines.push(`0 // CELL ${cell.label} :: ${pack.payload.name}`);
+                const mpd = pack.payload.mpdLines || [];
+                mpd.forEach(l => {
+                    const t = l.trim();
+                    if (t.startsWith('1 ')) {
+                        const p = t.split(/\s+/);
+                        if (p.length >= 15) {
+                            p[2] = (parseFloat(p[2]) + offsetX).toFixed(3);
+                            p[4] = (parseFloat(p[4]) + offsetZ).toFixed(3);
+                            lines.push(p.join(' '));
+                        } else lines.push(t);
+                    } else lines.push(t);
+                });
+            });
+            return lines.join('\n');
+        }
+
+        function viewSource() {
+            const txt = compose();
+            dom.overlayText.value = txt || '// GRID EMPTY';
+            dom.overlay.classList.add('active');
+        }
+
+        function buildScene() {
+            const txt = compose();
+            if (!txt) { addSystemMsg('CANNOT BUILD: GRID EMPTY'); return; }
+            if (bus) {
+                bus.postMessage({ kind: 'scene-mpd', source: 'wag-frank', ts: Date.now(), payload: { name: 'FRANK SCENE', mpdLines: txt.split('\n'), mode: 'replace' } });
+                addSystemMsg('SENT TO GRACE.');
+            }
+        }
+
+        function sendManualText() {
+            const txt = dom.overlayText.value;
+            if (bus && txt) bus.postMessage({ kind: 'scene-mpd', source: 'wag-frank', ts: Date.now(), payload: { name: 'MANUAL', mpdLines: txt.split('\n'), mode: 'replace' } });
+            dom.overlay.classList.remove('active');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

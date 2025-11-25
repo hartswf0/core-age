@@ -1,0 +1,524 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LEGOS Auto-Mapper // Code → Visual Blocks</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --secondary: #0088ff;
+            --text: #ccc;
+            --text-dim: #666;
+
+            --func: #c44569;
+            --var: #4ecdc4;
+            --control: #f7931e;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            display: grid;
+            grid-template-columns: 380px 1fr;
+            grid-template-rows: 48px 1fr;
+            overflow: hidden;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            font-size: 10px;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9px;
+            font-weight: bold;
+            border: none;
+            letter-spacing: 0.05em;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-secondary {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        /* Input Panel */
+        .input-panel {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            overflow: auto;
+        }
+
+        .panel-section {
+            margin-bottom: 20px;
+        }
+
+        .section-header {
+            color: var(--accent);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .code-input {
+            width: 100%;
+            min-height: 300px;
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            padding: 12px;
+            border-radius: 3px;
+            resize: vertical;
+        }
+
+        .file-input-btn {
+            width: 100%;
+            padding: 12px;
+            background: var(--panel);
+            border: 2px dashed var(--border);
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 3px;
+            text-align: center;
+            font-size: 9px;
+            transition: all 0.2s;
+        }
+
+        .file-input-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-top: 12px;
+        }
+
+        .stat-box {
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+            border: 1px solid var(--border);
+        }
+
+        .stat-label {
+            font-size: 8px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .stat-value {
+            font-size: 16px;
+            font-weight: bold;
+            color: var(--accent);
+            margin-top: 4px;
+        }
+
+        /* Grid Workspace */
+        .workspace {
+            background: #0c0c0c;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            position: relative;
+        }
+
+        .grid-container {
+            width: fit-content;
+            margin: 0 auto;
+        }
+
+        .construction-grid {
+            display: grid;
+            grid-template-columns: repeat(20, 60px);
+            grid-template-rows: repeat(20, 60px);
+            gap: 2px;
+            position: relative;
+        }
+
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            position: relative;
+        }
+
+        /* Blocks */
+        .placed-block {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 7px;
+            font-weight: 600;
+            padding: 3px;
+            cursor: pointer;
+            position: relative;
+            transition: all 0.2s;
+        }
+
+        .placed-block:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .placed-block.function {
+            background: var(--func);
+            color: #fff;
+        }
+
+        .placed-block.variable {
+            background: var(--var);
+            color: #000;
+        }
+
+        .placed-block.control {
+            background: var(--control);
+            color: #000;
+        }
+
+        .block-icon {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .block-name {
+            font-size: 6px;
+            opacity: 0.9;
+            text-align: center;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            max-width: 100%;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 4px;
+            background: #000;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 12px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: var(--accent);
+            width: 0%;
+            transition: width 0.3s;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">LEGOS AUTO-MAPPER // Code → Visual</div>
+        <button class="btn btn-primary" onclick="parseAndMap()" style="margin-left: auto;">🔍 PARSE & MAP</button>
+        <button class="btn btn-secondary" onclick="clearGrid()">CLEAR</button>
+        <button class="btn btn-secondary" onclick="loadInceptionFile()">LOAD wag-frank-tetrad-inception.html</button>
+    </header>
+
+    <div class="input-panel">
+        <div class="panel-section">
+            <div class="section-header">📥 INPUT SOURCE</div>
+            <textarea class="code-input" id="code-input" placeholder="Paste JavaScript code here, or load a file...">
+// Example function
+function greet(name) {
+    const message = "Hello, " + name;
+    if (message.length > 10) {
+        console.log(message);
+    }
+    return message;
+}
+
+// Example loop
+for (let i = 0; i < 5; i++) {
+    greet("User" + i);
+}
+            </textarea>
+        </div>
+
+        <div class="panel-section">
+            <div class="section-header">📊 ANALYSIS</div>
+            <div class="stat-grid">
+                <div class="stat-box">
+                    <div class="stat-label">Functions</div>
+                    <div class="stat-value" id="stat-functions">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Variables</div>
+                    <div class="stat-value" id="stat-variables">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Control Flow</div>
+                    <div class="stat-value" id="stat-control">0</div>
+                </div>
+                <div class="stat-box">
+                    <div class="stat-label">Blocks</div>
+                    <div class="stat-value" id="stat-total">0</div>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progress"></div>
+            </div>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="grid-container">
+            <div class="construction-grid" id="grid"></div>
+        </div>
+    </div>
+
+    <script>
+        // === INIT GRID ===
+        const gridEl = document.getElementById('grid');
+        const gridSize = 20;
+
+        for (let i = 0; i < gridSize * gridSize; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.index = i;
+            gridEl.appendChild(cell);
+        }
+
+        // === CODE PARSER ===
+        function parseAndMap() {
+            const code = document.getElementById('code-input').value;
+            if (!code.trim()) {
+                alert('Please enter some code!');
+                return;
+            }
+
+            clearGrid();
+            const elements = parseCode(code);
+
+            // Update stats
+            const functions = elements.filter(e => e.type === 'function').length;
+            const variables = elements.filter(e => e.type === 'variable').length;
+            const control = elements.filter(e => e.type === 'control').length;
+
+            document.getElementById('stat-functions').textContent = functions;
+            document.getElementById('stat-variables').textContent = variables;
+            document.getElementById('stat-control').textContent = control;
+            document.getElementById('stat-total').textContent = elements.length;
+
+            // Map to grid
+            mapToGrid(elements);
+        }
+
+        function parseCode(code) {
+            const elements = [];
+            const lines = code.split('\n');
+
+            // Parse functions
+            const functionRegex = /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/g;
+            const arrowFunctionRegex = /(const|let|var)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=\s*\([^)]*\)\s*=>/g;
+
+            let match;
+            while ((match = functionRegex.exec(code)) !== null) {
+                elements.push({
+                    type: 'function',
+                    name: match[1],
+                    icon: 'ƒ'
+                });
+            }
+
+            while ((match = arrowFunctionRegex.exec(code)) !== null) {
+                elements.push({
+                    type: 'function',
+                    name: match[2],
+                    icon: '→'
+                });
+            }
+
+            // Parse variables
+            const varRegex = /(const|let|var)\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*=/g;
+            while ((match = varRegex.exec(code)) !== null) {
+                // Skip arrow functions (already caught)
+                if (!code.substring(match.index).match(/^\s*\([^)]*\)\s*=>/)) {
+                    elements.push({
+                        type: 'variable',
+                        name: match[2],
+                        icon: '📦'
+                    });
+                }
+            }
+
+            // Parse control flow
+            const ifMatches = code.match(/\bif\s*\(/g) || [];
+            ifMatches.forEach((_, i) => {
+                elements.push({
+                    type: 'control',
+                    name: `if_${i}`,
+                    icon: '◇'
+                });
+            });
+
+            const loopMatches = code.match(/\b(for|while)\s*\(/g) || [];
+            loopMatches.forEach((match, i) => {
+                elements.push({
+                    type: 'control',
+                    name: `loop_${i}`,
+                    icon: '⟲'
+                });
+            });
+
+            return elements;
+        }
+
+        function mapToGrid(elements) {
+            if (elements.length === 0) return;
+
+            const maxPerType = Math.ceil(Math.sqrt(elements.length));
+
+            // Group by type
+            const functions = elements.filter(e => e.type === 'function');
+            const variables = elements.filter(e => e.type === 'variable');
+            const controls = elements.filter(e => e.type === 'control');
+
+            let index = 0;
+
+            // Place functions (top section)
+            functions.forEach((elem, i) => {
+                const row = Math.floor(i / 10);
+                const col = i % 10;
+                const gridIndex = row * gridSize + col;
+                placeBlock(gridIndex, elem);
+            });
+
+            // Place variables (middle section)
+            variables.forEach((elem, i) => {
+                const row = 5 + Math.floor(i / 10);
+                const col = i % 10;
+                const gridIndex = row * gridSize + col;
+                placeBlock(gridIndex, elem);
+            });
+
+            // Place control (bottom section)
+            controls.forEach((elem, i) => {
+                const row = 10 + Math.floor(i / 10);
+                const col = i % 10;
+                const gridIndex = row * gridSize + col;
+                placeBlock(gridIndex, elem);
+            });
+
+            // Animate progress
+            animateProgress(elements.length);
+        }
+
+        function placeBlock(index, element) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+            if (!cell) return;
+
+            const block = document.createElement('div');
+            block.className = `placed-block ${element.type}`;
+            block.innerHTML = `
+                <div class="block-icon">${element.icon}</div>
+                <div class="block-name">${element.name}</div>
+            `;
+
+            block.title = `${element.type}: ${element.name}`;
+
+            cell.appendChild(block);
+        }
+
+        function clearGrid() {
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.innerHTML = '';
+            });
+
+            document.getElementById('stat-functions').textContent = '0';
+            document.getElementById('stat-variables').textContent = '0';
+            document.getElementById('stat-control').textContent = '0';
+            document.getElementById('stat-total').textContent = '0';
+            document.getElementById('progress').style.width = '0%';
+        }
+
+        function animateProgress(total) {
+            let current = 0;
+            const interval = setInterval(() => {
+                current += 5;
+                document.getElementById('progress').style.width = Math.min(current, 100) + '%';
+                if (current >= 100) clearInterval(interval);
+            }, 30);
+        }
+
+        // === LOAD FILE ===
+        async function loadInceptionFile() {
+            try {
+                const response = await fetch('/wag-frank-tetrad-inception.html');
+                const text = await response.text();
+
+                // Extract just the JavaScript
+                const scriptMatch = text.match(/<script>([\s\S]*?)<\/script>/);
+                if (scriptMatch) {
+                    document.getElementById('code-input').value = scriptMatch[1];
+                    alert('Loaded wag-frank-tetrad-inception.html! Click "PARSE & MAP" to visualize.');
+                } else {
+                    alert('Could not find JavaScript in file');
+                }
+            } catch (e) {
+                alert('Error loading file: ' + e.message);
+            }
+        }
+
+        // Auto-parse on enter
+        document.getElementById('code-input').addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 'Enter') {
+                parseAndMap();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1368 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – Skeleton Ontology Explorer</title>
+    <style>
+        :root {
+            --bg-void: #050508;
+            --bg-panel: #0f0f16;
+            --text-primary: #e2e8f0;
+            --text-dim: #64748b;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --border-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background-color: var(--bg-void);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--bg-panel);
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--accent-cyan);
+            background: transparent;
+            color: var(--accent-cyan);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #weave-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            background: rgba(5, 5, 8, 0.5);
+            min-width: 280px;
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .col-header {
+            padding: 12px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.8px;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-panel);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .col-header:hover {
+            background: rgba(6, 182, 212, 0.1);
+            color: var(--accent-cyan);
+        }
+
+        .col-header.selected {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border-bottom-color: var(--accent-green);
+        }
+
+        .col-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 4px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .item {
+            margin-bottom: 4px;
+            padding: 8px;
+            background: linear-gradient(135deg, var(--bg-panel), #0a0a12);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-size: 10px;
+            min-height: 60px;
+            height: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .item:hover {
+            border-color: var(--accent-cyan);
+            background: linear-gradient(135deg, #161b22, #1a1a24);
+            z-index: 6;
+            transform: translateY(-1px);
+            box-shadow: 0 2px 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .item.active {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.4);
+            background: linear-gradient(135deg, #1a1a24, #1e1b2e);
+            transform: scale(1.01);
+        }
+
+        .item.pinned {
+            border-color: var(--accent-orange);
+            box-shadow: 0 0 20px rgba(245, 158, 11, 0.5);
+            background: linear-gradient(135deg, #2a1a0a, #1e1410);
+            border-width: 2px;
+        }
+
+        .item.pinned::before {
+            content: '📌';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            font-size: 10px;
+            animation: pin-pulse 1.5s ease-in-out infinite;
+        }
+
+        @keyframes pin-pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.2) rotate(15deg);
+            }
+        }
+
+        .item.selected {
+            border-color: var(--accent-green);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.4);
+        }
+
+        .item.selected::after {
+            content: '✓';
+            position: absolute;
+            top: 4px;
+            left: 4px;
+            width: 18px;
+            height: 18px;
+            background: var(--accent-green);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+        }
+
+        .line-num {
+            position: absolute;
+            top: 4px;
+            right: 6px;
+            font-size: 9px;
+            color: #334155;
+            font-weight: 700;
+        }
+
+        .item.active .line-num {
+            color: var(--accent-purple);
+        }
+
+        /* Column 1: Source */
+        .col-source .item {
+            font-family: 'Courier New', monospace;
+            color: #64748b;
+            word-break: break-all;
+            border-left: 2px solid #334155;
+            font-size: 10px;
+        }
+
+        .col-source .item.active {
+            color: var(--accent-cyan);
+            border-left-color: var(--accent-cyan);
+        }
+
+        .col-source .item.is-part {
+            border-left-color: var(--accent-green);
+            color: #94a3b8;
+        }
+
+        /* Column 2: Template */
+        .part-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: 700;
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .part-id {
+            font-weight: 600;
+            color: var(--text-primary);
+            margin-bottom: 4px;
+            font-size: 10px;
+        }
+
+        .pos-row {
+            display: flex;
+            gap: 6px;
+            font-size: 8px;
+            color: var(--text-dim);
+        }
+
+        .pos-val {
+            color: var(--accent-green);
+        }
+
+        .color-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+            display: inline-block;
+            border: 1px solid #333;
+        }
+
+        /* Column 3: Stud Galaxy */
+        .stud-galaxy-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            font-size: 10px;
+        }
+
+        .stud-count {
+            color: var(--accent-orange);
+            font-weight: 700;
+        }
+
+        .galaxy-canvas {
+            width: 100%;
+            height: 80px;
+            background: #0a0a0f;
+            border-radius: 4px;
+            border: 1px solid #222;
+            cursor: crosshair;
+        }
+
+        .stud-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(5px, 1fr));
+            gap: 2px;
+            max-height: 60px;
+            overflow: hidden;
+        }
+
+        .stud-dot {
+            width: 5px;
+            height: 5px;
+            background: #334155;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .stud-dot:hover {
+            background: var(--accent-orange);
+            transform: scale(2);
+            box-shadow: 0 0 4px var(--accent-orange);
+        }
+
+        /* Column 4: Pathology */
+        .pathology-card {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .metric {
+            display: flex;
+            justify-content: space-between;
+            padding: 4px 0;
+            border-bottom: 1px solid #222;
+            font-size: 10px;
+        }
+
+        .metric-label {
+            color: var(--text-dim);
+        }
+
+        .metric-value {
+            color: var(--text-primary);
+            font-weight: 600;
+        }
+
+        .severity-badge {
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 700;
+            text-align: center;
+            letter-spacing: 0.5px;
+        }
+
+        .severity-healthy {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+            border: 1px solid var(--accent-green);
+        }
+
+        .severity-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--accent-orange);
+            border: 1px solid var(--accent-orange);
+        }
+
+        .severity-critical {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+            border: 1px solid var(--accent-red);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-orange);
+            color: #fff;
+            padding: 6px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .empty-state {
+            padding: 40px 20px;
+            text-align: center;
+            color: var(--text-dim);
+            font-size: 12px;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes slideOut {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(400px);
+                opacity: 0;
+            }
+        }
+
+        /* Improved alignment guides */
+        .column:hover {
+            background: rgba(6, 182, 212, 0.02);
+        }
+
+        .item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            width: 3px;
+            height: 60%;
+            transform: translateY(-50%);
+            background: linear-gradient(180deg, transparent, var(--accent-cyan), transparent);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .item:hover::before,
+        .item.active::before,
+        .item.pinned::before {
+            opacity: 0.6;
+        }
+
+        /* Assembly Line Flow Visualization */
+        .item::after {
+            content: '→';
+            position: absolute;
+            right: -12px;
+            top: 50%;
+            transform: translateY(-50%);
+            font-size: 16px;
+            color: var(--border-color);
+            opacity: 0;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .item:hover::after,
+        .item.active::after,
+        .item.pinned::after {
+            opacity: 0.8;
+            right: -16px;
+            color: var(--accent-cyan);
+            text-shadow: 0 0 8px var(--accent-cyan);
+        }
+
+        /* Horizontal flow lanes */
+        .item {
+            box-shadow: inset 0 1px 0 rgba(6, 182, 212, 0.1), inset 0 -1px 0 rgba(6, 182, 212, 0.1);
+        }
+
+        .item:nth-child(even) {
+            background: linear-gradient(135deg, rgba(15, 15, 22, 0.5), rgba(10, 10, 18, 0.5));
+        }
+
+        .item:nth-child(odd) {
+            background: linear-gradient(135deg, var(--bg-panel), rgba(12, 12, 20, 0.5));
+        }
+
+        .item:hover {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15), rgba(139, 92, 246, 0.15)) !important;
+        }
+
+        .item.active,
+        .item.pinned {
+            background: linear-gradient(90deg, rgba(139, 92, 246, 0.2), rgba(245, 158, 11, 0.2)) !important;
+            box-shadow:
+                inset 0 2px 0 rgba(139, 92, 246, 0.4),
+                inset 0 -2px 0 rgba(139, 92, 246, 0.4),
+                0 0 20px rgba(139, 92, 246, 0.3);
+        }
+
+        /* Flow position indicators */
+        .col-source .item::before {
+            left: -2px;
+            background: linear-gradient(90deg, var(--accent-cyan), transparent);
+            width: 4px;
+        }
+
+        .col-pathology .item::after {
+            content: '✓';
+            right: 6px;
+            font-size: 14px;
+            color: var(--accent-green);
+            opacity: 0;
+        }
+
+        .col-pathology .item:hover::after,
+        .col-pathology .item.active::after,
+        .col-pathology .item.pinned::after {
+            opacity: 1;
+        }
+
+        /* Vertical position matching */
+        .col-content {
+            position: relative;
+        }
+
+        .col-content::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            width: 100%;
+            height: 100%;
+            background: repeating-linear-gradient(0deg,
+                    transparent,
+                    transparent 100px,
+                    rgba(6, 182, 212, 0.05) 100px,
+                    rgba(6, 182, 212, 0.05) 101px);
+            pointer-events: none;
+            z-index: 1;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>WAG · Skeleton Ontology Explorer</h1>
+        <div class="controls">
+            <span style="font-size: 10px; color: var(--text-dim); margin-right: 12px;">
+                💡 Click=Pin | Shift+Click=Range | Ctrl+Click=Multi | Escape=Clear | Ctrl+C=Copy
+            </span>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">📁 Load GOLD</button>
+            <button class="btn" id="fixBtn"
+                style="display:none; border-color: var(--accent-orange); color: var(--accent-orange);"
+                onclick="redistributeAll()">🔄 Fix Pathology</button>
+            <input type="file" id="fileInput" accept=".json" onchange="loadFile(event)">
+        </div>
+    </header>
+
+    <main>
+        <svg id="weave-canvas"></svg>
+        <div id="tooltip" class="tooltip"></div>
+
+        <div class="column col-source">
+            <div class="col-header">
+                <span>⚡</span>
+                <span>MPD Source Layer</span>
+            </div>
+            <div class="col-content" id="col-source"></div>
+        </div>
+
+        <div class="column col-template">
+            <div class="col-header">
+                <span>🧩</span>
+                <span>Template Layer</span>
+            </div>
+            <div class="col-content" id="col-template"></div>
+        </div>
+
+        <div class="column col-galaxy">
+            <div class="col-header">
+                <span>🌌</span>
+                <span>Stud Galaxy Layer</span>
+            </div>
+            <div class="col-content" id="col-galaxy"></div>
+        </div>
+
+        <div class="column col-pathology">
+            <div class="col-header">
+                <span>📊</span>
+                <span>Pathology Layer</span>
+            </div>
+            <div class="col-content" id="col-pathology"></div>
+        </div>
+    </main>
+
+    <script>
+        const state = {
+            lines: [],
+            studSkeleton: [],
+            data: []
+        };
+
+        const tooltip = document.getElementById('tooltip');
+        const svg = document.getElementById('weave-canvas');
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const json = JSON.parse(e.target.result);
+                    processGold(json);
+                } catch (err) {
+                    alert('Error parsing JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function processGold(gold) {
+            const mpdContent = gold.mpd_content || '';
+            state.lines = mpdContent.split(/\r?\n/).map((text, idx) => ({
+                idx,
+                text,
+                isPart: text.trim().startsWith('1 '),
+                parsed: parseLine(text, idx)
+            }));
+
+            state.studSkeleton = gold.stud_skeleton || gold.stud_skeleton_v2?.nodes || [];
+
+            // Process data
+            state.data = state.lines.filter(l => l.isPart).map(line => {
+                const studs = state.studSkeleton.filter(s => s.lineNum === line.idx);
+                return {
+                    line,
+                    studs,
+                    pathology: calculatePathology(studs)
+                };
+            });
+
+            renderAll();
+            checkGlobalPathology();
+        }
+
+        function parseLine(text, idx) {
+            const trimmed = text.trim();
+            if (!trimmed.startsWith('1 ')) return null;
+
+            const tokens = trimmed.split(/\s+/);
+            if (tokens.length < 15) return null;
+
+            return {
+                type: 'part',
+                color: tokens[1],
+                x: Number(tokens[2]),
+                y: Number(tokens[3]),
+                z: Number(tokens[4]),
+                partId: tokens[14]
+            };
+        }
+
+        function calculatePathology(studs) {
+            if (studs.length === 0) return { severity: 'none', metrics: {} };
+
+            const layers = new Set(studs.map(s => s.layer || 0));
+            const gridX = studs.map(s => s.x || 0);
+            const gridZ = studs.map(s => s.z || 0);
+
+            return {
+                severity: 'healthy',
+                metrics: {
+                    count: studs.length,
+                    layers: layers.size,
+                    spanX: Math.max(...gridX) - Math.min(...gridX),
+                    spanZ: Math.max(...gridZ) - Math.min(...gridZ)
+                }
+            };
+        }
+
+        function checkGlobalPathology() {
+            const byLine = new Map();
+            state.studSkeleton.forEach(s => {
+                byLine.set(s.lineNum, (byLine.get(s.lineNum) || 0) + 1);
+            });
+
+            const distinctLines = byLine.size;
+            let maxCount = 0;
+            byLine.forEach(count => { if (count > maxCount) maxCount = count; });
+
+            const topRatio = state.studSkeleton.length > 0 ? maxCount / state.studSkeleton.length : 0;
+
+            if (topRatio >= 0.9 || distinctLines <= 2) {
+                document.getElementById('fixBtn').style.display = 'block';
+            }
+        }
+
+        function renderAll() {
+            const colSource = document.getElementById('col-source');
+            const colTemplate = document.getElementById('col-template');
+            const colGalaxy = document.getElementById('col-galaxy');
+            const colPathology = document.getElementById('col-pathology');
+
+            [colSource, colTemplate, colGalaxy, colPathology].forEach(col => col.innerHTML = '');
+
+            if (state.data.length === 0) {
+                colSource.innerHTML = '<div class="empty-state">Load a GOLD file to explore skeleton ontology</div>';
+                return;
+            }
+
+            state.data.forEach((item, i) => {
+                // Column 1: Source
+                const elSource = document.createElement('div');
+                elSource.className = 'item is-part';
+                elSource.dataset.id = i;
+                elSource.innerHTML = `
+                <span class="line-num">#${item.line.idx}</span>
+                ${item.line.text.substring(0, 60)}${item.line.text.length > 60 ? '...' : ''}
+            `;
+                colSource.appendChild(elSource);
+
+                // Column 2: Template
+                const elTemplate = document.createElement('div');
+                elTemplate.className = 'item';
+                elTemplate.dataset.id = i;
+                elTemplate.innerHTML = `
+                <span class="line-num">#${item.line.idx}</span>
+                <div class="part-header">
+                    <span class="badge">PART</span>
+                    <span class="color-indicator" style="background: ${getColorHex(item.line.parsed.color)}"></span>
+                </div>
+                <div class="part-id">${item.line.parsed.partId}</div>
+                <div class="pos-row">
+                    <span>X:<span class="pos-val">${item.line.parsed.x}</span></span>
+                    <span>Y:<span class="pos-val">${item.line.parsed.y}</span></span>
+                    <span>Z:<span class="pos-val">${item.line.parsed.z}</span></span>
+                </div>
+            `;
+                colTemplate.appendChild(elTemplate);
+
+                // Column 3: Galaxy
+                const elGalaxy = document.createElement('div');
+                elGalaxy.className = 'item';
+                elGalaxy.dataset.id = i;
+
+                if (item.studs.length > 0) {
+                    const canvasId = `galaxy-${i}`;
+                    const useCanvas = item.studs.length > 50;
+
+                    if (useCanvas) {
+                        elGalaxy.innerHTML = `
+                        <span class="line-num">#${item.line.idx}</span>
+                        <div class="stud-galaxy-header">
+                            <span>GALAXY MAP</span>
+                            <span class="stud-count">${item.studs.length}</span>
+                        </div>
+                        <canvas id="${canvasId}" class="galaxy-canvas" width="250" height="80"></canvas>
+                    `;
+                        setTimeout(() => renderGalaxy(canvasId, item.studs), 0);
+                    } else {
+                        const dotsHTML = item.studs.map((s, idx) =>
+                            `<div class="stud-dot" data-idx="${idx}" data-gx="${s.gridX || 0}" data-gz="${s.gridZ || 0}"></div>`
+                        ).join('');
+                        elGalaxy.innerHTML = `
+                        <span class="line-num">#${item.line.idx}</span>
+                        <div class="stud-galaxy-header">
+                            <span>STUD MAP</span>
+                            <span class="stud-count">${item.studs.length}</span>
+                        </div>
+                        <div class="stud-grid">${dotsHTML}</div>
+                    `;
+                    }
+                } else {
+                    elGalaxy.innerHTML = `
+                    <span class="line-num">#${item.line.idx}</span>
+                    <div style="color: #555; font-size: 10px;">No studs</div>
+                `;
+                }
+                colGalaxy.appendChild(elGalaxy);
+
+                // Column 4: Pathology
+                const elPathology = document.createElement('div');
+                elPathology.className = 'item';
+                elPathology.dataset.id = i;
+
+                if (item.pathology.severity !== 'none') {
+                    elPathology.innerHTML = `
+                    <span class="line-num">#${item.line.idx}</span>
+                    <div class="pathology-card">
+                        <div class="severity-badge severity-${item.pathology.severity}">
+                            ${item.pathology.severity.toUpperCase()}
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Studs:</span>
+                            <span class="metric-value">${item.pathology.metrics.count}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Layers:</span>
+                            <span class="metric-value">${item.pathology.metrics.layers}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Span X:</span>
+                            <span class="metric-value">${item.pathology.metrics.spanX.toFixed(0)}</span>
+                        </div>
+                        <div class="metric">
+                            <span class="metric-label">Span Z:</span>
+                            <span class="metric-value">${item.pathology.metrics.spanZ.toFixed(0)}</span>
+                        </div>
+                    </div>
+                `;
+                } else {
+                    elPathology.innerHTML = `
+                    <span class="line-num">#${item.line.idx}</span>
+                    <div style="color: #555; font-size: 10px;">No data</div>
+                `;
+                }
+                colPathology.appendChild(elPathology);
+            });
+
+            setupInteractivity();
+        }
+
+        function renderGalaxy(canvasId, studs) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            const xs = studs.map(s => s.x || 0);
+            const zs = studs.map(s => s.z || 0);
+
+            const minX = Math.min(...xs);
+            const maxX = Math.max(...xs);
+            const minZ = Math.min(...zs);
+            const maxZ = Math.max(...zs);
+
+            const rangeX = (maxX - minX) || 1;
+            const rangeZ = (maxZ - minZ) || 1;
+
+            const pad = 20;
+            const scaleX = (w - pad * 2) / rangeX;
+            const scaleZ = (h - pad * 2) / rangeZ;
+            const scale = Math.min(scaleX, scaleZ);
+
+            const offsetX = w / 2 - (minX + rangeX / 2) * scale;
+            const offsetZ = h / 2 - (minZ + rangeZ / 2) * scale;
+
+            ctx.fillStyle = "#3b82f6";
+            studs.forEach(s => {
+                const px = (s.x || 0) * scale + offsetX;
+                const pz = (s.z || 0) * scale + offsetZ;
+                ctx.fillRect(px, pz, 2, 2);
+            });
+
+            // Hover interaction
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                let nearest = null;
+                let minDist = 10;
+
+                studs.forEach((s, idx) => {
+                    const px = (s.x || 0) * scale + offsetX;
+                    const pz = (s.z || 0) * scale + offsetZ;
+                    const dist = Math.sqrt((px - mx) ** 2 + (pz - my) ** 2);
+
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = { ...s, idx };
+                    }
+                });
+
+                if (nearest) {
+                    tooltip.style.display = 'block';
+                    tooltip.style.left = (e.pageX + 10) + 'px';
+                    tooltip.style.top = (e.pageY - 10) + 'px';
+                    tooltip.innerHTML = `
+                    Idx: ${nearest.idx}<br>
+                    Grid: [${nearest.gridX || 'N/A'}, ${nearest.gridZ || 'N/A'}]<br>
+                    Layer: ${nearest.layer || 0}
+                `;
+                } else {
+                    tooltip.style.display = 'none';
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                tooltip.style.display = 'none';
+            });
+        }
+
+        const pinnedRows = new Set();
+        const selectedRows = new Set();
+        let lastClickedId = null;
+
+        function setupInteractivity() {
+            const items = document.querySelectorAll('.item');
+
+            items.forEach(item => {
+                // Click to pin/select with range support
+                item.addEventListener('click', (e) => {
+                    const id = parseInt(item.dataset.id);
+                    if (isNaN(id)) return;
+
+                    if (e.shiftKey && lastClickedId !== null) {
+                        // Range selection
+                        const start = Math.min(lastClickedId, id);
+                        const end = Math.max(lastClickedId, id);
+                        for (let i = start; i <= end; i++) {
+                            selectedRows.add(i);
+                        }
+                        updateSelectionState();
+                    } else if (e.ctrlKey || e.metaKey) {
+                        // Multi-select toggle
+                        toggleSelection(id);
+                        lastClickedId = id;
+                    } else {
+                        // Pin/unpin single
+                        if (pinnedRows.has(id)) {
+                            pinnedRows.delete(id);
+                        } else {
+                            pinnedRows.clear();
+                            pinnedRows.add(id);
+                        }
+                        updatePinnedState();
+                        lastClickedId = id;
+                    }
+                });
+
+                // Hover effects
+                item.addEventListener('mouseenter', () => {
+                    const id = parseInt(item.dataset.id);
+                    if (!isNaN(id) && !pinnedRows.has(id)) {
+                        highlightRow(id);
+                        drawWeave(id);
+                    }
+                });
+
+                // Right-click context menu
+                item.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    const id = parseInt(item.dataset.id);
+                    if (!isNaN(id)) {
+                        showContextMenu(e, id);
+                    }
+                });
+
+                // Stud dot hover
+                item.querySelectorAll('.stud-dot').forEach(dot => {
+                    dot.addEventListener('mouseenter', (e) => {
+                        tooltip.style.display = 'block';
+                        tooltip.style.left = (e.pageX + 10) + 'px';
+                        tooltip.style.top = (e.pageY - 10) + 'px';
+                        tooltip.innerHTML = `
+                            Idx: ${dot.dataset.idx}<br>
+                            Grid: [${dot.dataset.gx}, ${dot.dataset.gz}]
+                        `;
+                    });
+                    dot.addEventListener('mouseleave', () => {
+                        tooltip.style.display = 'none';
+                    });
+                });
+            });
+
+            // Column header selection
+            document.querySelectorAll('.col-header').forEach((header, colIdx) => {
+                header.addEventListener('click', () => {
+                    toggleColumnSelection(colIdx);
+                });
+            });
+
+            document.querySelector('main').addEventListener('mouseleave', () => {
+                if (pinnedRows.size === 0) {
+                    clearHighlights();
+                    drawWeave(null);
+                }
+                tooltip.style.display = 'none';
+            });
+
+            // Click outside to clear context menu
+            document.addEventListener('click', () => {
+                const menu = document.getElementById('contextMenu');
+                if (menu) menu.remove();
+            });
+
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                // Escape to clear selection
+                if (e.key === 'Escape') {
+                    selectedRows.clear();
+                    pinnedRows.clear();
+                    updateSelectionState();
+                    updatePinnedState();
+                    clearHighlights();
+                    drawWeave(null);
+                }
+
+                // Ctrl+C to copy selected
+                if ((e.ctrlKey || e.metaKey) && e.key === 'c' && selectedRows.size > 0) {
+                    e.preventDefault();
+                    copySelectedRows();
+                }
+
+                // Ctrl+A to select all
+                if ((e.ctrlKey || e.metaKey) && e.key === 'a' && state.data.length > 0) {
+                    e.preventDefault();
+                    for (let i = 0; i < state.data.length; i++) {
+                        selectedRows.add(i);
+                    }
+                    updateSelectionState();
+                }
+            });
+
+            // Click on empty column area to deselect
+            document.querySelectorAll('.col-content').forEach(col => {
+                col.addEventListener('click', (e) => {
+                    if (e.target === col) {
+                        selectedRows.clear();
+                        pinnedRows.clear();
+                        updateSelectionState();
+                        updatePinnedState();
+                    }
+                });
+            });
+        }
+
+        function toggleSelection(id) {
+            if (selectedRows.has(id)) {
+                selectedRows.delete(id);
+            } else {
+                selectedRows.add(id);
+            }
+            updateSelectionState();
+        }
+
+        function toggleColumnSelection(colIdx) {
+            const headers = document.querySelectorAll('.col-header');
+            const allSelected = selectedRows.size === state.data.length;
+
+            if (allSelected) {
+                // Deselect all
+                headers.forEach(h => h.classList.remove('selected'));
+                selectedRows.clear();
+                updateSelectionState();
+            } else {
+                // Select all rows
+                headers.forEach(h => h.classList.add('selected'));
+                for (let i = 0; i < state.data.length; i++) {
+                    selectedRows.add(i);
+                }
+                updateSelectionState();
+            }
+        }
+
+        function copySelectedRows() {
+            if (selectedRows.size === 0) return;
+
+            const selectedData = Array.from(selectedRows).sort((a, b) => a - b).map(id => state.data[id]);
+            const text = selectedData.map(item => JSON.stringify({
+                line: item.line.text,
+                studs: item.studs,
+                pathology: item.pathology
+            }, null, 2)).join('\n\n');
+
+            copyToClipboard(text);
+            showToast(`✅ Copied ${selectedRows.size} row${selectedRows.size > 1 ? 's' : ''} to clipboard!`);
+        }
+
+        function updatePinnedState() {
+            document.querySelectorAll('.item.pinned').forEach(el => el.classList.remove('pinned'));
+
+            pinnedRows.forEach(id => {
+                document.querySelectorAll(`.item[data-id="${id}"]`).forEach(el => {
+                    el.classList.add('pinned');
+                    el.classList.add('active');
+                });
+                drawWeave(id);
+            });
+        }
+
+        function updateSelectionState() {
+            document.querySelectorAll('.item.selected').forEach(el => el.classList.remove('selected'));
+
+            selectedRows.forEach(id => {
+                document.querySelectorAll(`.item[data-id="${id}"]`).forEach(el => {
+                    el.classList.add('selected');
+                });
+            });
+        }
+
+        function showContextMenu(e, id) {
+            const existing = document.getElementById('contextMenu');
+            if (existing) existing.remove();
+
+            const menu = document.createElement('div');
+            menu.id = 'contextMenu';
+            menu.style.cssText = `
+            position: fixed;
+            left: ${e.pageX}px;
+            top: ${e.pageY}px;
+            background: #1e293b;
+            border: 1px solid var(--accent-cyan);
+            border-radius: 6px;
+            padding: 4px;
+            z-index: 1000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            font-size: 11px;
+        `;
+
+            const data = state.data[id];
+            const options = [
+                { label: '📋 Copy Line Text', action: () => copyToClipboard(data.line.text) },
+                { label: '🧩 Copy Template JSON', action: () => copyToClipboard(JSON.stringify(data.line.parsed, null, 2)) },
+                { label: '🌌 Copy Stud Data JSON', action: () => copyToClipboard(JSON.stringify(data.studs, null, 2)) },
+                { label: '📊 Copy Pathology JSON', action: () => copyToClipboard(JSON.stringify(data.pathology, null, 2)) },
+                { label: '📦 Copy All Layer Data', action: () => copyToClipboard(JSON.stringify(data, null, 2)) }
+            ];
+
+            options.forEach(opt => {
+                const btn = document.createElement('div');
+                btn.textContent = opt.label;
+                btn.style.cssText = `
+                padding: 6px 12px;
+                cursor: pointer;
+                border-radius: 4px;
+                transition: all 0.2s;
+            `;
+                btn.addEventListener('mouseenter', () => {
+                    btn.style.background = 'rgba(6, 182, 212, 0.2)';
+                });
+                btn.addEventListener('mouseleave', () => {
+                    btn.style.background = 'transparent';
+                });
+                btn.addEventListener('click', (e) => {
+                    e.stopPropagation();
+                    opt.action();
+                    menu.remove();
+                });
+                menu.appendChild(btn);
+            });
+
+            document.body.appendChild(menu);
+        }
+
+        function copyToClipboard(text) {
+            navigator.clipboard.writeText(text).then(() => {
+                showToast('✅ Copied to clipboard!');
+            }).catch(err => {
+                console.error('Copy failed:', err);
+                showToast('❌ Copy failed');
+            });
+        }
+
+        function showToast(message) {
+            const toast = document.createElement('div');
+            toast.textContent = message;
+            toast.style.cssText = `
+            position: fixed;
+            bottom: 20px;
+            right: 20px;
+            background: rgba(6, 182, 212, 0.9);
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 600;
+            z-index: 2000;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.5);
+            animation: slideIn 0.3s ease-out;
+        `;
+            document.body.appendChild(toast);
+            setTimeout(() => {
+                toast.style.animation = 'slideOut 0.3s ease-out';
+                setTimeout(() => toast.remove(), 300);
+            }, 2000);
+        }
+
+        function highlightRow(id) {
+            clearHighlights();
+            document.querySelectorAll(`.item[data-id="${id}"]`).forEach(el => el.classList.add('active'));
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.item.active').forEach(el => el.classList.remove('active'));
+        }
+
+        function drawWeave(id) {
+            while (svg.lastChild) svg.removeChild(svg.lastChild);
+            if (id === null || isNaN(id)) return;
+
+            const els = [
+                document.querySelector(`#col-source .item[data-id="${id}"]`),
+                document.querySelector(`#col-template .item[data-id="${id}"]`),
+                document.querySelector(`#col-galaxy .item[data-id="${id}"]`),
+                document.querySelector(`#col-pathology .item[data-id="${id}"]`)
+            ];
+
+            if (els.some(el => !el)) return;
+
+            // Draw background flow lane
+            const firstCenter = getCenter(els[0]);
+            const lastCenter = getCenter(els[3]);
+
+            const flowLane = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+            flowLane.setAttribute("x", "0");
+            flowLane.setAttribute("y", firstCenter.y - 45);
+            flowLane.setAttribute("width", "100%");
+            flowLane.setAttribute("height", "90");
+            flowLane.setAttribute("fill", "url(#flowGradient)");
+            flowLane.setAttribute("opacity", "0.3");
+            svg.appendChild(flowLane);
+
+            // Define gradient
+            const defs = document.createElementNS("http://www.w3.org/2000/svg", "defs");
+            const gradient = document.createElementNS("http://www.w3.org/2000/svg", "linearGradient");
+            gradient.setAttribute("id", "flowGradient");
+            gradient.setAttribute("x1", "0%");
+            gradient.setAttribute("x2", "100%");
+
+            const stop1 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+            stop1.setAttribute("offset", "0%");
+            stop1.setAttribute("stop-color", "#06b6d4");
+            stop1.setAttribute("stop-opacity", "0.1");
+
+            const stop2 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+            stop2.setAttribute("offset", "50%");
+            stop2.setAttribute("stop-color", "#8b5cf6");
+            stop2.setAttribute("stop-opacity", "0.2");
+
+            const stop3 = document.createElementNS("http://www.w3.org/2000/svg", "stop");
+            stop3.setAttribute("offset", "100%");
+            stop3.setAttribute("stop-color", "#10b981");
+            stop3.setAttribute("stop-opacity", "0.1");
+
+            gradient.appendChild(stop1);
+            gradient.appendChild(stop2);
+            gradient.appendChild(stop3);
+            defs.appendChild(gradient);
+            svg.appendChild(defs);
+
+            // Draw connection curves (thicker for assembly line effect)
+            for (let i = 0; i < els.length - 1; i++) {
+                const start = getCenter(els[i]);
+                const end = getCenter(els[i + 1]);
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const dist = (end.x - start.x) / 2;
+                const d = `M ${start.x} ${start.y} C ${start.x + dist} ${start.y}, ${end.x - dist} ${end.y}, ${end.x} ${end.y}`;
+
+                path.setAttribute("d", d);
+                path.setAttribute("stroke", i === 0 ? "#06b6d4" : i === 1 ? "#8b5cf6" : "#10b981");
+                path.setAttribute("stroke-width", "3");
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke-linecap", "round");
+                path.style.filter = `drop-shadow(0 0 6px ${i === 0 ? "#06b6d4" : i === 1 ? "#8b5cf6" : "#10b981"})`;
+                svg.appendChild(path);
+            }
+
+            // Add flow direction indicators
+            for (let i = 0; i < els.length - 1; i++) {
+                const start = getCenter(els[i]);
+                const end = getCenter(els[i + 1]);
+                const midX = (start.x + end.x) / 2;
+                const midY = (start.y + end.y) / 2;
+
+                const arrow = document.createElementNS("http://www.w3.org/2000/svg", "polygon");
+                arrow.setAttribute("points", `${midX},${midY - 5} ${midX + 8},${midY} ${midX},${midY + 5}`);
+                arrow.setAttribute("fill", i === 0 ? "#06b6d4" : i === 1 ? "#8b5cf6" : "#10b981");
+                arrow.setAttribute("opacity", "0.8");
+                svg.appendChild(arrow);
+            }
+        }
+
+        function getCenter(el) {
+            const rect = el.getBoundingClientRect();
+            const mainRect = document.querySelector('main').getBoundingClientRect();
+            return {
+                x: rect.left - mainRect.left + rect.width / 2,
+                y: rect.top - mainRect.top + rect.height / 2
+            };
+        }
+
+        function getColorHex(color) {
+            const colors = {
+                0: "#05131D", 1: "#0055BF", 2: "#237841", 4: "#C91A09",
+                6: "#00AA00", 14: "#585858", 15: "#FFFFFF", 16: "#84858C", 72: "#E6E6E6"
+            };
+            return colors[color] || "#888888";
+        }
+
+        function redistributeAll() {
+            // Placeholder for redistribution logic
+            alert('Redistribution would happen here - integrate with existing redistribute logic');
+        }
+
+        // Synchronized scrolling across all columns
+        function setupSynchronizedScrolling() {
+            const columns = document.querySelectorAll('.col-content');
+            let isScrolling = false;
+
+            columns.forEach(column => {
+                column.addEventListener('scroll', function () {
+                    if (isScrolling) return;
+
+                    isScrolling = true;
+                    const scrollTop = this.scrollTop;
+
+                    columns.forEach(otherColumn => {
+                        if (otherColumn !== this) {
+                            otherColumn.scrollTop = scrollTop;
+                        }
+                    });
+
+                    setTimeout(() => { isScrolling = false; }, 10);
+                });
+            });
+        }
+
+        // Initialize synchronized scrolling after render
+        window.addEventListener('load', setupSynchronizedScrolling);
+
+    </script>
+</body>
+
+</html>

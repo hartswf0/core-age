@@ -1,0 +1,1097 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEGO DNA Manual</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #ddd;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-bottom: 2px solid #FFD700;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 16px;
+            font-weight: 700;
+            color: #FFD700;
+            letter-spacing: 1px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 6px;
+        }
+
+        .btn {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: #666;
+            font-size: 16px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.active {
+            background: #FFD700;
+            border-color: #FFD700;
+            color: #000;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page {
+            display: none;
+            padding: 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .card {
+            background: #0d0d0d;
+            border: 2px solid #222;
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+        }
+
+        .dna {
+            background: #000;
+            border: 3px solid #FFD700;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 18px;
+            line-height: 2;
+            overflow-x: auto;
+        }
+
+        .dna-line {
+            display: flex;
+            gap: 12px;
+            margin: 8px 0;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+
+        .dna-box {
+            padding: 8px 16px;
+            border-radius: 6px;
+            font-weight: 700;
+            border: 2px solid;
+            min-width: 60px;
+            text-align: center;
+            font-size: 16px;
+        }
+
+        .type {
+            background: #FF6B9D;
+            border-color: #FF6B9D;
+            color: #000;
+        }
+
+        .color {
+            background: #FFD700;
+            border-color: #FFD700;
+            color: #000;
+        }
+
+        .pos {
+            background: #4ECDC4;
+            border-color: #4ECDC4;
+            color: #000;
+        }
+
+        .rot {
+            background: #A855F7;
+            border-color: #A855F7;
+            color: #000;
+        }
+
+        .file {
+            background: #00FF88;
+            border-color: #00FF88;
+            color: #000;
+        }
+
+        .meta {
+            background: #666;
+            border-color: #666;
+            color: #fff;
+        }
+
+        .label {
+            font-size: 11px;
+            color: #888;
+            text-align: center;
+            margin-top: 4px;
+        }
+
+        .grid-3d {
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 12px;
+            padding: 20px;
+            margin: 16px 0;
+            position: relative;
+        }
+
+        .axis {
+            position: relative;
+            width: 100%;
+            height: 200px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .axis-line {
+            position: absolute;
+            background: #333;
+            transform-origin: center;
+        }
+
+        .x-axis {
+            width: 60%;
+            height: 2px;
+            background: #FF4444;
+        }
+
+        .y-axis {
+            width: 2px;
+            height: 60%;
+            background: #44FF44;
+        }
+
+        .z-axis {
+            width: 50%;
+            height: 2px;
+            background: #4444FF;
+            transform: rotate(-30deg);
+        }
+
+        .axis-label {
+            position: absolute;
+            font-weight: 700;
+            font-size: 20px;
+            padding: 4px 8px;
+            border-radius: 4px;
+        }
+
+        .x-label {
+            right: 10%;
+            color: #FF4444;
+        }
+
+        .y-label {
+            top: 10%;
+            color: #44FF44;
+        }
+
+        .z-label {
+            bottom: 20%;
+            right: 15%;
+            color: #4444FF;
+        }
+
+        .brick-viz {
+            position: absolute;
+            width: 60px;
+            height: 40px;
+            background: #FFD700;
+            border: 3px solid #FFA500;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            transition: all 0.5s;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .rotation-demo {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 16px;
+            margin: 16px 0;
+        }
+
+        .rot-card {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+        }
+
+        .rot-brick {
+            width: 60px;
+            height: 40px;
+            background: #FFD700;
+            border: 3px solid #FFA500;
+            border-radius: 4px;
+            margin: 16px auto;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            transition: all 0.3s;
+        }
+
+        .rot-title {
+            font-size: 14px;
+            font-weight: 700;
+            color: #A855F7;
+            margin-bottom: 8px;
+        }
+
+        .rot-code {
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #0f0;
+            margin-top: 8px;
+        }
+
+        .arrow-3d {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 700;
+        }
+
+        .footer {
+            padding: 12px 16px;
+            background: #0d0d0d;
+            border-top: 1px solid #222;
+            display: flex;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            background: #FFD700;
+            color: #000;
+            transform: scale(0.97);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .simple-text {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+            margin: 12px 0;
+        }
+
+        .big-icon {
+            font-size: 48px;
+            text-align: center;
+            margin: 16px 0;
+        }
+
+        .color-strip {
+            display: flex;
+            gap: 8px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+
+        .color-box {
+            padding: 12px 16px;
+            border-radius: 6px;
+            border: 2px solid;
+            font-weight: 700;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        @media (max-width: 480px) {
+            .dna {
+                font-size: 14px;
+                padding: 12px;
+            }
+
+            .dna-box {
+                font-size: 13px;
+                min-width: 50px;
+                padding: 6px 10px;
+            }
+
+            .brick-viz {
+                width: 50px;
+                height: 35px;
+                font-size: 20px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">🧱 LEGO DNA</div>
+        <div class="nav" id="nav"></div>
+    </div>
+
+    <div class="content" id="content">
+        <!-- STEP 1: THE CODE DNA -->
+        <div class="page active" data-step="1">
+            <div class="card">
+                <div class="big-icon">🧬</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #FFD700;">
+                    Every LEGO piece is code DNA
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">-24</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box rot">1 0 0</div>
+                    <div class="dna-box rot">0 1 0</div>
+                    <div class="dna-box rot">0 0 1</div>
+                    <div class="dna-box file">head.dat</div>
+                </div>
+                <div class="dna-line">
+                    <div class="label">WHAT</div>
+                    <div class="label">COLOR</div>
+                    <div class="label">LEFT↔RIGHT</div>
+                    <div class="label">UP↕DOWN</div>
+                    <div class="label">FRONT↕BACK</div>
+                    <div class="label" style="min-width: 60px;">TWIST</div>
+                    <div class="label" style="min-width: 60px;">TILT</div>
+                    <div class="label" style="min-width: 60px;">SPIN</div>
+                    <div class="label">PART</div>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center;">
+                👆 This is how every LEGO piece is described<br>
+                Each number tells the computer WHERE and HOW to place it
+            </div>
+        </div>
+
+        <!-- STEP 2: POSITION X Y Z -->
+        <div class="page" data-step="2">
+            <div class="card">
+                <div class="big-icon">📍</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #4ECDC4;">
+                    X Y Z = Where the brick goes
+                </div>
+            </div>
+
+            <div class="grid-3d">
+                <div class="axis">
+                    <div class="axis-line x-axis"></div>
+                    <div class="axis-line y-axis"></div>
+                    <div class="axis-line z-axis"></div>
+
+                    <div class="axis-label x-label">X →</div>
+                    <div class="axis-label y-label">Y ↑</div>
+                    <div class="axis-label z-label">Z ↗</div>
+
+                    <div class="brick-viz" id="brick1" style="left: 50%; top: 50%; transform: translate(-50%, -50%);">
+                        🧱
+                    </div>
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">0</div>
+                </div>
+                <div class="dna-line">
+                    <div class="label">X<br>Left(-) Right(+)</div>
+                    <div class="label">Y<br>Down(-) Up(+)</div>
+                    <div class="label">Z<br>Back(-) Front(+)</div>
+                </div>
+            </div>
+
+            <div class="simple-text">
+                <strong style="color: #FF4444;">X</strong> = Left ← → Right<br>
+                <strong style="color: #44FF44;">Y</strong> = Down ↓ ↑ Up<br>
+                <strong style="color: #4444FF;">Z</strong> = Back ↙ ↗ Front
+            </div>
+
+            <div class="dna">
+                <div class="simple-text" style="text-align: center; color: #4ECDC4; font-weight: 700;">EXAMPLES:</div>
+                <div class="dna-line">
+                    <div class="dna-box pos">100</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">0</div>
+                    <span style="color: #888;">→ Move RIGHT 100</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">50</div>
+                    <div class="dna-box pos">0</div>
+                    <span style="color: #888;">→ Move UP 50</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box pos">-50</div>
+                    <div class="dna-box pos">-30</div>
+                    <div class="dna-box pos">75</div>
+                    <span style="color: #888;">→ Left+Down+Front</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: COLORS -->
+        <div class="page" data-step="3">
+            <div class="card">
+                <div class="big-icon">🎨</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #FFD700;">
+                    Color = One number
+                </div>
+            </div>
+
+            <div class="color-strip">
+                <div class="color-box" style="background: #000; border-color: #333; color: #fff;">
+                    0<br>BLACK
+                </div>
+                <div class="color-box" style="background: #0055BF; border-color: #0055BF; color: #fff;">
+                    1<br>BLUE
+                </div>
+                <div class="color-box" style="background: #C91A09; border-color: #C91A09; color: #fff;">
+                    4<br>RED
+                </div>
+                <div class="color-box" style="background: #F2CD37; border-color: #F2CD37; color: #000;">
+                    14<br>YELLOW
+                </div>
+                <div class="color-box" style="background: #FFFFFF; border-color: #ddd; color: #000;">
+                    15<br>WHITE
+                </div>
+                <div class="color-box" style="background: #555; border-color: #555; color: #fff;">
+                    16<br>MAIN
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <span style="color: #888;">← Yellow brick</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">4</div>
+                    <span style="color: #888;">← Red brick</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">1</div>
+                    <span style="color: #888;">← Blue brick</span>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center; margin-top: 20px;">
+                👆 Change the color number = Change the color<br>
+                <span style="color: #666;">Color 16 means "use the main color"</span>
+            </div>
+        </div>
+
+        <!-- STEP 4: ROTATION YAW -->
+        <div class="page" data-step="4">
+            <div class="card">
+                <div class="big-icon">🔄</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #A855F7;">
+                    YAW = Spin left ↺ or right ↻
+                </div>
+            </div>
+
+            <div class="rotation-demo">
+                <div class="rot-card">
+                    <div class="rot-title">NO SPIN</div>
+                    <div class="rot-brick">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 1 0<br>
+                        0 0 1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">SPIN 90° →</div>
+                    <div class="rot-brick" style="transform: rotate(90deg);">🧱</div>
+                    <div class="rot-code">
+                        0 0 1<br>
+                        0 1 0<br>
+                        -1 0 0
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">SPIN 180°</div>
+                    <div class="rot-brick" style="transform: rotate(180deg);">🧱</div>
+                    <div class="rot-code">
+                        -1 0 0<br>
+                        0 1 0<br>
+                        0 0 -1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">SPIN 270° ←</div>
+                    <div class="rot-brick" style="transform: rotate(270deg);">🧱</div>
+                    <div class="rot-code">
+                        0 0 -1<br>
+                        0 1 0<br>
+                        1 0 0
+                    </div>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center; color: #A855F7;">
+                👆 The 9 numbers control rotation<br>
+                Most of the time: <strong>1 0 0 0 1 0 0 0 1</strong> = no rotation
+            </div>
+        </div>
+
+        <!-- STEP 5: ROTATION PITCH -->
+        <div class="page" data-step="5">
+            <div class="card">
+                <div class="big-icon">⤴️</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #A855F7;">
+                    PITCH = Tilt forward ⤵ or back ⤴
+                </div>
+            </div>
+
+            <div class="rotation-demo">
+                <div class="rot-card">
+                    <div class="rot-title">NO TILT</div>
+                    <div class="rot-brick">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 1 0<br>
+                        0 0 1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">TILT FORWARD</div>
+                    <div class="rot-brick" style="transform: rotateX(45deg);">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 0 -1<br>
+                        0 1 0
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">TILT BACK</div>
+                    <div class="rot-brick" style="transform: rotateX(-45deg);">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 0 1<br>
+                        0 -1 0
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">UPSIDE DOWN</div>
+                    <div class="rot-brick" style="transform: rotateX(180deg);">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 -1 0<br>
+                        0 0 -1
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 6: ROTATION ROLL -->
+        <div class="page" data-step="6">
+            <div class="card">
+                <div class="big-icon">🔀</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #A855F7;">
+                    ROLL = Lean left ⤺ or right ⤻
+                </div>
+            </div>
+
+            <div class="rotation-demo">
+                <div class="rot-card">
+                    <div class="rot-title">NO LEAN</div>
+                    <div class="rot-brick">🧱</div>
+                    <div class="rot-code">
+                        1 0 0<br>
+                        0 1 0<br>
+                        0 0 1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">LEAN LEFT</div>
+                    <div class="rot-brick" style="transform: rotateZ(-45deg);">🧱</div>
+                    <div class="rot-code">
+                        0 -1 0<br>
+                        1 0 0<br>
+                        0 0 1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">LEAN RIGHT</div>
+                    <div class="rot-brick" style="transform: rotateZ(45deg);">🧱</div>
+                    <div class="rot-code">
+                        0 1 0<br>
+                        -1 0 0<br>
+                        0 0 1
+                    </div>
+                </div>
+
+                <div class="rot-card">
+                    <div class="rot-title">ON SIDE</div>
+                    <div class="rot-brick" style="transform: rotateZ(90deg);">🧱</div>
+                    <div class="rot-code">
+                        0 1 0<br>
+                        -1 0 0<br>
+                        0 0 1
+                    </div>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center;">
+                💡 <strong>TIP:</strong> For 99% of builds, use:<br>
+                <span style="color: #A855F7; font-family: 'Courier New'; font-size: 18px;">1 0 0 0 1 0 0 0 1</span><br>
+                <span style="color: #666;">Only change rotation for special angles</span>
+            </div>
+        </div>
+
+        <!-- STEP 7: COMPLETE LINE -->
+        <div class="page" data-step="7">
+            <div class="card">
+                <div class="big-icon">🧬</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #FFD700;">
+                    Put it all together
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos">-24</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box rot">1 0 0</div>
+                    <div class="dna-box rot">0 1 0</div>
+                    <div class="dna-box rot">0 0 1</div>
+                    <div class="dna-box file">3626b.dat</div>
+                </div>
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(255,107,157,0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #FF6B9D;">
+                <strong style="color: #FF6B9D;">1</strong> = "Place a part"
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(255,215,0,0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #FFD700;">
+                <strong style="color: #FFD700;">14</strong> = Yellow color
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(78,205,196,0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #4ECDC4;">
+                <strong style="color: #4ECDC4;">0 -24 0</strong> = Position<br>
+                <span style="color: #888;">X=0 (center), Y=-24 (down 24), Z=0 (center)</span>
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(168,85,247,0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #A855F7;">
+                <strong style="color: #A855F7;">1 0 0 0 1 0 0 0 1</strong> = No rotation<br>
+                <span style="color: #888;">Brick sits normally</span>
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(0,255,136,0.1); padding: 12px; border-radius: 8px; border-left: 4px solid #00FF88;">
+                <strong style="color: #00FF88;">3626b.dat</strong> = Part file<br>
+                <span style="color: #888;">This is a minifig head</span>
+            </div>
+        </div>
+
+        <!-- STEP 8: COMMENTS -->
+        <div class="page" data-step="8">
+            <div class="card">
+                <div class="big-icon">💬</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #666;">
+                    Comments = Notes for humans
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">This is a comment</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">The minifig head</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <div class="dna-box pos">0 -24 0</div>
+                    <div class="dna-box rot">1 0 0 0 1 0 0 0 1</div>
+                    <div class="dna-box file">head.dat</div>
+                </div>
+            </div>
+
+            <div class="simple-text"
+                style="background: rgba(255,69,0,0.2); padding: 16px; border-radius: 8px; border: 3px solid #FF4500; text-align: center;">
+                ⚠️ <strong style="color: #FF4500;">NEVER USE //</strong><br>
+                <span style="color: #888;">Only use <strong style="color: #666;">0</strong> at the start</span>
+            </div>
+
+            <div class="dna">
+                <div style="color: #FF4444; margin: 12px 0;">❌ WRONG:</div>
+                <div class="dna-line">
+                    <span style="color: #FF4444;">// This breaks!</span>
+                </div>
+
+                <div style="color: #00FF88; margin: 12px 0;">✅ CORRECT:</div>
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #00FF88;">This works!</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 9: REAL EXAMPLE -->
+        <div class="page" data-step="9">
+            <div class="card">
+                <div class="big-icon">👤</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #FFD700;">
+                    Build a minifig = 4 lines
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">FILE minifig.mpd</span>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Hat (black)</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">0</div>
+                    <div class="dna-box pos">0 -32 0</div>
+                    <div class="dna-box rot">1 0 0 0 1 0 0 0 1</div>
+                    <div class="dna-box file">3624.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Head (yellow)</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <div class="dna-box pos">0 -24 0</div>
+                    <div class="dna-box rot">1 0 0 0 1 0 0 0 1</div>
+                    <div class="dna-box file">3626bp01.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Torso (red)</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">4</div>
+                    <div class="dna-box pos">0 0 0</div>
+                    <div class="dna-box rot">1 0 0 0 1 0 0 0 1</div>
+                    <div class="dna-box file">973c00.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Legs (blue)</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">1</div>
+                    <div class="dna-box pos">0 32 0</div>
+                    <div class="dna-box rot">1 0 0 0 1 0 0 0 1</div>
+                    <div class="dna-box file">970c00.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">NOFILE</span>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center; margin-top: 20px;">
+                👆 4 parts stacked vertically<br>
+                Notice Y changes: -32, -24, 0, 32<br>
+                <span style="color: #4ECDC4;">Higher Y = Higher up</span>
+            </div>
+        </div>
+
+        <!-- STEP 10: GRID POSITIONING -->
+        <div class="page" data-step="10">
+            <div class="card">
+                <div class="big-icon">⊞</div>
+                <div class="simple-text" style="text-align: center; font-size: 18px; font-weight: 700; color: #4ECDC4;">
+                    Multiple bricks = Change X and Z
+                </div>
+            </div>
+
+            <div class="grid-3d">
+                <div class="axis">
+                    <div class="axis-line x-axis"></div>
+                    <div class="axis-line y-axis"></div>
+                    <div class="axis-line z-axis"></div>
+
+                    <div class="axis-label x-label">X →</div>
+                    <div class="axis-label y-label">Y ↑</div>
+                    <div class="axis-label z-label">Z ↗</div>
+
+                    <div class="brick-viz" style="left: 30%; top: 60%; transform: translate(-50%, -50%);">🧱</div>
+                    <div class="brick-viz"
+                        style="left: 50%; top: 50%; transform: translate(-50%, -50%); background: #FF4444; border-color: #CC0000;">
+                        🧱</div>
+                    <div class="brick-viz"
+                        style="left: 70%; top: 40%; transform: translate(-50%, -50%); background: #4444FF; border-color: #0000CC;">
+                        🧱</div>
+                </div>
+            </div>
+
+            <div class="dna">
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Brick 1 - Left</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">14</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">-160</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">-160</div>
+                    <div class="dna-box file">3001.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Brick 2 - Center</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">4</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">0</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">0</div>
+                    <div class="dna-box file">3001.dat</div>
+                </div>
+
+                <div style="height: 12px;"></div>
+
+                <div class="dna-line">
+                    <div class="dna-box meta">0</div>
+                    <span style="color: #888;">Brick 3 - Right</span>
+                </div>
+                <div class="dna-line">
+                    <div class="dna-box type">1</div>
+                    <div class="dna-box color">1</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">160</div>
+                    <div class="dna-box pos">0</div>
+                    <div class="dna-box pos" style="background: #FF6B9D; border-color: #FF6B9D;">160</div>
+                    <div class="dna-box file">3001.dat</div>
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center; margin-top: 20px;">
+                <span style="color: #4ECDC4; font-weight: 700;">X and Z control left-right and front-back</span><br>
+                <span style="color: #666;">160 units apart = FRANK grid spacing</span>
+            </div>
+        </div>
+
+        <!-- STEP 11: YOU'RE READY -->
+        <div class="page" data-step="11">
+            <div class="card" style="background: rgba(255,215,0,0.05); border-color: #FFD700;">
+                <div class="big-icon">🎉</div>
+                <div class="simple-text" style="text-align: center; font-size: 20px; font-weight: 700; color: #FFD700;">
+                    You understand LEGO DNA!
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="simple-text" style="font-size: 18px; font-weight: 700; margin-bottom: 16px;">
+                    Remember:
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(255,107,157,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #FF6B9D;">1</strong> = Place a part
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(255,215,0,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #FFD700;">Color</strong> = One number (0-255)
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(78,205,196,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #4ECDC4;">X Y Z</strong> = Where (Left-Right, Down-Up, Back-Front)
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(168,85,247,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #A855F7;">9 numbers</strong> = Rotation (usually 1 0 0 0 1 0 0 0 1)
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(0,255,136,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #00FF88;">part.dat</strong> = Which LEGO piece
+                </div>
+
+                <div class="simple-text"
+                    style="background: rgba(102,102,102,0.1); padding: 12px; border-radius: 8px; margin: 8px 0;">
+                    <strong style="color: #666;">0</strong> = Comment (never use //)
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="simple-text" style="text-align: center; font-size: 16px; line-height: 2;">
+                    <strong style="color: #FFD700;">SWISS</strong> = Build parts<br>
+                    <strong style="color: #4ECDC4;">FRANK</strong> = Arrange on grid<br>
+                    <strong style="color: #A855F7;">GRACE</strong> = See in 3D
+                </div>
+            </div>
+
+            <div class="simple-text" style="text-align: center; margin-top: 20px; font-size: 18px;">
+                🧱 Now go build! 🧱
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="nav-btn" id="prev" onclick="changeStep(-1)">← Prev</button>
+        <button class="nav-btn" id="next" onclick="changeStep(1)">Next →</button>
+    </div>
+
+    <script>
+        let step = 1;
+        const total = 11;
+
+        function init() {
+            const nav = document.getElementById('nav');
+            for (let i = 1; i <= total; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (i === 1 ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => goTo(i);
+                nav.appendChild(btn);
+            }
+        }
+
+        function goTo(n) {
+            step = n;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-step="${n}"]`).classList.add('active');
+
+            document.querySelectorAll('.btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === n);
+            });
+
+            document.getElementById('prev').disabled = n === 1;
+            document.getElementById('next').disabled = n === total;
+
+            document.getElementById('content').scrollTop = 0;
+        }
+
+        function changeStep(d) {
+            const n = step + d;
+            if (n >= 1 && n <= total) goTo(n);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') changeStep(-1);
+            if (e.key === 'ArrowRight') changeStep(1);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

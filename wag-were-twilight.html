@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>✨</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/math/ConvexHull.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/geometries/ConvexGeometry.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            --bg: #0a0b10;
+            --panel: #111216;
+            --border: #2a2b30;
+            --accent: #ffcc00;
+            /* Construction Yellow */
+            --text: #e0e0e0;
+            --measure-x: #ff4444;
+            --measure-y: #44ff44;
+            --measure-z: #4444ff;
+            --grid-maj: #00ffff;
+            --grid-min: #003344;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- 3D VIEWPORT --- */
+        #viewport {
+            height: 50vh;
+            width: 100%;
+            background: linear-gradient(180deg, #1a1b20 0%, #050505 100%);
+            position: relative;
+            z-index: 1;
+            border-bottom: 1px solid var(--accent);
+        }
+
+        /* --- HUD --- */
+        #hud-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .hud-tag {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 2px 6px;
+            font-size: 10px;
+            border-radius: 2px;
+            transform: translate(-50%, -50%);
+            display: none;
+            /* JS toggles this */
+        }
+
+        /* --- EDITOR --- */
+        #editor-container {
+            height: 50vh;
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            z-index: 10;
+        }
+
+        /* Header/Toolbar */
+        .toolbar {
+            height: 36px;
+            background: #1a1a1a;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-weight: 800;
+            color: var(--accent);
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+
+        .status {
+            font-size: 10px;
+            color: #666;
+        }
+
+        /* Code List */
+        #code-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 60px;
+        }
+
+        .line-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            font-size: 12px;
+            height: 44px;
+            background: var(--panel);
+            transition: background 0.1s;
+        }
+
+        .line-row.selected {
+            background: rgba(255, 204, 0, 0.08);
+            border-left: 2px solid var(--accent);
+        }
+
+        /* Checkbox */
+        .checkbox {
+            width: 34px;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-right: 1px solid var(--border);
+            cursor: pointer;
+            color: #444;
+            font-size: 14px;
+        }
+
+        .line-row.selected .checkbox {
+            color: var(--accent);
+            text-shadow: 0 0 8px var(--accent);
+        }
+
+        .gutter {
+            width: 28px;
+            text-align: center;
+            color: #555;
+            font-size: 9px;
+            user-select: none;
+            border-right: 1px solid #1a1a1a;
+        }
+
+        /* Token Scroller */
+        .tokens {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            gap: 6px;
+            padding: 0 8px;
+            height: 100%;
+            scrollbar-width: none;
+        }
+
+        .tokens::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* --- DIALS --- */
+        .dial {
+            padding: 3px 6px;
+            background: #222;
+            border: 1px solid #333;
+            border-radius: 2px;
+            min-width: 36px;
+            text-align: center;
+            cursor: ns-resize;
+            flex-shrink: 0;
+            user-select: none;
+            font-size: 11px;
+            touch-action: none;
+            /* Anti-Surf */
+        }
+
+        .dial:hover {
+            border-color: #555;
+        }
+
+        .dial.dragging {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            transform: scale(1.1);
+            z-index: 99;
+        }
+
+        /* Syntax Colors */
+        .val-x {
+            color: var(--measure-x);
+        }
+
+        .val-y {
+            color: var(--measure-y);
+        }
+
+        .val-z {
+            color: var(--measure-z);
+        }
+
+        .val-c {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .val-m {
+            color: #888;
+            font-size: 10px;
+        }
+
+        .lbl {
+            font-size: 8px;
+            opacity: 0.6;
+            margin-right: 3px;
+        }
+
+        .part-name {
+            color: var(--accent);
+            font-style: italic;
+            margin-left: 8px;
+            white-space: nowrap;
+        }
+
+        /* --- OVERLAYS --- */
+        #raw-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #111;
+            color: var(--accent);
+            border: 1px solid #333;
+            padding: 10px;
+            font-family: monospace;
+        }
+
+        .btn-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        button {
+            flex: 1;
+            padding: 10px;
+            background: #222;
+            color: #fff;
+            border: 1px solid #444;
+            cursor: pointer;
+        }
+
+        button.primary {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+            font-weight: bold;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="viewport">
+        <div id="hud-layer"></div>
+    </div>
+
+    <div id="editor-container">
+        <div class="toolbar">
+            <div class="brand">WAG MASTER BUILDER</div>
+            <div class="status" id="status-msg">READY</div>
+            <div style="display:flex; gap:10px">
+                <span onclick="toggleRaw()" style="cursor:pointer">📄 EDIT RAW</span>
+                <span onclick="toggleJson()" style="cursor:pointer">📦 JSON</span>
+                <span onclick="toggleBones()" style="cursor:pointer">🦴 BONES</span>
+                <span onclick="toggleHull()" style="cursor:pointer; color: #ff00ff;">🕸️ HULL</span>
+                <span onclick="toggleStuds()" style="cursor:pointer">⚪ ORBS</span>
+                <span onclick="toggleStudsNormal()" style="cursor:pointer">🔵</span>
+                <span onclick="toggleStudsProblem()" style="cursor:pointer">🔴</span>
+                <span onclick="toggleStudsGhost()" style="cursor:pointer">🟢</span>
+                <span onclick="exportLDraw()" style="cursor:pointer; color:var(--accent)">📋 EXPORT</span>
+                <span onclick="takeScreenshot()" style="cursor:pointer" title="Screenshot">📷</span>
+            </div>
+        </div>
+        <div id="code-scroll"></div>
+    </div>
+
+    <div id="raw-overlay">
+        <h3 style="color:var(--accent); margin-top:0">MPD SOURCE</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div class="btn-group">
+            <button class="primary" onclick="loadRaw()">LOAD SCENE</button>
+            <button onclick="toggleRaw()">CANCEL</button>
+        </div>
+    </div>
+
+    <div id="json-overlay"
+        style="position:absolute; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:210; display:none; flex-direction:column; padding:20px;">
+        <h3 style="color:var(--accent); margin-top:0">JSON SOURCE (GOLD or stud_skeleton)</h3>
+        <textarea id="json-text" spellcheck="false"></textarea>
+        <div class="btn-group">
+            <button class="primary" onclick="loadJson()">LOAD JSON</button>
+            <button onclick="toggleJson()">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        // --- 1. PRODUCTION DATA STRUCTURE ---
+        // The "Master" MPD string
+        const DEFAULT_MPD = `0 FILE wag_master_scene.mpd
+0 Name: WAG Master Calibration
+0 Author: System
+0 !LDRAW_ORG Model
+0 // BASEPLATE (Y=0)
+1 15 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // STACK COLUMN
+1 4 -40 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 -40 -48 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 -40 -72 0 1 0 0 0 1 0 0 0 1 3001.dat
+0 // ROTATED ELEMENT
+1 14 40 -24 40 0.707 0 -0.707 0 1 0 0.707 0 0.707 3001.dat`;
+
+        let state = {
+            lines: [],
+            audioReady: false,
+            showBones: true,
+            showStuds: true,
+            showStudsNormal: true,
+            showStudsProblem: true,
+            showStudsGhost: true,
+            showHull: false, // New State
+            studs: [],
+            lineColors: {}
+        };
+
+        // --- 2. AUDIO ENGINE (Precision Feedback) ---
+        let synth, membrane;
+        async function initAudio() {
+            if (state.audioReady) return;
+            await Tone.start();
+
+            // High precision click
+            synth = new Tone.Synth({
+                oscillator: { type: "square" },
+                envelope: { attack: 0.001, decay: 0.05, sustain: 0, release: 0.01 }
+            }).toDestination();
+            synth.volume.value = -20;
+
+            // Floor Thud
+            membrane = new Tone.MembraneSynth().toDestination();
+            membrane.volume.value = -10;
+
+            state.audioReady = true;
+        }
+        function sfxTick() { if (state.audioReady) synth.triggerAttackRelease("C6", "32n"); }
+        function sfxSnap() { if (state.audioReady) synth.triggerAttackRelease("G5", "32n"); }
+        function sfxThud() { if (state.audioReady) membrane.triggerAttackRelease("C1", "16n"); }
+
+        // --- 3. PARSER & COMPILER ---
+        function parseMPD(text) {
+            state.lines = text.split('\n').map((raw, idx) => {
+                raw = raw.trim();
+                if (!raw) return { id: idx, isPart: false, raw: "", selected: false };
+
+                const parts = raw.split(/\s+/);
+                // LDraw Type 1: Part
+                if (parts[0] === '1' && parts.length >= 14) {
+                    return {
+                        id: idx,
+                        isPart: true,
+                        color: parseInt(parts[1]),
+                        x: parseFloat(parts[2]),
+                        y: parseFloat(parts[3]),
+                        z: parseFloat(parts[4]),
+                        matrix: parts.slice(5, 14).map(parseFloat),
+                        file: parts.slice(14).join(' '),
+                        raw: raw,
+                        selected: false
+                    };
+                }
+                return { id: idx, isPart: false, raw: raw, selected: false };
+            });
+
+            // Select first part
+            const first = state.lines.find(l => l.isPart);
+            if (first) first.selected = true;
+        }
+
+        function buildLineColorsFromMpd(text) {
+            const map = {};
+            if (typeof text !== 'string') return map;
+            text.split('\n').forEach((raw, idx) => {
+                const line = raw.trim();
+                if (!line) return;
+                const parts = line.split(/\s+/);
+                if (parts[0] === '1' && parts.length >= 2) {
+                    const c = parseInt(parts[1], 10);
+                    if (!isNaN(c)) map[idx + 1] = c; // Courage lineNum is 1-based
+                }
+            });
+            return map;
+        }
+
+        function compileLine(line) {
+            if (line.isPart) {
+                // Format floats to 3 decimals for cleanliness
+                const fmt = n => Math.round(n * 1000) / 1000;
+                const m = line.matrix.map(fmt);
+                line.raw = `1 ${line.color} ${fmt(line.x)} ${fmt(line.y)} ${fmt(line.z)} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        // --- 4. THREE.JS VISUALIZER ---
+        const scene = new THREE.Scene();
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight * 0.5), 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setPixelRatio(window.devicePixelRatio); // Crispness
+
+        // SETUP
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.5);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+        scene.background = new THREE.Color(0x0a0b10); // Dark technical blue-black
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(120, 150, 120);
+        camera.lookAt(0, 0, 0);
+
+        // SCENE ROOT - The Coordinate Flip
+        // LDraw Y is Down. ThreeJS Y is Up. We apply the flip here.
+        const worldRoot = new THREE.Group();
+        worldRoot.scale.set(1, -1, 1);
+        const bricksRoot = new THREE.Group();
+        const hullRoot = new THREE.Group();
+
+        const bonesRoot = new THREE.Group();
+        const studsRoot = new THREE.Group();
+        worldRoot.add(bricksRoot);
+        worldRoot.add(bonesRoot);
+        worldRoot.add(studsRoot);
+        worldRoot.add(hullRoot);
+        scene.add(worldRoot);
+
+        // ENVIRONMENT
+        // 1. Main Grid (Cyan) - At Y=0
+        const grid = new THREE.GridHelper(400, 20, 0x00ffff, 0x003344);
+        grid.position.y = 0;
+        scene.add(grid); // Add to Scene (not worldRoot) so it stays "Upright"
+
+        // 2. Floor Plane (Collision Visualizer)
+        const floorGeo = new THREE.PlaneGeometry(400, 400);
+        const floorMat = new THREE.MeshBasicMaterial({ color: 0xff0000, transparent: true, opacity: 0, side: THREE.DoubleSide });
+        const floorPlane = new THREE.Mesh(floorGeo, floorMat);
+        floorPlane.rotation.x = -Math.PI / 2;
+        floorPlane.position.y = -0.5; // Just below grid
+        scene.add(floorPlane);
+
+        // 3. Mist (Depth)
+        const mistGroup = new THREE.Group();
+        const mistMat = new THREE.SpriteMaterial({ color: 0x00ffff, transparent: true, opacity: 0.1 });
+        for (let i = 0; i < 100; i++) {
+            const s = new THREE.Sprite(mistMat.clone());
+            s.position.set((Math.random() - 0.5) * 400, 0, (Math.random() - 0.5) * 400);
+            s.scale.set(2, 2, 1);
+            mistGroup.add(s);
+        }
+        scene.add(mistGroup);
+
+        // 4. Helper Pool (Measuring Rays)
+        const rayMat = new THREE.LineDashedMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6, dashSize: 4, gapSize: 2 });
+        const rayGeo = new THREE.BufferGeometry();
+        const measureLines = new THREE.LineSegments(rayGeo, rayMat);
+        scene.add(measureLines); // Draw in World Space
+
+        // Labels
+        const labelPool = [];
+        function getLabel(idx) {
+            if (!labelPool[idx]) {
+                const d = document.createElement('div');
+                d.className = 'hud-tag';
+                document.getElementById('hud-layer').appendChild(d);
+                labelPool[idx] = d;
+            }
+            return labelPool[idx];
+        }
+
+        // Picking for bones / studs (group select by original lineNum)
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        // 5. Bricks & Bones
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+        const lColors = { 0: 0x222222, 1: 0x0055BF, 2: 0x257A24, 4: 0xC91A09, 14: 0xFFD700, 15: 0xDDDDDD, 71: 0xAAAAAA };
+        const boneMat = new THREE.LineBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.6 });
+        // Stud orbs: small points so we can see density and draw sticks between them
+        const studGeo = new THREE.SphereGeometry(3, 12, 12);
+        const studMatNormal = new THREE.MeshBasicMaterial({ color: 0x00ffff });
+        const studMatProblem = new THREE.MeshBasicMaterial({ color: 0xff4444 });
+        const studMatGhost = new THREE.MeshBasicMaterial({ color: 0x44ff44 });
+
+        function update3D() {
+            bricksRoot.clear();
+            bonesRoot.clear();
+            studsRoot.clear();
+            hullRoot.clear();
+
+            // Hide Labels
+            labelPool.forEach(l => l.style.display = 'none');
+
+            const rayPoints = [];
+            let labelIdx = 0;
+            let floorHit = false;
+
+            const bonesBySource = {};
+            const groupLinesBySource = {};
+            let pendingMeta = null;
+
+            state.lines.forEach(line => {
+                // Detect skeleton metadata comments of the form:
+                // 0 line <num> layer <layer> stud <idx>
+                if (!line.isPart && typeof line.raw === 'string' && line.raw.trim().startsWith('0 line ')) {
+                    const tokens = line.raw.trim().split(/\s+/);
+                    let srcLineNum = null;
+                    let layer = null;
+                    let studIdx = null;
+                    for (let i = 0; i < tokens.length; i++) {
+                        if (tokens[i] === 'line' && i + 1 < tokens.length) {
+                            const v = parseInt(tokens[i + 1], 10);
+                            if (!isNaN(v)) srcLineNum = v;
+                        }
+                        if (tokens[i] === 'layer' && i + 1 < tokens.length) {
+                            const v = parseInt(tokens[i + 1], 10);
+                            if (!isNaN(v)) layer = v;
+                        }
+                        if (tokens[i] === 'stud' && i + 1 < tokens.length) {
+                            const v = parseInt(tokens[i + 1], 10);
+                            if (!isNaN(v)) studIdx = v;
+                        }
+                    }
+                    if (srcLineNum !== null) {
+                        pendingMeta = { srcLineNum, layer, studIdx };
+                    } else {
+                        pendingMeta = null;
+                    }
+                    return; // Comment line handled
+                }
+
+                if (line.isPart) {
+                    const mesh = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({
+                        color: lColors[line.color] || 0x888888,
+                        roughness: 0.2, metalness: 0.1
+                    }));
+
+                    // Scale (Proxy)
+                    let s = [20, 24, 20]; // Standard Brick
+                    if (line.file.includes('3811')) s = [320, 4, 320]; // Baseplate
+                    mesh.scale.set(s[0], s[1], s[2]);
+
+                    mesh.position.set(line.x, line.y, line.z);
+                    const rot = new THREE.Matrix4();
+                    rot.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], 0,
+                        line.matrix[3], line.matrix[4], line.matrix[5], 0,
+                        line.matrix[6], line.matrix[7], line.matrix[8], 0,
+                        0, 0, 0, 1
+                    );
+                    mesh.rotation.setFromRotationMatrix(rot);
+
+                    // Attach group key for this proxy, based on preceding skeleton metadata
+                    let groupKey = null;
+                    if (pendingMeta && typeof pendingMeta.srcLineNum === 'number') {
+                        groupKey = String(pendingMeta.srcLineNum);
+                        line.groupKey = groupKey;
+                        if (!groupLinesBySource[groupKey]) groupLinesBySource[groupKey] = [];
+                        groupLinesBySource[groupKey].push(line.id);
+                    }
+
+                    if (line.selected) {
+                        mesh.material.emissive.setHex(0x332200);
+                        const edges = new THREE.EdgesGeometry(boxGeo);
+                        const wire = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffcc00 }));
+                        mesh.add(wire);
+
+                        const vx = line.x;
+                        const vy = -line.y;
+                        const vz = line.z;
+
+                        rayPoints.push(vx, vy, vz, vx, 0, vz);
+                        const lblY = getLabel(labelIdx++);
+                        updateLabel(lblY, vx, vy / 2, vz, `Y: ${Math.round(line.y)}`); // Show logical LDraw Y
+
+                        rayPoints.push(vx, 0, vz, 0, 0, vz);
+                        const lblX = getLabel(labelIdx++);
+                        updateLabel(lblX, vx / 2, 0, vz, `X: ${Math.round(vx)}`);
+
+                        rayPoints.push(vx, 0, vz, vx, 0, 0);
+                        const lblZ = getLabel(labelIdx++);
+                        updateLabel(lblZ, vx, 0, vz / 2, `Z: ${Math.round(vz)}`);
+
+                        // Floor Collision Check
+                        if (line.y > 0) floorHit = true; // Positive LDraw Y is "Underground" relative to baseplate usually, but baseplate is 0.
+                        // Actually, Baseplate top is Y=0. 
+                        // If Y > 0 (Visual Y < 0), we are underground.
+                    }
+
+                    if (groupKey !== null) {
+                        const key = groupKey;
+                        mesh.userData.groupKey = key;
+                        let bone = bonesBySource[key];
+                        if (!bone) {
+                            bone = {
+                                minX: line.x, maxX: line.x,
+                                minY: line.y, maxY: line.y,
+                                minZ: line.z, maxZ: line.z,
+                                color: lColors[line.color] || 0x00ffff
+                            };
+                            bonesBySource[key] = bone;
+                        } else {
+                            bone.minX = Math.min(bone.minX, line.x);
+                            bone.maxX = Math.max(bone.maxX, line.x);
+                            bone.minY = Math.min(bone.minY, line.y);
+                            bone.maxY = Math.max(bone.maxY, line.y);
+                            bone.minZ = Math.min(bone.minZ, line.z);
+                            bone.maxZ = Math.max(bone.maxZ, line.z);
+                        }
+                    }
+                    pendingMeta = null;
+
+                    bricksRoot.add(mesh);
+                }
+            });
+
+            // --- STUD VISUALIZATION (Hardened) ---
+            if (state.studs && state.studs.length > 0) {
+                const sphereGeo = new THREE.SphereGeometry(1.5, 8, 8);
+
+                state.studs.forEach(s => {
+                    // Check for Orphan Status
+                    const isOrphan = !state.lines[s.lineNum] || !state.lines[s.lineNum].isPart;
+
+                    // Skip if hidden, unless it's an orphan and we want to see pathology
+                    // For now, we ALWAYS show orphans if studs are enabled, to alert the user.
+                    if (!state.showStuds && !isOrphan) return;
+
+                    let color = 0x00ffff; // Default Cyan
+                    if (isOrphan) {
+                        color = 0xff0000; // RED for Orphan
+                    } else if (s.type === 'normal') {
+                        if (!state.showStudsNormal) return;
+                        color = 0x00ff00;
+                    } else if (s.type === 'problem') {
+                        if (!state.showStudsProblem) return;
+                        color = 0xff0000;
+                    } else if (s.type === 'ghost') {
+                        if (!state.showStudsGhost) return;
+                        color = 0x888888;
+                    }
+
+                    const m = new THREE.Mesh(sphereGeo, new THREE.MeshBasicMaterial({
+                        color: color,
+                        transparent: isOrphan,
+                        opacity: isOrphan ? 0.5 : 1.0
+                    }));
+
+                    m.position.set(s.x, s.y, s.z);
+                    studsRoot.add(m);
+                });
+            }
+            // --- HULL VISUALIZATION ---
+            if (state.showHull && state.studs.length > 0) {
+                // Group studs by lineNum
+                const studGroups = {};
+                state.studs.forEach(s => {
+                    if (typeof s.lineNum === 'number') {
+                        const k = String(s.lineNum);
+                        if (!studGroups[k]) studGroups[k] = [];
+                        studGroups[k].push(new THREE.Vector3(s.x, s.y, s.z));
+                    }
+                });
+
+                Object.keys(studGroups).forEach(k => {
+                    const points = studGroups[k];
+                    if (points.length > 3) {
+                        try {
+                            const geometry = new THREE.ConvexGeometry(points);
+                            const material = new THREE.MeshBasicMaterial({
+                                color: 0xff00ff,
+                                transparent: true,
+                                opacity: 0.2,
+                                side: THREE.DoubleSide,
+                                wireframe: false
+                            });
+                            const mesh = new THREE.Mesh(geometry, material);
+
+                            // Add wireframe overlay
+                            const edges = new THREE.EdgesGeometry(geometry);
+                            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.5 }));
+                            mesh.add(line);
+
+                            hullRoot.add(mesh);
+                        } catch (e) {
+                            console.warn("ConvexHull failed for group", k, e);
+                        }
+                    }
+                });
+            }
+
+            if (state.showBones) {
+                Object.keys(bonesBySource).forEach(key => {
+                    const b = bonesBySource[key];
+                    const cx = (b.minX + b.maxX) / 2;
+                    const cy = (b.minY + b.maxY) / 2;
+                    const cz = (b.minZ + b.maxZ) / 2;
+                    const sx = Math.max(4, (b.maxX - b.minX) || 20) * 1.05;
+                    const sy = Math.max(4, (b.maxY - b.minY) || 24) * 1.05;
+                    const sz = Math.max(4, (b.maxZ - b.minZ) || 20) * 1.05;
+
+                    const edges = new THREE.EdgesGeometry(boxGeo);
+                    const wire = new THREE.LineSegments(edges, boneMat);
+                    wire.position.set(cx, cy, cz);
+                    wire.scale.set(sx, sy, sz);
+                    wire.userData.groupKey = key;
+                    bonesRoot.add(wire);
+                });
+            }
+
+            measureLines.geometry.setAttribute('position', new THREE.Float32BufferAttribute(rayPoints, 3));
+            measureLines.computeLineDistances(); // For dashed lines
+
+            floorPlane.material.opacity = floorHit ? 0.5 : 0;
+            if (floorHit) sfxThud();
+
+            if (state.showStuds && Array.isArray(state.studs) && state.studs.length) {
+                state.studs.forEach(s => {
+                    const x = typeof s.x === 'number' ? s.x : (s.worldPos && s.worldPos.x) || 0;
+                    const y = typeof s.y === 'number' ? s.y : (s.worldPos && s.worldPos.y) || 0;
+                    const z = typeof s.z === 'number' ? s.z : (s.worldPos && s.worldPos.z) || 0;
+                    let type = 'normal';
+                    let mat = studMatNormal;
+                    if (typeof s.deltaY === 'number' && s.deltaY > 0) { type = 'problem'; mat = studMatProblem; }
+                    if (s.isGhost) { type = 'ghost'; mat = studMatGhost; }
+                    if ((type === 'normal' && !state.showStudsNormal) ||
+                        (type === 'problem' && !state.showStudsProblem) ||
+                        (type === 'ghost' && !state.showStudsGhost)) {
+                        return;
+                    }
+                    const m = new THREE.Mesh(studGeo, mat);
+                    // Place orbs exactly at stud centers in LDraw space
+                    m.position.set(x, y, z);
+                    if (typeof s.lineNum === 'number') {
+                        m.userData.groupKey = String(s.lineNum);
+                    }
+                    studsRoot.add(m);
+                });
+            }
+            // --- CONVEX HULL VISUALIZATION ---
+            if (state.showHull && state.studs && state.studs.length > 0) {
+                // Group studs by lineNum
+                const groups = {};
+                state.studs.forEach(s => {
+                    const k = s.lineNum;
+                    if (!groups[k]) groups[k] = [];
+                    groups[k].push(new THREE.Vector3(s.x, s.y, s.z));
+                });
+
+                Object.values(groups).forEach(points => {
+                    if (points.length < 4) return; // Need at least 4 points for a 3D hull
+                    try {
+                        const geometry = new THREE.ConvexGeometry(points);
+                        const material = new THREE.MeshBasicMaterial({ color: 0xff00ff, transparent: true, opacity: 0.2 });
+                        const mesh = new THREE.Mesh(geometry, material);
+
+                        // Wireframe
+                        const edges = new THREE.EdgesGeometry(geometry);
+                        const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0xff00ff }));
+                        mesh.add(line);
+
+                        hullRoot.add(mesh);
+                    } catch (e) {
+                        console.warn('ConvexHull generation failed for group', e);
+                    }
+                });
+            }
+        }
+
+        function updateLabel(div, x, y, z, text) {
+            // Project 3D to 2D
+            const vec = new THREE.Vector3(x, y, z);
+            vec.project(camera);
+
+            const sx = (vec.x * .5 + .5) * renderer.domElement.clientWidth;
+            const sy = (-(vec.y * .5) + .5) * renderer.domElement.clientHeight;
+
+            // Hide if behind camera
+            if (vec.z > 1) {
+                div.style.display = 'none';
+            } else {
+                div.style.display = 'block';
+                div.style.left = `${sx}px`;
+                div.style.top = `${sy}px`;
+                div.innerText = text;
+            }
+        }
+
+        // --- 5. EDITOR UI ---
+        function renderEditor() {
+            const container = document.getElementById('code-scroll');
+            container.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+                row.className = `line-row ${line.selected ? 'selected' : ''}`;
+
+                const check = document.createElement('div');
+                check.className = 'checkbox';
+                check.innerText = line.selected ? '☑' : '☐';
+                check.onclick = () => toggleSelect(line);
+                row.appendChild(check);
+
+                const gutter = document.createElement('div');
+                gutter.className = 'gutter';
+                gutter.innerText = line.id;
+                row.appendChild(gutter);
+
+                const content = document.createElement('div');
+                content.className = 'tokens';
+
+                if (line.isPart) {
+                    // Part Dials
+                    content.appendChild(createDial(line, 'color', 1, 'C', 'val-c'));
+                    content.appendChild(createDial(line, 'x', 20, 'X', 'val-x'));
+                    content.appendChild(createDial(line, 'y', 8, 'Y', 'val-y')); // 8 LDU = 1 Plate
+                    content.appendChild(createDial(line, 'z', 20, 'Z', 'val-z'));
+
+                    // Matrix Dials
+                    for (let i = 0; i < 9; i++) {
+                        content.appendChild(createMatrixDial(line, i));
+                    }
+
+                    const f = document.createElement('span');
+                    f.className = 'part-name';
+                    f.innerText = line.file;
+                    content.appendChild(f);
+                } else {
+                    const t = document.createElement('span');
+                    t.style.color = '#555';
+                    t.innerText = line.raw;
+                    content.appendChild(t);
+                }
+
+                row.appendChild(content);
+                container.appendChild(row);
+            });
+        }
+
+        function toggleSelect(line) {
+            initAudio();
+            line.selected = !line.selected;
+            sfxTick();
+            renderEditor();
+            update3D();
+        }
+
+        // --- 6. INTERACTION LOGIC (Anti-Surf) ---
+        function createDial(obj, key, step, label, colorClass) {
+            const el = document.createElement('div');
+            el.className = `dial ${colorClass}`;
+
+            const lbl = document.createElement('span');
+            lbl.className = 'lbl'; lbl.innerText = label;
+            el.appendChild(lbl);
+
+            const valSpan = document.createElement('span');
+            valSpan.innerText = obj[key];
+            el.appendChild(valSpan);
+
+            let startY, startVal;
+
+            const start = (y) => {
+                initAudio();
+                startY = y;
+                startVal = obj[key];
+                el.classList.add('dragging');
+            };
+
+            const move = (y) => {
+                const delta = startY - y;
+                const steps = Math.round(delta / 15);
+                const newVal = startVal + (steps * step);
+
+                if (newVal !== obj[key]) {
+                    const diff = newVal - obj[key];
+                    obj[key] = newVal;
+
+                    // Symbiote Group Sync
+                    if (obj.selected) {
+                        state.lines.forEach(l => {
+                            if (l.isPart && l.selected && l !== obj) l[key] += diff;
+                        });
+                    }
+
+                    valSpan.innerText = newVal;
+                    compileLine(obj);
+                    update3D(); // Realtime visual update
+                    if (Math.abs(diff) >= step) sfxTick();
+                }
+            };
+
+            const end = () => {
+                el.classList.remove('dragging');
+                sfxSnap();
+                renderEditor(); // Full refresh to sync others
+            };
+
+            // Events
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchend', end);
+
+            el.addEventListener('mousedown', e => {
+                start(e.clientY);
+                const mm = ev => move(ev.clientY);
+                const mu = () => { end(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu); };
+                window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu);
+            });
+
+            return el;
+        }
+
+        function createMatrixDial(obj, idx) {
+            const el = document.createElement('div');
+            el.className = 'dial dial-matrix val-m';
+            el.innerText = Math.round(obj.matrix[idx] * 100) / 100;
+
+            // Simplified Drag for Matrix (0.1 increments)
+            let startY = 0;
+            const handler = (y) => {
+                const val = Math.round(obj.matrix[idx] + ((startY - y) / 50) * 10) / 10;
+                if (val !== obj.matrix[idx] && val >= -1 && val <= 1) {
+                    obj.matrix[idx] = val;
+                    el.innerText = val;
+                    compileLine(obj);
+                    update3D();
+                }
+            };
+
+            el.addEventListener('touchstart', e => { startY = e.touches[0].clientY; initAudio(); }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); handler(e.touches[0].clientY); }, { passive: false });
+
+            return el;
+        }
+
+        // --- 7. EXPORT / IMPORT ---
+        function toggleRaw() {
+            const el = document.getElementById('raw-overlay');
+            const tx = document.getElementById('raw-text');
+            if (el.style.display === 'flex') el.style.display = 'none';
+            else {
+                tx.value = state.lines.map(l => l.raw).join('\n');
+                el.style.display = 'flex';
+            }
+        }
+
+        function loadRaw() {
+            parseMPD(document.getElementById('raw-text').value);
+            renderEditor();
+            update3D();
+            toggleRaw();
+        }
+
+        function exportLDraw() {
+            const txt = state.lines.map(l => l.raw).join('\n');
+            navigator.clipboard.writeText(txt).then(() => {
+                const statusEl = document.getElementById('status-msg');
+                if (statusEl) {
+                    statusEl.innerText = "COPIED TO CLIPBOARD";
+                    setTimeout(() => statusEl.innerText = "READY", 2000);
+                }
+            });
+            // Wolf bus: if hosted inside a studio, send MPD to parent
+            try {
+                if (window.parent && window.parent !== window) {
+                    window.parent.postMessage({
+                        type: 'were-export-mpd',
+                        mpd: txt
+                    }, '*');
+                }
+            } catch (err) {
+                console.warn('[WERE] failed to post were-export-mpd', err);
+            }
+        }
+
+        function toggleHull() {
+            state.showHull = !state.showHull;
+            update3D();
+        }
+
+        function takeScreenshot() {
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'wag-twilight-shot.png';
+            link.href = dataURL;
+            link.click();
+            sfxSnap();
+        }
+
+        function loadFromGoldJson(source) {
+            let data = source;
+            if (typeof source === 'string') {
+                try {
+                    data = JSON.parse(source);
+                } catch (err) {
+                    console.warn('[WERE] loadFromGoldJson: invalid JSON', err);
+                    return;
+                }
+            }
+            if (!data || typeof data.mpd_content !== 'string') {
+                console.warn('[WERE] loadFromGoldJson: no mpd_content field present');
+                return;
+            }
+            state.lineColors = buildLineColorsFromMpd(data.mpd_content);
+            parseMPD(data.mpd_content);
+            renderEditor();
+            update3D();
+            const status = document.getElementById('status-msg');
+            if (status) status.innerText = 'LOADED FROM GOLD JSON';
+        }
+
+        function loadSkeletonFromStuds(studs) {
+            if (typeof studs === 'string') {
+                try {
+                    const parsed = JSON.parse(studs);
+                    if (Array.isArray(parsed)) {
+                        studs = parsed;
+                    } else if (parsed && Array.isArray(parsed.stud_skeleton)) {
+                        studs = parsed.stud_skeleton;
+                    } else {
+                        console.warn('[WERE] loadSkeletonFromStuds: JSON did not contain an array or stud_skeleton');
+                        return;
+                    }
+                } catch (err) {
+                    console.warn('[WERE] loadSkeletonFromStuds: invalid JSON', err);
+                    return;
+                }
+            }
+            if (!Array.isArray(studs) || !studs.length) {
+                console.warn('[WERE] loadSkeletonFromStuds: no studs to load');
+                return;
+            }
+
+            // Remember stud data for orb visualization
+            state.studs = studs.slice();
+
+            const fmt = n => Math.round(n * 1000) / 1000;
+            const lines = [];
+            lines.push('0 FILE wag_skeleton_from_studs.mpd');
+            lines.push('0 Name: WAG Skeleton From Courage');
+            lines.push('0 !LDRAW_ORG Model');
+            lines.push('0 BFC CERTIFY CCW');
+            lines.push('0');
+
+            const layerPalette = [1, 4, 14, 2, 15, 25, 0]; // blue, red, yellow, green, white, orange, dark
+
+            studs.forEach((s, idx) => {
+                if (!s) return;
+                const px = (typeof s.x === 'number') ? s.x : (s.worldPos && s.worldPos.x);
+                const py = (typeof s.y === 'number') ? s.y : (s.worldPos && s.worldPos.y);
+                const pz = (typeof s.z === 'number') ? s.z : (s.worldPos && s.worldPos.z);
+                if (typeof px !== 'number' || typeof py !== 'number' || typeof pz !== 'number') return;
+                let color = 4;
+                if (typeof s.color === 'number') {
+                    color = s.color;
+                } else if (typeof s.lineNum === 'number' && state.lineColors && typeof state.lineColors[s.lineNum] === 'number') {
+                    color = state.lineColors[s.lineNum];
+                } else if (typeof s.layer === 'number' && layerPalette.length) {
+                    const rawLayer = s.layer | 0;
+                    const idxLayer = ((rawLayer % layerPalette.length) + layerPalette.length) % layerPalette.length;
+                    color = layerPalette[idxLayer];
+                }
+                const metaParts = [];
+                if (typeof s.lineNum === 'number') metaParts.push('line ' + s.lineNum);
+                if (typeof s.layer === 'number') metaParts.push('layer ' + s.layer);
+                metaParts.push('stud ' + idx);
+                lines.push('0 ' + metaParts.join(' '));
+                lines.push(
+                    '1 ' + color + ' ' +
+                    fmt(px) + ' ' + fmt(py) + ' ' + fmt(pz) +
+                    ' 1 0 0 0 1 0 0 0 1 3003.dat'
+                );
+            });
+
+            parseMPD(lines.join('\n'));
+            renderEditor();
+            update3D();
+            const status = document.getElementById('status-msg');
+            if (status) status.innerText = 'LOADED FROM SKELETON DATA';
+        }
+
+        function toggleBones() {
+            state.showBones = !state.showBones;
+            update3D();
+        }
+
+        function toggleStuds() {
+            state.showStuds = !state.showStuds;
+            update3D();
+        }
+
+        function toggleStudsNormal() {
+            state.showStudsNormal = !state.showStudsNormal;
+            update3D();
+        }
+
+        function toggleStudsProblem() {
+            state.showStudsProblem = !state.showStudsProblem;
+            update3D();
+        }
+
+        function toggleStudsGhost() {
+            state.showStudsGhost = !state.showStudsGhost;
+            update3D();
+        }
+
+        function toggleJson() {
+            const el = document.getElementById('json-overlay');
+            if (el.style.display === 'flex') el.style.display = 'none';
+            else {
+                document.getElementById('json-text').value = '';
+                el.style.display = 'flex';
+            }
+        }
+
+        function loadJson() {
+            const txt = document.getElementById('json-text').value;
+            if (!txt.trim()) { toggleJson(); return; }
+            let parsed;
+            try {
+                parsed = JSON.parse(txt);
+            } catch (err) {
+                console.warn('[WERE] loadJson: invalid JSON', err);
+                return;
+            }
+            let handled = false;
+
+            // Prefer explicit stud_skeleton if present
+            if (parsed && Array.isArray(parsed.stud_skeleton)) {
+                loadSkeletonFromStuds(parsed.stud_skeleton);
+                handled = true;
+            } else if (parsed && Array.isArray(parsed.lines)) {
+                // Try flattening per-line skeleton format: { lines: [ { lineNum, studs: [...] } ] }
+                const flat = [];
+                parsed.lines.forEach(line => {
+                    if (!line || !Array.isArray(line.studs) || !line.studs.length) return;
+                    line.studs.forEach(s => {
+                        if (!s) return;
+                        const node = Object.assign({}, s);
+                        if (typeof node.lineNum !== 'number' && typeof line.lineNum === 'number') {
+                            node.lineNum = line.lineNum;
+                        }
+                        flat.push(node);
+                    });
+                });
+                if (flat.length) {
+                    loadSkeletonFromStuds(flat);
+                    handled = true;
+                }
+            } else if (Array.isArray(parsed)) {
+                // Assume this is a bare stud_skeleton array
+                loadSkeletonFromStuds(parsed);
+                handled = true;
+            }
+
+            // If no skeleton structure matched, fall back to GOLD mpd_content
+            if (!handled && parsed && typeof parsed.mpd_content === 'string') {
+                loadFromGoldJson(parsed);
+                handled = true;
+            }
+
+            if (!handled) {
+                console.warn('[WERE] loadJson: JSON did not look like GOLD or stud_skeleton');
+                return;
+            }
+            toggleJson();
+        }
+
+        // --- INIT ---
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight * 0.5);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight * 0.5);
+        });
+
+        // Wolf bus: listen for GOLD snapshots from Courage via studio
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+            if (!msg || typeof msg !== 'object' || !msg.type) return;
+            if (msg.type === 'studio-load-gold-from-courage') {
+                const payload = msg.payload;
+                if (!payload || typeof payload.mpd_content !== 'string') return;
+                loadFromGoldJson(payload);
+                if (Array.isArray(payload.stud_skeleton) && payload.stud_skeleton.length) {
+                    loadSkeletonFromStuds(payload.stud_skeleton);
+                }
+            }
+        });
+
+        // Click-to-select: pick studs or bones and select all lines for that piece
+        renderer.domElement.addEventListener('click', (event) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const candidates = [];
+            bonesRoot.traverse(obj => { if (obj.isLineSegments) candidates.push(obj); });
+            studsRoot.traverse(obj => { if (obj.isMesh) candidates.push(obj); });
+
+            const intersects = raycaster.intersectObjects(candidates, true);
+            if (!intersects.length) return;
+
+            // Find first object that carries a groupKey
+            let hit = intersects[0].object;
+            while (hit && hit !== bonesRoot && hit !== studsRoot && !hit.userData.groupKey) {
+                hit = hit.parent;
+            }
+            const groupKey = hit && hit.userData.groupKey;
+            if (!groupKey) return;
+
+            // Select all matching lines in the editor
+            state.lines.forEach(line => {
+                if (line && line.groupKey === groupKey) {
+                    line.selected = true;
+                }
+            });
+            renderEditor();
+            update3D();
+        });
+
+        // Drag-and-drop upload (MPD or JSON)
+        document.body.addEventListener('dragover', e => {
+            e.preventDefault();
+        });
+        document.body.addEventListener('drop', e => {
+            e.preventDefault();
+            const dt = e.dataTransfer;
+            if (!dt) return;
+            if (dt.files && dt.files.length) {
+                const file = dt.files[0];
+                const reader = new FileReader();
+                reader.onload = ev => {
+                    const text = ev.target.result;
+                    try {
+                        const json = JSON.parse(text);
+                        if (json && typeof json.mpd_content === 'string') {
+                            loadFromGoldJson(json);
+                        } else if (json && Array.isArray(json.stud_skeleton)) {
+                            loadSkeletonFromStuds(json.stud_skeleton);
+                        } else if (Array.isArray(json)) {
+                            loadSkeletonFromStuds(json);
+                        } else {
+                            // Fallback: treat as MPD text
+                            parseMPD(text);
+                            renderEditor();
+                            update3D();
+                            const status = document.getElementById('status-msg');
+                            if (status) status.innerText = 'LOADED FROM DROPPED MPD';
+                        }
+                    } catch {
+                        // Not JSON, assume MPD
+                        parseMPD(text);
+                        renderEditor();
+                        update3D();
+                        const status = document.getElementById('status-msg');
+                        if (status) status.innerText = 'LOADED FROM DROPPED MPD';
+                    }
+                };
+                reader.readAsText(file);
+            } else if (dt.getData('text/plain')) {
+                const text = dt.getData('text/plain');
+                // Try JSON first
+                try {
+                    const json = JSON.parse(text);
+                    if (json && typeof json.mpd_content === 'string') {
+                        loadFromGoldJson(json);
+                    } else if (json && Array.isArray(json.stud_skeleton)) {
+                        loadSkeletonFromStuds(json.stud_skeleton);
+                    } else if (Array.isArray(json)) {
+                        loadSkeletonFromStuds(json);
+                    } else {
+                        parseMPD(text);
+                        renderEditor();
+                        update3D();
+                        const status = document.getElementById('status-msg');
+                        if (status) status.innerText = 'LOADED FROM DROPPED MPD';
+                    }
+                } catch {
+                    parseMPD(text);
+                    renderEditor();
+                    update3D();
+                    const status = document.getElementById('status-msg');
+                    if (status) status.innerText = 'LOADED FROM DROPPED MPD';
+                }
+            }
+        });
+
+        // Lights
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(100, 200, 100);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+        // Boot
+        parseMPD(DEFAULT_MPD);
+        renderEditor();
+        update3D();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Update HUD positions every frame
+            const hudDivs = document.getElementsByClassName('hud-tag');
+            // Triggering a redraw of labels happens inside update3D, 
+            // but we call update3D only on change usually. 
+            // For smooth camera orbit label tracking, we need to update label positions constantly.
+            // We'll just re-run the label pos logic here efficiently? 
+            // Actually, update3D recalculates everything. Let's optimize:
+            // Only recalculate positions in animate loop if camera moved?
+            // For simplicity in this demo, we re-run the label projection logic.
+
+            // (Re-running visual update for labels)
+            const rayPoints = [];
+            let labelIdx = 0;
+            state.lines.forEach(line => {
+                if (line.isPart && line.selected) {
+                    const vx = line.x; const vy = -line.y; const vz = line.z;
+                    const lblY = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
+                    updateLabel(lblY, vx, vy / 2, vz, `Y: ${Math.round(line.y)}`);
+                    const lblX = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
+                    updateLabel(lblX, vx / 2, 0, vz, `X: ${Math.round(vx)}`);
+                    const lblZ = document.getElementsByClassName('hud-tag')[labelIdx++] || createLabel();
+                    updateLabel(lblZ, vx, 0, vz / 2, `Z: ${Math.round(vz)}`);
+                }
+            });
+
+            renderer.render(scene, camera);
+        }
+
+        function createLabel() {
+            const d = document.createElement('div');
+            d.className = 'hud-tag';
+            document.getElementById('hud-layer').appendChild(d);
+            return d;
+        }
+
+        animate();
+
+    </script>
+</body>
+
+</html>

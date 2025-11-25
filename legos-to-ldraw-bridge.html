@@ -1,0 +1,1116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGOS ↔ LDraw Bridge Manual – Narrative to Physical Bricks</title>
+    <link rel="icon" type="image/svg+xml" href="core-age-favicon.svg">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #333;
+            background: #050505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #f59e0b;
+        }
+
+        .subtitle {
+            font-size: 9px;
+            color: #777;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 8px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-bar {
+            padding: 8px 20px;
+            border-bottom: 1px solid #222;
+            background: #0a0a0a;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .nav-link {
+            font-size: 9px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #050505;
+            color: #888;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            border-color: #f59e0b;
+            color: #f59e0b;
+            background: #0a0a0a;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 20px 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .lego-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .lego-block {
+            min-width: 200px;
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #050505;
+            position: relative;
+        }
+
+        .lego-top {
+            position: absolute;
+            top: -6px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lego-stud {
+            width: 10px;
+            height: 6px;
+            border-radius: 4px 4px 0 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lego-name {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .lego-note {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .lego-stat {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .lego-narrative {
+            border-color: #8b5cf6;
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.2);
+        }
+
+        .lego-physical {
+            border-color: #ef4444;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.2);
+        }
+
+        .lego-bridge {
+            border-color: #f59e0b;
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+
+        .lego-color {
+            border-color: #ec4899;
+            box-shadow: 0 0 10px rgba(236, 72, 153, 0.2);
+        }
+
+        .lego-space {
+            border-color: #22d3ee;
+            box-shadow: 0 0 10px rgba(34, 211, 238, 0.2);
+        }
+
+        .lego-workflow {
+            border-color: #4ade80;
+            box-shadow: 0 0 10px rgba(74, 222, 128, 0.2);
+        }
+
+        .lego-narrative .lego-name {
+            color: #8b5cf6;
+        }
+
+        .lego-physical .lego-name {
+            color: #ef4444;
+        }
+
+        .lego-bridge .lego-name {
+            color: #f59e0b;
+        }
+
+        .lego-color .lego-name {
+            color: #ec4899;
+        }
+
+        .lego-space .lego-name {
+            color: #22d3ee;
+        }
+
+        .lego-workflow .lego-name {
+            color: #4ade80;
+        }
+
+        .lego-narrative .lego-stat {
+            color: #8b5cf6;
+        }
+
+        .lego-physical .lego-stat {
+            color: #ef4444;
+        }
+
+        .lego-bridge .lego-stat {
+            color: #f59e0b;
+        }
+
+        .flow-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 9px;
+            margin: 10px 0;
+        }
+
+        .arrow {
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            color: #666;
+            white-space: nowrap;
+            font-size: 8px;
+        }
+
+        .arrow-highlight {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .pill {
+            font-size: 8px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            display: inline-block;
+        }
+
+        .pill-narrative {
+            border-color: #8b5cf6;
+            color: #8b5cf6;
+        }
+
+        .pill-physical {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .pill-bridge {
+            border-color: #f59e0b;
+            color: #f59e0b;
+        }
+
+        .callout {
+            border-left: 2px solid #333;
+            padding-left: 10px;
+            font-size: 9px;
+            color: #bbb;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .callout-emoji {
+            margin-right: 6px;
+        }
+
+        .tutorial-step {
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+            background: #050505;
+            margin: 10px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #f59e0b;
+            color: #000;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .step-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #ddd;
+        }
+
+        .step-content {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+            padding-left: 32px;
+        }
+
+        .code-snippet {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #4ECDC4;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+            white-space: pre-wrap;
+        }
+
+        .status-bar {
+            padding: 8px 20px;
+            border-top: 1px solid #333;
+            font-size: 8px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .example-block {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+            margin: 10px 0;
+        }
+
+        .example-title {
+            font-size: 10px;
+            font-weight: bold;
+            color: #f59e0b;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .mapping-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 10px 0;
+            font-size: 9px;
+        }
+
+        .mapping-table th {
+            background: #0a0a0a;
+            border: 1px solid #333;
+            padding: 8px;
+            text-align: left;
+            color: #f59e0b;
+            font-weight: bold;
+        }
+
+        .mapping-table td {
+            border: 1px solid #222;
+            padding: 8px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .mapping-table tr:hover {
+            background: #0a0a0a;
+        }
+
+        @media (max-width: 768px) {
+            .lego-row {
+                flex-direction: column;
+            }
+
+            .flow-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">LEGOS ↔ LDRAW BRIDGE MANUAL</div>
+                <div class="subtitle">Narrative Framework • Physical Bricks • Semantic Translation</div>
+            </div>
+            <div class="badge">Bidirectional • Symbolic • Machine-Parsable</div>
+        </div>
+
+        <div class="nav-bar">
+            <a href="#overview" class="nav-link">Overview</a>
+            <a href="#philosophy" class="nav-link">Philosophy</a>
+            <a href="#mappings" class="nav-link">Component Mappings</a>
+            <a href="#color" class="nav-link">Color Symbolism</a>
+            <a href="#spatial" class="nav-link">Spatial Grammar</a>
+            <a href="#workflows" class="nav-link">Workflows</a>
+            <a href="#examples" class="nav-link">Examples</a>
+            <a href="#tutorials" class="nav-link">Tutorials</a>
+        </div>
+
+        <div class="content">
+
+            <!-- Overview Section -->
+            <div id="overview">
+                <div class="section-title">System Overview – The Bridge Between Narrative & Physical</div>
+                <div class="callout">
+                    <span class="callout-emoji">🌉</span>
+                    <strong>The LEGOS ↔ LDraw Bridge</strong> enables bidirectional translation between abstract
+                    narrative frameworks (LEGOS) and physical brick-based scenes (LDraw MPD files). This creates a
+                    unified system where stories can be built with bricks, and brick scenes can be analyzed as
+                    narratives.
+                </div>
+                <div class="lego-row">
+                    <div class="lego-block lego-narrative">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">YAML</div>
+                        <div class="lego-name">LEGOS NARRATIVE</div>
+                        <div class="lego-note">Abstract story grammar: Location, Entity, Goal, Obstacle, Shift,
+                            Solution. Machine-parsable YAML format. Semantic relationships and dramatic structure.</div>
+                    </div>
+                    <div class="lego-block lego-bridge">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">↔</div>
+                        <div class="lego-name">TRANSLATION LAYER</div>
+                        <div class="lego-note">Bidirectional mapping: Entities→Minifigs, Goals→Poses,
+                            Obstacles→Architecture, Colors→Meaning, Coordinates→Relationships. Preserves narrative
+                            intent.</div>
+                    </div>
+                    <div class="lego-block lego-physical">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">MPD</div>
+                        <div class="lego-name">LDRAW SCENE</div>
+                        <div class="lego-note">Physical brick assembly: 3D coordinates (X/Y/Z), part numbers, color
+                            codes, rotation matrices. Renderable, buildable, tangible.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Philosophy Section -->
+            <div id="philosophy">
+                <div class="section-title">Core Philosophy – Why Bridge Narrative & Physical?</div>
+
+                <div class="lego-row">
+                    <div class="lego-block lego-bridge">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">TANGIBLE STORYTELLING</div>
+                        <div class="lego-note">Stories become <strong>buildable</strong>. Abstract narratives gain
+                            physical form. Characters exist in 3D space. Relationships manifest as spatial proximity.
+                            Conflict appears as architectural barriers.</div>
+                    </div>
+
+                    <div class="lego-block lego-bridge">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">SEMANTIC ANALYSIS</div>
+                        <div class="lego-note">Brick scenes become <strong>parsable</strong>. Physical arrangements
+                            reveal narrative intent. Color palettes encode meaning. Spatial patterns suggest
+                            relationships. Every placement tells a story.</div>
+                    </div>
+
+                    <div class="lego-block lego-bridge">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">DUAL REPRESENTATION</div>
+                        <div class="lego-note">Same story, two formats. YAML for AI/LLM processing. MPD for human
+                            visualization. Both versions remain synchronized. Changes in one propagate to the other.
+                        </div>
+                    </div>
+                </div>
+
+                <div class="callout">
+                    <span class="callout-emoji">💡</span>
+                    Just as code and comments describe the same program from different angles, LEGOS YAML and LDraw MPD
+                    files describe the same story from complementary perspectives—one semantic, one spatial.
+                </div>
+            </div>
+
+            <!-- Mappings Section -->
+            <div id="mappings">
+                <div class="section-title">Component Mappings – LEGOS ↔ LDraw Translation Table</div>
+
+                <table class="mapping-table">
+                    <thead>
+                        <tr>
+                            <th>LEGOS Component</th>
+                            <th>LDraw Equivalent</th>
+                            <th>Translation Notes</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><strong>&lt;Location&gt;</strong><br>Spatial/temporal container</td>
+                            <td><strong>Environment Geometry</strong><br>Baseplates, walls, furniture</td>
+                            <td>Grey corporate plaza → oppressive system<br>White blank canvas → creative
+                                potential<br>Threshold/steps → rising action</td>
+                        </tr>
+                        <tr>
+                            <td><strong>&lt;Entity&gt;</strong><br>Characters, objects, systems</td>
+                            <td><strong>Minifigures & Parts</strong><br>Assembled characters, props</td>
+                            <td>HEAD → identity/recognition<br>TORSO → core archetype<br>Color →
+                                personality/faction<br>Position → relationships</td>
+                        </tr>
+                        <tr>
+                            <td><strong>&lt;Goal&gt;</strong><br>Desired end-state</td>
+                            <td><strong>Body Language & Facing</strong><br>Pose, direction, stance</td>
+                            <td>Forward lean → eager pursuit<br>Arms raised → reaching for goal<br>Direction faced →
+                                attention vector<br>Height → aspiration</td>
+                        </tr>
+                        <tr>
+                            <td><strong>&lt;Obstacle&gt;</strong><br>Impediment to goals</td>
+                            <td><strong>Architecture & Barriers</strong><br>Walls, doors, gaps, elevation</td>
+                            <td>Steps → literal rising stakes<br>Closed door → access denied<br>Heavy bricks (dark grey)
+                                → authority<br>Distance between figs → social barrier</td>
+                        </tr>
+                        <tr>
+                            <td><strong>[Morphism]</strong><br>Directed relationships</td>
+                            <td><strong>Spatial Vectors</strong><br>Proximity, orientation, height</td>
+                            <td>[faces] A→B = A's Z-axis toward B<br>[towers_over] A→B = A.y < B.y<br>[approaches] =
+                                    decreasing distance<br>[encircles] = surrounding positions</td>
+                        </tr>
+                        <tr>
+                            <td><strong>&lt;Shift&gt;</strong><br>Transformative event</td>
+                            <td><strong>STEP Command</strong><br>Scene break, state change</td>
+                            <td>0 STEP = new dramatic beat<br>Door opens (rotation change)<br>Character moves (new
+                                coordinates)<br>Color change (status shift)</td>
+                        </tr>
+                        <tr>
+                            <td><strong>&lt;Timeline&gt;</strong><br>Time-indexed scenes</td>
+                            <td><strong>Multi-File MPD</strong><br>Subfile sequence</td>
+                            <td>0 FILE scene_01.ldr<br>0 FILE scene_02.ldr<br>Each file = one timepoint<br>Shared
+                                entities across files</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Color Section -->
+            <div id="color">
+                <div class="section-title">Color Symbolism – LDraw Color Codes as Narrative Meaning</div>
+
+                <div class="lego-row">
+                    <div class="lego-block lego-color">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">RGB ARCHETYPES</div>
+                        <div class="lego-note"><strong>Primary colors = foundational roles</strong><br>
+                            • 4 (Red) → Hacker, passion, action, chaos<br>
+                            • 2 (Green) → Designer, growth, balance, nature<br>
+                            • 1 (Blue) → Programmer, logic, systems, calm</div>
+                    </div>
+
+                    <div class="lego-block lego-color">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">GREY SPECTRUM</div>
+                        <div class="lego-note"><strong>Achromatic = system/control</strong><br>
+                            • 0 (Black) → Void, authority, finality<br>
+                            • 7 (Light Grey) → Neutral, sterile, corporate<br>
+                            • 8 (Dark Grey) → Heavy, oppressive, institutional<br>
+                            • 71/72 (Bluish Grey) → Modern, bureaucratic</div>
+                    </div>
+
+                    <div class="lego-block lego-color">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">SYMBOLIC PALETTE</div>
+                        <div class="lego-note"><strong>Warm colors = life/rebellion</strong><br>
+                            • 14 (Yellow) → Optimism, joy, light<br>
+                            • 13 (Pink) → Power, femininity, confidence<br>
+                            • 6 (Brown) → Earth, groundedness, comedy<br>
+                            • 15 (White) → Blank slate, purity, potential</div>
+                    </div>
+                </div>
+
+                <div class="example-block">
+                    <div class="example-title">Color Contrast as Visual Metaphor</div>
+                    <div class="code-snippet">// Garden Uprising Scene 02 - Color Strategy
+                        // ENVIRONMENT: Cool grays (0,7,8,71,72) = Corporate/System/Control
+                        // CHARACTERS: Warm primaries (2,4,13,14) = Life/Expression/Rebellion
+
+                        // Kermit (Green=2) against Grey Plaza (7) = Nature vs. Concrete
+                        // Piggy (Pink=13) breaking Black Door (0) = Power vs. Authority
+                        // SpongeBob (Yellow=14) in Sterile Space = Joy vs. Emptiness
+
+                        // COLOR CLUSTERING indicates alliances:
+                        // Warm colors grouped together = coalition forming
+                        // Isolated warm color in grey = lone rebel
+                        // Grey surrounding warm = system pressure</div>
+                </div>
+            </div>
+
+            <!-- Spatial Section -->
+            <div id="spatial">
+                <div class="section-title">Spatial Grammar – Coordinates as Narrative Syntax</div>
+
+                <div class="example-block">
+                    <div class="example-title">LDraw Coordinate System (Right-Handed)</div>
+                    <div class="code-snippet"> Y-AXIS (Vertical)
+                        ↑ negative (UP)
+                        |
+                        X-AXIS ←------+------→ X-AXIS
+                        negative (LEFT) | positive (RIGHT)
+                        |
+                        ↓ positive (DOWN)
+
+                        Z-AXIS: negative (BACK) ← • → positive (FORWARD)
+
+                        UNITS: 20 LDU = 1 stud | 8 LDU = 1 plate | 24 LDU = 1 brick</div>
+                </div>
+
+                <div class="lego-row">
+                    <div class="lego-block lego-space">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">X-AXIS (Power Axis)</div>
+                        <div class="lego-note"><strong>Left/Right = Social Hierarchy</strong><br>
+                            • Center (X≈0) → Protagonist, balanced<br>
+                            • Left (X<0) → Challenger, outsider<br>
+                                • Right (X>0) → Ally, supporter<br>
+                                • Distance = relationship strength</div>
+                    </div>
+
+                    <div class="lego-block lego-space">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Y-AXIS (Status Axis)</div>
+                        <div class="lego-note"><strong>Vertical = Power/Vulnerability</strong><br>
+                            • Y < -100 → Elevated, authority, observing<br>
+                                • Y ≈ 0 → Ground level, equality, action<br>
+                                • Y > 0 → Below, submission, trapped<br>
+                                • Height difference = power imbalance</div>
+                    </div>
+
+                    <div class="lego-block lego-space">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">Z-AXIS (Attention Axis)</div>
+                        <div class="lego-note"><strong>Back/Forward = Temporal Flow</strong><br>
+                            • Z < 0 → Past, retreat, safety<br>
+                                • Z ≈ 0 → Present, threshold, decision<br>
+                                • Z > 0 → Future, approach, confrontation<br>
+                                • Forward lean (Z+) = proactive</div>
+                    </div>
+                </div>
+
+                <div class="example-block">
+                    <div class="example-title">Spatial Relationship Patterns</div>
+                    <div class="code-snippet">// PROXIMITY = Relationship Strength
+                        Kermit: X=120, Y=0, Z=60
+                        Piggy: X=60, Y=0, Z=60
+                        Distance: √((120-60)² + (0-0)² + (60-60)²) = 60 LDU = 3 studs
+                        → Close allies, coalition partners
+
+                        // HEIGHT = Power Dynamics
+                        King: Y=-104 (elevated on throne)
+                        Servant: Y=0 (ground level)
+                        Difference: 104 LDU ≈ 13 plates
+                        → Clear power hierarchy
+
+                        // FACING DIRECTION = Attention/Conflict
+                        Character A at (0,0,0) rotated toward (100,0,0)
+                        Character B at (100,0,0) rotated toward (0,0,0)
+                        → Facing each other = confrontation or dialogue
+
+                        // CLUSTERING = Alliance/Faction
+                        RGB characters at X=-80, X=0, X=80, all Z=100
+                        → Evenly spaced on same Z-plane = united front</div>
+                </div>
+            </div>
+
+            <!-- Workflows Section -->
+            <div id="workflows">
+                <div class="section-title">Bidirectional Workflows – LEGOS ↔ LDraw Translation</div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">→</span>NARRATIVE TO PHYSICAL (LEGOS → LDraw)
+                    </div>
+                    <div class="step-content">
+                        Start with LEGOS YAML. Transform abstract narrative into brick scene.
+                        <div class="code-snippet">1. Parse LEGOS YAML
+                            - Extract entities, goals, obstacles, locations
+
+                            2. Assign Visual Tokens
+                            - Entity.type="Character" → Minifigure assembly
+                            - Entity.color → LDraw color code (symbolic)
+                            - Location.description → Environment geometry
+
+                            3. Calculate Spatial Layout
+                            - Goal vectors → Character facing direction
+                            - Relationships → X-axis positioning (proximity)
+                            - Power dynamics → Y-axis height differences
+                            - Temporal progression → Z-axis depth
+
+                            4. Generate LDraw Commands
+                            - Write MPD header with LEGOS comments
+                            - Build environment (baseplates, architecture)
+                            - Assemble characters (HEAD→TORSO→ARMS→HIPS→LEGS)
+                            - Add 0 STEP markers for shifts
+
+                            5. Validate Scene
+                            - Render in LDView/LeoCAD
+                            - Check spatial coherence
+                            - Verify color symbolism alignment</div>
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">←</span>PHYSICAL TO NARRATIVE (LDraw → LEGOS)
+                    </div>
+                    <div class="step-content">
+                        Start with LDraw MPD. Extract semantic narrative from brick layout.
+                        <div class="code-snippet">1. Parse LDraw File
+                            - Read all Type 1 commands (part placements)
+                            - Group by color code
+                            - Extract minifigure assemblies (HEAD/TORSO/etc.)
+                            - Identify environment vs. character parts
+
+                            2. Detect Entities
+                            - Minifig clusters → Character entities
+                            - Color code → Personality/archetype
+                            - Extract coordinates for each character
+
+                            3. Infer Relationships (Morphisms)
+                            - Calculate inter-character distances
+                            - Determine facing directions from rotation matrix
+                            - Height differences → [towers_over], [looks_up_to]
+                            - Proximity → [allies_with], [threatens]
+
+                            4. Identify Goals & Obstacles
+                            - Character facing → attention/goal direction
+                            - Architecture blocking paths → obstacles
+                            - Elevated positions → aspirational goals
+
+                            5. Generate LEGOS YAML
+                            - Create entity blocks for each minifig
+                            - Define goals based on spatial intent
+                            - Map obstacles from environment
+                            - Use STEP markers as shift points</div>
+                    </div>
+                </div>
+
+                <div class="lego-row">
+                    <div class="lego-block lego-workflow">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">AUTOMATED TOOLS</div>
+                        <div class="lego-note">LLM can parse MPD comments for LEGOS annotations. Color clustering
+                            algorithms detect factions. Coordinate analysis reveals relationship networks. STEP commands
+                            mark narrative beats.</div>
+                    </div>
+
+                    <div class="lego-block lego-workflow">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">HUMAN VALIDATION</div>
+                        <div class="lego-note">Designer reviews generated YAML for narrative coherence. Builder reviews
+                            generated MPD for spatial logic. Iterative refinement in both directions until semantics and
+                            physics align.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Examples Section -->
+            <div id="examples">
+                <div class="section-title">Real-World Examples – Translation in Action</div>
+
+                <div class="example-block">
+                    <div class="example-title">Example 1: Garden Uprising Scene 02 (Narrative → Physical)</div>
+                    <div class="code-snippet">// LEGOS YAML (Abbreviated)
+                        scene: "The Muppets Arrive"
+                        location: "Corporate plaza entrance"
+
+                        entities:
+                        - id: kermit
+                        type: Character
+                        color: "2 (Green)"
+                        traits: ["leader", "nervous", "conscience"]
+                        position: {x: 120, y: 0, z: 60}
+
+                        - id: piggy
+                        type: Character
+                        color: "13 (Pink)"
+                        traits: ["enforcer", "confident", "breaker"]
+                        position: {x: 60, y: 0, z: 60}
+
+                        goals:
+                        - id: g1
+                        name: "Enter building to plant seeds"
+                        owner: kermit
+
+                        obstacles:
+                        - id: o1
+                        name: "Building entrance threshold"
+                        affects: g1
+                        physical_form: "Steps (Y=-8,-32,-56) + Door (Y=-104)"
+
+                        ↓↓↓ TRANSLATES TO ↓↓↓
+
+                        // LDraw MPD (Abbreviated)
+                        0 FILE garden_uprising_scene_02_arrival.mpd
+                        0 // LEGOS: Location = Corporate plaza entrance
+
+                        0 // ENVIRONMENT: Grey plaza (Obstacle)
+                        1 7 -360 0 240 1 0 0 0 1 0 0 0 1 parts/3024.dat
+                        ...
+
+                        0 // THRESHOLD STEPS (Obstacle visualization)
+                        1 72 -120 -8 0 1 0 0 0 1 0 0 0 1 parts/3005.dat
+                        1 72 -100 -32 -20 1 0 0 0 1 0 0 0 1 parts/3005.dat
+                        1 72 -80 -56 -40 1 0 0 0 1 0 0 0 0 1 parts/3005.dat
+
+                        0 // CHARACTER: Kermit (Entity: kermit, Goal: g1)
+                        1 2 120 -84 60 1 0 0 0 1 0 0 0 1 89515p01.dat
+                        1 2 120 -60 60 1 0 0 0 1 0 0 0 1 parts/973ps1.dat
+                        ...</div>
+                </div>
+
+                <div class="example-block">
+                    <div class="example-title">Example 2: Hello World Tutorial (Physical → Narrative)</div>
+                    <div class="code-snippet">// LDraw MPD (Simplified)
+                        0 FILE hello_world_tutorial.mpd
+
+                        0 // RGB Characters at Z=100, evenly spaced X-axis
+                        1 4 -80 -84 100 1 0 0 0 1 0 0 0 1 parts/3626bp01.dat // RED
+                        1 2 0 -84 100 1 0 0 0 1 0 0 0 1 parts/3626bp01.dat // GREEN
+                        1 1 80 -84 100 1 0 0 0 1 0 0 0 1 parts/3626bp01.dat // BLUE
+
+                        0 // "HELLO WORLD" tiles at Z≈0
+                        1 0 -140 -8 -40 1 0 0 0 1 0 0 0 1 parts/3070b.dat // H
+                        ...
+
+                        ↑↑↑ EXTRACTS TO ↑↑↑
+
+                        // LEGOS YAML
+                        scene: "Hello World Greeting"
+                        location: "Digital void / Blank canvas"
+
+                        entities:
+                        - id: red_hacker
+                        type: Character
+                        color: "4 (Red)"
+                        archetype: "Hacker"
+                        position: {x: -80, y: -84, z: 100}
+                        traits: ["impulsive", "breaks_boundaries"]
+
+                        - id: green_designer
+                        type: Character
+                        color: "2 (Green)"
+                        archetype: "Designer"
+                        position: {x: 0, y: -84, z: 100}
+                        traits: ["balanced", "creates_harmony"]
+
+                        - id: blue_programmer
+                        type: Character
+                        color: "1 (Blue)"
+                        archetype: "Programmer"
+                        position: {x: 80, y: -84, z: 100}
+                        traits: ["logical", "builds_systems"]
+
+                        goals:
+                        - id: g1
+                        name: "Communicate universal greeting"
+                        owners: [red_hacker, green_designer, blue_programmer]
+
+                        solution:
+                        - id: sol1
+                        name: "HELLO WORLD message displayed"
+                        physical_form: "Black tiles spelling greeting"
+                        resolves: g1
+
+                        relations:
+                        - [collaborates] red_hacker -> green_designer
+                        - [collaborates] green_designer -> blue_programmer
+                        - [present_message] all_three -> "HELLO WORLD"</div>
+                </div>
+            </div>
+
+            <!-- Tutorials Section -->
+            <div id="tutorials">
+                <div class="section-title">Step-by-Step Tutorials – Hands-On Translation</div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">1</span>ANNOTATE EXISTING MPD WITH LEGOS</div>
+                    <div class="step-content">
+                        Take any LDraw file and add semantic annotations.
+                        <div class="code-snippet">// Original MPD (no annotations)
+                            1 2 120 -84 60 1 0 0 0 1 0 0 0 1 89515p01.dat
+
+                            ↓ Add LEGOS comments ↓
+
+                            0 ┏━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┓
+                            0 ┃ 🐸 KERMIT - Coalition Leader ┃
+                            0 ┃ LEGOS Entity: kermit ┃
+                            0 ┃ Goal: Enter building (g1) ┃
+                            0 ┃ Archetype: Reluctant Hero ┃
+                            0 ┗━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━┛
+                            1 2 120 -84 60 1 0 0 0 1 0 0 0 1 89515p01.dat</div>
+                        Use LDraw comment lines (0 //) to embed LEGOS metadata directly in MPD.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">2</span>BUILD A SCENE FROM LEGOS YAML</div>
+                    <div class="step-content">
+                        Start with a simple two-character conflict narrative.
+                        <div class="code-snippet">scene: "Duel at Dawn"
+                            entities:
+                            - id: hero
+                            color: "1 (Blue)"
+                            position: {x: -60, y: 0, z: 0}
+                            - id: villain
+                            color: "4 (Red)"
+                            position: {x: 60, y: 0, z: 0}
+
+                            obstacles:
+                            - id: chasm
+                            "Gap between them, 120 LDU wide"
+
+                            ↓ Generate LDraw ↓
+
+                            0 FILE duel_at_dawn.mpd
+                            1 1 -60 -84 0 1 0 0 0 1 0 0 0 1 parts/3626bp01.dat
+                            1 1 -60 -60 0 1 0 0 0 1 0 0 0 1 parts/973c01.dat
+                            ...
+                            1 4 60 -84 0 -1 0 0 0 1 0 0 0 -1 parts/3626bp01.dat
+                            1 4 60 -60 0 -1 0 0 0 1 0 0 0 -1 parts/973c01.dat
+                            ...</div>
+                        Note: Villain rotated 180° (matrix -1,0,0 / 0,0,-1) to face hero.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">3</span>USE COLOR AS NARRATIVE SHORTHAND</div>
+                    <div class="step-content">
+                        Design a color palette that encodes story themes.
+                        <div class="code-snippet">// Define symbolic palette
+                            REBELLION_COLORS = [2, 4, 13, 14] // Green, Red, Pink, Yellow
+                            SYSTEM_COLORS = [0, 7, 8, 71] // Black, Grey spectrum
+
+                            // Apply consistently
+                            for entity in entities:
+                            if entity.faction == "Uprising":
+                            entity.ldraw_color = random.choice(REBELLION_COLORS)
+                            elif entity.faction == "Corporate":
+                            entity.ldraw_color = random.choice(SYSTEM_COLORS)</div>
+                        Visual scan of scene instantly reveals factions through color clustering.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">4</span>EXTRACT RELATIONSHIPS FROM COORDINATES
+                    </div>
+                    <div class="step-content">
+                        Parse MPD to find spatial patterns indicating narrative bonds.
+                        <div class="code-snippet">import math
+
+                            def extract_relationships(mpd_file):
+                            characters = parse_minifigs(mpd_file)
+                            relationships = []
+
+                            for a in characters:
+                            for b in characters:
+                            if a == b: continue
+
+                            dist = math.sqrt(
+                            (a.x - b.x)**2 +
+                            (a.y - b.y)**2 +
+                            (a.z - b.z)**2
+                            )
+
+                            if dist < 120: # 6 studs=close allies relationships.append({ 'type' : '[allies_with]'
+                                , 'from' : a.id, 'to' : b.id }) return relationships</div>
+                                Automate relationship detection from proximity metrics.
+                        </div>
+                    </div>
+
+                    <div class="tutorial-step">
+                        <div class="step-title"><span class="step-number">5</span>SYNCHRONIZE CHANGES BIDIRECTIONALLY
+                        </div>
+                        <div class="step-content">
+                            Maintain alignment between YAML and MPD as narrative evolves.
+                            <div class="code-snippet">// Change 1: Update LEGOS YAML
+                                kermit.goal = "Retreat from building"
+
+                                ↓ Propagate to LDraw ↓
+
+                                // Change Kermit's facing direction (rotate 180°)
+                                1 2 120 -84 60 -1 0 0 0 1 0 0 0 -1 89515p01.dat
+
+                                // Change 2: Move character in LDraw viewer
+                                Miss Piggy: X=60 → X=20 (moved 2 studs left)
+
+                                ↓ Update YAML ↓
+
+                                piggy.position.x = 20
+                                piggy.relationships.append("[approaches] -> kermit")</div>
+                            Keep both representations in sync for consistency.
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Best Practices -->
+                <div id="bestpractices">
+                    <div class="section-title">Best Practices – Guidelines for Effective Translation</div>
+
+                    <div class="lego-row">
+                        <div class="lego-block lego-bridge">
+                            <div class="lego-top">
+                                <div class="lego-stud"></div>
+                            </div>
+                            <div class="lego-name">COMMENT GENEROUSLY</div>
+                            <div class="lego-note">LDraw files can hold extensive comments (0 // lines). Use box-drawing
+                                characters for visual hierarchy. Embed LEGOS entity IDs, goal references, and symbolic
+                                meanings directly in MPD.</div>
+                        </div>
+
+                        <div class="lego-block lego-bridge">
+                            <div class="lego-top">
+                                <div class="lego-stud"></div>
+                            </div>
+                            <div class="lego-name">STANDARDIZE SPACING</div>
+                            <div class="lego-note">Use consistent grid increments (20 LDU for subtle, 60 LDU for
+                                distinct, 120 LDU for distant). Predictable spacing makes relationship parsing reliable
+                                and scenes aesthetically clean.</div>
+                        </div>
+
+                        <div class="lego-block lego-bridge">
+                            <div class="lego-top">
+                                <div class="lego-stud"></div>
+                            </div>
+                            <div class="lego-name">PRESERVE INTENT</div>
+                            <div class="lego-note">Translation should not lose narrative meaning. If YAML says
+                                "reluctant hero," MPD should show hesitant body language. If MPD shows towering
+                                architecture, YAML should note "oppressive obstacle."</div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <div class="status-bar">
+                <span>LEGOS ↔ LDraw Bridge Manual • Narrative Framework to Physical Bricks</span>
+                <span>Bidirectional • Symbolic • Machine-Parsable • Buildable</span>
+            </div>
+        </div>
+
+        <script>
+            // Smooth scroll navigation
+            document.querySelectorAll('.nav-link').forEach(link => {
+                link.addEventListener('click', function (e) {
+                    e.preventDefault();
+                    const target = document.querySelector(this.getAttribute('href'));
+                    if (target) {
+                        target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                    }
+                });
+            });
+        </script>
+
+</body>
+
+</html>

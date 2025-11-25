@@ -1,0 +1,749 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Timber & Courage - Master Builder Guide</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-yellow);
+            text-shadow: 0 0 10px var(--lego-yellow-glow);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-yellow);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px var(--lego-yellow-glow);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #FFA500;
+            border: 3px solid #CC8400;
+            border-bottom: none;
+        }
+
+        /* Main instruction area */
+        .instruction-page {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: none;
+        }
+
+        .instruction-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* LEGO instruction step box */
+        .step-brick {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 4px solid #333;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .step-number-brick {
+            position: absolute;
+            top: -20px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-yellow);
+            color: #000;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px var(--lego-yellow-glow);
+            border: 4px solid #000;
+        }
+
+        .step-number-brick::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 16px;
+            border-radius: 8px 8px 0 0;
+            background: #FFA500;
+            border: 3px solid #000;
+            border-bottom: none;
+        }
+
+        .step-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .step-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-panel {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-yellow);
+            letter-spacing: 1px;
+        }
+
+        .step-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* UI Mockups */
+        .ui-mockup {
+            width: 100%;
+            background: #0a0a0a;
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ui-header {
+            background: #1a1a1a;
+            padding: 12px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ui-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ui-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #555;
+        }
+
+        .ui-dot.active {
+            background: var(--lego-yellow);
+            border-color: var(--lego-yellow);
+            box-shadow: 0 0 8px var(--lego-yellow-glow);
+        }
+
+        .ui-title {
+            color: var(--lego-yellow);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ui-body {
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        /* Code display blocks */
+        .code-brick {
+            background: #000;
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #0f0;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #000;
+            padding: 0 8px;
+            color: var(--lego-yellow);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .code-highlight {
+            color: var(--lego-yellow);
+            font-weight: bold;
+        }
+
+        .code-copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--lego-yellow);
+            color: #000;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* Capture controls */
+        .capture-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .capture-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid var(--lego-purple);
+            border-radius: 6px;
+            color: var(--lego-purple);
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .capture-btn:hover {
+            background: var(--lego-purple);
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        .nav-brick {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            color: var(--lego-yellow);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-brick:hover {
+            background: var(--lego-yellow);
+            color: #000;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px var(--lego-yellow-glow);
+        }
+
+        .nav-brick:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+
+        .progress-stud {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: #333;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .progress-stud.active {
+            background: var(--lego-yellow);
+            border-color: var(--lego-yellow);
+            box-shadow: 0 0 8px var(--lego-yellow-glow);
+        }
+
+        /* Context arrows and callouts */
+        .context-arrow {
+            position: absolute;
+            font-size: 24px;
+            color: var(--lego-yellow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .callout-box {
+            position: absolute;
+            background: #000;
+            border: 2px solid var(--lego-yellow);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: var(--lego-yellow);
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--lego-yellow-glow);
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <!-- STEP 1: Overview -->
+    <div class="instruction-page active" data-step="1">
+        <div class="header-brick">
+            <div class="header-title">🧱 TIMBER & COURAGE</div>
+            <div class="step-counter">1</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="flow-arrow" style="top: 20px; left: 20px;">⬇️ THE WORKFLOW</div>
+                        <div class="ui-mockup" style="max-width: 500px;">
+                            <div class="ui-header">
+                                <div class="ui-dots">
+                                    <div class="ui-dot active"></div>
+                                    <div class="ui-dot"></div>
+                                </div>
+                                <div class="ui-title">MASTER BUILDER SUITE</div>
+                            </div>
+                            <div class="ui-body"
+                                style="text-align: center; color: #888; display: flex; justify-content: space-around; align-items: center;">
+
+                                <!-- Courage Icon -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 48px; margin-bottom: 8px;">🧡</div>
+                                    <div style="font-weight: bold; color: var(--lego-orange);">COURAGE</div>
+                                    <div style="font-size: 10px;">The Architect</div>
+                                </div>
+
+                                <div style="font-size: 32px; color: #555;">➡️</div>
+
+                                <!-- Timber Icon -->
+                                <div style="text-align: center;">
+                                    <div style="font-size: 48px; margin-bottom: 8px;">🌲</div>
+                                    <div style="font-weight: bold; color: var(--lego-green);">TIMBER</div>
+                                    <div style="font-size: 10px;">The Viewer</div>
+                                </div>
+
+                            </div>
+                        </div>
+
+                        <div class="callout-box" style="bottom: 20px; right: 20px;">
+                            🎯 Write Code → See Reality
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Two Tools, One Masterpiece</div>
+                        <div class="step-desc">
+                            <strong style="color: var(--lego-orange);">COURAGE</strong> is where you write the DNA of
+                            your build. It's a powerful text editor that can generate the "Stud Skeleton" for your
+                            model.<br><br>
+                            <strong style="color: var(--lego-green);">TIMBER</strong> is where you achieve
+                            <strong>Precision</strong>.
+                            It's not just for viewing—it's for fine-tuning the alignment of your skeleton to the
+                            bricks.<br><br>
+                            Together, they form the <strong>Precision Alignment Loop</strong>.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: Courage -->
+    <div class="instruction-page" data-step="2">
+        <div class="header-brick">
+            <div class="header-title">🧡 COURAGE: THE ARCHITECT</div>
+            <div class="step-counter">2</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title" style="color: var(--lego-orange);">COURAGE EDITOR</div>
+                            </div>
+                            <div class="ui-body" style="background: #111; font-family: monospace; padding: 0;">
+                                <div style="display: flex; height: 200px;">
+                                    <!-- Editor Side -->
+                                    <div style="flex: 1; padding: 10px; border-right: 1px solid #333;">
+                                        <div style="color: #888;">0 FILE my_build.mpd</div>
+                                        <div style="color: #0f0;">1 4 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat</div>
+                                        <div style="color: #0f0;">1 1 20 0 0 1 0 0 0 1 0 0 0 1 3001.dat</div>
+                                        <div
+                                            style="background: rgba(255,0,0,0.2); border-left: 2px solid red; padding-left: 4px;">
+                                            1 99 0 24 0 ... <span style="color: red; font-size: 10px;">MISSING
+                                                PART</span></div>
+                                    </div>
+                                    <!-- Grid Side -->
+                                    <div
+                                        style="width: 100px; background: #000; display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px; padding: 5px;">
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: var(--lego-yellow);"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                        <div style="background: #333;"></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="top: 50%; left: -10px;">
+                            📝 Syntax Highlighting
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Write the DNA</div>
+                        <div class="step-desc">
+                            Courage is your drafting table. Here you define every brick, every position, and every
+                            color.<br><br>
+                            <strong>FEATURES:</strong><br>
+                            • <strong style="color: var(--lego-yellow);">Stud Skeleton:</strong> Automatically
+                            calculates
+                            connection points.<br>
+                            • <strong style="color: var(--lego-cyan);">Copy Skeleton:</strong> Export the skeleton as an
+                            MPD file for Timber.<br>
+                            • <strong style="color: var(--lego-red);">Grace Error Check:</strong> Instantly spots
+                            missing parts or bad syntax.
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">📄 MPD Format</div>
+                            <span class="code-highlight">1</span> [Color] [X] [Y] [Z] [Matrix] [PartFile]<br>
+                            <span style="color: #888;">Example:</span><br>
+                            1 4 0 -24 0 1 0 0 0 1 0 0 0 1 3001.dat
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Timber -->
+    <div class="instruction-page" data-step="3">
+        <div class="header-brick">
+            <div class="header-title">🌲 TIMBER: THE MASTER BUILDER</div>
+            <div class="step-counter">3</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title" style="color: var(--lego-green);">TIMBER VIEWER</div>
+                                <div style="font-size: 10px;">SKELETON: ON</div>
+                            </div>
+                            <div class="ui-body"
+                                style="background: #050505; position: relative; height: 250px; overflow: hidden;">
+                                <!-- Fake 3D Scene -->
+                                <div
+                                    style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100px; height: 60px; background: #cc0000; box-shadow: 5px 5px 0 #880000;">
+                                </div>
+                                <!-- Skeleton Overlay -->
+                                <div
+                                    style="position: absolute; top: 40%; left: 50%; width: 10px; height: 10px; background: cyan; border-radius: 50%; box-shadow: 0 0 5px cyan;">
+                                </div>
+                                <div
+                                    style="position: absolute; top: 40%; left: 40%; width: 10px; height: 10px; background: cyan; border-radius: 50%; box-shadow: 0 0 5px cyan;">
+                                </div>
+                                <div
+                                    style="position: absolute; top: 40%; left: 60%; width: 10px; height: 10px; background: cyan; border-radius: 50%; box-shadow: 0 0 5px cyan;">
+                                </div>
+
+                                <div
+                                    style="position: absolute; bottom: 10px; left: 10px; color: var(--lego-green); font-size: 10px; font-family: monospace;">
+                                    X: 0 Y: -24 Z: 0
+                                </div>
+                            </div>
+                        </div>
+                        <div class="callout-box"
+                            style="bottom: 10px; right: 10px; border-color: var(--lego-green); color: var(--lego-green);">
+                            🦴 Skeleton Mode
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Verify Reality</div>
+                        <div class="step-desc">
+                            Timber is your precision instrument. It allows you to fine-tune the spatial relationship
+                            between your bricks and the skeleton.<br><br>
+                            <strong>PRECISION TOOLS:</strong><br>
+                            • <strong style="color: var(--lego-green);">Skeleton Mode:</strong> Overlay the generated
+                            studs to check alignment.<br>
+                            • <strong style="color: var(--lego-yellow);">Calibration:</strong> Adjust the skeleton's
+                            offset to perfectly match the 3D model.<br>
+                            • <strong style="color: var(--lego-blue);">Fine Control:</strong> Use dials to tweak
+                            positions
+                            without altering the source code.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 4: The Cycle -->
+    <div class="instruction-page" data-step="4">
+        <div class="header-brick">
+            <div class="header-title">🔄 THE MASTER CYCLE</div>
+            <div class="step-counter">4</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div
+                            style="display: flex; flex-direction: column; gap: 20px; align-items: center; width: 100%;">
+
+                            <div
+                                style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 2px solid var(--lego-orange); width: 80%; text-align: center;">
+                                <div style="font-weight: bold; color: var(--lego-orange);">1. EDIT IN COURAGE</div>
+                                <div style="font-size: 10px; color: #888;">Write code, fix errors</div>
+                            </div>
+
+                            <div style="font-size: 24px;">⬇️ <span style="font-size: 12px; color: #666;">SAVE
+                                    .MPD</span></div>
+
+                            <div
+                                style="background: #1a1a1a; padding: 15px; border-radius: 8px; border: 2px solid var(--lego-green); width: 80%; text-align: center;">
+                                <div style="font-weight: bold; color: var(--lego-green);">2. LOAD IN TIMBER</div>
+                                <div style="font-size: 10px; color: #888;">Open file, check skeleton</div>
+                            </div>
+
+                            <div style="font-size: 24px;">⬇️ <span style="font-size: 12px; color: #666;">FOUND
+                                    ISSUE?</span></div>
+
+                            <div style="font-size: 12px; color: var(--lego-yellow);">REPEAT</div>
+
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Iterate to Perfection</div>
+                        <div class="step-desc">
+                            The Precision Workflow:<br><br>
+                            1. <strong>Design</strong> your model in Courage.<br>
+                            2. <strong>Copy Skeleton</strong> (MPD) from Courage.<br>
+                            3. <strong>Load</strong> the skeleton into Timber.<br>
+                            4. <strong>Calibrate</strong> the alignment using Timber's controls.<br>
+                            5. <strong>Refine</strong> until the skeleton fits the bricks perfectly.<br><br>
+                            This ensures your digital model translates perfectly to physical space.
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">💡 PRO TIP</div>
+                            Keep both tabs open side-by-side for the fastest workflow!
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+                <button class="nav-brick" onclick="window.close()">START BUILDING →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress-bar">
+        <div class="progress-stud active" onclick="showStep(1)"></div>
+        <div class="progress-stud" onclick="showStep(2)"></div>
+        <div class="progress-stud" onclick="showStep(3)"></div>
+        <div class="progress-stud" onclick="showStep(4)"></div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function showStep(step) {
+            document.querySelectorAll('.instruction-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            document.querySelectorAll('.progress-stud').forEach((stud, i) => {
+                stud.classList.toggle('active', i + 1 === step);
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep(step) {
+            showStep(step);
+        }
+
+        function prevStep(step) {
+            showStep(step);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStep < 4) {
+                nextStep(currentStep + 1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                prevStep(currentStep - 1);
+            }
+        });
+    </script>
+</body>
+
+</html>

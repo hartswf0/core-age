@@ -1,0 +1,1338 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LEGO Instruction Manual</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: #000;
+            color: #ddd;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0d0d0d 100%);
+            border-bottom: 2px solid #FFD700;
+            padding: 12px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 18px;
+            font-weight: 700;
+            color: #FFD700;
+            letter-spacing: 1px;
+        }
+
+        .brick {
+            color: #FFD700;
+            font-size: 20px;
+            margin-right: 6px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            background: #1a1a1a;
+            border: 2px solid #333;
+            color: #666;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.15s;
+            position: relative;
+        }
+
+        .btn::before {
+            content: '';
+            position: absolute;
+            top: -6px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 12px;
+            height: 6px;
+            border-radius: 3px 3px 0 0;
+            background: #2a2a2a;
+            border: 1px solid #333;
+            border-bottom: none;
+        }
+
+        .btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, #FFD700 0%, #FFA500 100%);
+            border-color: #FFD700;
+            color: #000;
+            box-shadow: 0 0 16px rgba(255, 215, 0, 0.5);
+        }
+
+        .btn.active::before {
+            background: #FFD700;
+            border-color: #FFD700;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .page {
+            display: none;
+            padding: 20px 16px;
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: block;
+            animation: fadeIn 0.2s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+            }
+
+            to {
+                opacity: 1;
+            }
+        }
+
+        .card {
+            background: #0d0d0d;
+            border: 2px solid #222;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 16px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: 700;
+            color: #FFD700;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .num {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #FFD700;
+            color: #000;
+            font-size: 18px;
+            font-weight: 700;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .text {
+            font-size: 15px;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 12px;
+        }
+
+        .highlight {
+            color: #FFD700;
+            font-weight: 600;
+        }
+
+        .tool {
+            color: #4ECDC4;
+            font-weight: 600;
+        }
+
+        .flow {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin: 20px 0;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+
+        .flow-item {
+            padding: 12px 20px;
+            background: #1a1a1a;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: center;
+        }
+
+        .arrow {
+            font-size: 24px;
+            color: #FFD700;
+        }
+
+        .code {
+            background: #000;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #0f0;
+            margin: 16px 0;
+            overflow-x: auto;
+            line-height: 1.8;
+        }
+
+        .code-label {
+            color: #FFD700;
+            font-weight: 700;
+            margin-bottom: 8px;
+            font-size: 11px;
+            letter-spacing: 1px;
+        }
+
+        .code-keyword {
+            color: #FFD700;
+            font-weight: 700;
+        }
+
+        .code-string {
+            color: #4ECDC4;
+        }
+
+        .code-comment {
+            color: #666;
+        }
+
+        .code-number {
+            color: #FF6B9D;
+        }
+
+        .anatomy {
+            background: #0a0a0a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+        }
+
+        .anatomy-row {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 12px;
+            padding: 10px 0;
+            border-bottom: 1px solid #222;
+            align-items: start;
+        }
+
+        .anatomy-row:last-child {
+            border-bottom: none;
+        }
+
+        .anatomy-label {
+            color: #FFD700;
+            font-weight: 700;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+            min-width: 60px;
+        }
+
+        .anatomy-desc {
+            color: #ccc;
+            font-size: 13px;
+            line-height: 1.5;
+        }
+
+        .tip {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 4px solid #FFD700;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 16px 0;
+        }
+
+        .warning {
+            background: rgba(255, 69, 0, 0.1);
+            border-left: 4px solid #FF4500;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            margin: 16px 0;
+            color: #FF8866;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin: 16px 0;
+        }
+
+        .feature {
+            background: #1a1a1a;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            text-align: center;
+            transition: all 0.2s;
+        }
+
+        .feature:active {
+            transform: scale(0.95);
+            border-color: #FFD700;
+        }
+
+        .feature-icon {
+            font-size: 32px;
+            margin-bottom: 8px;
+        }
+
+        .feature-name {
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 4px;
+        }
+
+        .feature-desc {
+            font-size: 11px;
+            color: #666;
+        }
+
+        .visual {
+            background: #000;
+            border: 2px solid #333;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 16px 0;
+            text-align: center;
+        }
+
+        .minifig {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            margin: 10px;
+        }
+
+        .head {
+            width: 30px;
+            height: 30px;
+            background: #FFD700;
+            border-radius: 50%;
+            border: 2px solid #FFA500;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 18px;
+            margin-bottom: 2px;
+        }
+
+        .body {
+            width: 36px;
+            height: 44px;
+            background: #FF4444;
+            border-radius: 3px;
+            border: 2px solid #CC0000;
+            margin-bottom: 2px;
+        }
+
+        .legs {
+            width: 36px;
+            height: 30px;
+            background: #4444FF;
+            border-radius: 0 0 3px 3px;
+            border: 2px solid #0000CC;
+            border-top: none;
+        }
+
+        .grid-viz {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            max-width: 280px;
+            margin: 16px auto;
+        }
+
+        .cell {
+            aspect-ratio: 1;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+        }
+
+        .cell.filled {
+            background: #FFD700;
+            border-color: #FFA500;
+            box-shadow: 0 0 6px rgba(255, 215, 0, 0.6);
+        }
+
+        .footer {
+            padding: 12px 16px;
+            background: #0d0d0d;
+            border-top: 1px solid #222;
+            display: flex;
+            justify-content: space-between;
+            gap: 12px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 12px;
+            background: #1a1a1a;
+            border: 2px solid #FFD700;
+            border-radius: 8px;
+            color: #FFD700;
+            font-size: 14px;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            background: #FFD700;
+            color: #000;
+            transform: scale(0.97);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        @media (max-width: 480px) {
+            .title {
+                font-size: 14px;
+            }
+
+            .brick {
+                font-size: 16px;
+            }
+
+            .btn {
+                width: 38px;
+                height: 38px;
+                font-size: 16px;
+            }
+
+            .card-title {
+                font-size: 18px;
+            }
+
+            .text {
+                font-size: 14px;
+            }
+
+            .anatomy-row {
+                grid-template-columns: 1fr;
+                gap: 6px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">
+            <span class="brick">🧱</span>LEGO INSTRUCTION MANUAL
+        </div>
+        <div class="nav" id="nav"></div>
+    </div>
+
+    <div class="content" id="content">
+        <!-- STEP 1 -->
+        <div class="page active" data-step="1">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">1</div>
+                    <span>The Three Tools</span>
+                </div>
+
+                <div class="flow">
+                    <div class="flow-item">SWISS<br><small>Build</small></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-item">FRANK<br><small>Arrange</small></div>
+                    <div class="arrow">→</div>
+                    <div class="flow-item">GRACE<br><small>View</small></div>
+                </div>
+
+                <div class="text">
+                    This system works like building with LEGO. Each tool does one job, and they all talk to each other
+                    automatically using <span class="highlight">MPD files</span> (Multi-Part Document format).
+                </div>
+
+                <div class="text">
+                    <span class="highlight">SWISS</span> - Build individual parts like minifigs, vehicles, and buildings
+                </div>
+
+                <div class="text">
+                    <span class="highlight">FRANK</span> - Arrange everything on a 9×9 grid like a LEGO baseplate
+                </div>
+
+                <div class="text">
+                    <span class="highlight">GRACE</span> - View the complete 3D scene with full rendering
+                </div>
+
+                <div class="tip">
+                    👉 MPD is the universal language. Every tool reads and writes MPD files to communicate.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: MPD ANATOMY -->
+        <div class="page" data-step="2">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">2</div>
+                    <span>Understanding MPD Files</span>
+                </div>
+
+                <div class="text">
+                    MPD stands for <span class="highlight">Multi-Part Document</span>. It's a text file format from the
+                    LDraw system that describes LEGO models. Think of it as instructions written in code.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">COMPLETE MPD FILE ANATOMY</div>
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">my-minifig.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">Hero Minifig</span>
+                    <span class="code-keyword">0 Author:</span> <span class="code-string">SWISS Minifigurator</span>
+                    <span class="code-comment">0 Hat piece</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        -32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3624.dat</span>
+                    <span class="code-comment">0 Head with face</span>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+                    <span class="code-comment">0 Red torso</span>
+                    <span class="code-keyword">1</span> <span class="code-number">4</span> <span class="code-number">0 0
+                        0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">973c00.dat</span>
+                    <span class="code-comment">0 Blue legs</span>
+                    <span class="code-keyword">1</span> <span class="code-number">1</span> <span class="code-number">0
+                        32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">970c00.dat</span>
+                    <span class="code-keyword">0 NOFILE</span>
+                </div>
+
+                <div class="anatomy">
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0</div>
+                        <div class="anatomy-desc"><strong>Meta Command</strong> - Lines starting with 0 are comments or
+                            special commands (not rendered geometry)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">1</div>
+                        <div class="anatomy-desc"><strong>Part Reference</strong> - Places a sub-file or part at a
+                            specific position and orientation</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">2</div>
+                        <div class="anatomy-desc"><strong>Line</strong> - Draws a line between two points (rarely used
+                            in MPD files)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3</div>
+                        <div class="anatomy-desc"><strong>Triangle</strong> - Defines a 3-point polygon face (for custom
+                            geometry)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">4</div>
+                        <div class="anatomy-desc"><strong>Quadrilateral</strong> - Defines a 4-point polygon face (for
+                            custom geometry)</div>
+                    </div>
+                </div>
+
+                <div class="tip">
+                    💡 Most MPD files only use line type <strong>0</strong> (comments/meta) and <strong>1</strong> (part
+                    references). You rarely need 2, 3, or 4.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: LINE TYPE 1 BREAKDOWN -->
+        <div class="page" data-step="3">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">3</div>
+                    <span>Breaking Down Line Type 1</span>
+                </div>
+
+                <div class="text">
+                    Line type 1 is the most important. It places a LEGO part at a specific position with rotation and
+                    color. Here's what each number means:
+                </div>
+
+                <div class="code">
+                    <div class="code-label">LINE TYPE 1 - FULL ANATOMY</div>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+                </div>
+
+                <div class="anatomy">
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">1</div>
+                        <div class="anatomy-desc"><strong>Line Type</strong> - Always 1 for part references</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">14</div>
+                        <div class="anatomy-desc"><strong>Color Code</strong> - LDraw color number (14 = yellow, 4 =
+                            red, 1 = blue, 16 = main color)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 -24 0</div>
+                        <div class="anatomy-desc"><strong>Position (x y z)</strong> - Where to place the part in 3D
+                            space. Units are LDU (LDraw Units, 1 brick = 24 LDU tall)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">1 0 0<br>0 1 0<br>0 0 1</div>
+                        <div class="anatomy-desc"><strong>Rotation Matrix (3×3)</strong> - How the part is rotated.
+                            Identity matrix means no rotation:<br>
+                            • First row (1 0 0) = X-axis direction<br>
+                            • Second row (0 1 0) = Y-axis direction<br>
+                            • Third row (0 0 1) = Z-axis direction</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3626bp01.dat</div>
+                        <div class="anatomy-desc"><strong>Part File</strong> - Reference to the actual part geometry (a
+                            .dat file in the LDraw parts library)</div>
+                    </div>
+                </div>
+
+                <div class="tip">
+                    💡 The rotation matrix looks complex, but for most uses you can keep it as <strong>1 0 0 0 1 0 0 0
+                        1</strong> (no rotation).
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>Common Color Codes</span>
+                </div>
+
+                <div class="anatomy">
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0</div>
+                        <div class="anatomy-desc">Black</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">1</div>
+                        <div class="anatomy-desc">Blue</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">4</div>
+                        <div class="anatomy-desc">Red</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">14</div>
+                        <div class="anatomy-desc">Yellow</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">16</div>
+                        <div class="anatomy-desc">Main color (inherits from parent)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">24</div>
+                        <div class="anatomy-desc">Edge color (for outlines)</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: COMMENTS & META COMMANDS -->
+        <div class="page" data-step="4">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">4</div>
+                    <span>Comments & Meta Commands</span>
+                </div>
+
+                <div class="text">
+                    All lines starting with <span class="highlight">0</span> are either comments or special meta
+                    commands. They don't render any geometry.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">COMMENT EXAMPLES</div>
+                    <span class="code-comment">0 This is a comment</span>
+                    <span class="code-comment">0 Comments help explain what parts do</span>
+                    <span class="code-comment">0 The minifig head goes here</span>
+                </div>
+
+                <div class="warning">
+                    ⚠️ <strong>DO NOT USE //</strong> for comments! The MPD format only recognizes lines starting with
+                    <strong>0</strong> as comments. Using // will break the file.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">WRONG - WILL BREAK</div>
+                    <span style="color: #FF4444;">// This will cause errors</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        0 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span> <span style="color: #FF4444;">// Don't do this!</span>
+                </div>
+
+                <div class="code">
+                    <div class="code-label">CORRECT MPD COMMENTS</div>
+                    <span class="code-comment">0 This is correct</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        0 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+                    <span class="code-comment">0 Comments on their own line work perfectly</span>
+                </div>
+
+                <div class="text">
+                    <strong>Special Meta Commands:</strong>
+                </div>
+
+                <div class="anatomy">
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 FILE</div>
+                        <div class="anatomy-desc">Starts a new sub-model in the MPD. Every MPD must begin with this.
+                        </div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 NOFILE</div>
+                        <div class="anatomy-desc">Ends the current sub-model. Always close your files with this.</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 Name:</div>
+                        <div class="anatomy-desc">Sets the model name (optional but recommended)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 Author:</div>
+                        <div class="anatomy-desc">Sets the author name (optional)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">0 STEP</div>
+                        <div class="anatomy-desc">Marks a building step in instructions (optional, used for step-by-step
+                            rendering)</div>
+                    </div>
+                </div>
+
+                <div class="tip">
+                    💡 The <strong>0 STEP</strong> command is useful for creating building instructions. Each STEP shows
+                    progress in the assembly.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 5: DAT FILES & PART LIBRARY -->
+        <div class="page" data-step="5">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">5</div>
+                    <span>Understanding .dat Files</span>
+                </div>
+
+                <div class="text">
+                    When you reference a part like <span class="highlight">3626bp01.dat</span>, you're pointing to a
+                    file in the LDraw parts library. These .dat files contain the actual 3D geometry.
+                </div>
+
+                <div class="tip">
+                    🔍 <strong>Where to find parts:</strong><br>
+                    • Official LDraw library: <strong>ldraw.org/parts/</strong><br>
+                    • Search by part number: <strong>rebrickable.com</strong><br>
+                    • Browse visually: <strong>bricklink.com</strong>
+                </div>
+
+                <div class="text">
+                    <strong>Common Part Naming Conventions:</strong>
+                </div>
+
+                <div class="anatomy">
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3626bp01.dat</div>
+                        <div class="anatomy-desc">Minifig head with printed face pattern 01</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3626b.dat</div>
+                        <div class="anatomy-desc">Plain minifig head (no pattern)</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">973c00.dat</div>
+                        <div class="anatomy-desc">Minifig torso without arms</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">970c00.dat</div>
+                        <div class="anatomy-desc">Minifig hips and legs</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3024.dat</div>
+                        <div class="anatomy-desc">Plate 1 x 1</div>
+                    </div>
+                    <div class="anatomy-row">
+                        <div class="anatomy-label">3001.dat</div>
+                        <div class="anatomy-desc">Brick 2 x 4</div>
+                    </div>
+                </div>
+
+                <div class="code">
+                    <div class="code-label">INSIDE A .DAT FILE (3626b.dat - Minifig Head)</div>
+                    <span class="code-comment">0 Minifig Head</span>
+                    <span class="code-comment">0 Name: 3626b.dat</span>
+                    <span class="code-comment">0 Author: LDraw.org</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        0 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">s/3626bs01.dat</span>
+                    <span class="code-comment">0 Stud on top</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        -4 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">stud4.dat</span>
+                    <span class="code-comment">0 BFC CERTIFY CCW</span>
+                    <span class="code-keyword">4</span> <span class="code-number">16</span> <span class="code-number">-8
+                        8 -8</span> <span class="code-number">-8 8 8</span> <span class="code-number">8 8 8</span> <span
+                        class="code-number">8 8 -8</span>
+                    <span class="code-comment">0 More quads and triangles define the head shape...</span>
+                </div>
+
+                <div class="text">
+                    .dat files can reference other .dat files, creating a hierarchy. The <strong>s/</strong> prefix
+                    means "sub-part" - smaller pieces that build up a larger part.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 6: COMPLETE MPD EXAMPLE -->
+        <div class="page" data-step="6">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">6</div>
+                    <span>Complete MPD Example with Steps</span>
+                </div>
+
+                <div class="text">
+                    Here's a complete MPD file showing a minifig being built step-by-step. This demonstrates how FRANK
+                    composes scenes and how GRACE renders them.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">COMPLETE SCENE MPD WITH BUILDING STEPS</div>
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">wag-frank-scene.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">WAG FRANK SCENE</span>
+                    <span class="code-keyword">0 Author:</span> <span class="code-string">FRANK Grid Composer</span>
+                    <span class="code-comment">0 Generated by SWISS/FRANK/GRACE workflow</span>
+
+                    <span class="code-comment">0 Step 1: Place the legs</span>
+                    <span class="code-keyword">1</span> <span class="code-number">1</span> <span class="code-number">0
+                        32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">970c00.dat</span>
+                    <span class="code-keyword">0 STEP</span>
+
+                    <span class="code-comment">0 Step 2: Add the torso</span>
+                    <span class="code-keyword">1</span> <span class="code-number">4</span> <span class="code-number">0 0
+                        0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">973c00.dat</span>
+                    <span class="code-keyword">0 STEP</span>
+
+                    <span class="code-comment">0 Step 3: Add the head</span>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+                    <span class="code-keyword">0 STEP</span>
+
+                    <span class="code-comment">0 Step 4: Add the hat</span>
+                    <span class="code-keyword">1</span> <span class="code-number">0</span> <span class="code-number">0
+                        -32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3624.dat</span>
+                    <span class="code-keyword">0 STEP</span>
+
+                    <span class="code-keyword">0 NOFILE</span>
+                </div>
+
+                <div class="tip">
+                    💡 Each <strong>0 STEP</strong> command creates a new frame in building instructions. GRACE can
+                    render these step-by-step.
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="card-title">
+                    <span>Multi-File MPD (Multiple Models)</span>
+                </div>
+
+                <div class="text">
+                    MPD files can contain multiple sub-models. This is how FRANK composes complex scenes with multiple
+                    minifigs and objects.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">MPD WITH MULTIPLE SUB-MODELS</div>
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">hero.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">Hero Minifig</span>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+                    <span class="code-keyword">1</span> <span class="code-number">4</span> <span class="code-number">0 0
+                        0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">973c00.dat</span>
+                    <span class="code-keyword">1</span> <span class="code-number">1</span> <span class="code-number">0
+                        32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">970c00.dat</span>
+                    <span class="code-keyword">0 NOFILE</span>
+
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">villain.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">Villain Minifig</span>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp02.dat</span>
+                    <span class="code-keyword">1</span> <span class="code-number">0</span> <span class="code-number">0 0
+                        0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">973c01.dat</span>
+                    <span class="code-keyword">1</span> <span class="code-number">0</span> <span class="code-number">0
+                        32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">970c00.dat</span>
+                    <span class="code-keyword">0 NOFILE</span>
+
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">scene.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">Complete Scene</span>
+                    <span class="code-comment">0 FRANK_CELL {"cell":"D4","x":-160,"z":-160}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span
+                        class="code-number">-160 0 -160</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">hero.mpd</span>
+                    <span class="code-comment">0 FRANK_CELL {"cell":"F6","x":160,"z":160}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span
+                        class="code-number">160 0 160</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">villain.mpd</span>
+                    <span class="code-keyword">0 NOFILE</span>
+                </div>
+
+                <div class="text">
+                    Notice how the main scene references the sub-models by name. The <strong>FRANK_CELL</strong> comment
+                    is metadata that FRANK adds to track grid positions.
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 7: BUILD IN SWISS -->
+        <div class="page" data-step="7">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">7</div>
+                    <span>Build Your First Minifig in SWISS</span>
+                </div>
+
+                <div class="visual">
+                    <div class="minifig">
+                        <div class="head">😊</div>
+                        <div class="body"></div>
+                        <div class="legs"></div>
+                    </div>
+                </div>
+
+                <div class="text">
+                    Now that you understand MPD files, let's build something!
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 1:</span> Open SWISS by clicking the first dot at the top
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 2:</span> Click the yellow dot to open MINIFIGURATOR
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 3:</span> Pick any hat, head, torso, and legs from the dropdown lists
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 4:</span> Click the <span class="highlight">SAVE MPD</span> button
+                </div>
+
+                <div class="tip">
+                    Your minifig is saved as an MPD file and automatically sent to FRANK's inbox via the "wag-frank"
+                    message bus.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">WHAT SWISS GENERATES</div>
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">my-hero.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">My Hero</span>
+                    <span class="code-keyword">0 Author:</span> <span class="code-string">SWISS Minifigurator</span>
+                    <span class="code-comment">0 Generated: 2025-11-18</span>
+
+                    <span class="code-comment">0 Cowboy hat (black)</span>
+                    <span class="code-keyword">1</span> <span class="code-number">0</span> <span class="code-number">0
+                        -32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3624.dat</span>
+
+                    <span class="code-comment">0 Head with smile (yellow)</span>
+                    <span class="code-keyword">1</span> <span class="code-number">14</span> <span class="code-number">0
+                        -24 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">3626bp01.dat</span>
+
+                    <span class="code-comment">0 Torso with police badge (red)</span>
+                    <span class="code-keyword">1</span> <span class="code-number">4</span> <span class="code-number">0 0
+                        0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">973c00.dat</span>
+
+                    <span class="code-comment">0 Legs (blue)</span>
+                    <span class="code-keyword">1</span> <span class="code-number">1</span> <span class="code-number">0
+                        32 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">970c00.dat</span>
+
+                    <span class="code-keyword">0 NOFILE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 8: ARRANGE IN FRANK -->
+        <div class="page" data-step="8">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">8</div>
+                    <span>Arrange on the Grid in FRANK</span>
+                </div>
+
+                <div class="grid-viz">
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell filled"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell filled"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                    <div class="cell"></div>
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 1:</span> Switch to the FRANK tab at the top
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 2:</span> Look in the left panel - your minifig appears in the INBOX
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 3:</span> Click on your minifig to select it (it highlights in gold)
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 4:</span> Click any grid cell like D4 or F6
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 5:</span> Click the <span class="highlight">Assign to Cell</span>
+                    button
+                </div>
+
+                <div class="tip">
+                    💡 The 9×9 grid uses coordinates A1-I9. Each cell is 160 LDraw units apart in both X and Z
+                    directions.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">FRANK ADDS GRID POSITIONING</div>
+                    <span class="code-comment">0 Original minifig at origin (0,0,0)</span>
+                    <span class="code-comment">0 FRANK translates it to grid position D4</span>
+
+                    <span class="code-comment">0 FRANK_CELL {"cell":"D4","x":-160,"z":-160}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span
+                        class="code-number">-160 0 -160</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">my-hero.mpd</span>
+
+                    <span class="code-comment">0 Grid math: D=column 4, so X = (4-5)*160 = -160</span>
+                    <span class="code-comment">0 4=row 4, so Z = (4-5)*160 = -160</span>
+                    <span class="code-comment">0 Center is E5 at (0,0,0)</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 9: VIEW IN GRACE -->
+        <div class="page" data-step="9">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">9</div>
+                    <span>View in 3D with GRACE</span>
+                </div>
+
+                <div class="visual">
+                    <div class="minifig">
+                        <div class="head">😊</div>
+                        <div class="body"></div>
+                        <div class="legs"></div>
+                    </div>
+                    <div class="minifig">
+                        <div class="head">😎</div>
+                        <div class="body" style="background: #44FF44; border-color: #00CC00;"></div>
+                        <div class="legs" style="background: #FF44FF; border-color: #CC00CC;"></div>
+                    </div>
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 1:</span> In FRANK, click the <span class="highlight">Build Scene in
+                        Grace</span> button
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 2:</span> GRACE opens automatically (or switch to the GRACE tab)
+                </div>
+
+                <div class="text">
+                    <span class="highlight">Step 3:</span> Your complete scene loads in full 3D
+                </div>
+
+                <div class="text">
+                    GRACE reads the MPD file, loads all referenced .dat files from the LDraw library, and renders
+                    everything in 3D using Three.js.
+                </div>
+
+                <div class="tip">
+                    You can orbit the camera, zoom, and even edit the MPD code directly in GRACE's editor panel.
+                </div>
+
+                <div class="code">
+                    <div class="code-label">COMPLETE SCENE MPD (sent to GRACE)</div>
+                    <span class="code-keyword">0 FILE</span> <span class="code-string">wag-frank-scene.mpd</span>
+                    <span class="code-keyword">0 Name:</span> <span class="code-string">WAG FRANK SCENE</span>
+                    <span class="code-keyword">0 Author:</span> <span class="code-string">FRANK Grid Composer</span>
+
+                    <span class="code-comment">0 Hero at D4</span>
+                    <span class="code-comment">0 FRANK_CELL {"cell":"D4"}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span
+                        class="code-number">-160 0 -160</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">my-hero.mpd</span>
+
+                    <span class="code-comment">0 Villain at F6</span>
+                    <span class="code-comment">0 FRANK_CELL {"cell":"F6"}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span
+                        class="code-number">160 0 160</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">villain.mpd</span>
+
+                    <span class="code-comment">0 Police car at E5</span>
+                    <span class="code-comment">0 FRANK_CELL {"cell":"E5"}</span>
+                    <span class="code-keyword">1</span> <span class="code-number">16</span> <span class="code-number">0
+                        0 0</span> <span class="code-number">1 0 0 0 1 0 0 0 1</span> <span
+                        class="code-string">police-car.mpd</span>
+
+                    <span class="code-keyword">0 NOFILE</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 10: EXPLORE MORE -->
+        <div class="page" data-step="10">
+            <div class="card">
+                <div class="card-title">
+                    <div class="num">10</div>
+                    <span>Explore More Builders</span>
+                </div>
+
+                <div class="text">
+                    Now that you understand the MPD format and the workflow, explore these additional builders in SWISS:
+                </div>
+
+                <div class="grid">
+                    <div class="feature">
+                        <div class="feature-icon">🏗️</div>
+                        <div class="feature-name" style="color: #00FF88;">LOCATIONATOR</div>
+                        <div class="feature-desc">Build walls, doors, windows, trees</div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">🚗</div>
+                        <div class="feature-name" style="color: #FF4500;">VEHICULATOR</div>
+                        <div class="feature-desc">Design cars, planes, boats</div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">🌍</div>
+                        <div class="feature-name" style="color: #4ECDC4;">SCENEERATOR</div>
+                        <div class="feature-desc">Choose baseplates and terrain</div>
+                    </div>
+
+                    <div class="feature">
+                        <div class="feature-icon">✏️</div>
+                        <div class="feature-name" style="color: #A855F7;">GRACE EDITOR</div>
+                        <div class="feature-desc">Edit raw MPD code</div>
+                    </div>
+                </div>
+
+                <div class="text">
+                    All these tools work the same way - build in SWISS, arrange in FRANK, view in GRACE. They all speak
+                    MPD.
+                </div>
+
+                <div class="tip">
+                    🎉 You're ready! Remember: comments start with <strong>0</strong>, never use <strong>//</strong>,
+                    and every file needs <strong>0 FILE</strong> and <strong>0 NOFILE</strong>.
+                </div>
+            </div>
+
+            <div class="card" style="background: rgba(255,215,0,0.05); border-color: #FFD700;">
+                <div style="text-align: center;">
+                    <div style="font-size: 40px; margin-bottom: 12px;">🧱</div>
+                    <div style="font-size: 20px; font-weight: 700; color: #FFD700; margin-bottom: 12px;">
+                        The LEGO Philosophy
+                    </div>
+                    <div class="text" style="text-align: center;">
+                        Each tool does ONE thing well<br>
+                        They all snap together via MPD files<br>
+                        Build small pieces, combine into big scenes<br>
+                        Edit the code like changing bricks
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="nav-btn" id="prev" onclick="changeStep(-1)">← Prev</button>
+        <button class="nav-btn" id="next" onclick="changeStep(1)">Next →</button>
+    </div>
+
+    <script>
+        let step = 1;
+        const total = 10;
+
+        function init() {
+            const nav = document.getElementById('nav');
+            for (let i = 1; i <= total; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (i === 1 ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => goTo(i);
+                nav.appendChild(btn);
+            }
+        }
+
+        function goTo(n) {
+            step = n;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-step="${n}"]`).classList.add('active');
+
+            document.querySelectorAll('.btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === n);
+            });
+
+            document.getElementById('prev').disabled = n === 1;
+            document.getElementById('next').disabled = n === total;
+
+            document.getElementById('content').scrollTop = 0;
+        }
+
+        function changeStep(d) {
+            const n = step + d;
+            if (n >= 1 && n <= total) goTo(n);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') changeStep(-1);
+            if (e.key === 'ArrowRight') changeStep(1);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

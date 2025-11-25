@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Master Builder's Library</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-yellow);
+            text-shadow: 0 0 10px var(--lego-yellow-glow);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-yellow);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px var(--lego-yellow-glow);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #FFA500;
+            border: 3px solid #CC8400;
+            border-bottom: none;
+        }
+
+        /* Main content area */
+        .library-container {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        /* Library Card (Brick Style) */
+        .library-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 3px solid #333;
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+        }
+
+        .library-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--card-color);
+            box-shadow: 0 8px 24px var(--card-glow);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--card-color);
+            letter-spacing: 1px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #888;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+        }
+
+        .card-tag {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #222;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .card-arrow {
+            color: var(--card-color);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Stud decoration */
+        .stud-decoration {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            width: 40px;
+            height: 12px;
+            background: #333;
+            border-radius: 4px 4px 0 0;
+            border: 2px solid #444;
+            border-bottom: none;
+        }
+
+        .library-card:hover .stud-decoration {
+            background: var(--card-color);
+            border-color: var(--card-color);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-brick">
+        <div class="header-title">📚 MASTER BUILDER'S LIBRARY</div>
+        <div class="step-counter">∞</div>
+    </div>
+
+    <div class="library-container">
+        <div class="library-grid">
+
+            <!-- CARD 1: TIMBER TUTORIAL -->
+            <a href="TIMBER-tutorial.html" class="library-card"
+                style="--card-color: var(--lego-yellow); --card-glow: var(--lego-yellow-glow);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🧱</div>
+                <div class="card-title">TIMBER & COURAGE</div>
+                <div class="card-desc">
+                    The foundational guide to the Precision Alignment Loop. Learn how to use the Courage Editor and
+                    Timber Viewer together to create perfect stud skeletons.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tutorial</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 2: AUTOPSY REPORT -->
+            <a href="line-22-autopsy.html" class="library-card"
+                style="--card-color: var(--lego-red); --card-glow: rgba(255, 68, 68, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🩺</div>
+                <div class="card-title">AUTOPSY: LINE 22</div>
+                <div class="card-desc">
+                    A forensic analysis of the "Line 22 Collapse" pathology. Explains the entropic destruction of
+                    context in monolithic loading and the structural fix.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Technical Report</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 3: ARCHITECTURE MATRIX -->
+            <a href="architecture-decision-matrix.html" class="library-card"
+                style="--card-color: var(--lego-green); --card-glow: rgba(0, 255, 136, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🏛️</div>
+                <div class="card-title">DECISION MATRIX</div>
+                <div class="card-desc">
+                    Industry precedents and trade-off analysis for Architecture B (Mesh-Per-Line). Validates the
+                    approach against Fusion 360, Blender, and CAD standards.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Architecture</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 4: DISENTANGLING STRATEGY -->
+            <a href="disentangling-strategy.html" class="library-card"
+                style="--card-color: var(--lego-blue); --card-glow: rgba(68, 68, 255, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🧩</div>
+                <div class="card-title">DISENTANGLING</div>
+                <div class="card-desc">
+                    Strategies for revealing sub-parts in merged meshes. Covers "Color as Organs", algorithmic
+                    segmentation, and the "Golden Rule" of sub-object loading.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Best Practices</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 5: LEGO QUICKSTART -->
+            <a href="LEGOS-tutorial-primal.html" class="library-card"
+                style="--card-color: var(--lego-yellow); --card-glow: var(--lego-yellow-glow);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">⚡</div>
+                <div class="card-title">LEGO QUICKSTART</div>
+                <div class="card-desc">
+                    The "Primal" guide to the Swiss/Frank/Grace workflow. Learn how to use the Minifigurator, arrange
+                    parts in Frank, and capture scenes in Grace.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tutorial</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 6: BRICK HAVEN ARCHITECTURE -->
+            <a href="brick_haven_tutorial.html" class="library-card"
+                style="--card-color: var(--lego-orange); --card-glow: rgba(255, 107, 53, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🏙️</div>
+                <div class="card-title">BRICK HAVEN CITY</div>
+                <div class="card-desc">
+                    A deep dive into the architecture of a complex LEGO city. Covers Spatial Grammar, Agent Interfaces,
+                    and the LEGOS Narrative Framework.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Case Study</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 7: LEGOS-GPT MANUAL -->
+            <a href="legos-gpt-manual.html" class="library-card"
+                style="--card-color: var(--lego-purple); --card-glow: rgba(157, 78, 221, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">📖</div>
+                <div class="card-title">LEGOS-GPT MANUAL</div>
+                <div class="card-desc">
+                    Complete guide to the LEGOS narrative architecture framework. Learn to structure stories using
+                    Location, Entity, Goal, Obstacle, Shift, and Timeline components.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Narrative Framework</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 8: LEGOS TO LDRAW BRIDGE -->
+            <a href="legos-to-ldraw-bridge.html" class="library-card"
+                style="--card-color: var(--lego-pink); --card-glow: rgba(239, 71, 111, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🌉</div>
+                <div class="card-title">LEGOS ↔ LDRAW BRIDGE</div>
+                <div class="card-desc">
+                    Bidirectional translation between narrative frameworks and physical brick scenes. Color symbolism,
+                    spatial grammar, and complete mapping tables.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Translation Layer</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- LAB LINK CARD -->
+            <a href="lab-hub.html" class="library-card"
+                style="--card-color: var(--lego-cyan); --card-glow: rgba(78, 205, 196, 0.4); border-style: dashed;">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🧪</div>
+                <div class="card-title">EXPERIMENTAL LAB</div>
+                <div class="card-desc">
+                    Access the diagnostic tools and experiments: Temporal Mesh Lab, Pathology Studio, and Grid Viewers.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tools & Labs</span>
+                    <span class="card-arrow">ENTER →</span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</body>
+
+</html>

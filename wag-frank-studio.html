@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG FRANK STUDIO // Variant Comparison</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        :root {
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --border: #222;
+            --accent: #0f0;
+            --text: #e0e0e0;
+            --dim: #666;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* Studio Header */
+        #studio-header {
+            padding: 15px 20px;
+            background: var(--panel);
+            border-bottom: 2px solid var(--border);
+        }
+
+        #studio-header h1 {
+            font-size: 16px;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 5px;
+        }
+
+        #studio-header .subtitle {
+            font-size: 10px;
+            color: var(--dim);
+            letter-spacing: 1px;
+        }
+
+        /* Control Bar */
+        #control-bar {
+            padding: 10px 20px;
+            background: #080808;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .control-btn {
+            padding: 6px 12px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .control-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .control-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .divider {
+            width: 1px;
+            height: 20px;
+            background: var(--border);
+        }
+
+        /* Layout Modes */
+        #studio-main {
+            flex: 1;
+            display: flex;
+            gap: 2px;
+            background: var(--border);
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        /* Horizontal layout - all side by side */
+        #studio-main.layout-quad,
+        #studio-main.layout-triple,
+        #studio-main.layout-dual {
+            flex-direction: row;
+        }
+
+        #studio-main.layout-single {
+            flex-direction: row;
+        }
+
+        #studio-main.layout-vertical {
+            flex-direction: column;
+            overflow-x: hidden;
+            overflow-y: auto;
+        }
+
+        /* Viewport */
+        .viewport {
+            background: var(--panel);
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-width: 320px;
+            flex: 1 0 auto;
+        }
+
+        .viewport.hidden {
+            display: none;
+        }
+
+        /* Single viewport takes full width */
+        #studio-main.layout-single .viewport {
+            min-width: 100%;
+            flex: 1;
+        }
+
+        .viewport-label {
+            padding: 8px 12px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--dim);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .viewport-label .name {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .viewport-label .meta {
+            font-size: 8px;
+        }
+
+        .viewport iframe {
+            flex: 1;
+            border: none;
+            background: #000;
+        }
+
+        /* Status Bar */
+        #status-bar {
+            padding: 8px 20px;
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            font-size: 9px;
+            color: var(--dim);
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* Color coding */
+        .viewport[data-variant="terminal"] .viewport-label {
+            border-left: 3px solid #0f0;
+        }
+
+        .viewport[data-variant="unified"] .viewport-label {
+            border-left: 3px solid #66AAFF;
+        }
+
+        .viewport[data-variant="tetrad"] .viewport-label {
+            border-left: 3px solid #FFD700;
+        }
+
+        .viewport[data-variant="olog"] .viewport-label {
+            border-left: 3px solid #9D4EDD;
+        }
+
+        /* Loading State */
+        .viewport iframe[data-loading="true"] {
+            opacity: 0.5;
+        }
+
+        /* Mobile optimization - horizontal scroll */
+        @media (max-width: 768px) {
+            body {
+                font-size: 12px;
+            }
+
+            #header h1 {
+                font-size: 14px;
+                letter-spacing: 1px;
+            }
+
+            #control-bar {
+                padding: 8px 10px;
+                overflow-x: auto;
+                gap: 6px;
+            }
+
+            .control-btn {
+                padding: 10px 14px;
+                /* Larger touch targets */
+                font-size: 11px;
+                min-width: 60px;
+                white-space: nowrap;
+            }
+
+            .viewport {
+                min-width: 100vw;
+                /* One variant at a time on mobile */
+                scroll-snap-align: start;
+            }
+
+            #studio-main {
+                scroll-snap-type: x mandatory;
+                /* Snap to variants */
+                -webkit-overflow-scrolling: touch;
+                /* Smooth scrolling iOS */
+            }
+
+            #studio-main.layout-vertical .viewport {
+                min-width: 100%;
+                height: 50vh;
+                scroll-snap-align: start;
+            }
+
+            #status-bar {
+                font-size: 9px;
+                padding: 8px 10px;
+                flex-direction: column;
+                gap: 4px;
+                align-items: flex-start;
+            }
+
+            .viewport-label {
+                padding: 10px 12px;
+                /* Larger tap target */
+                font-size: 10px;
+            }
+
+            /* Navigation indicators */
+            #studio-main::after {
+                content: '◀ Swipe to navigate ▶';
+                position: fixed;
+                bottom: 60px;
+                left: 50%;
+                transform: translateX(-50%);
+                background: rgba(0, 0, 0, 0.8);
+                color: var(--accent);
+                padding: 8px 16px;
+                border-radius: 20px;
+                font-size: 10px;
+                pointer-events: none;
+                animation: fadeInOut 3s ease-in-out;
+            }
+
+            @keyframes fadeInOut {
+
+                0%,
+                100% {
+                    opacity: 0;
+                }
+
+                20%,
+                80% {
+                    opacity: 1;
+                }
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="studio-header">
+        <h1>WAG FRANK STUDIO // VARIANT COMPARISON</h1>
+        <div class="subtitle">
+            The Difference That Makes The Difference
+            <a href="#" onclick="showProtocol(); return false;"
+                style="margin-left: 20px; color: var(--accent); text-decoration: none; border: 1px solid var(--border); padding: 2px 8px; border-radius: 3px;">📡
+                BUS PROTOCOL</a>
+        </div>
+    </div>
+
+    <div id="control-bar">
+        <button class="control-btn active" onclick="setLayout('quad')">ALL (4)</button>
+        <button class="control-btn" onclick="setLayout('triple')">3-UP</button>
+        <button class="control-btn" onclick="setLayout('dual')">2-UP</button>
+        <button class="control-btn" onclick="setLayout('single')">SINGLE</button>
+        <button class="control-btn" onclick="setLayout('vertical')">STACK</button>
+
+        <div class="divider"></div>
+
+        <button class="control-btn" onclick="toggleViewport('terminal')">TERMINAL</button>
+        <button class="control-btn" onclick="toggleViewport('unified')">UNIFIED</button>
+        <button class="control-btn" onclick="toggleViewport('tetrad')">TETRAD</button>
+        <button class="control-btn" onclick="toggleViewport('olog')">OLOG</button>
+
+        <div class="divider"></div>
+
+        <button class="control-btn" onclick="reloadAll()">↻ RELOAD ALL</button>
+    </div>
+
+    <div id="studio-main" class="layout-quad">
+        <!-- TERMINAL -->
+        <div class="viewport" data-variant="terminal" id="vp-terminal">
+            <div class="viewport-label">
+                <span class="name">TERMINAL</span>
+                <span class="meta">ORCHESTRATOR v4 // Paint & Track</span>
+            </div>
+            <iframe src="wag-frank-terminal.html" data-loading="true"></iframe>
+        </div>
+
+        <!-- UNIFIED -->
+        <div class="viewport" data-variant="unified" id="vp-unified">
+            <div class="viewport-label">
+                <span class="name">UNIFIED</span>
+                <span class="meta">RPS ENGINE v7 // Browse & Compose</span>
+            </div>
+            <iframe src="wag-frank-unified.html" data-loading="true"></iframe>
+        </div>
+
+        <!-- TETRAD -->
+        <div class="viewport" data-variant="tetrad" id="vp-tetrad">
+            <div class="viewport-label">
+                <span class="name">TETRAD</span>
+                <span class="meta">McLUHAN // Analyze & Reflect</span>
+            </div>
+            <iframe src="wag-frank-tetrad.html" data-loading="true"></iframe>
+        </div>
+
+        <!-- OLOG -->
+        <div class="viewport" data-variant="olog" id="vp-olog">
+            <div class="viewport-label">
+                <span class="name">OLOG</span>
+                <span class="meta">LEGO-GPT // Map & Visualize</span>
+            </div>
+            <iframe src="wag-frank-olog.html" data-loading="true"></iframe>
+        </div>
+    </div>
+
+    <div id="status-bar">
+        <span id="status-left">All viewports active</span>
+        <span id="status-right">Layout: QUAD | 4 systems loaded</span>
+    </div>
+
+    <!-- Protocol Overlay -->
+    <div id="protocol-overlay"
+        style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.95); z-index: 1000; overflow-y: auto; padding: 40px;">
+        <div
+            style="max-width: 1200px; margin: 0 auto; background: var(--panel); border: 2px solid var(--accent); padding: 30px; border-radius: 8px;">
+            <div
+                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid var(--border); padding-bottom: 15px;">
+                <h2 style="color: var(--accent); font-size: 18px; letter-spacing: 2px;">📡 BUS PROTOCOL & PIPELINE
+                    ARCHITECTURE</h2>
+                <button onclick="hideProtocol()"
+                    style="background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 6px 12px; cursor: pointer; font-family: inherit; font-size: 10px;">CLOSE</button>
+            </div>
+            <iframe
+                src="/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/wag-frank-bus-protocol.md"
+                style="width: 100%; height: 70vh; border: 1px solid var(--border); background: #000; color: var(--text);"></iframe>
+            <div
+                style="margin-top: 20px; padding: 15px; background: #000; border: 1px solid var(--border); border-radius: 4px;">
+                <div style="font-size: 11px; color: var(--accent); margin-bottom: 10px; font-weight: bold;">QUICK
+                    REFERENCE</div>
+                <div
+                    style="display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; font-size: 10px; line-height: 1.6;">
+                    <div>
+                        <div style="color: var(--accent); margin-bottom: 5px;">◻ TERMINAL</div>
+                        <div style="color: var(--dim);">IN: minifig-mpd, vehicle-mpd</div>
+                        <div style="color: var(--dim);">OUT: scene-mpd</div>
+                        <div style="color: var(--text); margin-top: 3px;">Paint & Track</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--accent); margin-bottom: 5px;">◻ UNIFIED</div>
+                        <div style="color: var(--dim);">IN: (Terminal inputs) + part</div>
+                        <div style="color: var(--dim);">OUT: scene-mpd, tetrad-request</div>
+                        <div style="color: var(--text); margin-top: 3px;">Browse & Compose</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--accent); margin-bottom: 5px;">◻ TETRAD</div>
+                        <div style="color: var(--dim);">IN: scene-mpd, artifact</div>
+                        <div style="color: var(--dim);">OUT: tetrad-analysis</div>
+                        <div style="color: var(--text); margin-top: 3px;">Analyze & Reflect</div>
+                    </div>
+                    <div>
+                        <div style="color: var(--accent); margin-bottom: 5px;">◻ OLOG</div>
+                        <div style="color: var(--dim);">IN: entity, morphism, goal</div>
+                        <div style="color: var(--dim);">OUT: olog-diagram, chat-parse</div>
+                        <div style="color: var(--text); margin-top: 3px;">Map & Visualize</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let currentLayout = 'quad';
+        let visibleViewports = new Set(['terminal', 'unified', 'tetrad', 'olog']);
+
+        // Protocol Overlay
+        function showProtocol() {
+            document.getElementById('protocol-overlay').style.display = 'block';
+        }
+
+        function hideProtocol() {
+            document.getElementById('protocol-overlay').style.display = 'none';
+        }
+
+        // Layout Control
+        function setLayout(layout) {
+            currentLayout = layout;
+            const main = document.getElementById('studio-main');
+            main.className = `layout-${layout}`;
+
+            // Update button states
+            document.querySelectorAll('.control-btn').forEach(b => b.classList.remove('active'));
+            event.target.classList.add('active');
+
+            updateStatus();
+        }
+
+        // Toggle Viewports
+        function toggleViewport(variant) {
+            const vp = document.getElementById(`vp-${variant}`);
+            if (visibleViewports.has(variant)) {
+                visibleViewports.delete(variant);
+                vp.classList.add('hidden');
+            } else {
+                visibleViewports.add(variant);
+                vp.classList.remove('hidden');
+            }
+            updateStatus();
+        }
+
+        // Reload All
+        function reloadAll() {
+            document.querySelectorAll('iframe').forEach(iframe => {
+                iframe.src = iframe.src;
+            });
+            updateStatus('Reloading all viewports...');
+            setTimeout(() => updateStatus(), 2000);
+        }
+
+        // Status Update
+        function updateStatus(msg) {
+            const left = document.getElementById('status-left');
+            const right = document.getElementById('status-right');
+
+            if (msg) {
+                left.textContent = msg;
+            } else {
+                left.textContent = `${visibleViewports.size} viewports active`;
+            }
+
+            right.textContent = `Layout: ${currentLayout.toUpperCase()} | ${visibleViewports.size} systems loaded`;
+        }
+
+        // Iframe Load Tracking
+        document.querySelectorAll('iframe').forEach(iframe => {
+            iframe.addEventListener('load', () => {
+                iframe.removeAttribute('data-loading');
+            });
+        });
+
+        // Keyboard Shortcuts
+        document.addEventListener('keydown', (e) => {
+            if (e.key === '1') setLayout('single');
+            if (e.key === '2') setLayout('dual');
+            if (e.key === '3') setLayout('triple');
+            if (e.key === '4') setLayout('quad');
+            if (e.key === 'v') setLayout('vertical');
+            if (e.key === 'r') reloadAll();
+        });
+
+        // Initial Status
+        updateStatus();
+    </script>
+</body>
+
+</html>

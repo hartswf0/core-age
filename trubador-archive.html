@@ -1,0 +1,657 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TRUBADOR Suite :: WAG Storytelling Labs</title>
+    <style>
+        :root {
+            --bg-void: #020617;
+            --bg-panel: #0f172a;
+            --text-primary: #e5e7eb;
+            --text-dim: #9ca3af;
+            --border-color: #1e293b;
+            --accent-swiss: #38bdf8;
+            --accent-frank: #a855f7;
+            --accent-courage: #ef4444;
+            --accent-ontology: #22c55e;
+            --accent-were: #f97316;
+            --accent-master: #eab308;
+            --accent-mento: #f472b6;
+            --accent-cool: #4ade80;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background-color: var(--bg-void);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            line-height: 1.6;
+        }
+
+        header {
+            border-bottom: 2px solid var(--border-color);
+            padding: 16px 24px;
+            background: var(--bg-panel);
+        }
+
+        .header-border {
+            font-size: 10px;
+            color: var(--text-dim);
+            letter-spacing: 2px;
+            margin-bottom: 8px;
+        }
+
+        h1 {
+            font-size: 18px;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--accent-swiss);
+            margin-bottom: 4px;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: var(--text-dim);
+            letter-spacing: 1px;
+        }
+
+        main {
+            flex: 1;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 0;
+            overflow: hidden;
+        }
+
+        .column {
+            border-right: 1px solid var(--border-color);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .col-header {
+            padding: 12px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+            letter-spacing: 1px;
+        }
+
+        .col-header::before {
+            content: "[";
+            color: var(--accent-swiss);
+            margin-right: 4px;
+        }
+
+        .col-header::after {
+            content: "]";
+            color: var(--accent-swiss);
+            margin-left: 4px;
+        }
+
+        .col-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 16px;
+            font-size: 12px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        .section {
+            margin-bottom: 24px;
+            padding-bottom: 16px;
+            border-bottom: 1px dashed rgba(100, 116, 139, 0.3);
+        }
+
+        .section:last-child {
+            border-bottom: none;
+        }
+
+        .section-title {
+            font-size: 11px;
+            color: var(--accent-swiss);
+            margin-bottom: 12px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .section-title::before {
+            content: ":: ";
+            color: var(--text-dim);
+        }
+
+        /* Badge system for 8 modules */
+        .badge {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 9px;
+            border-radius: 3px;
+            margin-right: 6px;
+            font-weight: bold;
+        }
+
+        .badge-swiss {
+            background: rgba(56, 189, 248, 0.2);
+            color: var(--accent-swiss);
+        }
+
+        .badge-frank {
+            background: rgba(168, 85, 247, 0.2);
+            color: var(--accent-frank);
+        }
+
+        .badge-courage {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-courage);
+        }
+
+        .badge-ontology {
+            background: rgba(34, 197, 94, 0.2);
+            color: var(--accent-ontology);
+        }
+
+        .badge-were {
+            background: rgba(249, 115, 22, 0.2);
+            color: var(--accent-were);
+        }
+
+        .badge-master {
+            background: rgba(234, 179, 8, 0.2);
+            color: var(--accent-master);
+        }
+
+        .badge-mento {
+            background: rgba(244, 114, 182, 0.2);
+            color: var(--accent-mento);
+        }
+
+        .badge-cool {
+            background: rgba(74, 222, 128, 0.2);
+            color: var(--accent-cool);
+        }
+
+        .item {
+            margin-bottom: 12px;
+            padding: 10px 12px;
+            background: rgba(15, 23, 42, 0.5);
+            border-left: 2px solid var(--border-color);
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .item:hover {
+            border-left-color: var(--accent-swiss);
+            background: rgba(15, 23, 42, 0.8);
+            transform: translateX(4px);
+        }
+
+        .item-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .item-value {
+            color: var(--text-primary);
+            font-size: 11px;
+        }
+
+        .code-block {
+            background: rgba(0, 0, 0, 0.4);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: 10px;
+            margin: 8px 0;
+            border-left: 2px solid var(--accent-frank);
+            white-space: pre-wrap;
+            line-height: 1.5;
+        }
+
+        .insight-box {
+            background: rgba(139, 92, 246, 0.1);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+            padding: 10px 12px;
+            border-radius: 4px;
+            margin: 10px 0;
+            font-size: 10px;
+        }
+
+        .insight-label {
+            color: var(--accent-frank);
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-transform: uppercase;
+            font-size: 9px;
+        }
+
+        .file-item {
+            padding: 6px 8px;
+            margin: 4px 0;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 3px;
+            font-size: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-name {
+            color: var(--accent-swiss);
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-count {
+            color: var(--text-dim);
+            font-size: 9px;
+        }
+
+        .rule {
+            margin: 6px 0;
+            padding-left: 12px;
+            color: var(--text-dim);
+            font-size: 10px;
+        }
+
+        .rule::before {
+            content: "→ ";
+            color: var(--accent-ontology);
+            margin-right: 4px;
+        }
+
+        @media (max-width: 1200px) {
+            main {
+                grid-template-columns: 1fr 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+        }
+
+        @media (max-width: 768px) {
+            main {
+                grid-template-columns: 1fr;
+                grid-template-rows: repeat(4, auto);
+            }
+
+            .col-content {
+                max-height: 300px;
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <header>
+        <div class="header-border">================================================================================
+        </div>
+        <h1>TRUBADOR Suite :: WAG Storytelling Labs</h1>
+        <div class="subtitle">A coherent product surface that walks a story from MPD manifest through eight ontological
+            modules</div>
+        <div class="header-border">================================================================================
+        </div>
+    </header>
+
+    <main>
+        <!-- Column 1: Axioms & Generators -->
+        <div class="column">
+            <div class="col-header">Section 1 :: Axioms & Rules</div>
+            <div class="col-content">
+                <div class="section">
+                    <div class="section-title">TRUBADOR System</div>
+                    <div class="code-block">AXIOM :: MPD format (scene manifest)
+                        PRODUCTION_RULES :: Eight ontological modules
+                        ITERATIONS :: Edit → Sample → Weave → Normalize → Capture
+                        EMERGENCE :: GOLD + skeleton-v2 as unified output</div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Eight Module Generators</div>
+                    <div class="item">
+                        <div class="item-label">SWISS DESIGNATOR</div>
+                        <div class="item-value">
+                            <span class="badge badge-swiss">DESIGNATOR</span>
+                            index.html · Entry manifest for scenes, tools, docs
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">FRANK ROUTER</div>
+                        <div class="item-value">
+                            <span class="badge badge-frank">BUS</span>
+                            wag-frank.html · Scene router and message bus
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">COURAGE EDITOR</div>
+                        <div class="item-value">
+                            <span class="badge badge-courage">EDITOR</span>
+                            wag-courage.html · MPD editor + Red Bull sampler
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">ONTOLOGY WEAVER</div>
+                        <div class="item-value">
+                            <span class="badge badge-ontology">ASSEMBLER</span>
+                            assembly-line.html · Line Grid + COOL normalization
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">WERE LAB</div>
+                        <div class="item-value">
+                            <span class="badge badge-were">PROBE</span>
+                            wag-were.html · Skeleton MPD round-trip inspector
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">MASTER OVERLAY</div>
+                        <div class="item-value">
+                            <span class="badge badge-master">LOCK</span>
+                            wag-master.html · Overlay GOLD on compact MPD
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">MENTO CAPTURE</div>
+                        <div class="item-value">
+                            <span class="badge badge-mento">NARRATE</span>
+                            momento.html · Bind scenes to time/camera/text
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">COOL GRID</div>
+                        <div class="item-value">
+                            <span class="badge badge-cool">NORMALIZE</span>
+                            wag-cool-skeleton-loader.html · Canonical grid consumer
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-label">TRUBADOR Promise</div>
+                        All modules share GOLD + skeleton-v2 contract. No backend, pure HTML/JS.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Formal Definition</div>
+                    <div class="code-block">Data Contract (Ω):
+                        {
+                        "mpd_content": "0 FILE ...",
+                        "stud_skeleton_v2": {
+                        "nodes": [
+                        { "lineNum": 12, "gridX": 0, "gridZ": 3,
+                        "layer": 1, "x": 40, "y": 24, "z": 0 }
+                        ]
+                        },
+                        "part_skeletons": [...],
+                        "ground_violations": [...]
+                        }
+
+                        Bus Channel (β): BroadcastChannel('wag-frank')
+                        Messages: redbull-line · redbull-gold · studio-load</div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 2: Structure & Integration -->
+        <div class="column">
+            <div class="col-header">Section 2 :: Structure & Buses</div>
+            <div class="col-content">
+                <div class="section">
+                    <div class="section-title">Bus Architectures</div>
+                    <div class="item">
+                        <div class="item-label">Broadcast Bus</div>
+                        <div class="item-value">
+                            <span class="badge badge-frank">wag-frank</span>
+                            Courage → Assembly Line → Line Grid via BroadcastChannel
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">Studio Shell Bus</div>
+                        <div class="item-value">
+                            <span class="badge badge-cool">postMessage</span>
+                            TIMBER/COOL TIMBER relay via parent window
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">Persistence</div>
+                        <div class="item-value">
+                            <span class="badge badge-ontology">localStorage</span>
+                            wag_redbull_gold stores latest snapshot
+                        </div>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-label">Pattern</div>
+                        Three integration patterns: real-time (bus), iframe (postMessage), session (storage)
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Main Pipeline</div>
+                    <div class="rule">SWISS → Designate scene & studio</div>
+                    <div class="rule">COURAGE → Edit MPD, emit GOLD</div>
+                    <div class="rule">ONTOLOGY → Build stud maps</div>
+                    <div class="rule">COOL → Normalize to canonical grid</div>
+                    <div class="rule">WERE/MASTER → Probe & lock edits</div>
+                    <div class="rule">MENTO → Capture narrative moments</div>
+                    <div class="insight-box">
+                        <div class="insight-label">End-to-End</div>
+                        Six stages from manifest to performance. Each stage exports importable GOLD.
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Subpipeline :: TIMBER Studio</div>
+                    <div class="rule">Courage (primary editor)</div>
+                    <div class="rule">WERE (skeleton inspection)</div>
+                    <div class="rule">MASTER (overlay editing)</div>
+                    <div class="rule">COOL Loader (grid normalization)</div>
+                    <div class="file-item">
+                        <span class="file-name">timber-studio.html</span>
+                        <span class="file-count">integrated</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 3: Genetic Families & Dependencies -->
+        <div class="column">
+            <div class="col-header">Section 3 :: Dependencies</div>
+            <div class="col-content">
+                <div class="section">
+                    <div class="section-title">Module Registry</div>
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Module</th>
+                                <th>File</th>
+                                <th>Role</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>SWISS</td>
+                                <td>index.html</td>
+                                <td>designator</td>
+                            </tr>
+                            <tr>
+                                <td>FRANK</td>
+                                <td>wag-frank.html</td>
+                                <td>router</td>
+                            </tr>
+                            <tr>
+                                <td>COURAGE</td>
+                                <td>wag-courage.html</td>
+                                <td>editor</td>
+                            </tr>
+                            <tr>
+                                <td>ASSEMBLY</td>
+                                <td>assembly-line.html</td>
+                                <td>weaver</td>
+                            </tr>
+                            <tr>
+                                <td>LINEGRID</td>
+                                <td>line-grid-viewer.html</td>
+                                <td>visualizer</td>
+                            </tr>
+                            <tr>
+                                <td>COOL</td>
+                                <td>wag-cool-skeleton-loader.html</td>
+                                <td>normalizer</td>
+                            </tr>
+                            <tr>
+                                <td>WERE</td>
+                                <td>wag-were.html</td>
+                                <td>probe</td>
+                            </tr>
+                            <tr>
+                                <td>MASTER</td>
+                                <td>wag-master.html</td>
+                                <td>overlay</td>
+                            </tr>
+                            <tr>
+                                <td>MENTO</td>
+                                <td>momento.html</td>
+                                <td>capture</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">WAG Family</div>
+                    <div class="file-item">
+                        <span class="file-name">wag-frank.html</span>
+                        <span class="file-count">bus</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-name">wag-courage.html</span>
+                        <span class="file-count">editor</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-name">wag-were.html</span>
+                        <span class="file-count">lab</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-name">wag-master.html</span>
+                        <span class="file-count">overlay</span>
+                    </div>
+                    <div class="file-item">
+                        <span class="file-name">wag-cool-skeleton-loader.html</span>
+                        <span class="file-count">grid</span>
+                    </div>
+                    <div class="insight-box">
+                        <div class="insight-label">WAG Family</div>
+                        Weaver Assembly Grammar - core message brokers and editors
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">SWISS-FRANK-GRACE Cluster</div>
+                    <div class="rule">SWISS → index.html (manifest)</div>
+                    <div class="rule">FRANK → wag-frank.html (bus)</div>
+                    <div class="rule">GRACE → docs/prompts (teaching)</div>
+                    <div class="code-block">[User Click] → SWISS
+                        → Studio Shell (TIMBER/Bull)
+                        → FRANK bus initialized
+                        → Courage emits redbull-gold
+                        → Ontology Weaver ingests
+                        → COOL normalizes
+                        → WERE/MASTER probe
+                        → MENTO captures</div>
+                    <div class="insight-box">
+                        <div class="insight-label">Front-of-House</div>
+                        SWISS-FRANK-GRACE is the entry point before ontological work begins.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Column 4: Integration & Affordances -->
+        <div class="column">
+            <div class="col-header">Section 4 :: Affordances</div>
+            <div class="col-content">
+                <div class="section">
+                    <div class="section-title">Operating System Metaphor</div>
+                    <div class="code-block">Kernel: GOLD + skeleton-v2 + StudMap MPD
+                        Shell: SWISS (index.html)
+                        Processes: Courage, Ontology, WERE, MASTER, MENTO, COOL
+                        Buses: wag-frank (Broadcast), postMessage (iframe)
+                        File System: localStorage + downloadable GOLD/MPD</div>
+                    <div class="insight-box">
+                        <div class="insight-label">Words Assembling</div>
+                        Words → Grids (SWISS cells) → Geometries (Courage) → Generations (MENTO timelines)
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Module Affordances</div>
+                    <div class="item">
+                        <div class="item-label">COURAGE</div>
+                        <div class="item-value">
+                            <span class="badge badge-courage">SEE</span>MPD editor + 3D viewer + Red Bull
+                            <span class="badge badge-courage">GIVE</span>GOLD + skeleton-v2 + events
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">ONTOLOGY WEAVER</div>
+                        <div class="item-value">
+                            <span class="badge badge-ontology">SEE</span>Per-line studs, part maps, ribbons
+                            <span class="badge badge-ontology">GIVE</span>StudMap MPD, diagnostics, refined GOLD
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">WERE</div>
+                        <div class="item-value">
+                            <span class="badge badge-were">SEE</span>Skeleton MPD view, coverage indicators
+                            <span class="badge badge-were">GIVE</span>Synthesized skeletons, ownership insight
+                        </div>
+                    </div>
+                    <div class="item">
+                        <div class="item-label">MASTER</div>
+                        <div class="item-value">
+                            <span class="badge badge-master">SEE</span>Compact MPD + GOLD overlay
+                            <span class="badge badge-master">GIVE</span>Corrected MPD, canonical decisions
+                        </div>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <div class="section-title">Actionable Insights</div>
+                    <div class="code-block">[1] Create ontology-based hubs:
+                        - spatial-hub.html (Grid/Alignment tools)
+                        - temporal-hub.html (Time/Evolution tools)
+                        - structural-hub.html (Skeleton/Graph tools)
+
+                        [2] Standardize exports:
+                        All labs must emit GOLD + skeleton-v2
+
+                        [3] Studio Unification:
+                        TRUBADOR shell can dock all modules as tabs</div>
+                    <div class="insight-box">
+                        <div class="insight-label">Conclusion</div>
+                        TRUBADOR is a generative OS where production rules transform MPD axioms into GOLD artifacts
+                        through eight ontological stages.
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+
+</html>

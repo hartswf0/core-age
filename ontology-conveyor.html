@@ -1,0 +1,932 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>L-SYSTEM CONVEYOR</title>
+    <style>
+        :root {
+            --bg-void: #101014;
+            --bg-belt: #18181e;
+            --card-bg: #22222b;
+            --accent: #06b6d4;
+            /* Cyan */
+            --accent-dim: rgba(6, 182, 212, 0.1);
+            --yellow: #facc15;
+            --purple: #8b5cf6;
+            --green: #10b981;
+            --text-hi: #ffffff;
+            --text-lo: #52525b;
+            --border: #3f3f46;
+
+            /* Dimensions */
+            --card-height: 160px;
+            --gap: 12px;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            user-select: none;
+        }
+
+        body {
+            background: var(--bg-void);
+            color: var(--text-hi);
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 70px;
+            background: #000;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 24px;
+            z-index: 100;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        .brand {
+            font-size: 18px;
+            font-weight: 900;
+            color: var(--accent);
+            letter-spacing: -0.5px;
+            text-transform: uppercase;
+        }
+
+        .brand-sub {
+            font-size: 10px;
+            color: var(--text-lo);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .meta-stats {
+            display: flex;
+            gap: 20px;
+        }
+
+        .meta-stat {
+            font-size: 11px;
+            color: var(--text-lo);
+            text-transform: uppercase;
+        }
+
+        .meta-stat b {
+            color: var(--accent);
+            margin-left: 6px;
+            font-size: 13px;
+        }
+
+        /* --- THE CONVEYOR BELT TRACK --- */
+        .viewport {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            background: var(--bg-belt);
+            /* Industrial striped background */
+            background-image: repeating-linear-gradient(45deg,
+                    rgba(0, 0, 0, 0.05),
+                    rgba(0, 0, 0, 0.05) 10px,
+                    transparent 10px,
+                    transparent 20px);
+        }
+
+        /* The Moving Container */
+        .belt-track {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 50%;
+            transition: transform 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+            padding: 0 20px;
+            width: 100%;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* --- THE FILE PAYLOAD CARD --- */
+        .payload {
+            height: var(--card-height);
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            margin-bottom: var(--gap);
+            display: grid;
+            grid-template-columns: 100px 1fr 200px;
+            transition: all 0.4s ease;
+            opacity: 0.4;
+            transform: scale(0.96);
+            position: relative;
+        }
+
+        /* Active State (Under Scanner) */
+        .payload.active {
+            opacity: 1;
+            transform: scale(1);
+            background: #2a2a35;
+            border-color: var(--accent);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.7), 0 0 20px var(--accent);
+            z-index: 10;
+        }
+
+        /* Layer Badge */
+        .layer-badge {
+            position: absolute;
+            top: -1px;
+            left: -1px;
+            background: var(--layer-color);
+            color: #000;
+            font-size: 9px;
+            font-weight: bold;
+            padding: 4px 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        /* SECTOR 1: FILE ID */
+        .p-id {
+            background: #0a0a0f;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-right: 1px solid var(--border);
+            position: relative;
+        }
+
+        .file-icon {
+            font-size: 32px;
+            opacity: 0.6;
+        }
+
+        .file-number {
+            font-size: 18px;
+            font-weight: 700;
+            color: var(--text-lo);
+        }
+
+        .payload.active .p-id {
+            background: #0f1419;
+            border-right-color: var(--accent);
+        }
+
+        .payload.active .file-icon {
+            opacity: 1;
+        }
+
+        .payload.active .file-number {
+            color: var(--accent);
+        }
+
+        /* SECTOR 2: FILE METADATA */
+        .p-data {
+            padding: 14px 18px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        /* Header Row */
+        .data-head {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            padding-bottom: 8px;
+        }
+
+        .file-name {
+            font-weight: bold;
+            color: #fff;
+            font-size: 13px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .file-size {
+            color: var(--text-lo);
+            font-size: 10px;
+            text-transform: uppercase;
+        }
+
+        .payload.active .file-name {
+            color: var(--accent);
+        }
+
+        /* Metadata Grid */
+        .meta-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            font-size: 11px;
+        }
+
+        .meta-item {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .meta-label {
+            font-size: 9px;
+            color: var(--text-lo);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .meta-value {
+            color: var(--text-hi);
+            font-weight: 600;
+        }
+
+        .payload.active .meta-value {
+            color: var(--accent);
+        }
+
+        /* Description */
+        .file-desc {
+            margin-top: 4px;
+            font-size: 10px;
+            color: var(--text-lo);
+            line-height: 1.4;
+            background: rgba(0, 0, 0, 0.3);
+            padding: 6px 8px;
+            border-radius: 3px;
+        }
+
+        /* SECTOR 3: ACTIONS */
+        .p-actions {
+            background: #0a0a0f;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 14px;
+            gap: 8px;
+        }
+
+        .payload.active .p-actions {
+            background: #0f1419;
+            border-left-color: var(--accent);
+        }
+
+        .action-label {
+            font-size: 9px;
+            color: var(--text-lo);
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 4px;
+        }
+
+        .action-btn {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text-lo);
+            padding: 8px 12px;
+            font-size: 10px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+        }
+
+        .action-btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .payload.active .action-btn {
+            border-color: var(--accent);
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        /* Stats */
+        .file-stats {
+            margin-top: auto;
+            font-size: 9px;
+            color: var(--text-lo);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+        }
+
+        .stat-row {
+            display: flex;
+            justify-content: space-between;
+        }
+
+        /* --- THE FIXED SCANNER HEAD --- */
+        .scan-head {
+            position: absolute;
+            top: 50%;
+            left: 0;
+            right: 0;
+            height: var(--card-height);
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 20;
+            border-top: 2px solid var(--accent);
+            border-bottom: 2px solid var(--accent);
+            box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.75);
+        }
+
+        /* Laser Beam */
+        .scan-beam {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            width: 3px;
+            background: var(--accent);
+            box-shadow: 0 0 20px var(--accent);
+            left: 0;
+            animation: scanX 2.5s infinite ease-in-out;
+        }
+
+        @keyframes scanX {
+
+            0%,
+            100% {
+                left: 0;
+                opacity: 0.3;
+            }
+
+            50% {
+                left: 100%;
+                opacity: 1;
+            }
+        }
+
+        /* --- FOOTER --- */
+        footer {
+            height: 70px;
+            background: #080808;
+            border-top: 1px solid var(--border);
+            display: flex;
+            padding: 12px 20px;
+            gap: 12px;
+            z-index: 100;
+            align-items: center;
+        }
+
+        .filter-group {
+            display: flex;
+            gap: 6px;
+            flex: 1;
+        }
+
+        .filter-chip {
+            padding: 6px 12px;
+            border: 1px solid var(--border);
+            background: #151515;
+            color: var(--text-lo);
+            font-size: 9px;
+            font-weight: bold;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.5px;
+        }
+
+        .filter-chip:hover {
+            border-color: var(--text-hi);
+            color: var(--text-hi);
+        }
+
+        .filter-chip.active {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn {
+            padding: 10px 20px;
+            border: 1px solid var(--border);
+            background: #151515;
+            color: var(--text-lo);
+            font-family: inherit;
+            font-weight: bold;
+            font-size: 12px;
+            cursor: pointer;
+            text-transform: uppercase;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--text-hi);
+            color: var(--text-hi);
+        }
+
+        .btn.primary {
+            background: var(--accent-dim);
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn.primary:hover {
+            background: rgba(6, 182, 212, 0.2);
+        }
+
+        /* Mobile */
+        @media (max-width: 800px) {
+            .payload {
+                grid-template-columns: 70px 1fr;
+                grid-template-rows: 1fr auto;
+                height: 240px;
+                --card-height: 240px;
+            }
+
+            .p-id {
+                grid-row: 1 / span 2;
+            }
+
+            .p-actions {
+                grid-column: 2;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                flex-direction: row;
+                padding: 10px;
+            }
+
+            .meta-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .filter-group {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-left">
+            <div>
+                <div class="brand">L-System Conveyor</div>
+                <div class="brand-sub">Ontological File Inspector</div>
+            </div>
+        </div>
+        <div class="meta-stats">
+            <div class="meta-stat">Files: <b id="statFiles">0</b></div>
+            <div class="meta-stat">Layer: <b id="statLayer">ALL</b></div>
+            <div class="meta-stat">Total KB: <b id="statSize">0</b></div>
+        </div>
+    </header>
+
+    <div class="viewport">
+        <div class="belt-track" id="track">
+            <!-- File payloads injected here -->
+        </div>
+        <!-- The Fixed Scanner Overlay -->
+        <div class="scan-head">
+            <div class="scan-beam"></div>
+        </div>
+    </div>
+
+    <footer>
+        <div class="filter-group">
+            <button class="filter-chip active" data-layer="all">All</button>
+            <button class="filter-chip" data-layer="generators">Generators</button>
+            <button class="filter-chip" data-layer="structural">Structural</button>
+            <button class="filter-chip" data-layer="temporal">Temporal</button>
+            <button class="filter-chip" data-layer="spatial">Spatial</button>
+            <button class="filter-chip" data-layer="diagnostic">Diagnostic</button>
+        </div>
+        <button class="btn" onclick="reset()">⟲ RESET</button>
+        <button class="btn primary" id="runBtn" onclick="toggleRun()">▶ INITIATE SCAN</button>
+    </footer>
+
+    <script>
+        // --- FILE DATABASE ---
+        const FILES = [
+            // Generators
+            {
+                name: 'courage.html',
+                layer: 'generators',
+                icon: '🏗️',
+                size: 456,
+                type: 'Prime Generator',
+                family: 'Core',
+                desc: 'Main compiler and editor. Transforms MPD axioms into spatial structures.',
+                color: '#06b6d4'
+            },
+            {
+                name: 'wag-brave.html',
+                layer: 'generators',
+                icon: '⚡',
+                size: 108,
+                type: 'Engine',
+                family: 'WAG',
+                desc: 'Physics engine for rendering and simulation. Executes production rules.',
+                color: '#06b6d4'
+            },
+            {
+                name: 'timber-master-v2.html',
+                layer: 'generators',
+                icon: '🌲',
+                size: 63,
+                type: 'Projector',
+                family: 'Timber',
+                desc: 'Skeleton projector and visualizer. Tree-based ontology navigator.',
+                color: '#06b6d4'
+            },
+
+            // Structural
+            {
+                name: 'skeleton-pathology-studio.html',
+                layer: 'structural',
+                icon: '🔬',
+                size: 42,
+                type: 'Diagnostic',
+                family: 'Skeleton',
+                desc: 'Analyzes and repairs broken GOLD files. Skeleton integrity verification.',
+                color: '#8b5cf6'
+            },
+            {
+                name: 'skeleton-ontology-explorer.html',
+                layer: 'structural',
+                icon: '🗺️',
+                size: 38,
+                type: 'Browser',
+                family: 'Skeleton',
+                desc: 'Interactive ontology graph browser. Nodes = studs, edges = relationships.',
+                color: '#8b5cf6'
+            },
+            {
+                name: 'stud-skeleton-binding-enhanced.html',
+                layer: 'structural',
+                icon: '🔗',
+                size: 31,
+                type: 'Logic',
+                family: 'Skeleton',
+                desc: 'Advanced binding system for skeleton linkage and constraint propagation.',
+                color: '#8b5cf6'
+            },
+
+            // Temporal
+            {
+                name: 'temporal-mesh-lab.html',
+                layer: 'temporal',
+                icon: '⏱️',
+                size: 54,
+                type: 'Visualizer',
+                family: 'Temporal',
+                desc: 'Mesh birth waterfall visualizer. Tracks L-System iteration events.',
+                color: '#10b981'
+            },
+            {
+                name: 'temporal-mesh-instrumentation.md',
+                layer: 'temporal',
+                icon: '📊',
+                size: 12,
+                type: 'Spec',
+                family: 'Temporal',
+                desc: 'Technical specifications for temporal tracking protocol and mesh timestamping.',
+                color: '#10b981'
+            },
+
+            // Spatial
+            {
+                name: 'grid-walk.html',
+                layer: 'spatial',
+                icon: '🎯',
+                size: 28,
+                type: 'Navigator',
+                family: 'Grid',
+                desc: 'LDU grid navigation tool. Spatial coordinate system explorer.',
+                color: '#facc15'
+            },
+            {
+                name: 'mpd-line-grid-viewer.html',
+                layer: 'spatial',
+                icon: '📐',
+                size: 35,
+                type: 'Viewer',
+                family: 'Grid',
+                desc: 'Per-line grid visualizer. Shows spatial distribution of geometry.',
+                color: '#facc15'
+            },
+            {
+                name: 'multi-good.html',
+                layer: 'spatial',
+                icon: '🔄',
+                size: 29,
+                type: 'Transform',
+                family: 'Multi',
+                desc: 'Parallel L-System branch handler. Multiple simultaneous derivations.',
+                color: '#facc15'
+            },
+
+            // Diagnostic
+            {
+                name: 'line-22-autopsy.html',
+                layer: 'diagnostic',
+                icon: '🩺',
+                size: 18,
+                type: 'Report',
+                family: 'Pathology',
+                desc: 'Forensic analysis of the Line 22 Collapse pathology. Structural failure analysis.',
+                color: '#ef4444'
+            },
+            {
+                name: 'pathology-report-viewer.html',
+                layer: 'diagnostic',
+                icon: '📋',
+                size: 22,
+                type: 'Renderer',
+                family: 'Pathology',
+                desc: 'Renders pathology reports with diagnostic insights and remediation steps.',
+                color: '#ef4444'
+            },
+
+            // Assembly
+            {
+                name: 'assembly-line.html',
+                layer: 'generators',
+                icon: '🏭',
+                size: 67,
+                type: 'Pipeline',
+                family: 'Assembly',
+                desc: 'Execution trace visualizer. Shows L-System unfolding from axioms to artifacts.',
+                color: '#06b6d4'
+            },
+
+            // Tutorials
+            {
+                name: 'TIMBER-tutorial.html',
+                layer: 'generators',
+                icon: '📖',
+                size: 45,
+                type: 'Tutorial',
+                family: 'Timber',
+                desc: 'Precision Alignment Loop guide. Courage + Timber workflow documentation.',
+                color: '#06b6d4'
+            },
+            {
+                name: 'brick_haven_tutorial.html',
+                layer: 'spatial',
+                icon: '🏙️',
+                size: 52,
+                type: 'Case Study',
+                family: 'LEGOS',
+                desc: 'Complex spatial grammar case study. Agent interfaces and narrative framework.',
+                color: '#facc15'
+            },
+        ];
+
+        // --- STATE ---
+        const state = {
+            files: [...FILES],
+            filtered: [...FILES],
+            activeIdx: -1,
+            running: false,
+            timer: null,
+            audioCtx: null,
+            currentFilter: 'all'
+        };
+
+        // --- CONFIG ---
+        const CONFIG = {
+            cardHeight: 160,
+            mobileHeight: 240,
+            gap: 12,
+            speed: 1000
+        };
+
+        function getCardHeight() {
+            return window.innerWidth < 800 ? CONFIG.mobileHeight : CONFIG.cardHeight;
+        }
+
+        // --- BUILDER ---
+        function buildBelt(files) {
+            const track = document.getElementById('track');
+            track.innerHTML = '';
+            state.filtered = files;
+
+            let totalSize = 0;
+
+            files.forEach((f, idx) => {
+                totalSize += f.size;
+
+                const div = document.createElement('div');
+                div.className = 'payload';
+                div.id = `p-${idx}`;
+                div.style.setProperty('--layer-color', f.color);
+
+                div.innerHTML = `
+                <div class="layer-badge">${f.layer}</div>
+                <div class="p-id">
+                    <div class="file-icon">${f.icon}</div>
+                    <div class="file-number">${String(idx + 1).padStart(2, '0')}</div>
+                </div>
+                <div class="p-data">
+                    <div class="data-head">
+                        <span class="file-name">${f.name}</span>
+                        <span class="file-size">${f.size}KB</span>
+                    </div>
+                    <div class="meta-grid">
+                        <div class="meta-item">
+                            <div class="meta-label">Type</div>
+                            <div class="meta-value">${f.type}</div>
+                        </div>
+                        <div class="meta-item">
+                            <div class="meta-label">Family</div>
+                            <div class="meta-value">${f.family}</div>
+                        </div>
+                    </div>
+                    <div class="file-desc">${f.desc}</div>
+                </div>
+                <div class="p-actions">
+                    <div class="action-label">Actions</div>
+                    <button class="action-btn" onclick="openFile('${f.name}')">
+                        <span>→</span> OPEN
+                    </button>
+                    <button class="action-btn" onclick="inspectFile('${f.name}')">
+                        <span>🔍</span> INSPECT
+                    </button>
+                    <div class="file-stats">
+                        <div class="stat-row">
+                            <span>Layer:</span>
+                            <span style="color:${f.color}">${f.layer}</span>
+                        </div>
+                        <div class="stat-row">
+                            <span>Family:</span>
+                            <span>${f.family}</span>
+                        </div>
+                    </div>
+                </div>
+            `;
+
+                track.appendChild(div);
+            });
+
+            document.getElementById('statFiles').textContent = files.length;
+            document.getElementById('statSize').textContent = totalSize;
+
+            updateTrackPosition(0);
+        }
+
+        // --- ENGINE ---
+        function updateTrackPosition(idx) {
+            const h = getCardHeight();
+            const g = CONFIG.gap;
+            const offset = -(idx * (h + g));
+            document.getElementById('track').style.transform = `translateY(${offset}px)`;
+        }
+
+        function toggleRun() {
+            state.running = !state.running;
+            const btn = document.getElementById('runBtn');
+
+            if (state.running) {
+                initAudio();
+                btn.innerHTML = '⏸ PAUSE SCAN';
+                loop();
+            } else {
+                btn.innerHTML = '▶ INITIATE SCAN';
+                clearTimeout(state.timer);
+            }
+        }
+
+        function loop() {
+            if (!state.running) return;
+
+            // Deactivate old
+            if (state.activeIdx >= 0) {
+                const old = document.getElementById(`p-${state.activeIdx}`);
+                if (old) old.classList.remove('active');
+            }
+
+            // Advance
+            state.activeIdx++;
+            if (state.activeIdx >= state.filtered.length) state.activeIdx = 0;
+
+            // Activate new
+            const cur = document.getElementById(`p-${state.activeIdx}`);
+            if (cur) {
+                cur.classList.add('active');
+                playClick();
+                updateTrackPosition(state.activeIdx);
+            }
+
+            state.timer = setTimeout(loop, CONFIG.speed);
+        }
+
+        function reset() {
+            state.running = false;
+            clearTimeout(state.timer);
+            state.activeIdx = -1;
+            document.querySelectorAll('.payload').forEach(p => p.classList.remove('active'));
+            updateTrackPosition(0);
+            document.getElementById('runBtn').innerHTML = '▶ INITIATE SCAN';
+        }
+
+        // --- FILTERS ---
+        document.querySelectorAll('.filter-chip').forEach(chip => {
+            chip.addEventListener('click', () => {
+                // Update active state
+                document.querySelectorAll('.filter-chip').forEach(c => c.classList.remove('active'));
+                chip.classList.add('active');
+
+                const layer = chip.dataset.layer;
+                state.currentFilter = layer;
+
+                // Filter files
+                const filtered = layer === 'all'
+                    ? [...FILES]
+                    : FILES.filter(f => f.layer === layer);
+
+                // Reset and rebuild
+                reset();
+                buildBelt(filtered);
+
+                // Update stat
+                document.getElementById('statLayer').textContent = layer.toUpperCase();
+            });
+        });
+
+        // --- ACTIONS ---
+        window.openFile = function (name) {
+            window.location.href = name;
+        };
+
+        window.inspectFile = function (name) {
+            const file = FILES.find(f => f.name === name);
+            if (!file) return;
+
+            alert(`FILE INSPECTION REPORT\n\n` +
+                `Name: ${file.name}\n` +
+                `Layer: ${file.layer}\n` +
+                `Type: ${file.type}\n` +
+                `Family: ${file.family}\n` +
+                `Size: ${file.size}KB\n\n` +
+                `Description:\n${file.desc}`);
+        };
+
+        // --- AUDIO ---
+        function initAudio() {
+            if (!state.audioCtx) {
+                state.audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+            }
+            if (state.audioCtx.state === 'suspended') {
+                state.audioCtx.resume();
+            }
+        }
+
+        function playClick() {
+            if (!state.audioCtx) return;
+            const t = state.audioCtx.currentTime;
+            const o = state.audioCtx.createOscillator();
+            const g = state.audioCtx.createGain();
+            o.connect(g);
+            g.connect(state.audioCtx.destination);
+
+            o.type = 'sine';
+            o.frequency.setValueAtTime(800, t);
+            o.frequency.exponentialRampToValueAtTime(400, t + 0.05);
+            g.gain.setValueAtTime(0.08, t);
+            g.gain.linearRampToValueAtTime(0, t + 0.08);
+            o.start(t);
+            o.stop(t + 0.08);
+        }
+
+        // --- INIT ---
+        buildBelt(FILES);
+
+        window.addEventListener('resize', () => {
+            if (state.filtered.length > 0 && state.activeIdx >= 0) {
+                updateTrackPosition(state.activeIdx);
+            }
+        });
+    </script>
+</body>
+
+</html>

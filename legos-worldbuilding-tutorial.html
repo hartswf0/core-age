@@ -1,0 +1,680 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LEGOS Worldbuilding Philosophy // Interactive Tutorial</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --panel: #111;
+            --border: #333;
+            --accent: #FFD700;
+            --text: #ddd;
+            --dim: #666;
+            --cyan: #4ECDC4;
+            --purple: #9D4EDD;
+            --blue: #66AAFF;
+            --red: #FF6B6B;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.6;
+        }
+
+        /* Header */
+        header {
+            padding: 30px 20px;
+            border-bottom: 2px solid var(--accent);
+            background: var(--panel);
+            text-align: center;
+        }
+
+        header h1 {
+            font-size: clamp(18px, 4vw, 28px);
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-bottom: 10px;
+        }
+
+        header .subtitle {
+            font-size: clamp(10px, 2vw, 14px);
+            color: var(--cyan);
+            letter-spacing: 2px;
+        }
+
+        /* Main Content */
+        main {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        /* Steps */
+        .step {
+            margin-bottom: 60px;
+            padding: 30px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+        }
+
+        .step-header {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .step-num {
+            width: 50px;
+            height: 50px;
+            background: var(--accent);
+            color: #000;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 20px;
+            flex-shrink: 0;
+        }
+
+        .step-title {
+            font-size: clamp(16px, 3vw, 22px);
+            color: var(--accent);
+            letter-spacing: 1px;
+        }
+
+        .step-desc {
+            color: var(--dim);
+            font-size: 12px;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        /* Grid Demo */
+        .grid-demo {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 20px;
+            margin-top: 20px;
+        }
+
+        @media (min-width: 768px) {
+            .grid-demo {
+                grid-template-columns: 1fr 1fr;
+            }
+        }
+
+        .demo-grid {
+            aspect-ratio: 1;
+            background: #000;
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            padding: 10px;
+            position: relative;
+        }
+
+        .demo-cell {
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 2px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .demo-cell:hover {
+            border-color: var(--accent);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .demo-cell.ground {
+            background: radial-gradient(circle, #2a2a2a, #1a1a1a);
+            border-color: var(--cyan);
+        }
+
+        .demo-cell.site {
+            background: radial-gradient(circle, rgba(102, 170, 255, 0.2), #1a1a1a);
+            border-color: var(--blue);
+        }
+
+        .demo-cell.sky {
+            background: radial-gradient(circle, rgba(157, 78, 221, 0.2), #1a1a1a);
+            border-color: var(--purple);
+        }
+
+        .demo-cell.active {
+            border-color: var(--accent);
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3), #1a1a1a);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+            }
+
+            50% {
+                box-shadow: 0 0 20px rgba(255, 215, 0, 0.6);
+            }
+        }
+
+        .demo-cell img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        .demo-label {
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+        }
+
+        .demo-label h3 {
+            color: var(--accent);
+            font-size: 14px;
+            margin-bottom: 10px;
+            letter-spacing: 1px;
+        }
+
+        .demo-label p {
+            font-size: 11px;
+            line-height: 1.6;
+            color: var(--text);
+        }
+
+        .demo-label .tip {
+            color: var(--cyan);
+            font-style: italic;
+            margin-top: 10px;
+            font-size: 10px;
+        }
+
+        /* Legend */
+        .legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin-top: 20px;
+            padding: 15px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 4px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 11px;
+        }
+
+        .legend-icon {
+            width: 20px;
+            height: 20px;
+            border: 2px solid;
+            border-radius: 3px;
+        }
+
+        .legend-icon.ground {
+            border-color: var(--cyan);
+            background: radial-gradient(circle, #2a2a2a, #1a1a1a);
+        }
+
+        .legend-icon.site {
+            border-color: var(--blue);
+            background: radial-gradient(circle, rgba(102, 170, 255, 0.2), #1a1a1a);
+        }
+
+        .legend-icon.sky {
+            border-color: var(--purple);
+            background: radial-gradient(circle, rgba(157, 78, 221, 0.2), #1a1a1a);
+        }
+
+        .legend-icon.active {
+            border-color: var(--accent);
+            background: radial-gradient(circle, rgba(255, 215, 0, 0.3), #1a1a1a);
+        }
+
+        /* Interactive Controls */
+        .controls {
+            margin-top: 15px;
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .btn {
+            padding: 10px 20px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 11px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            font-family: 'Courier New', monospace;
+        }
+
+        .btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--accent);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        /* Callouts */
+        .callout {
+            padding: 15px;
+            margin: 20px 0;
+            border-left: 3px solid var(--accent);
+            background: rgba(255, 215, 0, 0.05);
+            border-radius: 0 4px 4px 0;
+        }
+
+        .callout.info {
+            border-color: var(--cyan);
+            background: rgba(78, 205, 196, 0.05);
+        }
+
+        .callout.tip {
+            border-color: var(--blue);
+            background: rgba(102, 170, 255, 0.05);
+        }
+
+        .callout-title {
+            font-weight: bold;
+            color: var(--accent);
+            font-size: 12px;
+            margin-bottom: 8px;
+            letter-spacing: 1px;
+        }
+
+        .callout p {
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 60px;
+            padding: 30px 20px;
+            border-top: 1px solid var(--border);
+            text-align: center;
+            font-size: 10px;
+            color: var(--dim);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <h1>LEGOS WORLDBUILDING PHILOSOPHY</h1>
+        <div class="subtitle">Ground → Site → Sky → Perspective</div>
+    </header>
+
+    <main>
+        <!-- INTRODUCTION -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">⚡</div>
+                <div class="step-title">The Philosophy</div>
+            </div>
+            <div class="step-desc">
+                Build interactive worlds from the ground up, layer by layer, using LEGOS primitives as your building
+                blocks.
+                Each layer serves a specific purpose in creating navigable, meaningful space.
+            </div>
+
+            <div class="callout">
+                <div class="callout-title">◻ Core Principle</div>
+                <p>Treat every asset as an <strong>Entity Block</strong> with a job. Connect them with <strong>Morphism
+                        Arrows</strong>.
+                    Mark <strong>Goals</strong> and <strong>Obstacles</strong>. Wrap them in <strong>Location
+                        Frames</strong>. Pin them to <strong>Timepoints</strong>.</p>
+            </div>
+        </div>
+
+        <!-- STEP 1: GROUND -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">1</div>
+                <div class="step-title">GROUND LAYER // Navigation Base</div>
+            </div>
+            <div class="step-desc">
+                The ground is your navigation interface. It shows paths, edges, safe zones, and affordances for
+                movement.
+                Players should always know where they can and can't go.
+            </div>
+
+            <div class="grid-demo">
+                <div class="demo-grid" id="ground-grid"></div>
+                <div class="demo-label">
+                    <h3>◻ GROUND SYSTEM</h3>
+                    <p><strong>Purpose:</strong> Navigation base, path markings, movement affordances</p>
+                    <p><strong>Try This:</strong> Click cells to mark paths (cyan). Think of it as painting a "safe
+                        route" for your player.</p>
+                    <div class="tip">💡 High-contrast paths prevent confusion. Make routes obvious!</div>
+                    <div class="controls">
+                        <button class="btn" onclick="paintGround()">Paint Path</button>
+                        <button class="btn" onclick="clearLayer('ground')">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-icon ground"></div><span>Ground Path Tiles</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon active"></div><span>Active Selection</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 2: SITE -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">2</div>
+                <div class="step-title">SITE LAYER // Places & Boundaries</div>
+            </div>
+            <div class="step-desc">
+                Sites are places where events happen. Each site should have a distinct job: intro, challenge, reward,
+                transition.
+                Wrap them in Location Frames to define scope.
+            </div>
+
+            <div class="grid-demo">
+                <div class="demo-grid" id="site-grid"></div>
+                <div class="demo-label">
+                    <h3>◻ SITE SYSTEM</h3>
+                    <p><strong>Purpose:</strong> Rooms, landmarks, thresholds, event containers</p>
+                    <p><strong>Try This:</strong> Click to place sites (blue). Each site is a Location Frame with a
+                        purpose.</p>
+                    <div class="tip">💡 Give sites identity: "Lab-A" (intro), "Crater Edge" (challenge), "Safe Room"
+                        (reward)</div>
+                    <div class="controls">
+                        <button class="btn" onclick="placeSite()">Place Site</button>
+                        <button class="btn" onclick="clearLayer('site')">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-icon site"></div><span>Site / Location Frame</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon active"></div><span>Current Site</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 3: SKY -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">3</div>
+                <div class="step-title">SKY LAYER // Atmosphere & Mood</div>
+            </div>
+            <div class="step-desc">
+                Sky controls light, mood, and time of day. Use it to pace energy and emotion. Map sky states to
+                narrative shifts.
+            </div>
+
+            <div class="grid-demo">
+                <div class="demo-grid" id="sky-grid"></div>
+                <div class="demo-label">
+                    <h3>◻ SKY SYSTEM</h3>
+                    <p><strong>Purpose:</strong> Lighting, mood, time markers, visual rhythm</p>
+                    <p><strong>Try This:</strong> Click to set sky states (purple). Think: Morning (calm), Noon
+                        (intense), Night (danger).</p>
+                    <div class="tip">💡 Sky changes signal story beats. Storm = conflict. Dawn = hope.</div>
+                    <div class="controls">
+                        <button class="btn" onclick="setSky('morning')">Morning</button>
+                        <button class="btn" onclick="setSky('noon')">Noon</button>
+                        <button class="btn" onclick="setSky('night')">Night</button>
+                        <button class="btn" onclick="clearLayer('sky')">Clear</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="legend">
+                <div class="legend-item">
+                    <div class="legend-icon sky"></div><span>Sky / Light State</span>
+                </div>
+                <div class="legend-item">
+                    <div class="legend-icon active"></div><span>Active Sky</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- STEP 4: PERSPECTIVE -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">4</div>
+                <div class="step-title">PERSPECTIVE LAYER // Camera & Viewpoint</div>
+            </div>
+            <div class="step-desc">
+                Perspective controls what players see. Use camera positions intentionally: reveal, hide, teach,
+                surprise.
+            </div>
+
+            <div class="callout info">
+                <div class="callout-title">📷 Camera as Tool</div>
+                <p>First-person: intimacy. Overhead: strategy. Cinematic: spectacle. Switch perspectives at key moments
+                    to guide attention.</p>
+            </div>
+
+            <div class="controls">
+                <button class="btn" onclick="setPerspective('first')">First Person</button>
+                <button class="btn" onclick="setPerspective('overhead')">Overhead</button>
+                <button class="btn" onclick="setPerspective('cinematic')">Cinematic</button>
+            </div>
+        </div>
+
+        <!-- FULL EXAMPLE -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">✨</div>
+                <div class="step-title">FULL EXAMPLE // Complete World</div>
+            </div>
+            <div class="step-desc">
+                Watch all four layers work together. Ground shows paths. Sites define spaces. Sky sets mood. Perspective
+                frames action.
+            </div>
+
+            <div class="grid-demo">
+                <div class="demo-grid" id="full-grid"></div>
+                <div class="demo-label">
+                    <h3>◻ COMPLETE WORLD</h3>
+                    <p><strong>Scenario:</strong> Player navigates from Lab-A (safe) to Crater Edge (danger).</p>
+                    <ul style="font-size: 11px; margin-top: 10px; line-height: 1.8;">
+                        <li>🟦 Ground: Cyan path from bottom-left to top-right</li>
+                        <li>🟦 Sites: Lab-A (start), Crater Edge (goal)</li>
+                        <li>🟪 Sky: Shifts from morning → storm as danger increases</li>
+                        <li>📷 Perspective: First-person in lab, overhead at crater</li>
+                    </ul>
+                    <div class="controls">
+                        <button class="btn" onclick="playExample()">Play Example</button>
+                        <button class="btn" onclick="resetExample()">Reset</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- LEGOS PRIMITIVES REFERENCE -->
+        <div class="step">
+            <div class="step-header">
+                <div class="step-num">📦</div>
+                <div class="step-title">LEGOS PRIMITIVES TOOLBOX</div>
+            </div>
+            <div class="step-desc">
+                Every world element maps to a LEGOS primitive. Use these as your design language.
+            </div>
+
+            <div class="callout tip">
+                <div class="callout-title">◻ The Primitives</div>
+                <p><strong>Entity Block:</strong> Any thing (character, prop, rule)</p>
+                <p><strong>Morphism Arrow:</strong> Connections and actions</p>
+                <p><strong>Goal Flag:</strong> Desired outcomes</p>
+                <p><strong>Obstacle Wall:</strong> Blockers and challenges</p>
+                <p><strong>Shift Bolt:</strong> Turning points (before/after)</p>
+                <p><strong>Location Frame:</strong> Spatial containers</p>
+                <p><strong>Timepoint Pin:</strong> Moment markers</p>
+                <p><strong>Timeline Track:</strong> Event sequences</p>
+                <p><strong>Scene Panel:</strong> Playable beats</p>
+            </div>
+        </div>
+    </main>
+
+    <footer>
+        <p>LEGOS WORLDBUILDING PHILOSOPHY v1.0 // Built with the LEGOS-GPT Icon System</p>
+        <p>Build from Ground up · Site by site · Under a Sky · For a Perspective</p>
+    </footer>
+
+    <script>
+        let groundState = [];
+        let siteState = [];
+        let skyState = [];
+        let currentLayer = 'ground';
+        let selectedCells = new Set();
+
+        function createGrid(containerId) {
+            const container = document.getElementById(containerId);
+            container.innerHTML = '';
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'demo-cell';
+                cell.dataset.index = i;
+                cell.onclick = () => toggleCell(containerId, i);
+                container.appendChild(cell);
+            }
+        }
+
+        function toggleCell(gridId, index) {
+            const cell = document.querySelector(`#${gridId} [data-index="${index}"]`);
+
+            if (gridId === 'ground-grid') {
+                if (groundState.includes(index)) {
+                    groundState = groundState.filter(i => i !== index);
+                    cell.classList.remove('ground', 'active');
+                } else {
+                    groundState.push(index);
+                    cell.classList.add('ground', 'active');
+                }
+            } else if (gridId === 'site-grid') {
+                if (siteState.includes(index)) {
+                    siteState = siteState.filter(i => i !== index);
+                    cell.classList.remove('site', 'active');
+                } else {
+                    siteState.push(index);
+                    cell.classList.add('site', 'active');
+                }
+            } else if (gridId === 'sky-grid') {
+                if (skyState.includes(index)) {
+                    skyState = skyState.filter(i => i !== index);
+                    cell.classList.remove('sky', 'active');
+                } else {
+                    skyState.push(index);
+                    cell.classList.add('sky', 'active');
+                }
+            }
+        }
+
+        function paintGround() { currentLayer = 'ground'; }
+        function placeSite() { currentLayer = 'site'; }
+        function setSky(state) {
+            console.log('Sky state:', state);
+            currentLayer = 'sky';
+        }
+        function setPerspective(mode) {
+            console.log('Perspective:', mode);
+        }
+
+        function clearLayer(layer) {
+            if (layer === 'ground') {
+                groundState = [];
+                document.querySelectorAll('#ground-grid .demo-cell').forEach(c => c.className = 'demo-cell');
+            } else if (layer === 'site') {
+                siteState = [];
+                document.querySelectorAll('#site-grid .demo-cell').forEach(c => c.className = 'demo-cell');
+            } else if (layer === 'sky') {
+                skyState = [];
+                document.querySelectorAll('#sky-grid .demo-cell').forEach(c => c.className = 'demo-cell');
+            }
+        }
+
+        function playExample() {
+            const grid = document.getElementById('full-grid');
+            // Path from bottom-left to top-right
+            const path = [72, 63, 54, 45, 36, 27, 18, 9];
+            const sites = [72, 9]; // Start and goal
+            const sky = [0, 1, 2, 3, 4, 5, 6, 7, 8]; // Top row = sky
+
+            path.forEach((i, delay) => {
+                setTimeout(() => {
+                    const cell = grid.querySelector(`[data-index="${i}"]`);
+                    cell.classList.add('ground', 'active');
+                }, delay * 200);
+            });
+
+            sites.forEach((i, idx) => {
+                setTimeout(() => {
+                    const cell = grid.querySelector(`[data-index="${i}"]`);
+                    cell.classList.add('site');
+                }, (path.length + idx) * 200);
+            });
+
+            sky.forEach((i, idx) => {
+                setTimeout(() => {
+                    const cell = grid.querySelector(`[data-index="${i}"]`);
+                    cell.classList.add('sky');
+                }, (path.length + sites.length + idx) * 100);
+            });
+        }
+
+        function resetExample() {
+            document.querySelectorAll('#full-grid .demo-cell').forEach(c => c.className = 'demo-cell');
+        }
+
+        // Initialize grids
+        createGrid('ground-grid');
+        createGrid('site-grid');
+        createGrid('sky-grid');
+        createGrid('full-grid');
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG Bone Viewer</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* Reuse styling from multi-move.html */
+        :root {
+            --bg: #020203;
+            --panel: #0a0a0c;
+            --text: #889;
+            --accent: #ffcc00;
+            --border: #222;
+            --c-x: #ff3366;
+            --c-y: #00ffaa;
+            --c-z: #3366ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        #viewport {
+            height: 70vh;
+            width: 100%;
+            position: relative;
+            background: radial-gradient(circle, #111, #000);
+        }
+
+        #controls {
+            height: 30vh;
+            background: var(--panel);
+            border-top: 2px solid var(--accent);
+            padding: 15px;
+            overflow-y: auto;
+        }
+
+        .toolbar {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            padding: 10px;
+            background: #000;
+            margin: -15px -15px 15px -15px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 14px;
+            flex: 1;
+        }
+
+        .btn {
+            background: #151515;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 6px 12px;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+            font-family: inherit;
+        }
+
+        .btn:hover {
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        .btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .control-row {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            align-items: center;
+            padding: 8px;
+            background: #0f0f11;
+            border-radius: 3px;
+        }
+
+        .control-label {
+            min-width: 120px;
+            font-size: 11px;
+            color: #999;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 4px;
+            background: #151515;
+            border: 1px solid #333;
+            color: var(--text);
+            border-radius: 3px;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        .stat {
+            font-size: 10px;
+            color: #666;
+            padding: 4px 8px;
+            background: #0a0a0c;
+            border-radius: 2px;
+            display: inline-block;
+            margin-right: 10px;
+        }
+
+        .stat strong {
+            color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewport"></div>
+    <div id="controls">
+        <div class="toolbar">
+            <div class="brand">WAG BONE VIEWER</div>
+            <button class="btn" id="btn-mpd" onclick="setMode('mpd')">MPD MODE</button>
+            <button class="btn active" id="btn-json" onclick="setMode('json')">JSON MODE</button>
+        </div>
+
+        <div class="control-row">
+            <div class="control-label">Load JSON File:</div>
+            <input type="file" id="json-file" accept=".json" onchange="loadJSONFile(event)">
+        </div>
+
+        <div class="control-row">
+            <div class="control-label">Visualization:</div>
+            <button class="btn" id="viz-points" onclick="setVizMode('points')">POINTS</button>
+            <button class="btn active" id="viz-lines" onclick="setVizMode('lines')">LINES</button>
+            <button class="btn" id="viz-tubes" onclick="setVizMode('tubes')">TUBES</button>
+            <button class="btn" id="viz-hybrid" onclick="setVizMode('hybrid')">HYBRID</button>
+        </div>
+
+        <div class="control-row">
+            <div class="control-label">Group By:</div>
+            <button class="btn" id="group-layer" onclick="setGroupMode('layer')">LAYER</button>
+            <button class="btn active" id="group-line" onclick="setGroupMode('lineNum')">LINE NUMBER</button>
+        </div>
+
+        <div class="control-row">
+            <div class="control-label">Show Bounding Boxes:</div>
+            <button class="btn" id="bbox-toggle" onclick="toggleBBox()">OFF</button>
+        </div>
+
+        <div class="control-row" id="stats-row">
+            <span class="stat">Points: <strong id="stat-points">0</strong></span>
+            <span class="stat">Bones: <strong id="stat-bones">0</strong></span>
+            <span class="stat">Parts: <strong id="stat-groups">0</strong></span>
+        </div>
+    </div>
+
+    <script>
+        // === STATE ===
+        let state = {
+            mode: 'json', // 'mpd' or 'json'
+            vizMode: 'lines', // 'points', 'lines', 'tubes', 'hybrid'
+            groupMode: 'lineNum', // 'layer' or 'lineNum'
+            showBBox: false,
+            jsonData: null,
+            bones: [],
+            partColors: {}, // lineNum -> LDraw color
+            audioReady: false
+        };
+
+        // LDraw Color Palette
+        const ldrawColors = {
+            0: 0x222222, 1: 0x0055BF, 2: 0x257A24, 3: 0x008F9B, 4: 0xC91A09,
+            5: 0xC870A0, 6: 0x583927, 7: 0x9BA19D, 8: 0x6D6E5C, 9: 0xB4D2E3,
+            10: 0x4B9F4A, 11: 0x55A5AF, 12: 0xF2705E, 13: 0xFC97AC, 14: 0xFFD700,
+            15: 0xF2F3F3, 25: 0xffaa00
+        };
+
+        // === THREE.JS SETUP ===
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020203);
+        scene.fog = new THREE.Fog(0x020203, 500, 1500);
+
+        const camera = new THREE.PerspectiveCamera(
+            50, window.innerWidth / (window.innerHeight * 0.7), 0.1, 3000
+        );
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.7);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(300, 300, 300);
+        camera.lookAt(0, 0, 0);
+
+        // Scene root (Y-flipped for LDraw coordinate system)
+        const worldRoot = new THREE.Group();
+        worldRoot.scale.set(1, -1, 1);
+        scene.add(worldRoot);
+
+        // Lighting
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(200, 400, 200);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.5));
+
+        // Grid
+        const grid = new THREE.GridHelper(600, 30, 0x00ffaa, 0x112233);
+        scene.add(grid);
+
+        // === AUDIO ===
+        let click;
+        async function initAudio() {
+            if (state.audioReady) return;
+            await Tone.start();
+            click = new Tone.MembraneSynth({
+                envelope: { attack: 0.001, decay: 0.05 }
+            }).toDestination();
+            click.volume.value = -18;
+            state.audioReady = true;
+        }
+        function sfxClick() {
+            if (state.audioReady) click.triggerAttackRelease("C2", "32n");
+        }
+
+        // === JSON PARSER ===
+        function loadJSONFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const data = JSON.parse(e.target.result);
+                    state.jsonData = data;
+                    processJSON(data);
+                    sfxClick();
+                } catch (err) {
+                    alert('Error parsing JSON: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function parseMPDColors(mpdContent) {
+            if (!mpdContent) return {};
+            const lines = mpdContent.split('\n');
+            const colorMap = {};
+
+            lines.forEach((line, idx) => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('1 ')) {
+                    // LDraw format: 1 <color> <x> <y> <z> ...
+                    const parts = trimmed.split(/\s+/);
+                    if (parts.length >= 2) {
+                        const color = parseInt(parts[1]);
+                        colorMap[idx] = color;
+                    }
+                }
+            });
+
+            console.log('Parsed MPD colors:', colorMap);
+            return colorMap;
+        }
+
+        function processJSON(data) {
+            if (!data.stud_skeleton || !Array.isArray(data.stud_skeleton)) {
+                alert('Invalid JSON: missing stud_skeleton array');
+                return;
+            }
+
+            // Parse part colors from MPD content
+            if (data.mpd_content) {
+                state.partColors = parseMPDColors(data.mpd_content);
+            }
+
+            const points = data.stud_skeleton;
+
+            // Group points by the selected grouping mode
+            const groups = {};
+            points.forEach(pt => {
+                const key = state.groupMode === 'layer' ? pt.layer : pt.lineNum;
+                if (!groups[key]) groups[key] = [];
+                groups[key].push(pt);
+            });
+
+            // Build bones (connections between consecutive points in same group)
+            state.bones = [];
+            Object.keys(groups).forEach(groupKey => {
+                const group = groups[groupKey];
+                // Sort by layer to create proper vertical connections
+                group.sort((a, b) => a.layer - b.layer);
+
+                // Create bones between consecutive points
+                for (let i = 0; i < group.length - 1; i++) {
+                    state.bones.push({
+                        start: group[i],
+                        end: group[i + 1],
+                        group: groupKey
+                    });
+                }
+            });
+
+            // Update stats
+            document.getElementById('stat-points').textContent = points.length;
+            document.getElementById('stat-bones').textContent = state.bones.length;
+            document.getElementById('stat-groups').textContent = Object.keys(groups).length;
+
+            // Render
+            renderBones();
+        }
+
+        // === RENDERING ===
+        function renderBones() {
+            // Clear existing geometry
+            const toRemove = [];
+            worldRoot.traverse(child => {
+                if (child.userData.isBone || child.userData.isBBox) toRemove.push(child);
+            });
+            toRemove.forEach(obj => worldRoot.remove(obj));
+
+            if (!state.jsonData || state.bones.length === 0) return;
+
+            const points = state.jsonData.stud_skeleton;
+
+            // Get color for a part/group
+            const getGroupColor = (group) => {
+                // If grouping by lineNum, use actual part color from MPD
+                if (state.groupMode === 'lineNum' && state.partColors[group] !== undefined) {
+                    const colorCode = state.partColors[group];
+                    return ldrawColors[colorCode] || 0xffd700;
+                }
+
+                // Fallback to rainbow palette
+                const colors = [
+                    0xff3366, 0x00ffaa, 0x3366ff, 0xffcc00, 0xff00ff,
+                    0x00ffff, 0xff9900, 0x99ff00, 0x9900ff, 0xff0099
+                ];
+                const idx = Math.abs(parseInt(group)) % colors.length;
+                return colors[idx];
+            };
+
+            // Group points for bounding boxes
+            const groupedPoints = {};
+            points.forEach(pt => {
+                const key = state.groupMode === 'layer' ? pt.layer : pt.lineNum;
+                if (!groupedPoints[key]) groupedPoints[key] = [];
+                groupedPoints[key].push(pt);
+            });
+
+            // === POINTS MODE ===
+            if (state.vizMode === 'points' || state.vizMode === 'hybrid') {
+                const pointGeo = new THREE.SphereGeometry(2, 8, 8);
+                points.forEach((pt, i) => {
+                    const group = state.groupMode === 'layer' ? pt.layer : pt.lineNum;
+                    const color = getGroupColor(group);
+                    const mat = new THREE.MeshStandardMaterial({
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 0.3
+                    });
+                    const mesh = new THREE.Mesh(pointGeo, mat);
+                    mesh.position.set(pt.x, pt.y, pt.z);
+                    mesh.userData.isBone = true;
+                    worldRoot.add(mesh);
+                });
+            }
+
+            // === LINES MODE ===
+            if (state.vizMode === 'lines' || state.vizMode === 'hybrid') {
+                state.bones.forEach(bone => {
+                    const color = getGroupColor(bone.group);
+                    const material = new THREE.LineBasicMaterial({
+                        color: color,
+                        linewidth: 2
+                    });
+                    const geometry = new THREE.BufferGeometry().setFromPoints([
+                        new THREE.Vector3(bone.start.x, bone.start.y, bone.start.z),
+                        new THREE.Vector3(bone.end.x, bone.end.y, bone.end.z)
+                    ]);
+                    const line = new THREE.Line(geometry, material);
+                    line.userData.isBone = true;
+                    worldRoot.add(line);
+                });
+            }
+
+            // === TUBES MODE ===
+            if (state.vizMode === 'tubes') {
+                state.bones.forEach(bone => {
+                    const color = getGroupColor(bone.group);
+                    const start = new THREE.Vector3(bone.start.x, bone.start.y, bone.start.z);
+                    const end = new THREE.Vector3(bone.end.x, bone.end.y, bone.end.z);
+
+                    const direction = new THREE.Vector3().subVectors(end, start);
+                    const length = direction.length();
+
+                    const geometry = new THREE.CylinderGeometry(1, 1, length, 6);
+                    const material = new THREE.MeshStandardMaterial({
+                        color: color,
+                        emissive: color,
+                        emissiveIntensity: 0.2
+                    });
+                    const mesh = new THREE.Mesh(geometry, material);
+
+                    mesh.position.copy(start).add(direction.multiplyScalar(0.5));
+                    mesh.quaternion.setFromUnitVectors(
+                        new THREE.Vector3(0, 1, 0),
+                        direction.normalize()
+                    );
+
+                    mesh.userData.isBone = true;
+                    worldRoot.add(mesh);
+                });
+            }
+
+            // === BOUNDING BOXES ===
+            if (state.showBBox) {
+                Object.keys(groupedPoints).forEach(groupKey => {
+                    const pts = groupedPoints[groupKey];
+                    if (pts.length === 0) return;
+
+                    // Calculate bounding box
+                    let minX = Infinity, minY = Infinity, minZ = Infinity;
+                    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity;
+
+                    pts.forEach(pt => {
+                        minX = Math.min(minX, pt.x);
+                        minY = Math.min(minY, pt.y);
+                        minZ = Math.min(minZ, pt.z);
+                        maxX = Math.max(maxX, pt.x);
+                        maxY = Math.max(maxY, pt.y);
+                        maxZ = Math.max(maxZ, pt.z);
+                    });
+
+                    const width = maxX - minX;
+                    const height = maxY - minY;
+                    const depth = maxZ - minZ;
+                    const centerX = (minX + maxX) / 2;
+                    const centerY = (minY + maxY) / 2;
+                    const centerZ = (minZ + maxZ) / 2;
+
+                    // Create box helper
+                    const color = getGroupColor(groupKey);
+                    const boxGeo = new THREE.BoxGeometry(width + 4, height + 4, depth + 4);
+                    const edges = new THREE.EdgesGeometry(boxGeo);
+                    const lineMat = new THREE.LineBasicMaterial({
+                        color: color,
+                        linewidth: 2,
+                        transparent: true,
+                        opacity: 0.6
+                    });
+                    const box = new THREE.LineSegments(edges, lineMat);
+                    box.position.set(centerX, centerY, centerZ);
+                    box.userData.isBBox = true;
+                    worldRoot.add(box);
+                });
+            }
+
+            console.log(`Rendered ${state.bones.length} bones in ${state.vizMode} mode, ${Object.keys(groupedPoints).length} parts`);
+        }
+
+        // === UI CONTROLS ===
+        function toggleBBox() {
+            initAudio();
+            state.showBBox = !state.showBBox;
+            document.getElementById('bbox-toggle').classList.toggle('active', state.showBBox);
+            document.getElementById('bbox-toggle').textContent = state.showBBox ? 'ON' : 'OFF';
+            renderBones();
+            sfxClick();
+        }
+
+        function setMode(mode) {
+            initAudio();
+            state.mode = mode;
+            document.getElementById('btn-mpd').classList.toggle('active', mode === 'mpd');
+            document.getElementById('btn-json').classList.toggle('active', mode === 'json');
+            sfxClick();
+        }
+
+        function setVizMode(mode) {
+            initAudio();
+            state.vizMode = mode;
+            ['points', 'lines', 'tubes', 'hybrid'].forEach(m => {
+                document.getElementById('viz-' + m).classList.toggle('active', m === mode);
+            });
+            renderBones();
+            sfxClick();
+        }
+
+        function setGroupMode(mode) {
+            initAudio();
+            state.groupMode = mode;
+            document.getElementById('group-layer').classList.toggle('active', mode === 'layer');
+            document.getElementById('group-line').classList.toggle('active', mode === 'lineNum');
+            // Reprocess if data is loaded
+            if (state.jsonData) processJSON(state.jsonData);
+            sfxClick();
+        }
+
+        // === ANIMATION LOOP ===
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            renderer.render(scene, camera);
+        }
+        animate();
+
+        // === RESIZE HANDLER ===
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight * 0.7);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight * 0.7);
+        });
+
+        // === AUTO-LOAD DEFAULT ===
+        // Uncomment and set path to auto-load a JSON file
+        // fetch('/Users/gaia/COURAGE/wag-gold-scene.json')
+        //     .then(r => r.json())
+        //     .then(data => {
+        //         state.jsonData = data;
+        //         processJSON(data);
+        //     });
+    </script>
+</body>
+
+</html>

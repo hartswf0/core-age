@@ -1,0 +1,128 @@
+# ═══════════════════════════════════════════════════════════
+# CORE-AGE .gitignore
+# Optimized for GitHub Pages deployment with minimal repo size
+# ═══════════════════════════════════════════════════════════
+
+# ───────────────────────────────────────────────────────────
+# LARGE DIRECTORIES TO EXCLUDE (Primary bloat sources)
+# ───────────────────────────────────────────────────────────
+
+# WAG Viewer Integration (contains entire LDraw parts library ~900+ MB)
+wag-viewer-prime-integration-*/
+wag-viewer-*/
+
+# Tutorial assets (large video files)
+tutorial_assets/videos/*.webp
+tutorial_assets/videos/*.mp4
+
+# ───────────────────────────────────────────────────────────
+# LARGE JSON FILES TO EXCLUDE
+# ───────────────────────────────────────────────────────────
+
+# Exclude large scene/parts JSON files (>1MB)
+*-future-scenarios.json
+ldraw-parts-manifest.json
+ldraw-part-geometry.json
+parts-taxonomy.json
+gold-*.json
+wag_gold_*.json
+test-wag-gold.json
+
+# Keep essential manifest (small, required for index.html)
+!file-manifest.json
+!file-manifest-raw.json
+
+# ───────────────────────────────────────────────────────────
+# MPD FILES (LEGO model files - can be large)
+# ───────────────────────────────────────────────────────────
+
+# Exclude all MPD files except essential examples
+*.mpd
+# Uncomment specific MPD files to include if needed:
+# !brick_haven_city.mpd
+# !minifig_family*.mpd
+
+# ───────────────────────────────────────────────────────────
+# MACOS SYSTEM FILES
+# ───────────────────────────────────────────────────────────
+
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.DocumentRevisions-V100
+.fseventsd
+.Spotlight-V100
+.TemporaryItems
+.Trashes
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+.AppleDB
+.AppleDesktop
+Network Trash Folder
+Temporary Items
+.atreses
+
+# ───────────────────────────────────────────────────────────
+# IDE & EDITOR FILES
+# ───────────────────────────────────────────────────────────
+
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ───────────────────────────────────────────────────────────
+# PYTHON
+# ───────────────────────────────────────────────────────────
+
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+ENV/
+env/
+*.egg-info/
+
+# ───────────────────────────────────────────────────────────
+# NODE & DEPENDENCIES
+# ───────────────────────────────────────────────────────────
+
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+package-lock.json
+
+# ───────────────────────────────────────────────────────────
+# BUILD & TEMPORARY FILES
+# ───────────────────────────────────────────────────────────
+
+dist/
+build/
+*.log
+*.tmp
+*.temp
+
+# ───────────────────────────────────────────────────────────
+# GIT & GITHUB
+# ───────────────────────────────────────────────────────────
+
+.git/
+.gitattributes
+
+# ═══════════════════════════════════════════════════════════
+# WHAT GETS INCLUDED (Estimated ~5-10 MB total)
+# ═══════════════════════════════════════════════════════════
+# ✅ All .html files (documentation, tutorials, viewers)
+# ✅ README.md
+# ✅ core-age-favicon.svg
+# ✅ file-manifest.json (essential for index.html)
+# ✅ Small .md documentation files
+# ✅ .gitignore (this file)
+# ═══════════════════════════════════════════════════════════

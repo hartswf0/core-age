@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Brick Haven Interactive Building – Architecture & Tutorials</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23000000'/%3E%3C/svg%3E">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            padding: 12px 20px;
+            border-bottom: 1px solid #333;
+            background: #050505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .title {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            color: #E31C23;
+        }
+
+        .subtitle {
+            font-size: 9px;
+            color: #777;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .badge {
+            font-size: 8px;
+            padding: 4px 8px;
+            border-radius: 3px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .nav-bar {
+            padding: 8px 20px;
+            border-bottom: 1px solid #222;
+            background: #0a0a0a;
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            overflow-x: auto;
+        }
+
+        .nav-link {
+            font-size: 9px;
+            padding: 6px 12px;
+            border-radius: 4px;
+            border: 1px solid #333;
+            background: #050505;
+            color: #888;
+            text-decoration: none;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.2s ease;
+        }
+
+        .nav-link:hover {
+            border-color: #E31C23;
+            color: #E31C23;
+            background: #0a0a0a;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+            padding: 20px 20px 30px;
+            overflow-y: auto;
+        }
+
+        .section-title {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .lego-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .lego-block {
+            min-width: 200px;
+            flex: 1;
+            padding: 12px 14px;
+            border-radius: 6px;
+            border: 1px solid #333;
+            background: #050505;
+            position: relative;
+        }
+
+        .lego-top {
+            position: absolute;
+            top: -6px;
+            left: 10px;
+            display: flex;
+            gap: 5px;
+        }
+
+        .lego-stud {
+            width: 10px;
+            height: 6px;
+            border-radius: 4px 4px 0 0;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .lego-name {
+            font-size: 11px;
+            font-weight: bold;
+            letter-spacing: 1px;
+            margin-bottom: 6px;
+        }
+
+        .lego-note {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+        }
+
+        .lego-stat {
+            font-size: 20px;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .lego-planning {
+            border-color: #FFCC00;
+            box-shadow: 0 0 10px rgba(255, 204, 0, 0.2);
+        }
+
+        .lego-spatial {
+            border-color: #4ECDC4;
+            box-shadow: 0 0 10px rgba(78, 205, 196, 0.2);
+        }
+
+        .lego-agent {
+            border-color: #00FF88;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.2);
+        }
+
+        .lego-build {
+            border-color: #9D4EDD;
+            box-shadow: 0 0 10px rgba(157, 78, 221, 0.2);
+        }
+
+        .lego-legos {
+            border-color: #FF4500;
+            box-shadow: 0 0 10px rgba(255, 69, 0, 0.2);
+        }
+
+        .lego-tutorial {
+            border-color: #E31C23;
+            box-shadow: 0 0 10px rgba(227, 28, 35, 0.2);
+        }
+
+        .lego-planning .lego-name {
+            color: #FFCC00;
+        }
+
+        .lego-spatial .lego-name {
+            color: #4ECDC4;
+        }
+
+        .lego-agent .lego-name {
+            color: #00FF88;
+        }
+
+        .lego-build .lego-name {
+            color: #9D4EDD;
+        }
+
+        .lego-legos .lego-name {
+            color: #FF4500;
+        }
+
+        .lego-tutorial .lego-name {
+            color: #E31C23;
+        }
+
+        .lego-planning .lego-stat {
+            color: #FFCC00;
+        }
+
+        .lego-spatial .lego-stat {
+            color: #4ECDC4;
+        }
+
+        .lego-agent .lego-stat {
+            color: #00FF88;
+        }
+
+        .lego-build .lego-stat {
+            color: #9D4EDD;
+        }
+
+        .flow-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            font-size: 9px;
+            margin: 10px 0;
+        }
+
+        .arrow {
+            padding: 3px 8px;
+            border-radius: 12px;
+            border: 1px solid #444;
+            color: #666;
+            white-space: nowrap;
+            font-size: 8px;
+        }
+
+        .arrow-highlight {
+            border-color: #E31C23;
+            color: #E31C23;
+        }
+
+        .pill {
+            font-size: 8px;
+            padding: 3px 8px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #888;
+            display: inline-block;
+        }
+
+        .pill-planning {
+            border-color: #FFCC00;
+            color: #FFCC00;
+        }
+
+        .pill-spatial {
+            border-color: #4ECDC4;
+            color: #4ECDC4;
+        }
+
+        .pill-agent {
+            border-color: #00FF88;
+            color: #00FF88;
+        }
+
+        .pill-build {
+            border-color: #9D4EDD;
+            color: #9D4EDD;
+        }
+
+        .pill-legos {
+            border-color: #FF4500;
+            color: #FF4500;
+        }
+
+        .callout {
+            border-left: 2px solid #333;
+            padding-left: 10px;
+            font-size: 9px;
+            color: #bbb;
+            line-height: 1.5;
+            margin: 10px 0;
+        }
+
+        .callout-emoji {
+            margin-right: 6px;
+        }
+
+        .media-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 15px;
+            margin: 15px 0;
+        }
+
+        .media-card {
+            border: 1px solid #333;
+            border-radius: 6px;
+            overflow: hidden;
+            background: #050505;
+        }
+
+        .media-card video,
+        .media-card img {
+            width: 100%;
+            display: block;
+            cursor: pointer;
+        }
+
+        .media-card video {
+            background: #000;
+        }
+
+        .media-title {
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #888;
+            border-top: 1px solid #222;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+        }
+
+        .tutorial-step {
+            border: 1px solid #333;
+            border-radius: 6px;
+            padding: 14px;
+            background: #050505;
+            margin: 10px 0;
+        }
+
+        .step-number {
+            display: inline-block;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #E31C23;
+            color: #000;
+            text-align: center;
+            line-height: 24px;
+            font-weight: bold;
+            font-size: 11px;
+            margin-right: 8px;
+        }
+
+        .step-title {
+            font-size: 11px;
+            font-weight: bold;
+            margin-bottom: 6px;
+            color: #ddd;
+        }
+
+        .step-content {
+            font-size: 9px;
+            color: #aaa;
+            line-height: 1.5;
+            padding-left: 32px;
+        }
+
+        .code-snippet {
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 10px 12px;
+            font-size: 9px;
+            color: #4ECDC4;
+            overflow-x: auto;
+            margin: 8px 0;
+            font-family: 'Courier New', monospace;
+        }
+
+        .status-bar {
+            padding: 8px 20px;
+            border-top: 1px solid #333;
+            font-size: 8px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .lightbox {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .lightbox.active {
+            display: flex;
+        }
+
+        .lightbox img {
+            max-width: 90%;
+            max-height: 90%;
+            object-fit: contain;
+            border: 1px solid #333;
+        }
+
+        .lightbox-close {
+            position: absolute;
+            top: 20px;
+            right: 30px;
+            color: #E31C23;
+            font-size: 36px;
+            cursor: pointer;
+            z-index: 1001;
+        }
+
+        @media (max-width: 768px) {
+            .lego-row {
+                flex-direction: column;
+            }
+
+            .media-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .flow-row {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="title-block">
+                <div class="title">BRICK HAVEN INTERACTIVE BUILDING – ARCHITECTURE & TUTORIALS</div>
+                <div class="subtitle">LEGO CITY CONSTRUCTION → AGENT AUTOMATION → LEGOS NARRATIVE FRAMEWORK</div>
+            </div>
+            <div class="badge">170 PIECES • 5 DISTRICTS • LONG-HORIZON PLANNING</div>
+        </div>
+
+        <div class="nav-bar">
+            <a href="#overview" class="nav-link">Overview</a>
+            <a href="#architecture" class="nav-link">Architecture</a>
+            <a href="#planning" class="nav-link">Planning</a>
+            <a href="#spatial" class="nav-link">Spatial Grammar</a>
+            <a href="#agent" class="nav-link">Agent Interface</a>
+            <a href="#build" class="nav-link">Interactive Build</a>
+            <a href="#legos" class="nav-link">LEGOS Framework</a>
+            <a href="#tutorials" class="nav-link">Tutorials</a>
+            <a href="#gallery" class="nav-link">Visual Gallery</a>
+        </div>
+
+        <div class="content">
+
+            <!-- Overview Section -->
+            <div id="overview">
+                <div class="section-title">System Overview – Core Stats</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">170</div>
+                        <div class="lego-name">LEGO PIECES</div>
+                        <div class="lego-note">Coordinated across 6 build phases with precise 120 LDU grid spacing. Each
+                            piece placed with intent—no overlaps, perfect alignment.</div>
+                    </div>
+                    <div class="lego-block lego-spatial">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">5</div>
+                        <div class="lego-name">DISTRICTS</div>
+                        <div class="lego-note">Residential, Commercial, Civic, Industrial, Parks. Each with unique color
+                            palette, building heights, and architectural style.</div>
+                    </div>
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">1920</div>
+                        <div class="lego-name">LDU GRID SIZE</div>
+                        <div class="lego-note">Standardized grid system. 12 major divisions (160 LDU cells), 96
+                            sub-divisions (20 LDU cells). Frank Grid alignment.</div>
+                    </div>
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-stat">6</div>
+                        <div class="lego-name">BUILD PHASES</div>
+                        <div class="lego-note">Street grid → Residential → Commercial → Civic → Industrial → Landmarks.
+                            Multi-step coordination, long-horizon planning.</div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">🏙️</span>
+                    Brick Haven City demonstrates long-horizon planning: 170 coordinated pieces, 5 distinct districts,
+                    all in a single MPD file. The build process required strategic planning, coordinate management, and
+                    color coordination—showcasing agent-driven automation capabilities.
+                </div>
+            </div>
+
+            <!-- Architecture Flow -->
+            <div id="architecture">
+                <div class="section-title">Flow 1 – Planning → Execution → Verification</div>
+                <div class="flow-row">
+                    <span class="pill pill-planning">planning</span>
+                    <span class="pill pill-spatial">spatial grammar</span>
+                    <span class="pill pill-agent">agent automation</span>
+                    <span class="pill pill-build">interactive build</span>
+                </div>
+                <div class="flow-row">
+                    <span class="lego-block lego-planning" style="min-width:150px; text-align:center;">MASTER
+                        PLAN<br><span style="font-size:8px; color:#888;">Grid system + districts</span></span>
+                    <span class="arrow arrow-highlight">define</span>
+                    <span class="lego-block lego-spatial" style="min-width:150px; text-align:center;">SPATIAL
+                        ALIGNMENT<br><span style="font-size:8px; color:#888;">1920 LDU grid</span></span>
+                    <span class="arrow">implement</span>
+                    <span class="lego-block lego-agent" style="min-width:150px; text-align:center;">AGENT
+                        INTERFACE<br><span style="font-size:8px; color:#888;">MPD injection</span></span>
+                    <span class="arrow arrow-highlight">load</span>
+                    <span class="lego-block lego-build" style="min-width:150px; text-align:center;">INTERACTIVE
+                        BUILD<br><span style="font-size:8px; color:#888;">Folk method + catalog</span></span>
+                    <span class="arrow">verify</span>
+                    <span class="lego-block lego-build" style="min-width:150px; text-align:center;">COMPOSED
+                        SCENE<br><span style="font-size:8px; color:#888;">Camera orbit</span></span>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">📐</span>
+                    The architecture follows a strict separation: planning defines intent, spatial grammar establishes
+                    scale, the agent interface provides automation, and the interactive build validates execution. Each
+                    layer is independent and composable.
+                </div>
+            </div>
+
+            <!-- Planning Layer -->
+            <div id="planning">
+                <div class="section-title">Planning Layer – Master Plan & District Specifications</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">GRID SYSTEM</div>
+                        <div class="lego-note">10x10 blocks at 120 LDU spacing. Total footprint: 1200 x 1200 LDU (~48 x
+                            48 studs). Main avenues N-S and E-W, secondary streets at intervals. Foundation built first
+                            to establish coordinates.</div>
+                    </div>
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">COLOR STRATEGY</div>
+                        <div class="lego-note">Each district has unique color palette. Residential: bright welcoming
+                            (red, yellow, blue). Commercial: professional neutrals (grey, tan). Civic: institutional
+                            (blue, white). Industrial: utilitarian (grey, brown). Parks: natural (green, lime).</div>
+                    </div>
+                    <div class="lego-block lego-planning">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">ELEVATION STRATEGY</div>
+                        <div class="lego-note">Buildings range from 2-4 stories (48-128 LDU). City Hall tallest at 6
+                            stories. Creates visual hierarchy and realistic urban density. Prevents monotony through
+                            height variation.</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Spatial Grammar -->
+            <div id="spatial">
+                <div class="section-title">Spatial Grammar – Alignment & Standardization</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-spatial">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">MULTI-GOOD ALIGNMENT</div>
+                        <div class="lego-note">File: <code>multi-good.html</code>. Grid updated to 1920 LDU size with 12
+                            divisions (160 LDU cells). Sub-grid added at 20 LDU for stud-level detail. Walls expanded to
+                            960 LDU extent.</div>
+                    </div>
+                    <div class="lego-block lego-spatial">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">COURAGE VIEWER STANDARD</div>
+                        <div class="lego-note">File: <code>wag-grace-editor.html</code>. Reference implementation with
+                            Frank Grid (cellSize: 160). Beta Prime Engine handles Y-flip and rotation. All viewers
+                            aligned to this spatial grammar.</div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/spatial_alignment.png" alt="Spatial Alignment"
+                            onclick="openLightbox('tutorial_assets/images/spatial_alignment.png')">
+                        <div class="media-title">Multi-Good Spatial Alignment (1920 LDU Grid)</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Agent Interface -->
+            <div id="agent">
+                <div class="section-title">Agent Interface – Programmatic MPD Injection</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">AGENT INTERFACE DESIGN</div>
+                        <div class="lego-note">HTML: Hidden overlay with
+                            <code>&lt;textarea id="agent-mpd-input"&gt;</code> and
+                            <code>&lt;button id="agent-load-btn"&gt;</code>. Bypasses flaky line-by-line editing. Agent
+                            pastes full MPD content → click load → instant rendering.</div>
+                    </div>
+                    <div class="lego-block lego-agent">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">JAVASCRIPT API</div>
+                        <div class="lego-note">
+                            <div class="code-snippet">fetch('brick_haven_city.mpd')
+                                .then(r => r.text())
+                                .then(t => {
+                                document.getElementById('agent-mpd-input').value = t;
+                                document.getElementById('agent-load-btn').click();
+                                });</div>
+                        </div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/agent_interface.png" alt="Agent Interface"
+                            onclick="openLightbox('tutorial_assets/images/agent_interface.png')">
+                        <div class="media-title">Brick Haven Loaded via Agent Interface</div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">🤖</span>
+                    The agent interface is an "API-in-UI" pattern. It provides a reliable, programmatic way to inject
+                    MPD content without dealing with complex DOM manipulation or unreliable browser automation.
+                </div>
+            </div>
+
+            <!-- Interactive Build -->
+            <div id="build">
+                <div class="section-title">Interactive Build – Folk Method & Part Selection</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">FOLK METHOD WORKFLOW</div>
+                        <div class="lego-note">1. Load Brick Haven via Agent Interface. 2. Navigate to <strong>Folk →
+                                Circle → Other</strong> in Star Menu. 3. Use <strong>"LOAD THESE 50"</strong> for batch
+                            loading. 4. Add individual parts with <strong>"➕"</strong> button. 5. Close menu and orbit
+                            camera.</div>
+                    </div>
+                    <div class="lego-block lego-build">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">PART CATALOG BROWSER</div>
+                        <div class="lego-note">Star Menu (⭐) opens the Part Catalog. Organized by kingdoms (Folk, Wild,
+                            etc.) and categories. Each part has a "➕" button that calls
+                            <code>addPartToScene([part])</code>. Parts appended to <code>editorLines</code> array.</div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <video autoplay loop muted playsinline>
+                            <source src="tutorial_assets/videos/folk_add.webp" type="video/webp">
+                        </video>
+                        <div class="media-title">🎬 Folk Parts Addition (Interactive Build)</div>
+                    </div>
+                    <div class="media-card">
+                        <video autoplay loop muted playsinline>
+                            <source src="tutorial_assets/videos/visual_inspection.webp" type="video/webp">
+                        </video>
+                        <div class="media-title">🎬 Visual Inspection (Camera Orbit)</div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/folk_added.png" alt="Folk Parts"
+                            onclick="openLightbox('tutorial_assets/images/folk_added.png')">
+                        <div class="media-title">Folk Category Loaded (50 Parts)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/composed_scene.png" alt="Composed Scene"
+                            onclick="openLightbox('tutorial_assets/images/composed_scene.png')">
+                        <div class="media-title">Composed Scene with Camera Orbit</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- LEGOS Framework -->
+            <div id="legos">
+                <div class="section-title">LEGOS Framework – Location, Entity, Goal, Obstacle, Shift, Solution</div>
+                <div class="lego-row">
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">LEGOS NARRATIVE MODEL</div>
+                        <div class="lego-note">Every scene can be decomposed into modular narrative blocks:
+                            <strong>Location</strong> (setting), <strong>Entity</strong> (actors), <strong>Goal</strong>
+                            (objectives), <strong>Obstacle</strong> (conflicts), <strong>Shift</strong> (turning
+                            points), <strong>Solution</strong> (resolutions). Example: "Brand Graveyard" scene.</div>
+                    </div>
+                    <div class="lego-block lego-legos">
+                        <div class="lego-top">
+                            <div class="lego-stud"></div>
+                        </div>
+                        <div class="lego-name">STICKER GALLERY EXAMPLE</div>
+                        <div class="lego-note">Location: The Sticker Archive. Entity: The Archivist. Goal: Construct
+                            Speed Idol. Obstacle: Compliance Barrier. Shift: Great Merger. Transforms scattered sticker
+                            parts into meaningful narrative structure.</div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <video autoplay loop muted playsinline>
+                            <source src="tutorial_assets/videos/sticker_gallery_load.webp" type="video/webp">
+                        </video>
+                        <div class="media-title">🎬 Sticker Gallery Load (LEGOS Narrative)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/sticker_gallery.png" alt="Sticker Gallery"
+                            onclick="openLightbox('tutorial_assets/images/sticker_gallery.png')">
+                        <div class="media-title">Brand Graveyard (LEGOS Structured Scene)</div>
+                    </div>
+                </div>
+                <div class="callout">
+                    <span class="callout-emoji">📖</span>
+                    LEGOS provides semantic structure. Every scene, no matter how chaotic, can be reframed using
+                    narrative grammar: entities, relationships, goals, obstacles. This makes scenes machine-parsable and
+                    composable.
+                </div>
+            </div>
+
+            <!-- Tutorials -->
+            <div id="tutorials">
+                <div class="section-title">Step-by-Step Tutorials – Getting Started</div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">1</span>LOAD A CITY IN THE COURAGE VIEWER</div>
+                    <div class="step-content">
+                        Open
+                        <code>http://localhost:8080/wag-viewer-prime-integration-20251112-055341-copy/wag-grace-editor.html</code>
+                        in your browser. Use the Agent Interface (bottom of page) or execute this JavaScript in the
+                        console:
+                        <div class="code-snippet">fetch('brick_haven_city.mpd').then(r=>r.text()).then(t=>{
+                            document.getElementById('agent-mpd-input').value=t;
+                            document.getElementById('agent-load-btn').click();
+                            });</div>
+                        The city will load instantly. All 170 pieces render in the viewport with proper grid alignment.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">2</span>ADD PARTS FROM THE CATALOG</div>
+                    <div class="step-content">
+                        Click the <strong>⭐ Star</strong> button to open the Part Catalog Browser. Navigate through
+                        kingdoms and categories. Click the <strong>➕</strong> button next to any part to add it to the
+                        scene. For batch loading, use <strong>"LOAD ALL"</strong> or <strong>"LOAD THESE 50"</strong>
+                        buttons. Parts are appended to the <code>editorLines</code> array and immediately rendered.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">3</span>EXPORT YOUR SCENE</div>
+                    <div class="step-content">
+                        Use the <strong>IMG</strong> button to capture a 4:3 screenshot with JSON metadata. Use the
+                        <strong>GLB</strong> button to export the scene as a 3D model file. Both functions are
+                        accessible from the main toolbar. GLB export uses <code>THREE.GLTFExporter</code> and downloads
+                        the result as <code>.glb</code> file.
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">4</span>CREATE YOUR OWN LEGOS NARRATIVE</div>
+                    <div class="step-content">
+                        Analyze your scene using the LEGOS framework: What is the <strong>Location</strong>? Who are the
+                        <strong>Entities</strong>? What <strong>Goals</strong> do they pursue? What
+                        <strong>Obstacles</strong> block them? What <strong>Shifts</strong> transform the scene? What
+                        <strong>Solutions</strong> emerge? Document this in YAML format. Example:
+                        <div class="code-snippet">scene: "My City"
+                            entities:
+                            - id: hero
+                            type: Character
+                            name: "The Builder"
+                            goals:
+                            - id: build_city
+                            name: "Construct a LEGO metropolis"
+                            owner: hero</div>
+                    </div>
+                </div>
+
+                <div class="tutorial-step">
+                    <div class="step-title"><span class="step-number">5</span>ALIGN YOUR CUSTOM VIEWER</div>
+                    <div class="step-content">
+                        If you're building a custom viewer, align it to the Frank Grid standard: <strong>1920 LDU total
+                            size</strong>, <strong>12 divisions</strong> (160 LDU cells), <strong>96
+                            sub-divisions</strong> (20 LDU cells). Set wall extent to <strong>960 LDU</strong>. Use
+                        <code>worldRoot.scale.y = -1</code> for Y-flip to match LDraw coordinate system. Reference
+                        implementation: <code>beta-prime-engine.js</code>.
+                    </div>
+                </div>
+            </div>
+
+            <!-- Visual Gallery -->
+            <div id="gallery">
+                <div class="section-title">Visual Gallery – City Views</div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <video autoplay loop muted playsinline>
+                            <source src="tutorial_assets/videos/city_build.webp" type="video/webp">
+                        </video>
+                        <div class="media-title">🎬 Complete City Build Process</div>
+                    </div>
+                </div>
+                <div class="media-grid">
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_default.png" alt="Default View"
+                            onclick="openLightbox('tutorial_assets/images/city_default.png')">
+                        <div class="media-title">Default View (All Districts)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_north.png" alt="North View"
+                            onclick="openLightbox('tutorial_assets/images/city_north.png')">
+                        <div class="media-title">North View (Residential District)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_south.png" alt="South View"
+                            onclick="openLightbox('tutorial_assets/images/city_south.png')">
+                        <div class="media-title">South View (Industrial District)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_west.png" alt="West View"
+                            onclick="openLightbox('tutorial_assets/images/city_west.png')">
+                        <div class="media-title">West View (City Hall & Civic)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_east.png" alt="East View"
+                            onclick="openLightbox('tutorial_assets/images/city_east.png')">
+                        <div class="media-title">East View (Commercial Center)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_top.png" alt="Top View"
+                            onclick="openLightbox('tutorial_assets/images/city_top.png')">
+                        <div class="media-title">Top-Down View (Grid Layout)</div>
+                    </div>
+                    <div class="media-card">
+                        <img src="tutorial_assets/images/city_final.png" alt="Final View"
+                            onclick="openLightbox('tutorial_assets/images/city_final.png')">
+                        <div class="media-title">Final Angled View (Dynamic Perspective)</div>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <div class="status-bar">
+            <span>Brick Haven Interactive Building • Architecture & Tutorial Documentation</span>
+            <span>170 pieces • 5 districts • Long-horizon planning demonstrated</span>
+        </div>
+    </div>
+
+    <!-- Lightbox -->
+    <div class="lightbox" id="lightbox" onclick="closeLightbox()">
+        <div class="lightbox-close">&times;</div>
+        <img id="lightbox-img" src="" alt="Full Screen Image">
+    </div>
+
+    <script>
+        // Smooth scroll navigation
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', function (e) {
+                e.preventDefault();
+                const target = document.querySelector(this.getAttribute('href'));
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
+            });
+        });
+
+        // Lightbox functions
+        function openLightbox(src) {
+            const lightbox = document.getElementById('lightbox');
+            const img = document.getElementById('lightbox-img');
+            img.src = src;
+            lightbox.classList.add('active');
+        }
+
+        function closeLightbox() {
+            const lightbox = document.getElementById('lightbox');
+            lightbox.classList.remove('active');
+        }
+
+        // ESC key to close lightbox
+        document.addEventListener('keydown', function (e) {
+            if (e.key === 'Escape') {
+                closeLightbox();
+            }
+        });
+    </script>
+
+</body>
+
+</html>

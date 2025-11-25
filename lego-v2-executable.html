@@ -1,0 +1,829 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>META-LEGOS v2 // Turing-Complete Visual Language</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --secondary: #0088ff;
+            --text: #ccc;
+            --text-dim: #666;
+
+            --value: #4ecdc4;
+            --op: #f7931e;
+            --control: #ff6b35;
+            --func: #c44569;
+            --io: #00ff9d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            display: grid;
+            grid-template-columns: 220px 1fr 380px;
+            grid-template-rows: 48px 1fr;
+            overflow: hidden;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            font-size: 10px;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9px;
+            font-weight: bold;
+            border: none;
+            letter-spacing: 0.05em;
+            transition: all 0.15s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00ffaa;
+        }
+
+        .btn-secondary {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #1a1a1a;
+        }
+
+        /* Palette */
+        .palette {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 12px;
+        }
+
+        .palette-section {
+            margin-bottom: 20px;
+        }
+
+        .palette-header {
+            color: var(--accent);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin-bottom: 10px;
+            padding-bottom: 4px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .block-template {
+            padding: 10px;
+            margin-bottom: 6px;
+            border-radius: 3px;
+            cursor: grab;
+            font-size: 9px;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .block-template:hover {
+            transform: translateX(3px);
+            border-color: rgba(255, 255, 255, 0.2);
+        }
+
+        .block-template:active {
+            cursor: grabbing;
+        }
+
+        .block-template.value {
+            background: var(--value);
+            color: #000;
+        }
+
+        .block-template.op {
+            background: var(--op);
+            color: #000;
+        }
+
+        .block-template.control {
+            background: var(--control);
+            color: #fff;
+        }
+
+        .block-template.func {
+            background: var(--func);
+            color: #fff;
+        }
+
+        .block-template.io {
+            background: var(--io);
+            color: #000;
+        }
+
+        /* Workspace */
+        .workspace {
+            background: #0c0c0c;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            overflow: auto;
+            position: relative;
+        }
+
+        .construction-grid {
+            display: grid;
+            grid-template-columns: repeat(14, 60px);
+            grid-template-rows: repeat(14, 60px);
+            gap: 2px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            position: relative;
+            transition: all 0.1s;
+        }
+
+        .grid-cell.drop-target {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: var(--accent);
+        }
+
+        .grid-cell.executing {
+            animation: pulse 0.4s ease;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.08);
+                box-shadow: 0 0 15px var(--accent);
+            }
+        }
+
+        /* Placed Blocks */
+        .placed-block {
+            width: 100%;
+            height: 100%;
+            border-radius: 3px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 600;
+            padding: 3px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .placed-block .block-icon {
+            font-size: 14px;
+            margin-bottom: 2px;
+        }
+
+        .placed-block .block-value {
+            font-size: 7px;
+            opacity: 0.9;
+            font-weight: 700;
+        }
+
+        .placed-block .remove-btn {
+            position: absolute;
+            top: 1px;
+            right: 1px;
+            width: 14px;
+            height: 14px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+            color: #fff;
+        }
+
+        .placed-block:hover .remove-btn {
+            display: flex;
+        }
+
+        /* Connections */
+        .connection {
+            position: absolute;
+            pointer-events: none;
+            z-index: 50;
+        }
+
+        .connection line {
+            stroke: var(--secondary);
+            stroke-width: 2;
+            stroke-dasharray: 4;
+            animation: dash 1s linear infinite;
+        }
+
+        @keyframes dash {
+            to {
+                stroke-dashoffset: -8;
+            }
+        }
+
+        .connection circle {
+            fill: var(--secondary);
+        }
+
+        /* Analysis Panel */
+        .analysis-panel {
+            background: #050505;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 10px 14px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 14px;
+            font-size: 9px;
+            line-height: 1.5;
+            overflow-y: auto;
+        }
+
+        .code-output {
+            background: #000;
+            padding: 10px;
+            border-radius: 3px;
+            font-size: 9px;
+            line-height: 1.4;
+            margin-bottom: 12px;
+            white-space: pre-wrap;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .keyword {
+            color: #ff9f56;
+            font-weight: 700;
+        }
+
+        .string {
+            color: #4ade80;
+        }
+
+        .number {
+            color: #60a5fa;
+        }
+
+        .comment {
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        .output-section {
+            height: 220px;
+            background: #000;
+            border-top: 1px solid var(--border);
+            padding: 10px;
+            overflow-y: auto;
+            font-size: 9px;
+        }
+
+        .output-line {
+            margin: 2px 0;
+            color: var(--text-dim);
+            font-family: monospace;
+        }
+
+        .output-line.success {
+            color: var(--accent);
+        }
+
+        .output-line.error {
+            color: #ff6b6b;
+        }
+
+        .output-line.value {
+            color: var(--secondary);
+        }
+
+        /* Modal */
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal.active {
+            display: flex;
+        }
+
+        .modal-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 20px;
+            min-width: 300px;
+            max-width: 500px;
+        }
+
+        .modal-header {
+            color: var(--accent);
+            font-weight: bold;
+            margin-bottom: 16px;
+            font-size: 12px;
+        }
+
+        .modal-body {
+            margin-bottom: 16px;
+        }
+
+        .modal-input {
+            width: 100%;
+            padding: 8px;
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: inherit;
+            font-size: 11px;
+            border-radius: 3px;
+            margin-top: 6px;
+        }
+
+        .modal-label {
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 4px;
+        }
+
+        .modal-footer {
+            display: flex;
+            gap: 8px;
+            justify-content: flex-end;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">META-LEGOS v2 // Turing-Complete</div>
+        <button class="btn btn-secondary" onclick="clearGrid()">CLEAR</button>
+        <button class="btn btn-secondary" onclick="exportCode()">EXPORT JS</button>
+        <button class="btn btn-primary" onclick="executeCode()" style="margin-left: auto;">▶ RUN</button>
+    </header>
+
+    <div class="palette">
+        <div class="palette-section">
+            <div class="palette-header">💾 VALUES</div>
+            <div class="block-template value" draggable="true" data-type="number">
+                <div>🔢</div>
+                <div>NUMBER</div>
+            </div>
+            <div class="block-template value" draggable="true" data-type="string">
+                <div>📝</div>
+                <div>STRING</div>
+            </div>
+            <div class="block-template value" draggable="true" data-type="variable">
+                <div>📦</div>
+                <div>VARIABLE</div>
+            </div>
+        </div>
+
+        <div class="palette-section">
+            <div class="palette-header">🔧 OPERATIONS</div>
+            <div class="block-template op" draggable="true" data-type="add">
+                <div>➕</div>
+                <div>ADD</div>
+            </div>
+            <div class="block-template op" draggable="true" data-type="compare">
+                <div>⚖️</div>
+                <div>COMPARE</div>
+            </div>
+        </div>
+
+        <div class="palette-section">
+            <div class="palette-header">🔀 CONTROL</div>
+            <div class="block-template control" draggable="true" data-type="if">
+                <div>◇</div>
+                <div>IF</div>
+            </div>
+            <div class="block-template control" draggable="true" data-type="loop">
+                <div>⟲</div>
+                <div>LOOP</div>
+            </div>
+        </div>
+
+        <div class="palette-section">
+            <div class="palette-header">📤 I/O</div>
+            <div class="block-template io" draggable="true" data-type="print">
+                <div>🖨️</div>
+                <div>PRINT</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="workspace">
+        <div class="construction-grid" id="grid"></div>
+        <svg id="connections"
+            style="position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 40;"></svg>
+    </div>
+
+    <div class="analysis-panel">
+        <div class="panel-header" style="color: var(--accent);">
+            <span>📜 GENERATED CODE</span>
+        </div>
+        <div class="panel-content">
+            <div class="code-output" id="code-display">
+                <span class="comment">// Build your program on the grid
+                    // Click blocks to edit values</span>
+            </div>
+        </div>
+
+        <div class="output-section">
+            <div style="color: var(--secondary); font-weight: bold; margin-bottom: 8px;">► EXECUTION OUTPUT</div>
+            <div id="output-log"></div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div class="modal" id="edit-modal">
+        <div class="modal-content">
+            <div class="modal-header">Edit Block</div>
+            <div class="modal-body">
+                <div class="modal-label">Value:</div>
+                <input type="text" class="modal-input" id="block-value-input">
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+                <button class="btn btn-primary" onclick="saveBlockValue()">Save</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // === STATE ===
+        const gridState = new Map();
+        const variables = new Map();
+        let editingBlock = null;
+
+        // === INIT ===
+        const gridEl = document.getElementById('grid');
+        for (let i = 0; i < 196; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.index = i;
+
+            cell.addEventListener('dragover', e => {
+                e.preventDefault();
+                e.currentTarget.classList.add('drop-target');
+            });
+
+            cell.addEventListener('dragleave', e => {
+                e.currentTarget.classList.remove('drop-target');
+            });
+
+            cell.addEventListener('drop', e => {
+                e.preventDefault();
+                e.currentTarget.classList.remove('drop-target');
+                const index = parseInt(e.currentTarget.dataset.index);
+                const type = e.dataTransfer.getData('text/plain');
+                if (!gridState.has(index)) {
+                    placeBlock(index, type);
+                }
+            });
+
+            gridEl.appendChild(cell);
+        }
+
+        document.querySelectorAll('.block-template').forEach(block => {
+            block.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', e.target.dataset.type);
+            });
+        });
+
+        // === BLOCK PLACEMENT ===
+        function placeBlock(index, type) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+
+            const config = {
+                number: { icon: '🔢', name: 'NUM', color: 'var(--value)', default: '0' },
+                string: { icon: '📝', name: 'STR', color: 'var(--value)', default: '""' },
+                variable: { icon: '📦', name: 'VAR', color: 'var(--value)', default: 'x' },
+                add: { icon: '➕', name: 'ADD', color: 'var(--op)', default: '+' },
+                compare: { icon: '⚖️', name: 'CMP', color: 'var(--op)', default: '==' },
+                if: { icon: '◇', name: 'IF', color: 'var(--control)', default: 'if' },
+                loop: { icon: '⟲', name: 'LOOP', color: 'var(--control)', default: 'N' },
+                print: { icon: '🖨️', name: 'OUT', color: 'var(--io)', default: 'print' }
+            };
+
+            const c = config[type];
+
+            const block = document.createElement('div');
+            block.className = 'placed-block';
+            block.style.background = c.color;
+            block.style.color = ['if', 'loop'].includes(type) ? '#fff' : '#000';
+            block.onclick = () => editBlock(index);
+
+            block.innerHTML = `
+                <div class="block-icon">${c.icon}</div>
+                <div class="block-value" id="value-${index}">${c.default}</div>
+                <div class="remove-btn" onclick="event.stopPropagation(); removeBlock(${index})">×</div>
+            `;
+
+            cell.appendChild(block);
+            gridState.set(index, { type, index, value: c.default });
+
+            generateCode();
+        }
+
+        function removeBlock(index) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+            cell.innerHTML = '';
+            gridState.delete(index);
+            generateCode();
+        }
+
+        function clearGrid() {
+            gridState.clear();
+            variables.clear();
+            document.querySelectorAll('.grid-cell').forEach(cell => cell.innerHTML = '');
+            generateCode();
+            clearLog();
+        }
+
+        // === BLOCK EDITING ===
+        function editBlock(index) {
+            editingBlock = index;
+            const block = gridState.get(index);
+            document.getElementById('block-value-input').value = block.value;
+            document.getElementById('edit-modal').classList.add('active');
+        }
+
+        function closeModal() {
+            document.getElementById('edit-modal').classList.remove('active');
+            editingBlock = null;
+        }
+
+        function saveBlockValue() {
+            if (editingBlock === null) return;
+
+            const value = document.getElementById('block-value-input').value;
+            const block = gridState.get(editingBlock);
+            block.value = value;
+
+            document.getElementById(`value-${editingBlock}`).textContent = value;
+
+            closeModal();
+            generateCode();
+        }
+
+        // === CODE GENERATION ===
+        function generateCode() {
+            const output = document.getElementById('code-display');
+
+            if (gridState.size === 0) {
+                output.innerHTML = '<span class="comment">// Build your program on the grid</span>';
+                return;
+            }
+
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            let code = [];
+            let indent = 0;
+
+            blocks.forEach(block => {
+                switch (block.type) {
+                    case 'number':
+                        code.push('  '.repeat(indent) + `<span class="keyword">const</span> value = <span class="number">${block.value}</span>;`);
+                        break;
+                    case 'string':
+                        code.push('  '.repeat(indent) + `<span class="keyword">const</span> text = <span class="string">'${block.value}'</span>;`);
+                        break;
+                    case 'variable':
+                        code.push('  '.repeat(indent) + `<span class="keyword">let</span> ${block.value} = <span class="number">0</span>;`);
+                        break;
+                    case 'add':
+                        code.push('  '.repeat(indent) + `result = a + b;`);
+                        break;
+                    case 'compare':
+                        code.push('  '.repeat(indent) + `result = (a ${block.value} b);`);
+                        break;
+                    case 'if':
+                        code.push('  '.repeat(indent) + `<span class="keyword">if</span> (condition) {`);
+                        indent++;
+                        break;
+                    case 'loop':
+                        code.push('  '.repeat(indent) + `<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">${block.value}</span>; i++) {`);
+                        indent++;
+                        break;
+                    case 'print':
+                        code.push('  '.repeat(indent) + `console.log(${block.value});`);
+                        break;
+                }
+            });
+
+            while (indent > 0) {
+                indent--;
+                code.push('  '.repeat(indent) + '}');
+            }
+
+            output.innerHTML = code.join('\n');
+        }
+
+        // === EXECUTION ENGINE ===
+        async function executeCode() {
+            clearLog();
+            variables.clear();
+
+            if (gridState.size === 0) {
+                log('No blocks to execute', 'error');
+                return;
+            }
+
+            log('▶ Starting execution...', 'success');
+
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            for (const block of blocks) {
+                const cell = gridEl.querySelector(`[data-index="${block.index}"]`);
+                cell.classList.add('executing');
+
+                try {
+                    await executeBlock(block);
+                } catch (e) {
+                    log(`Error: ${e.message}`, 'error');
+                }
+
+                setTimeout(() => cell.classList.remove('executing'), 400);
+                await sleep(300);
+            }
+
+            log('✓ Execution complete', 'success');
+        }
+
+        async function executeBlock(block) {
+            switch (block.type) {
+                case 'number':
+                    const num = parseFloat(block.value);
+                    variables.set('value', num);
+                    log(`  SET value = ${num}`, 'value');
+                    break;
+
+                case 'string':
+                    variables.set('text', block.value);
+                    log(`  SET text = "${block.value}"`, 'value');
+                    break;
+
+                case 'variable':
+                    variables.set(block.value, 0);
+                    log(`  DECLARE ${block.value} = 0`, 'value');
+                    break;
+
+                case 'add':
+                    const a = variables.get('value') || 0;
+                    const result = a + a;
+                    variables.set('result', result);
+                    log(`  COMPUTE ${a} + ${a} = ${result}`, 'value');
+                    break;
+
+                case 'loop':
+                    const iterations = parseInt(block.value) || 1;
+                    log(`  LOOP ${iterations} times`, 'value');
+                    break;
+
+                case 'print':
+                    const val = variables.get(block.value) || block.value;
+                    log(`  OUTPUT: ${val}`, 'success');
+                    break;
+            }
+        }
+
+        // === EXPORT ===
+        function exportCode() {
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            let code = ['// Generated by META-LEGOS v2\n'];
+            let indent = 0;
+
+            blocks.forEach(block => {
+                switch (block.type) {
+                    case 'number':
+                        code.push('  '.repeat(indent) + `const value = ${block.value};`);
+                        break;
+                    case 'string':
+                        code.push('  '.repeat(indent) + `const text = '${block.value}';`);
+                        break;
+                    case 'variable':
+                        code.push('  '.repeat(indent) + `let ${block.value} = 0;`);
+                        break;
+                    case 'print':
+                        code.push('  '.repeat(indent) + `console.log(${block.value});`);
+                        break;
+                    case 'loop':
+                        code.push('  '.repeat(indent) + `for (let i = 0; i < ${block.value}; i++) {`);
+                        indent++;
+                        break;
+                }
+            });
+
+            while (indent > 0) {
+                indent--;
+                code.push('  '.repeat(indent) + '}');
+            }
+
+            const js = code.join('\n');
+
+            // Download
+            const blob = new Blob([js], { type: 'text/javascript' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'lego-program.js';
+            a.click();
+
+            log('✓ Exported to lego-program.js', 'success');
+        }
+
+        // === UTILS ===
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function log(msg, type = '') {
+            const output = document.getElementById('output-log');
+            const line = document.createElement('div');
+            line.className = `output-line ${type}`;
+            line.textContent = msg;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('output-log').innerHTML = '';
+        }
+
+        generateCode();
+    </script>
+</body>
+
+</html>

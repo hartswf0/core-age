@@ -1,0 +1,760 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – MPD Line Grid Viewer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0f;
+            color: #e5e7eb;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(10, 10, 15, 0.95));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .paste-area {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(15, 15, 25, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            color: #9ca3af;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            resize: vertical;
+            min-height: 80px;
+        }
+
+        .paste-area:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.8), rgba(20, 20, 30, 0.8));
+            color: #a5b4fc;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2));
+            border-color: #6366f1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .grid-header {
+            display: grid;
+            grid-template-columns: 50px 1fr 1.2fr 1.5fr;
+            gap: 2px;
+            padding: 0 8px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: #6b7280;
+            margin-bottom: 4px;
+        }
+
+        .grid-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(15, 15, 25, 0.4);
+            border-radius: 12px;
+            padding: 4px;
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .grid-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .grid-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 4px;
+        }
+
+        .grid-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #6366f1, #4f46e5);
+            border-radius: 4px;
+        }
+
+        .line-ribbon {
+            display: grid;
+            grid-template-columns: 50px 1fr 1.2fr 1.5fr;
+            gap: 2px;
+            margin-bottom: 2px;
+            min-height: 42px;
+            transition: all 200ms;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .line-ribbon:hover {
+            transform: translateX(2px);
+            box-shadow: 0 2px 8px rgba(99, 102, 241, 0.2);
+        }
+
+        .line-ribbon.selected {
+            box-shadow: 0 0 0 2px #6366f1;
+        }
+
+        .ribbon-cell {
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.6), rgba(20, 20, 30, 0.6));
+            border: 1px solid rgba(55, 65, 81, 0.4);
+            padding: 8px;
+            display: flex;
+            align-items: center;
+            backdrop-filter: blur(10px);
+            transition: all 200ms;
+            position: relative;
+            gap: 8px;
+        }
+
+        .line-badge {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 8px;
+            font-weight: 700;
+            padding: 2px 5px;
+            border-radius: 3px;
+            background: rgba(99, 102, 241, 0.2);
+            color: #818cf8;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .line-ribbon:hover .ribbon-cell {
+            background: linear-gradient(135deg, rgba(40, 40, 60, 0.7), rgba(30, 30, 45, 0.7));
+            border-color: rgba(99, 102, 241, 0.4);
+        }
+
+        .line-num {
+            justify-content: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            color: #6b7280;
+            border-radius: 8px 0 0 8px;
+        }
+
+        .line-ribbon.is-part .line-num {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.2), rgba(22, 163, 74, 0.1));
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.4);
+        }
+
+        .mpd-text {
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #9ca3af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .line-ribbon.is-part .mpd-text {
+            color: #e5e7eb;
+        }
+
+        .parsed-data {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            font-size: 10px;
+            align-items: center;
+        }
+
+        .data-tag {
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: rgba(99, 102, 241, 0.15);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            font-family: 'Fira Code', monospace;
+            white-space: nowrap;
+        }
+
+        .data-tag.color-tag {
+            background: rgba(244, 114, 182, 0.15);
+            border-color: rgba(244, 114, 182, 0.3);
+            color: #f9a8d4;
+        }
+
+        .data-tag.pos-tag {
+            background: rgba(34, 197, 94, 0.15);
+            border-color: rgba(34, 197, 94, 0.3);
+            color: #86efac;
+        }
+
+        .stud-skeleton-cell {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 3px;
+            max-height: 100px;
+            overflow-y: auto;
+        }
+
+        .stud-item {
+            display: flex;
+            gap: 4px;
+            flex-wrap: wrap;
+            font-size: 9px;
+        }
+
+        .stud-coord {
+            padding: 1px 4px;
+            border-radius: 3px;
+            background: rgba(96, 165, 250, 0.15);
+            border: 1px solid rgba(96, 165, 250, 0.25);
+            color: #93c5fd;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .stud-canvas-wrap {
+            width: 100%;
+            height: 60px;
+            position: relative;
+            background: rgba(10, 10, 20, 0.6);
+            border-radius: 4px;
+            margin-top: 4px;
+        }
+
+        .stud-canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+        }
+
+        .visual-orbs {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            flex-wrap: wrap;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .orb {
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            border: 2px solid rgba(255, 255, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: 700;
+            color: rgba(255, 255, 255, 0.9);
+            cursor: pointer;
+            transition: all 200ms;
+            position: relative;
+        }
+
+        .orb::after {
+            content: '';
+            position: absolute;
+            inset: -4px;
+            border-radius: 50%;
+            opacity: 0;
+            background: radial-gradient(circle, currentColor 0%, transparent 70%);
+            transition: opacity 200ms;
+        }
+
+        .orb:hover {
+            transform: scale(1.2);
+            box-shadow: 0 0 16px currentColor;
+        }
+
+        .orb:hover::after {
+            opacity: 0.3;
+        }
+
+        .orb.stud {
+            background: linear-gradient(135deg, #60a5fa, #3b82f6);
+            box-shadow: 0 2px 8px rgba(96, 165, 250, 0.4);
+        }
+
+        .orb.part {
+            background: linear-gradient(135deg, #f59e0b, #ea580c);
+            box-shadow: 0 2px 8px rgba(245, 158, 11, 0.4);
+        }
+
+        .orb.skeleton {
+            background: linear-gradient(135deg, #a78bfa, #7c3aed);
+            box-shadow: 0 2px 8px rgba(167, 139, 250, 0.4);
+        }
+
+        .orb.meta {
+            background: linear-gradient(135deg, #ec4899, #be185d);
+            box-shadow: 0 2px 8px rgba(236, 72, 153, 0.4);
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            color: #9ca3af;
+        }
+
+        .stat-item {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #a5b4fc;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading::after {
+            content: '...';
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <div class="header-top">
+                <h1>WAG – MPD Line Grid Viewer</h1>
+                <div class="controls">
+                    <button class="btn" onclick="document.getElementById('fileInput').click()">
+                        📁 Load File
+                    </button>
+                    <button class="btn" onclick="loadFromPaste()">
+                        ⚡ Load from Paste
+                    </button>
+                    <input type="file" id="fileInput" accept=".json,.mpd" onchange="loadFile(event)">
+                </div>
+            </div>
+            <textarea class="paste-area" id="pasteArea"
+                placeholder="Paste GOLD JSON or MPD content here, then click 'Load from Paste'..."></textarea>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>Lines:</span>
+                    <span class="stat-value" id="lineCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Parts:</span>
+                    <span class="stat-value" id="partCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Studs:</span>
+                    <span class="stat-value" id="studCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Skeleton:</span>
+                    <span class="stat-value" id="skeletonCount">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-header">
+            <div>Line</div>
+            <div>MPD Source</div>
+            <div>Parsed Data + Visual</div>
+            <div>Stud Skeleton Visualization</div>
+        </div>
+
+        <div class="grid-container" id="gridContainer">
+            <div class="loading">Load a GOLD JSON or MPD file to begin</div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            lines: [],
+            parts: [],
+            studSkeleton: [],
+            partSkeleton: [],
+            selectedLineIndex: null
+        };
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                const text = e.target.result;
+                processText(text);
+            };
+            reader.readAsText(file);
+        }
+
+        function loadFromPaste() {
+            const text = document.getElementById('pasteArea').value;
+            if (!text.trim()) {
+                alert('Please paste some content first!');
+                return;
+            }
+            processText(text);
+        }
+
+        function processText(text) {
+            try {
+                const json = JSON.parse(text);
+                loadFromGoldJson(json);
+            } catch {
+                loadFromMpd(text);
+            }
+        }
+
+        function loadFromGoldJson(json) {
+            const mpdContent = json.mpd_content || '';
+            const lines = mpdContent.split(/\r?\n/);
+
+            state.lines = lines.map((text, index) => ({
+                index,
+                text,
+                isPart: text.trim().startsWith('1 '),
+                parsed: parseLine(text, index)
+            }));
+
+            state.studSkeleton = json.stud_skeleton || [];
+            state.partSkeleton = json.part_skeletons || [];
+
+            // Extract parts
+            state.parts = state.lines
+                .filter(l => l.isPart)
+                .map(l => l.parsed);
+
+            renderGrid();
+            updateStats();
+        }
+
+        function loadFromMpd(text) {
+            const lines = text.split(/\r?\n/);
+
+            state.lines = lines.map((text, index) => ({
+                index,
+                text,
+                isPart: text.trim().startsWith('1 '),
+                parsed: parseLine(text, index)
+            }));
+
+            state.studSkeleton = [];
+            state.partSkeleton = [];
+
+            state.parts = state.lines
+                .filter(l => l.isPart)
+                .map(l => l.parsed);
+
+            renderGrid();
+            updateStats();
+        }
+
+        function parseLine(text, lineIndex) {
+            const trimmed = text.trim();
+
+            if (trimmed.startsWith('1 ')) {
+                const tokens = trimmed.split(/\s+/);
+                if (tokens.length >= 15) {
+                    return {
+                        type: 'part',
+                        color: tokens[1],
+                        x: Number(tokens[2]),
+                        y: Number(tokens[3]),
+                        z: Number(tokens[4]),
+                        partId: tokens[14],
+                        lineIndex
+                    };
+                }
+            }
+
+            if (trimmed.startsWith('0 ')) {
+                if (trimmed.includes('FRANK_CELL')) {
+                    try {
+                        const jsonMatch = trimmed.match(/\{.*\}/);
+                        if (jsonMatch) {
+                            return {
+                                type: 'meta',
+                                meta: JSON.parse(jsonMatch[0]),
+                                lineIndex
+                            };
+                        }
+                    } catch (e) { }
+                }
+                return { type: 'comment', lineIndex };
+            }
+
+            return { type: 'other', lineIndex };
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+
+            state.lines.forEach((line, idx) => {
+                const ribbon = document.createElement('div');
+                ribbon.className = 'line-ribbon';
+                if (line.isPart) ribbon.classList.add('is-part');
+                if (idx === state.selectedLineIndex) ribbon.classList.add('selected');
+
+                // Line number
+                const lineNum = document.createElement('div');
+                lineNum.className = 'ribbon-cell line-num';
+                lineNum.textContent = idx.toString().padStart(3, '0');
+                ribbon.appendChild(lineNum);
+
+                // MPD text
+                const mpdText = document.createElement('div');
+                mpdText.className = 'ribbon-cell mpd-text';
+                mpdText.textContent = line.text || ' ';
+                const badge1 = document.createElement('span');
+                badge1.className = 'line-badge';
+                badge1.textContent = idx.toString().padStart(3, '0');
+                mpdText.appendChild(badge1);
+                ribbon.appendChild(mpdText);
+
+                // Parsed data
+                const parsedData = document.createElement('div');
+                parsedData.className = 'ribbon-cell parsed-data';
+                const badge2 = document.createElement('span');
+                badge2.className = 'line-badge';
+                badge2.textContent = idx.toString().padStart(3, '0');
+                parsedData.appendChild(badge2);
+
+                if (line.parsed && line.parsed.type === 'part') {
+                    const colorTag = document.createElement('span');
+                    colorTag.className = 'data-tag color-tag';
+                    colorTag.textContent = `C:${line.parsed.color}`;
+                    parsedData.appendChild(colorTag);
+
+                    const posTag = document.createElement('span');
+                    posTag.className = 'data-tag pos-tag';
+                    posTag.textContent = `${line.parsed.x},${line.parsed.y},${line.parsed.z}`;
+                    parsedData.appendChild(posTag);
+
+                    const partTag = document.createElement('span');
+                    partTag.className = 'data-tag';
+                    partTag.textContent = line.parsed.partId;
+                    parsedData.appendChild(partTag);
+                } else if (line.parsed && line.parsed.type === 'meta') {
+                    const metaTag = document.createElement('span');
+                    metaTag.className = 'data-tag color-tag';
+                    metaTag.textContent = line.parsed.meta.cell || 'META';
+                    parsedData.appendChild(metaTag);
+                }
+
+                // Add visual orbs to parsed data
+                if (line.isPart) {
+                    const partOrb = createOrb('part', 'P');
+                    parsedData.appendChild(partOrb);
+                }
+
+                // Add stud orbs for this line
+                const studs = state.studSkeleton.filter(s => s.lineNum === idx);
+                if (studs.length > 0) {
+                    const studOrb = createOrb('stud', studs.length.toString());
+                    parsedData.appendChild(studOrb);
+                }
+
+                // Add skeleton orbs
+                const skeletons = state.partSkeleton.filter(s => s.lineNum === idx);
+                if (skeletons.length > 0) {
+                    const skelOrb = createOrb('skeleton', skeletons.length.toString());
+                    parsedData.appendChild(skelOrb);
+                }
+
+                // Add meta orb
+                if (line.parsed && line.parsed.type === 'meta') {
+                    const metaOrb = createOrb('meta', 'M');
+                    parsedData.appendChild(metaOrb);
+                }
+
+                ribbon.appendChild(parsedData);
+
+                // Stud skeleton visualization
+                const studSkeleton = document.createElement('div');
+                studSkeleton.className = 'ribbon-cell stud-skeleton-cell';
+                const badge_skeleton = document.createElement('span');
+                badge_skeleton.className = 'line-badge';
+                badge_skeleton.textContent = idx.toString().padStart(3, '0');
+                studSkeleton.appendChild(badge_skeleton);
+
+                const studsForLine = state.studSkeleton.filter(s => s.lineNum === idx);
+                if (studsForLine.length > 0) {
+                    // Create canvas for visualization
+                    const canvasWrap = document.createElement('div');
+                    canvasWrap.className = 'stud-canvas-wrap';
+                    const canvas = document.createElement('canvas');
+                    canvas.className = 'stud-canvas';
+                    canvas.width = 200;
+                    canvas.height = 60;
+                    canvasWrap.appendChild(canvas);
+                    studSkeleton.appendChild(canvasWrap);
+
+                    // Draw studs on canvas
+                    const ctx = canvas.getContext('2d');
+                    ctx.clearRect(0, 0, 200, 60);
+
+                    // Find bounds
+                    let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+                    studsForLine.forEach(s => {
+                        if (s.x < minX) minX = s.x;
+                        if (s.x > maxX) maxX = s.x;
+                        if (s.z < minZ) minZ = s.z;
+                        if (s.z > maxZ) maxZ = s.z;
+                    });
+
+                    const spanX = (maxX - minX) || 1;
+                    const spanZ = (maxZ - minZ) || 1;
+                    const padding = 8;
+
+                    // Draw studs
+                    studsForLine.forEach((stud, i) => {
+                        const xNorm = (stud.x - minX) / spanX;
+                        const zNorm = (stud.z - minZ) / spanZ;
+                        const x = padding + xNorm * (200 - padding * 2);
+                        const y = 60 - (padding + zNorm * (60 - padding * 2));
+
+                        // Color by layer
+                        const hue = ((stud.layer || 0) * 30) % 360;
+                        ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 3, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Glow effect
+                        ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.3)`;
+                        ctx.beginPath();
+                        ctx.arc(x, y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                    });
+
+                    // Add count badge
+                    const countBadge = document.createElement('span');
+                    countBadge.className = 'stud-coord';
+                    countBadge.style.marginTop = '4px';
+                    countBadge.textContent = `${studsForLine.length} studs`;
+                    studSkeleton.appendChild(countBadge);
+                }
+
+                ribbon.appendChild(studSkeleton);
+
+                ribbon.addEventListener('click', () => {
+                    state.selectedLineIndex = idx;
+                    renderGrid();
+                });
+
+                container.appendChild(ribbon);
+            });
+        }
+
+        function createOrb(type, label) {
+            const orb = document.createElement('div');
+            orb.className = `orb ${type}`;
+            orb.textContent = label;
+            orb.title = `${type}: ${label}`;
+            return orb;
+        }
+
+        function updateStats() {
+            document.getElementById('lineCount').textContent = state.lines.length;
+            document.getElementById('partCount').textContent = state.parts.length;
+            document.getElementById('studCount').textContent = state.studSkeleton.length;
+            document.getElementById('skeletonCount').textContent = state.partSkeleton.length;
+        }
+
+        // Demo data
+        setTimeout(() => {
+            const demoMpd = `0 FILE demo.mpd
+0 Name: WAG Demo Scene
+0 !LDRAW_ORG Model
+0 // FRANK_CELL {"cell":"A1","kind":"scene","name":"Base"}
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // FRANK_CELL {"cell":"B2","kind":"scene","name":"Stack"}
+1 4 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 0 60 1 0 0 0 1 0 0 0 1 3001.dat`;
+            loadFromMpd(demoMpd);
+        }, 100);
+    </script>
+</body>
+
+</html>

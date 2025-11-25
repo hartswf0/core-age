@@ -1,0 +1,2603 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>The Courage Manual</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='80' font-size='80'>🍊</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        /* --- COURAGE THEME VARIABLES --- */
+        :root {
+            --bg-main: #0a0a0a;
+            --bg-secondary: #151515;
+            --bg-tertiary: #1f1f1f;
+            --text-primary: #e8e8e8;
+            --text-secondary: #b8b8b8;
+            --border-primary: #2a2a2a;
+            --accent: #ffd700;
+            --accent-glow: rgba(255, 215, 0, 0.3);
+            --val-pos: #ffd700;
+            /* Gold */
+            --val-neg: #ff6b6b;
+            /* Soft Red */
+            --val-zero: #888888;
+            /* Grey */
+            --code-bg: #000000;
+            --gutter-bg: #111111;
+            --gutter-text: #555555;
+
+            /* Axis Colors */
+            --axis-x: #ff4444;
+            --axis-y: #44ff44;
+            --axis-z: #4444ff;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* --- HEADER --- */
+        .main-header {
+            background: linear-gradient(180deg, var(--bg-tertiary) 0%, var(--bg-secondary) 100%);
+            border-bottom: 1px solid var(--border-primary);
+            height: 44px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 12px;
+            flex-shrink: 0;
+            z-index: 100;
+        }
+
+        .brand {
+            font-size: 14px;
+            color: var(--accent);
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .main-nav {
+            display: flex;
+            gap: 4px;
+            height: 100%;
+            align-items: center;
+            overflow-x: auto;
+        }
+
+        .nav-tab {
+            background: transparent;
+            border: 1px solid transparent;
+            color: var(--text-secondary);
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            padding: 4px 12px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .nav-tab:hover {
+            color: var(--text-primary);
+            background: var(--bg-tertiary);
+            text-shadow: 0 0 5px rgba(255, 255, 255, 0.3);
+        }
+
+        .nav-tab.active {
+            color: var(--bg-main);
+            background: var(--accent);
+            font-weight: 800;
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* --- CONTENT AREA --- */
+        .main-content {
+            flex: 1;
+            overflow: hidden;
+            position: relative;
+            background: var(--bg-main);
+        }
+
+        .section-view {
+            display: none;
+            width: 100%;
+            height: 100%;
+            overflow-y: auto;
+            padding: 20px;
+            opacity: 0;
+            transform: translateY(10px);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .section-view.active {
+            display: block;
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding-bottom: 60px;
+        }
+
+        /* --- CARDS & UI --- */
+        .card {
+            background: var(--bg-secondary);
+            border: 1px solid var(--border-primary);
+            border-radius: 8px;
+            padding: 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-title {
+            font-size: 16px;
+            color: var(--accent);
+            margin-bottom: 16px;
+            font-weight: 800;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-primary);
+            padding-bottom: 8px;
+            text-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .text {
+            font-size: 13px;
+            line-height: 1.6;
+            color: var(--text-primary);
+            margin-bottom: 16px;
+        }
+
+        .highlight {
+            color: var(--accent);
+            font-weight: 700;
+        }
+
+        /* --- REAL EDITOR STYLING --- */
+        .editor-block {
+            background: var(--code-bg);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            line-height: 1.5;
+            overflow-x: auto;
+            position: relative;
+            box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.5);
+            transition: transform 0.2s ease;
+        }
+
+        .editor-line {
+            display: flex;
+            padding: 4px 0;
+            transition: background 0.2s;
+        }
+
+        .editor-line.active {
+            background: rgba(255, 215, 0, 0.05);
+            box-shadow: inset 2px 0 0 var(--accent);
+        }
+
+        .gutter {
+            background: var(--gutter-bg);
+            color: var(--gutter-text);
+            padding: 0 12px;
+            text-align: right;
+            min-width: 40px;
+            border-right: 1px solid var(--border-primary);
+            user-select: none;
+        }
+
+        .code-content {
+            padding: 0 12px;
+            color: #ccc;
+            white-space: pre;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        /* --- EXPLICIT LABELS --- */
+        .label-row {
+            display: flex;
+            padding: 0 12px;
+            margin-left: 40px;
+            gap: 12px;
+            margin-bottom: 4px;
+            pointer-events: none;
+        }
+
+        .col-label {
+            font-size: 9px;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            text-align: center;
+            min-width: 24px;
+        }
+
+        .col-label.label-x {
+            color: var(--axis-x);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(255, 68, 68, 0.4);
+        }
+
+        .col-label.label-y {
+            color: var(--axis-y);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(68, 255, 68, 0.4);
+        }
+
+        .col-label.label-z {
+            color: var(--axis-z);
+            font-weight: bold;
+            text-shadow: 0 0 5px rgba(68, 68, 255, 0.4);
+        }
+
+        /* --- HAPTIC DIALS --- */
+        .dial {
+            cursor: ns-resize;
+            position: relative;
+            transition: all 0.1s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: inline-block;
+            padding: 2px 4px;
+            border-radius: 4px;
+            min-width: 24px;
+            text-align: center;
+        }
+
+        .dial.static {
+            cursor: default;
+        }
+
+        .dial.pos {
+            color: var(--val-pos);
+        }
+
+        .dial.neg {
+            color: var(--val-neg);
+        }
+
+        .dial.zero {
+            color: var(--val-zero);
+        }
+
+        .dial:not(.static):hover {
+            background: rgba(255, 255, 255, 0.1);
+            z-index: 10;
+            text-shadow: 0 0 8px currentColor;
+        }
+
+        .dial.dragging {
+            background: var(--accent);
+            color: var(--bg-main) !important;
+            transform: scale(1.1);
+            box-shadow: 0 0 15px var(--accent);
+            z-index: 20;
+            font-weight: bold;
+        }
+
+        /* --- GHOST HUD --- */
+        .ghost-hud {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            pointer-events: none;
+            text-align: center;
+            opacity: 0;
+            transition: opacity 0.2s;
+            z-index: 50;
+            text-shadow: 0 2px 10px rgba(0, 0, 0, 0.8);
+        }
+
+        .ghost-hud.visible {
+            opacity: 1;
+        }
+
+        .hud-label {
+            font-size: 12px;
+            color: var(--text-secondary);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            margin-bottom: 4px;
+        }
+
+        .hud-value {
+            font-size: 48px;
+            font-weight: 800;
+            color: var(--accent);
+            font-family: 'Courier New', monospace;
+            text-shadow: 0 0 20px var(--accent-glow);
+        }
+
+        /* --- CANVAS CONTAINERS --- */
+        .viz-canvas {
+            width: 100%;
+            height: 300px;
+            background: #050505;
+            border: 1px solid var(--border-primary);
+            margin-bottom: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* --- GIZMO LAYOUT --- */
+        .gizmo-layout {
+            display: flex;
+            flex-direction: column;
+            gap: 0;
+        }
+
+        /* --- STRUCTURE: THE STACK --- */
+        .stack-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            position: relative;
+        }
+
+        .stack-block {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+            padding: 12px;
+            position: relative;
+            transition: all 0.3s;
+        }
+
+        .stack-block.active {
+            border-color: var(--accent);
+            box-shadow: 0 0 15px rgba(255, 215, 0, 0.1);
+            transform: scale(1.02);
+            z-index: 10;
+        }
+
+        .stack-header {
+            font-size: 10px;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            margin-bottom: 8px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .stack-line {
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            color: #ccc;
+            padding: 2px 0;
+            cursor: pointer;
+        }
+
+        .stack-line:hover {
+            color: var(--accent);
+        }
+
+        .stack-connector {
+            position: absolute;
+            left: 20px;
+            width: 2px;
+            background: var(--border-primary);
+            z-index: 0;
+        }
+
+        /* --- MODES: TRINITY UI --- */
+        .trinity-ui {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .trinity-btn {
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            color: var(--text-secondary);
+            padding: 10px 20px;
+            border-radius: 20px;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .trinity-btn:hover {
+            border-color: var(--accent);
+            color: var(--text-primary);
+        }
+
+        .trinity-btn.active {
+            background: var(--accent);
+            color: var(--bg-main);
+            box-shadow: 0 0 15px var(--accent-glow);
+        }
+
+        /* --- COMMANDS: TIMELINE UI --- */
+        .timeline-controls {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px;
+            background: var(--bg-tertiary);
+            border: 1px solid var(--border-primary);
+            border-radius: 4px;
+            margin-bottom: 12px;
+        }
+
+        .timeline-slider {
+            flex: 1;
+            -webkit-appearance: none;
+            height: 4px;
+            background: var(--border-primary);
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .timeline-slider::-webkit-slider-thumb {
+            -webkit-appearance: none;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            cursor: pointer;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        .floating-label {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: var(--accent);
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            pointer-events: none;
+            border: 1px solid var(--accent);
+            box-shadow: 0 0 10px var(--accent-glow);
+            transform: translate(-50%, -50%);
+            white-space: nowrap;
+        }
+
+        /* --- EDITOR LINES --- */
+        .editor-line {
+            display: flex;
+            align-items: center;
+            padding: 4px 0;
+            border-bottom: 1px solid var(--border-primary);
+            font-family: 'Courier New', monospace;
+            font-size: 13px;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .editor-line:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .editor-line.active {
+            background: rgba(255, 215, 0, 0.1);
+            border-left: 3px solid var(--accent);
+        }
+
+        .gutter {
+            width: 30px;
+            text-align: right;
+            padding-right: 10px;
+            color: #555;
+            user-select: none;
+        }
+
+        .code-content {
+            flex: 1;
+            display: flex;
+            gap: 10px;
+            color: #aaa;
+        }
+
+        .dial {
+            cursor: ew-resize;
+            padding: 0 4px;
+            border-radius: 2px;
+            transition: color 0.2s, background 0.2s;
+        }
+
+        .dial:hover {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+        }
+
+        .dial.pos {
+            color: #ff79c6;
+        }
+
+        .dial.neg {
+            color: #bd93f9;
+        }
+
+        .dial.zero {
+            color: #6272a4;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header class="main-header">
+        <div class="brand">
+            <span>🧡</span> COURAGE MANUAL
+        </div>
+        <nav class="main-nav">
+            <button class="nav-tab active" onclick="switchTab('start')">START</button>
+            <button class="nav-tab" onclick="switchTab('atoms')">ATOMS</button>
+            <button class="nav-tab" onclick="switchTab('workflow')">WORKFLOW</button>
+            <button class="nav-tab" onclick="switchTab('dna')">DNA</button>
+            <button class="nav-tab" onclick="switchTab('structure')">STRUCTURE</button>
+            <button class="nav-tab" onclick="switchTab('modes')">MODES</button>
+            <button class="nav-tab" onclick="switchTab('commands')">COMMANDS</button>
+        </nav>
+    </header>
+
+    <main class="main-content">
+
+        <!-- === TAB 1: START (THE SEED) === -->
+        <div id="start" class="section-view active">
+            <div class="container">
+                <div class="card" style="text-align: center; padding: 30px;">
+                    <div style="font-size: 40px; margin-bottom: 10px;">🌱</div>
+                    <div class="card-title" style="border: none;">The Reality Shaper</div>
+                    <div class="explanation">
+                        Move on the <span class="highlight">Holodeck Grid</span>.<br>
+                        Watch the <span class="highlight">Dimensions</span> update in real-time.
+                    </div>
+                </div>
+
+                <div class="card">
+                    <!-- REAL 3D CANVAS -->
+                    <div class="viz-canvas" id="seed-canvas">
+                        <div id="seed-hud" class="ghost-hud">
+                            <div class="hud-label">PARAMETER</div>
+                            <div class="hud-value">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Export LDraw Button -->
+                    <button onclick="generateLDrawCode()" style="
+                        margin-top: 12px;
+                        padding: 8px 16px;
+                        background: var(--accent);
+                        color: var(--bg-main);
+                        border: none;
+                        border-radius: 4px;
+                        font-weight: 700;
+                        font-size: 11px;
+                        cursor: pointer;
+                        font-family: 'Courier New', monospace;
+                        text-transform: uppercase;
+                        letter-spacing: 1px;
+                    ">📋 Export LDraw Code</button>
+
+                    <!-- Status Text -->
+                    <div id="status-text" style="margin-top: 8px; font-size: 11px; color: var(--text-secondary);">Ready
+                    </div>
+                </div>
+
+                <div class="label-row">
+                    <div class="col-label" style="width:24px;">TYPE</div>
+                    <div class="col-label" style="width:24px;">COL</div>
+                    <div class="col-label label-x" style="width:24px;">X</div>
+                    <div class="col-label label-y" style="width:24px;">Y</div>
+                    <div class="col-label label-z" style="width:24px;">Z</div>
+                    <div class="col-label" style="width:100px;">ROTATION MATRIX</div>
+                    <div class="col-label">PART</div>
+                </div>
+
+                <div class="editor-block" id="seed-editor">
+                    <div class="editor-line">
+                        <div class="gutter">1</div>
+                        <div class="code-content">
+                            <span class="dial pos" data-type="type" data-label="TYPE" data-min="1" data-max="1"
+                                data-val="1">1</span>
+                            <span class="dial pos" data-type="color" data-label="COLOR" data-min="0" data-max="15"
+                                data-val="14">14</span>
+                            <span class="dial zero" data-type="pos-x" data-label="X POS" data-min="-100" data-max="100"
+                                data-val="0">0</span>
+                            <span class="dial zero" data-type="pos-y" data-label="Y POS" data-min="-100" data-max="100"
+                                data-val="0">0</span>
+                            <span class="dial zero" data-type="pos-z" data-label="Z POS" data-min="-100" data-max="100"
+                                data-val="0">0</span>
+                            <span style="color: #555;">1 0 0 0 1 0 0 0 1</span>
+                            <span style="color: var(--success);">3001.dat</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <!-- === TAB 2: ATOMS (PRIMITIVES) === -->
+        <div id="atoms" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">The Atoms</div>
+                    <div class="text">
+                        Bricks are made of <span class="highlight">Lines</span>, <span
+                            class="highlight">Triangles</span>, and <span class="highlight">Quads</span>.
+                    </div>
+
+                    <div class="viz-canvas" id="atoms-canvas">
+                        <div id="atoms-hud" class="ghost-hud">
+                            <div class="hud-label">VERTEX</div>
+                            <div class="hud-value">0</div>
+                        </div>
+                    </div>
+
+                    <div class="editor-block" style="padding: 20px;">
+                        <div class="text" style="color: #888;">// A Quad (Type 4)</div>
+                        <div class="label-row" style="margin-left: 40px;">
+                            <div class="col-label">TYPE</div>
+                            <div class="col-label">COL</div>
+                            <div class="col-label label-x">X1</div>
+                            <div class="col-label label-y">Y1</div>
+                            <div class="col-label label-z">Z1</div>
+                            <div class="col-label label-x">X2</div>
+                            <div class="col-label label-y">Y2</div>
+                            <div class="col-label label-z">Z2</div>
+                            <div class="col-label">...</div>
+                        </div>
+                        <div class="editor-line">
+                            <div class="gutter">1</div>
+                            <div class="code-content">
+                                <span class="dial static pos">4</span>
+                                <span class="dial static pos">16</span>
+                                <span class="dial pos" data-type="v1x" data-label="V1 X" data-val="-10">-10</span>
+                                <span class="dial pos" data-type="v1y" data-label="V1 Y" data-val="-10">-10</span>
+                                <span class="dial pos" data-type="v1z" data-label="V1 Z" data-val="0">0</span>
+                                <span class="dial pos" data-type="v2x" data-label="V2 X" data-val="10">10</span>
+                                <span class="dial pos" data-type="v2y" data-label="V2 Y" data-val="-10">-10</span>
+                                <span class="dial pos" data-type="v2z" data-label="V2 Z" data-val="0">0</span>
+                                <span style="color: #555;">...</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 3: WORKFLOW === -->
+        <div id="workflow" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">The Loop</div>
+                    <div class="text">
+                        1. <strong>Browser</strong>: Find a part.<br>
+                        2. <strong>Editor</strong>: Drag the numbers to place it.<br>
+                        3. <strong>Viewer</strong>: See it happen.
+                    </div>
+                    <div class="editor-block" style="padding: 20px;">
+
+                        <div class="text" style="color: #888;">// Example Scene</div>
+                        <div class="editor-line">
+                            <div class="gutter">1</div>
+                            <div class="code-content">
+                                <span class="dial static pos">1</span>
+                                <span class="dial static pos">4</span>
+                                <span class="dial static zero">0</span>
+                                <span class="dial static zero">0</span>
+                                <span class="dial static zero">0</span>
+                                <span style="color: #555;">1 0 0 0 1 0 0 0 1</span>
+                                <span style="color: var(--success);">3001.dat</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 4: DNA (GIZMO) === -->
+        <div id="dna" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">Rotation Matrix</div>
+                    <div class="text">
+                        The 9 numbers in the middle control rotation. <br>
+                        Drag them directly to spin the Gizmo.
+                    </div>
+
+                    <div class="gizmo-layout">
+                        <div class="viz-canvas" id="gizmo-canvas">
+                            <div id="gizmo-hud" class="ghost-hud">
+                                <div class="hud-label">MATRIX</div>
+                                <div class="hud-value">0.0</div>
+                            </div>
+                        </div>
+
+                        <div class="label-row"
+                            style="margin-left: 40px; border-top: 1px solid var(--border-primary); margin-top: 0; padding-top: 8px;">
+                            <div class="col-label" style="width:24px;">TYPE</div>
+                            <div class="col-label" style="width:24px;">COL</div>
+                            <div class="col-label label-x" style="width:24px;">X</div>
+                            <div class="col-label label-y" style="width:24px;">Y</div>
+                            <div class="col-label label-z" style="width:24px;">Z</div>
+                            <div class="col-label label-x" style="width:24px;">M0</div>
+                            <div class="col-label label-x" style="width:24px;">M1</div>
+                            <div class="col-label label-x" style="width:24px;">M2</div>
+                            <div class="col-label label-y" style="width:24px;">M3</div>
+                            <div class="col-label label-y" style="width:24px;">M4</div>
+                            <div class="col-label label-y" style="width:24px;">M5</div>
+                            <div class="col-label label-z" style="width:24px;">M6</div>
+                            <div class="col-label label-z" style="width:24px;">M7</div>
+                            <div class="col-label label-z" style="width:24px;">M8</div>
+                            <div class="col-label">PART</div>
+                        </div>
+
+                        <div class="editor-block" style="border-top: none; border-radius: 0 0 4px 4px;">
+                            <div class="editor-line">
+                                <div class="gutter">1</div>
+                                <div class="code-content">
+                                    <span class="dial static pos">1</span>
+                                    <span class="dial static pos">14</span>
+                                    <span class="dial static zero">0</span>
+                                    <span class="dial static zero">0</span>
+                                    <span class="dial static zero">0</span>
+
+                                    <span class="dial pos" data-type="m0" data-label="M[0]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="1">1.0</span>
+                                    <span class="dial zero" data-type="m1" data-label="M[1]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+                                    <span class="dial zero" data-type="m2" data-label="M[2]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+
+                                    <span class="dial zero" data-type="m3" data-label="M[3]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+                                    <span class="dial pos" data-type="m4" data-label="M[4]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="1">1.0</span>
+                                    <span class="dial zero" data-type="m5" data-label="M[5]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+
+                                    <span class="dial zero" data-type="m6" data-label="M[6]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+                                    <span class="dial zero" data-type="m7" data-label="M[7]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="0">0.0</span>
+                                    <span class="dial pos" data-type="m8" data-label="M[8]" data-min="-1" data-max="1"
+                                        data-step="0.1" data-val="1">1.0</span>
+
+                                    <span style="color: var(--success);">3001.dat</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 5: STRUCTURE (THE STACK) === -->
+        <div id="structure" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">The Stack (Single-File MPD)</div>
+                    <div class="text">
+                        We use a <span class="highlight">Single MPD File</span>. Sub-models are defined inside the same
+                        file using <span class="highlight">0 FILE</span>.
+                    </div>
+
+                    <div class="stack-container">
+                        <div class="stack-connector" style="height: 100%;"></div>
+
+                        <!-- Main Model -->
+                        <div class="stack-block active" id="stack-main">
+                            <div class="stack-header">
+                                <span>MAIN MODEL</span>
+                                <span>main.ldr</span>
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">FILE</span> main.ldr</div>
+                            <div class="stack-line" onclick="highlightStack('stack-car')">
+                                <span style="color:var(--val-pos)">1</span> 14 0 0 0 ... <span
+                                    class="highlight">car.ldr</span>
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">NOFILE</span></div>
+                        </div>
+
+                        <!-- Sub Model -->
+                        <div class="stack-block" id="stack-car" style="margin-left: 20px;">
+                            <div class="stack-header">
+                                <span>SUB MODEL</span>
+                                <span>car.ldr</span>
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">FILE</span> car.ldr</div>
+                            <div class="stack-line" onclick="highlightStack('stack-wheel')">
+                                <span style="color:var(--val-pos)">1</span> 4 20 0 0 ... <span
+                                    class="highlight">wheel.ldr</span>
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">NOFILE</span></div>
+                        </div>
+
+                        <!-- Leaf Model -->
+                        <div class="stack-block" id="stack-wheel" style="margin-left: 40px;">
+                            <div class="stack-header">
+                                <span>SUB MODEL</span>
+                                <span>wheel.ldr</span>
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">FILE</span> wheel.ldr</div>
+                            <div class="stack-line">
+                                <span style="color:var(--val-pos)">1</span> 71 0 0 0 ... 3001.dat
+                            </div>
+                            <div class="stack-line"><span style="color:#888">0</span> <span
+                                    style="color:#ccc">NOFILE</span></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 6: MODES (THE TRINITY) === -->
+        <div id="modes" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">The Trinity</div>
+                    <div class="trinity-ui">
+                        <button class="trinity-btn active" id="btn-swiss" onclick="setMode('swiss')">
+                            <span>👆</span> SWISS
+                        </button>
+                        <button class="trinity-btn" id="btn-frank" onclick="setMode('frank')">
+                            <span>✥</span> FRANK
+                        </button>
+                        <button class="trinity-btn" id="btn-grace" onclick="setMode('grace')">
+                            <span>🎨</span> GRACE
+                        </button>
+                    </div>
+
+                    <div class="viz-canvas" id="modes-canvas">
+                        <!-- Canvas for Interactive Modes -->
+                    </div>
+
+                    <div class="text" id="mode-desc" style="margin-top: 20px; text-align: center;">
+                        Select bricks with precision.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- === TAB 7: COMMANDS (THE TIMELINE) === -->
+        <div id="commands" class="section-view">
+            <div class="container">
+                <div class="card">
+                    <div class="card-title">The Timeline</div>
+                    <div class="text">
+                        Control the flow of time with <span class="highlight">0 STEP</span> and annotate with <span
+                            class="highlight">0 WRITE</span>.
+                    </div>
+
+                    <div class="timeline-controls">
+                        <span style="font-size: 20px;">⏮</span>
+                        <input type="range" min="1" max="3" value="3" class="timeline-slider" id="step-slider"
+                            oninput="updateStep(this.value)">
+                        <span style="font-size: 20px;">⏭</span>
+                    </div>
+
+                    <div class="viz-canvas" id="commands-canvas" style="position: relative;">
+                        <!-- Floating Labels will be injected here -->
+                    </div>
+
+                    <div class="editor-block" style="margin-top: 20px;">
+                        <div class="editor-line">
+                            <div class="gutter">1</div>
+                            <div class="code-content">
+                                <span style="color:var(--val-pos)">1</span> ... <span
+                                    style="color:var(--success)">3001.dat</span>
+                            </div>
+                        </div>
+                        <div class="editor-line">
+                            <div class="gutter">2</div>
+                            <div class="code-content">
+                                <span style="color:#888">0</span> <span style="color:#ccc">STEP</span>
+                            </div>
+                        </div>
+                        <div class="editor-line">
+                            <div class="gutter">3</div>
+                            <div class="code-content">
+                                <span style="color:#888">0</span> <span style="color:#ccc">WRITE</span> <span
+                                    style="color:var(--accent)">"Base Complete"</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <script>
+        // --- STATE MANAGEMENT ---
+        let state = {
+            seed: { x: 0, y: 60, z: 0 }, // Position of seed brick in LDU
+            // Multi-brick state for editor
+            editorLines: [
+                '1 15 0 60 0 1 0 0 0 1 0 0 0 1 3001.dat',     // White brick at 0,60,0
+                '1 4 40 60 0 1 0 0 0 1 0 0 0 1 3001.dat',     // Red brick at 40,60,0
+                '1 2 0 60 40 1 0 0 0 1 0 0 0 1 3001.dat',     // Green brick at 0,60,40
+                '1 1 40 60 40 1 0 0 0 1 0 0 0 1 3001.dat',    // Blue brick at 40,60,40
+                '1 14 -20 60 -20 1 0 0 0 1 0 0 0 1 3001.dat'  // Yellow brick at -20,60,-20 (NEW TEST!)
+            ],
+            brickObjects: [], // Three.js meshes with userData.lineNum
+            selectedLineIndex: 0,  // Currently selected brick
+            activeBrick: null,  // Currently dragging brick (for multi-brick control)
+            matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+            atoms: { v1: { x: -10, y: -10, z: 0 }, v2: { x: 10, y: -10, z: 0 } },
+            mode: 'swiss',
+            step: 3
+        };
+
+        // --- LDRAW COLOR MAP ---
+        const ldrawColors = {
+            0: 0x111111, // Black
+            1: 0x0055BF, // Blue
+            2: 0x257A24, // Green
+            3: 0x008F9B, // Dark Turquoise
+            4: 0xC91A09, // Red
+            5: 0xC870A0, // Dark Pink
+            6: 0x583927, // Brown
+            7: 0x9BA19D, // Light Gray
+            8: 0x6D6E5C, // Dark Gray
+            9: 0xB4D2E3, // Light Blue
+            10: 0x4B9F4A, // Bright Green
+            11: 0x55A5AF, // Light Turquoise
+            12: 0xF2705E, // Salmon
+            13: 0xFC97AC, // Pink
+            14: 0xFFD700, // Yellow (Gold for Courage)
+            15: 0xF2F3F3  // White
+        };
+
+        // --- AUDIO ENGINE (MANUAL.HTML RATCHET) ---
+        let synth; // MembraneSynth for "Lucid Thud"
+        let audioEnabled = false;
+        let lastQuadrant = 0;
+        let lastDragTime = 0;
+        let lastDragVal = 0;
+
+        async function initAudio() {
+            if (audioEnabled) return;
+            await Tone.start();
+
+            // RESTORED FROM MANUAL.HTML
+            // Polished MembraneSynth for "Lucid Mid Tone"
+            // Less pitch decay = less "pew", more "thud"
+            synth = new Tone.MembraneSynth({
+                pitchDecay: 0.02,
+                octaves: 1.5,
+                oscillator: { type: "sine" },
+                envelope: { attack: 0.005, decay: 0.08, sustain: 0, release: 0.1 }
+            }).toDestination();
+            synth.volume.value = -14; // Polite volume
+
+            audioEnabled = true;
+        }
+
+        // Audio Functions (Manual.html Style) with STRONGER throttling
+        let lastAudioTime = 0;
+        const AUDIO_THROTTLE = 100; // ms between sounds (increased to prevent timing errors)
+
+        function playTick() {
+            const now = performance.now();
+            if (audioEnabled && synth && (now - lastAudioTime > AUDIO_THROTTLE)) {
+                synth.triggerAttackRelease("C1", "32n");
+                lastAudioTime = now;
+            }
+        }
+
+        function playSnap() {
+            if (audioEnabled && synth) synth.triggerAttackRelease("E1", "32n");
+        }
+
+        function playChord() {
+            if (audioEnabled && synth) synth.triggerAttackRelease("G1", "16n");
+        }
+
+        function playSweep(axis) {
+            if (!audioEnabled || !synth) return;
+            if (axis === 'x') synth.triggerAttackRelease("G1", "16n");
+            if (axis === 'z') synth.triggerAttackRelease("C1", "16n");
+        }
+
+        // --- HELPER: TEXT SPRITES ---
+        function createTextSprite(message, color) {
+            const canvas = document.createElement('canvas');
+            const ctx = canvas.getContext('2d');
+            canvas.width = 256;
+            canvas.height = 128;
+
+            ctx.fillStyle = color;
+            ctx.font = "Bold 60px Courier New";
+            ctx.textAlign = "center";
+            ctx.textBaseline = "middle";
+            ctx.fillText(message, 128, 64);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const spriteMaterial = new THREE.SpriteMaterial({ map: texture, transparent: true });
+            const sprite = new THREE.Sprite(spriteMaterial);
+            sprite.scale.set(20, 10, 1);
+            return sprite;
+        }
+
+        // --- REAL 3D SEED (THREE.JS) ---
+        let seedScene, seedCamera, seedRenderer, seedBrick, seedGrid;
+        let seedHelpers = {
+            dimsX: null, dimsZ: null, dimsY: null,
+            labelX: null, labelZ: null, labelY: null,
+            cornerLines: null,
+            activeRailX: null, activeRailZ: null,
+            controlHub: null,
+            gridMajor: null, gridMinor: null,
+            snapGlow: null,
+            floor: null,
+            dimensionLines: new THREE.Group(), // Group for dimension lines
+            labels: new THREE.Group() // Group for labels
+        };
+
+        // Raycasting for 3D Sliders
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+        let isDragging3D = false;
+        let dragAxis = null; // 'x', 'y', 'z'
+        let dragOffset = 0;
+        let controls; // Scope controls to disable them
+        let dragStart = null; // Store mouse position at drag start
+        let dragInitial = null; // Store initial value of the dragged axis
+
+        // --- CUBE CORNER POINTS (Spatial Reference) ---
+        let cubePoints;
+        function initCubePoints() {
+            const brickW = 20, brickH = 24, brickD = 40;
+            const corners = [
+                [-brickW / 2, -brickH / 2, -brickD / 2], [brickW / 2, -brickH / 2, -brickD / 2],
+                [-brickW / 2, brickH / 2, -brickD / 2], [brickW / 2, brickH / 2, -brickD / 2],
+                [-brickW / 2, -brickH / 2, brickD / 2], [brickW / 2, -brickH / 2, brickD / 2],
+                [-brickW / 2, brickH / 2, brickD / 2], [brickW / 2, brickH / 2, brickD / 2]
+            ];
+            const geometry = new THREE.BufferGeometry();
+            const vertices = [];
+            corners.forEach(c => vertices.push(c[0], c[1], c[2]));
+            geometry.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+            const material = new THREE.PointsMaterial({
+                color: 0x00ffff, size: 6, opacity: 1.0, transparent: true
+            });
+            cubePoints = new THREE.Points(geometry, material);
+            seedBrick.add(cubePoints); // Attach to brick so it moves with it
+        }
+
+
+        // --- MULTI-BRICK RENDERING SYSTEM ---
+        function parseLDrawLine(line) {
+            const tokens = line.trim().split(/\s+/);
+            if (tokens[0] !== '1' || tokens.length < 15) return null;
+
+            return {
+                type: parseInt(tokens[0]),
+                color: parseInt(tokens[1]),
+                x: parseFloat(tokens[2]),
+                y: parseFloat(tokens[3]),
+                z: parseFloat(tokens[4]),
+                matrix: tokens.slice(5, 14).map(parseFloat),
+                part: tokens[14]
+            };
+        }
+
+        function createBrickMesh(parsed, lineNum) {
+            // Simple brick (20x24x40)
+            const geo = new THREE.BoxGeometry(20, 24, 40);
+            const hex = ldrawColors[parsed.color] || 0xFFD700;
+            const mat = new THREE.MeshStandardMaterial({
+                color: hex,
+                metalness: 0.1,
+                roughness: 0.7
+            });
+            const mesh = new THREE.Mesh(geo, mat);
+
+            mesh.position.set(parsed.x, parsed.y + 12, parsed.z); // Center adjust
+            mesh.userData.lineNum = lineNum;
+            mesh.userData.parsed = parsed;
+
+            return mesh;
+        }
+
+        // Create dimension lines for a single brick
+        function createDimensionLinesForBrick(mesh, brickIndex) {
+            const parsed = mesh.userData.parsed;
+            if (!parsed) return null;
+
+            const { x, y, z } = parsed.position;
+            const dimensionLines = new THREE.Group();
+            dimensionLines.name = `dimensions-brick-${brickIndex}`;
+            dimensionLines.userData = { brickIndex };
+
+            // X Arrow (Red)
+            const xLength = Math.abs(x);
+            if (xLength > 0.1) {
+                const xDir = x > 0 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(-1, 0, 0);
+                const xArrow = new THREE.ArrowHelper(xDir, new THREE.Vector3(0, y, z), xLength, 0xff0000, 4, 2);
+                xArrow.name = `x-axis-brick-${brickIndex}`;
+                xArrow.userData = { axis: 'x', brickIndex };
+                dimensionLines.add(xArrow);
+
+                // X Label
+                const xLabel = createTextSprite(Math.round(x).toString(), 0xff0000);
+                xLabel.position.set(x / 2, y + 10, z);
+                xLabel.name = `x-label-brick-${brickIndex}`;
+                xLabel.userData = { axis: 'x', brickIndex };
+                dimensionLines.add(xLabel);
+            }
+
+            // Y Arrow (Green)
+            const yLength = Math.abs(y);
+            if (yLength > 0.1) {
+                const yDir = y > 0 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, -1, 0);
+                const yArrow = new THREE.ArrowHelper(yDir, new THREE.Vector3(x, 0, z), yLength, 0x00ff00, 4, 2);
+                yArrow.name = `y-axis-brick-${brickIndex}`;
+                yArrow.userData = { axis: 'y', brickIndex };
+                dimensionLines.add(yArrow);
+
+                // Y Label
+                const yLabel = createTextSprite(Math.round(y).toString(), 0x00ff00);
+                yLabel.position.set(x + 10, y / 2, z);
+                yLabel.name = `y-label-brick-${brickIndex}`;
+                yLabel.userData = { axis: 'y', brickIndex };
+                dimensionLines.add(yLabel);
+            }
+
+            // Z Arrow (Blue)
+            const zLength = Math.abs(z);
+            if (zLength > 0.1) {
+                const zDir = z > 0 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 0, -1);
+                const zArrow = new THREE.ArrowHelper(zDir, new THREE.Vector3(x, y, 0), zLength, 0x0000ff, 4, 2);
+                zArrow.name = `z-axis-brick-${brickIndex}`;
+                zArrow.userData = { axis: 'z', brickIndex };
+                dimensionLines.add(zArrow);
+
+                // Z Label
+                const zLabel = createTextSprite(Math.round(z).toString(), 0x0000ff);
+                zLabel.position.set(x, y + 10, z / 2);
+                zLabel.name = `z-label-brick-${brickIndex}`;
+                zLabel.userData = { axis: 'z', brickIndex };
+                dimensionLines.add(zLabel);
+            }
+
+            return dimensionLines;
+        }
+
+        // Helper to create text sprite labels
+        function createTextSprite(text, color) {
+            const canvas = document.createElement('canvas');
+            const context = canvas.getContext('2d');
+            canvas.width = 128;
+            canvas.height = 64;
+            context.font = 'Bold 48px Arial';
+            context.fillStyle = `#${color.toString(16).padStart(6, '0')}`;
+            context.textAlign = 'center';
+            context.fillText(text, 64, 48);
+
+            const texture = new THREE.CanvasTexture(canvas);
+            const material = new THREE.SpriteMaterial({ map: texture });
+            const sprite = new THREE.Sprite(material);
+            sprite.scale.set(10, 5, 1);
+            return sprite;
+        }
+
+        function renderAllBricks() {
+            if (!seedScene) return;
+
+            // Clear existing bricks
+            state.brickObjects.forEach(brick => {
+                if (brick.parent) brick.parent.remove(brick);
+            });
+            state.brickObjects = [];
+
+            // Parse and render each line
+            state.editorLines.forEach((line, idx) => {
+                const parsed = parseLDrawLine(line);
+                if (parsed) {
+                    const mesh = createBrickMesh(parsed, idx);
+                    seedScene.add(mesh);
+                    state.brickObjects.push(mesh);
+                }
+            });
+
+            // Update control surfaces based on which lines exist
+            updateAllControlSurfaces();
+
+            // Highlight selected
+            if (state.selectedLineIndex >= 0 && state.selectedLineIndex < state.brickObjects.length) {
+                const selected = state.brickObjects[state.selectedLineIndex];
+                if (selected && selected.material) {
+                    selected.material.emissive.setHex(0x444400); // Yellow glow
+                }
+            }
+
+            console.log('[WAG-GRID-WALK] Rendered', state.brickObjects.length, 'bricks');
+        }
+
+        // Update all 12 control surfaces based on editorLines
+        function updateAllControlSurfaces() {
+            console.log('[updateAllControlSurfaces] Processing', state.editorLines.length, 'lines');
+
+            seedHelpers.controlSurfaces.forEach((surface, i) => {
+                if (i < state.editorLines.length && state.brickObjects[i]) {
+                    // Line exists - show and update control surface
+                    const parsed = state.brickObjects[i].userData.parsed;
+                    const { x, y, z } = parsed; // parsed has x,y,z directly
+
+                    console.log(`[Line ${i}] Position: (${x}, ${y}, ${z}) - Showing control surface`);
+
+                    // Update X dimension
+                    const xLength = Math.abs(x);
+                    if (xLength > 0.1) {
+                        const xDir = x > 0 ? new THREE.Vector3(1, 0, 0) : new THREE.Vector3(-1, 0, 0);
+                        surface.dimsX.setDirection(xDir);
+                        surface.dimsX.setLength(xLength, 10, 5);
+                        surface.dimsX.position.set(0, y, z);
+                        surface.dimsX.visible = true;
+
+                        surface.labelX.position.set(x / 2, y + 10, z);
+                        surface.labelX.visible = true;
+                        // Update label text
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = 128;
+                        canvas.height = 64;
+                        context.font = 'Bold 48px Arial';
+                        context.fillStyle = '#ff4444';
+                        context.textAlign = 'center';
+                        updateEditorUI();
+                        context.fillText(Math.round(x).toString(), 64, 48);
+                        surface.labelX.material.map = new THREE.CanvasTexture(canvas);
+                        surface.labelX.material.needsUpdate = true;
+                    } else {
+                        surface.dimsX.visible = false;
+                        surface.labelX.visible = false;
+                    }
+
+                    // Update Y dimension
+                    const yLength = Math.abs(y); // Adjust for brick center
+                    if (yLength > 0.1) {
+                        const yDir = y > 0 ? new THREE.Vector3(0, 1, 0) : new THREE.Vector3(0, -1, 0);
+                        surface.dimsY.setDirection(yDir);
+                        surface.dimsY.setLength(yLength, 10, 5);
+                        surface.dimsY.position.set(x, 0, z);
+                        surface.dimsY.visible = true;
+
+                        surface.labelY.position.set(x + 10, y / 2, z); // Adjust for brick center
+                        surface.labelY.visible = true;
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = 128;
+                        canvas.height = 64;
+                        context.font = 'Bold 48px Arial';
+                        context.fillStyle = '#44ff44';
+                        context.textAlign = 'center';
+                        context.fillText(Math.round(y).toString(), 64, 48); // Adjust for brick center
+                        surface.labelY.material.map = new THREE.CanvasTexture(canvas);
+                        surface.labelY.material.needsUpdate = true;
+                    } else {
+                        surface.dimsY.visible = false;
+                        surface.labelY.visible = false;
+                    }
+
+                    // Update Z dimension
+                    const zLength = Math.abs(z);
+                    if (zLength > 0.1) {
+                        const zDir = z > 0 ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 0, -1);
+                        surface.dimsZ.setDirection(zDir);
+                        surface.dimsZ.setLength(zLength, 10, 5);
+                        surface.dimsZ.position.set(x, y, 0);
+                        surface.dimsZ.visible = true;
+
+                        surface.labelZ.position.set(x, y + 10, z / 2);
+                        surface.labelZ.visible = true;
+                        const canvas = document.createElement('canvas');
+                        const context = canvas.getContext('2d');
+                        canvas.width = 128;
+                        canvas.height = 64;
+                        context.font = 'Bold 48px Arial';
+                        context.fillStyle = '#4444ff';
+                        context.textAlign = 'center';
+                        context.fillText(Math.round(z).toString(), 64, 48);
+                        surface.labelZ.material.map = new THREE.CanvasTexture(canvas);
+                        surface.labelZ.material.needsUpdate = true;
+                    } else {
+                        surface.dimsZ.visible = false;
+                        surface.labelZ.visible = false;
+                    }
+                } else {
+                    // Line doesn't exist - hide control surface
+                    console.log(`[Line ${i}] No line - Hiding control surface`);
+                    surface.dimsX.visible = false;
+                    surface.dimsY.visible = false;
+                    surface.dimsZ.visible = false;
+                    surface.labelX.visible = false;
+                    surface.labelY.visible = false;
+                    surface.labelZ.visible = false;
+                }
+            });
+        }
+
+        function renderEditorLines() {
+            const editorContainer = document.getElementById('seed-editor');
+            if (!editorContainer) return;
+
+            editorContainer.innerHTML = '';
+
+            state.editorLines.forEach((line, index) => {
+                const parsed = parseLDrawLine(line);
+                if (!parsed) return;
+
+                const div = document.createElement('div');
+                div.className = `editor-line ${index === state.selectedLineIndex ? 'active' : ''}`;
+                div.dataset.line = index;
+
+                // Click to select
+                div.addEventListener('click', (e) => {
+                    if (e.target.classList.contains('dial')) return;
+                    state.selectedLineIndex = index;
+                    state.activeBrick = state.brickObjects[index];
+                    renderAllBricks();
+                    renderEditorLines();
+                });
+
+                div.innerHTML = `
+                    <div class="gutter">${index + 1}</div>
+                    <div class="code-content">
+                        <span class="dial pos" data-type="type" data-label="TYPE" data-min="1" data-max="1" data-val="${parsed.type}" data-line="${index}">${parsed.type}</span>
+                        <span class="dial pos" data-type="color" data-label="COLOR" data-min="0" data-max="15" data-val="${parsed.color}" data-line="${index}">${parsed.color}</span>
+                        <span class="dial ${parsed.x === 0 ? 'zero' : (parsed.x > 0 ? 'pos' : 'neg')}" data-type="pos-x" data-label="X POS" data-min="-100" data-max="100" data-val="${parsed.x}" data-step="20" data-line="${index}">${parsed.x}</span>
+                        <span class="dial ${parsed.y === 0 ? 'zero' : (parsed.y > 0 ? 'pos' : 'neg')}" data-type="pos-y" data-label="Y POS" data-min="-100" data-max="100" data-val="${parsed.y}" data-step="8" data-line="${index}">${parsed.y}</span>
+                        <span class="dial ${parsed.z === 0 ? 'zero' : (parsed.z > 0 ? 'pos' : 'neg')}" data-type="pos-z" data-label="Z POS" data-min="-100" data-max="100" data-val="${parsed.z}" data-step="20" data-line="${index}">${parsed.z}</span>
+                        <span style="color: #555;">${parsed.matrix.join(' ')}</span>
+                        <span style="color: var(--success);">${parsed.part}</span>
+                    </div>
+                `;
+                editorContainer.appendChild(div);
+            });
+        }
+
+        function updateEditorUI() {
+            const editorContainer = document.getElementById('seed-editor');
+            if (!editorContainer) return;
+
+            state.editorLines.forEach((line, index) => {
+                const parsed = parseLDrawLine(line);
+                if (!parsed) return;
+
+                const dials = editorContainer.querySelectorAll(`.dial[data-line="${index}"]`);
+                dials.forEach(dial => {
+                    const type = dial.dataset.type;
+                    if (type === 'pos-x') dial.innerText = parsed.x;
+                    if (type === 'pos-y') dial.innerText = parsed.y;
+                    if (type === 'pos-z') dial.innerText = parsed.z;
+                    if (type === 'color') dial.innerText = parsed.color;
+                });
+            });
+        }
+
+        function initSeed() {
+            if (seedRenderer) return;
+            const container = document.getElementById('seed-canvas');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            seedScene = new THREE.Scene();
+            seedScene.background = new THREE.Color(0x050505);
+
+            // Camera
+            seedCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            seedCamera.position.set(100, 120, 100);
+            seedCamera.lookAt(0, 0, 0);
+
+            // Renderer
+            seedRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            seedRenderer.setSize(w, h);
+            container.appendChild(seedRenderer.domElement);
+
+            // Controls
+            controls = new THREE.OrbitControls(seedCamera, seedRenderer.domElement);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.05;
+
+            // --- LASER LATTICE (HOLODECK) ---
+            const planeGeo = new THREE.PlaneGeometry(400, 400);
+            const planeMat = new THREE.MeshBasicMaterial({ color: 0x050505, side: THREE.DoubleSide }); // Darker floor
+            const plane = new THREE.Mesh(planeGeo, planeMat);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -0.1;
+            seedScene.add(plane);
+
+            // Plane for Raycasting (Ground)
+            // Grid Helpers
+            const gridSize = 200; // Size in LDU
+            const gridDivisions = 10; // 10 divisions = 20 LDU spacing (1 stud)
+
+            // Major grid (every 20 LDU = 1x1 stud)
+            const gridMajor = new THREE.GridHelper(gridSize, gridDivisions, 0x00CED1, 0x00CED1); // Bright cyan
+            gridMajor.material.opacity = 0.8;
+            gridMajor.material.transparent = true;
+            seedScene.add(gridMajor);
+
+            // Minor grid for finer precision (every 10 LDU = 0.5 studs)
+            const gridMinor = new THREE.GridHelper(gridSize, gridDivisions * 2, 0x4169E1, 0x4169E1); // Bright blue  
+            gridMinor.material.opacity = 0.4;
+            gridMinor.material.transparent = true;
+            seedScene.add(gridMinor);
+
+            // 3D VOLUME CAGE (replaces boundary fence)
+            const cageGeometry = new THREE.BoxGeometry(200, 200, 200);
+            const cageEdges = new THREE.EdgesGeometry(cageGeometry);
+            const cageMaterial = new THREE.LineBasicMaterial({
+                color: 0x00ffff,
+                opacity: 0.6,
+                transparent: true
+            });
+            const cage = new THREE.LineSegments(cageEdges, cageMaterial);
+            cage.position.y = 100; // Center at Y=100 (0 to 200 range)
+            seedScene.add(cage);
+
+            // FLOOR PLANE (Collision surface)
+            const floorGeometry = new THREE.PlaneGeometry(200, 200);
+            const floorMaterial = new THREE.MeshBasicMaterial({
+                color: 0x222222,
+                opacity: 0.3,
+                transparent: true,
+                side: THREE.DoubleSide
+            });
+            const floor = new THREE.Mesh(floorGeometry, floorMaterial);
+            floor.rotation.x = -Math.PI / 2;
+            floor.position.y = 0;
+            floor.name = "floor-plane";
+            seedScene.add(floor);
+            seedHelpers.floor = floor;
+
+            // WALL GRIDS - Vertical alignment grids on each wall
+            // Each wall gets a different color for orientation
+            const wallGridColors = {
+                north: 0xff6b6b,  // Red tint (+Z wall)
+                south: 0x4ecdc4,  // Teal tint (-Z wall)  
+                east: 0xffe66d,   // Yellow tint (+X wall)
+                west: 0x95e1d3    // Mint tint (-X wall)
+            };
+
+            // Create vertical grid helper function
+            function createWallGrid(color, position, rotation) {
+                const wallGrid = new THREE.GridHelper(200, 10, color, color);
+                wallGrid.material.opacity = 0.3;
+                wallGrid.material.transparent = true;
+                wallGrid.rotation.z = rotation;
+                wallGrid.position.copy(position);
+                return wallGrid;
+            }
+
+            // Add dots to each wall
+            function createWallDots(color, wallAxis, wallPosition) {
+                const dotGeometry = new THREE.BufferGeometry();
+                const positions = [];
+
+                for (let y = 0; y <= 200; y += 20) {
+                    for (let i = -100; i <= 100; i += 20) {
+                        if (wallAxis === 'z') {
+                            positions.push(i, y, wallPosition);
+                        } else {
+                            positions.push(wallPosition, y, i);
+                        }
+                    }
+                }
+
+                dotGeometry.setAttribute('position', new THREE.Float32BufferAttribute(positions, 3));
+                const dotMaterial = new THREE.PointsMaterial({
+                    color: color,
+                    size: 3,
+                    opacity: 0.4,
+                    transparent: true
+                });
+                return new THREE.Points(dotGeometry, dotMaterial);
+            }
+
+            // SIMPLIFIED WALL GRIDS - Only show on back walls with low opacity
+            // North wall (+Z = 100) - slightly visible
+            const northWall = createWallGrid(wallGridColors.north, new THREE.Vector3(0, 100, 100), Math.PI / 2);
+            northWall.material.opacity = 0.15; // More subtle
+            seedScene.add(northWall);
+
+            // East wall (+X = 100) - slightly visible 
+            const eastWall = createWallGrid(wallGridColors.east, new THREE.Vector3(100, 100, 0), Math.PI / 2);
+            eastWall.rotation.y = Math.PI / 2;
+            eastWall.rotation.z = Math.PI / 2;
+            eastWall.material.opacity = 0.15; // More subtle
+            seedScene.add(eastWall);
+
+            // Initialize Mist Sprites
+            initMistSprites();
+
+            // Snap Glow Helper (Hidden by default)
+            const glowGeo = new THREE.PlaneGeometry(20, 20);
+            const glowMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0.3, side: THREE.DoubleSide });
+            seedHelpers.snapGlow = new THREE.Mesh(glowGeo, glowMat);
+            seedHelpers.snapGlow.rotation.x = -Math.PI / 2;
+            seedHelpers.snapGlow.visible = false;
+            seedScene.add(seedHelpers.snapGlow);
+
+            const axes = new THREE.AxesHelper(100);
+            seedScene.add(axes);
+
+            // --- THE BRICK (1x2 Studs) ---
+            // 1 Stud = 20 LDU width, 20 LDU depth
+            // 1 Brick Height = 24 LDU
+            // 1x2 Brick = 20 x 24 x 40
+            const geometry = new THREE.BoxGeometry(20, 24, 40);
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffd700,
+                roughness: 0.3,
+                metalness: 0.4,
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+            });
+            seedBrick = new THREE.Mesh(geometry, material);
+            seedBrick.position.set(0, 12, 0);
+            seedScene.add(seedBrick);
+
+            const edges = new THREE.EdgesGeometry(geometry);
+            const line = new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 }));
+            seedBrick.add(line);
+
+            // Initialize Cube Points
+            initCubePoints();
+
+            // Initialize Corner Snaps (4 bottom corners)
+            initCornerSnaps();
+
+            // --- CONTROL HUB (ORIGIN) ---
+            const hubGeo = new THREE.SphereGeometry(2, 16, 16);
+            const hubMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+            seedHelpers.controlHub = new THREE.Mesh(hubGeo, hubMat);
+            seedBrick.add(seedHelpers.controlHub);
+
+            // --- HELPERS ---
+
+            // Active Rails
+            const railMat = new THREE.LineBasicMaterial({ color: 0xffd700, transparent: true, opacity: 0.5 });
+            const railGeo = new THREE.BufferGeometry().setFromPoints([new THREE.Vector3(-200, 0, 0), new THREE.Vector3(200, 0, 0)]);
+
+            seedHelpers.activeRailX = new THREE.Line(railGeo, railMat);
+            seedHelpers.activeRailZ = new THREE.Line(railGeo, railMat);
+            seedHelpers.activeRailZ.rotation.y = Math.PI / 2;
+
+            seedScene.add(seedHelpers.activeRailX);
+            seedScene.add(seedHelpers.activeRailZ);
+
+            // Corner Guides
+            const cornerGeo = new THREE.BufferGeometry();
+            const positions = new Float32Array(8 * 3);
+            cornerGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+            seedHelpers.cornerLines = new THREE.LineSegments(cornerGeo, new THREE.LineBasicMaterial({ color: 0x444444, transparent: true, opacity: 0.5, dashSize: 4, gapSize: 2 }));
+            seedScene.add(seedHelpers.cornerLines);
+
+            // CREATE 12 CONTROL SURFACES (one per line, like wag-courage)
+            // Each line gets its own X/Y/Z dimension arrows + labels
+            seedHelpers.controlSurfaces = [];
+
+            for (let i = 0; i < 12; i++) {
+                const surface = {
+                    index: i,
+                    dimsX: new THREE.ArrowHelper(new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0.1, 0), 0, 0xff4444, 10, 5),
+                    dimsZ: new THREE.ArrowHelper(new THREE.Vector3(0, 0, 1), new THREE.Vector3(0, 0.1, 0), 0, 0x4444ff, 10, 5),
+                    dimsY: new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0, 0, 0), 0, 0x44ff44, 10, 5),
+                    labelX: null,
+                    labelY: null,
+                    labelZ: null
+                };
+
+                // Name them for raycasting with line index
+                surface.dimsX.line.name = `lineX-${i}`;
+                surface.dimsX.cone.name = `lineX-${i}`;
+                surface.dimsX.line.userData = { lineIndex: i, axis: 'x' };
+                surface.dimsX.cone.userData = { lineIndex: i, axis: 'x' };
+
+                surface.dimsZ.line.name = `lineZ-${i}`;
+                surface.dimsZ.cone.name = `lineZ-${i}`;
+                surface.dimsZ.line.userData = { lineIndex: i, axis: 'z' };
+                surface.dimsZ.cone.userData = { lineIndex: i, axis: 'z' };
+
+                surface.dimsY.line.name = `lineY-${i}`;
+                surface.dimsY.cone.name = `lineY-${i}`;
+                surface.dimsY.line.userData = { lineIndex: i, axis: 'y' };
+                surface.dimsY.cone.userData = { lineIndex: i, axis: 'y' };
+
+                // Add to scene (hidden initially)
+                seedScene.add(surface.dimsX);
+                seedScene.add(surface.dimsZ);
+                seedScene.add(surface.dimsY);
+                surface.dimsX.visible = false;
+                surface.dimsZ.visible = false;
+                surface.dimsY.visible = false;
+
+                // Create labels
+                surface.labelX = createTextSprite("0", "#ff4444");
+                surface.labelY = createTextSprite("0", "#44ff44");
+                surface.labelZ = createTextSprite("0", "#4444ff");
+
+                surface.labelX.name = `labelX-${i}`;
+                surface.labelY.name = `labelY-${i}`;
+                surface.labelZ.name = `labelZ-${i}`;
+
+                surface.labelX.userData = { lineIndex: i, axis: 'x' };
+                surface.labelY.userData = { lineIndex: i, axis: 'y' };
+                surface.labelZ.userData = { lineIndex: i, axis: 'z' };
+
+                seedScene.add(surface.labelX);
+                seedScene.add(surface.labelY);
+                seedScene.add(surface.labelZ);
+                surface.labelX.visible = false;
+                surface.labelY.visible = false;
+                surface.labelZ.visible = false;
+
+                seedHelpers.controlSurfaces.push(surface);
+            }
+
+            console.log('[WAG-GRID-WALK] Created 12 control surfaces');
+
+            // NOW render all bricks (after control surfaces exist)
+            renderAllBricks();
+            renderEditorLines();
+
+            // Lights
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(50, 100, 50);
+            seedScene.add(light);
+            seedScene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+            const rimLight = new THREE.SpotLight(0xffd700, 0.5);
+            rimLight.position.set(-50, 50, -50);
+            rimLight.lookAt(0, 0, 0);
+            seedScene.add(rimLight);
+
+            // --- RAYCASTING EVENTS ---
+            container.addEventListener('mousedown', onMouseDown);
+            container.addEventListener('mousemove', onMouseMove);
+            container.addEventListener('mouseup', onMouseUp);
+            container.addEventListener('touchstart', onTouchStart, { passive: false });
+            container.addEventListener('touchmove', onTouchMove, { passive: false });
+            container.addEventListener('touchend', onMouseUp);
+
+            animateSeed();
+        }
+
+        // Raycasting Functions
+        let seedRaycaster = new THREE.Raycaster();
+        let seedCanvas = document.getElementById('seed-canvas');
+        // Raycasting Functions
+        function getIntersects(x, y) {
+            const mouse = new THREE.Vector2();
+            mouse.x = (x / seedCanvas.width) * 2 - 1;
+            mouse.y = -(y / seedCanvas.height) * 2 + 1;
+
+            seedRaycaster.setFromCamera(mouse, seedCamera);
+
+            // Raycast against brick meshes for selection
+            const brickIntersects = seedRaycaster.intersectObjects(state.brickObjects, true);
+            if (brickIntersects.length > 0) {
+                return brickIntersects;
+            }
+
+            // Raycast against all 12 control surfaces
+            const allControls = [];
+            seedHelpers.controlSurfaces.forEach(surface => {
+                allControls.push(
+                    surface.dimsX.line, surface.dimsX.cone,
+                    surface.dimsZ.line, surface.dimsZ.cone,
+                    surface.dimsY.line, surface.dimsY.cone,
+                    surface.labelX, surface.labelY, surface.labelZ
+                );
+            });
+
+            return seedRaycaster.intersectObjects(allControls, true);
+        }
+
+        // Helper to get intersection point on a given plane
+        function getIntersectionPoint(event, container, plane) {
+            const rect = container.getBoundingClientRect();
+            let clientX, clientY;
+
+            if (event.changedTouches) {
+                clientX = event.changedTouches[0].clientX;
+                clientY = event.changedTouches[0].clientY;
+            } else {
+                clientX = event.clientX;
+                clientY = event.clientY;
+            }
+
+            mouse.x = ((clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((clientY - rect.top) / rect.height) * 2 + 1;
+
+            raycaster.setFromCamera(mouse, seedCamera);
+
+            const target = new THREE.Vector3();
+            raycaster.ray.intersectPlane(plane, target);
+            return target;
+        }
+
+        function onMouseDown(event) {
+            event.preventDefault();
+            if (!audioEnabled) initAudio();
+
+            const rect = seedCanvas.getBoundingClientRect();
+            const x = event.clientX - rect.left;
+            const y = event.clientY - rect.top;
+
+            const intersects = getIntersects(x, y);
+            if (intersects.length > 0) {
+                const object = intersects[0].object;
+
+                // Check if clicking on a brick mesh
+                if (object.userData && object.userData.lineNum !== undefined) {
+                    state.selectedLineIndex = object.userData.lineNum;
+                    state.activeBrick = object.userData.parsed;
+                    renderAllBricks(); // Refresh highlight
+                    playChord(); // Selection sound
+
+                    // Set initial drag values for the active brick
+                    dragStart = { x: event.clientX, y: event.clientY };
+                    dragAxis = null; // Reset drag axis for brick movement
+                    controls.enabled = false;
+                    return;
+                }
+
+                // Check if clicking on a control surface (dimension line or label)
+                if (object.userData && object.userData.lineIndex !== undefined) {
+                    const lineIndex = object.userData.lineIndex;
+                    const axis = object.userData.axis;
+
+                    // Set the active line
+                    state.selectedLineIndex = lineIndex;
+                    if (state.brickObjects[lineIndex]) {
+                        state.activeBrick = state.brickObjects[lineIndex].userData.parsed;
+                    }
+
+                    // Set drag axis
+                    if (axis) {
+                        dragAxis = axis;
+                        isDragging3D = true;
+                        controls.enabled = false;
+                        playSnap();
+                        renderAllBricks(); // Refresh highlight
+                    }
+                }
+            }
+        }
+
+        function onMouseMove(event) {
+            if (!isDragging3D && !state.activeBrick) return; // Only drag if an axis is selected or a brick is active
+
+            const container = document.getElementById('seed-canvas');
+            let point;
+            let rawVal = 0;
+
+            if (isDragging3D) { // Dragging an axis helper
+                if (dragAxis === 'x') {
+                    point = getIntersectionPoint(event, container, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)); // Ground plane
+                    if (point) rawVal = point.x * 2;
+                } else if (dragAxis === 'z') {
+                    point = getIntersectionPoint(event, container, new THREE.Plane(new THREE.Vector3(0, 1, 0), 0)); // Ground plane
+                    if (point) rawVal = point.z * 2;
+                } else if (dragAxis === 'y') {
+                    // For Y-axis, project onto a vertical plane passing through current X, Z
+                    // This plane's normal is perpendicular to the camera's view direction in the XZ plane
+                    // and also perpendicular to the Y-axis.
+                    const cameraDir = new THREE.Vector3();
+                    seedCamera.getWorldDirection(cameraDir);
+                    cameraDir.y = 0; // Flatten to XZ plane
+                    cameraDir.normalize();
+
+                    // Create a plane perpendicular to cameraDir, passing through the brick's current X, Z
+                    const currentX = state.activeBrick ? state.activeBrick.x : state.seed.x;
+                    const currentZ = state.activeBrick ? state.activeBrick.z : state.seed.z;
+                    const planeNormal = new THREE.Vector3(-cameraDir.z, 0, cameraDir.x); // Perpendicular to cameraDir in XZ
+                    const plane = new THREE.Plane();
+                    plane.setFromNormalAndCoplanarPoint(planeNormal, new THREE.Vector3(currentX, 0, currentZ));
+
+                    point = getIntersectionPoint(event, container, plane);
+                    if (point) rawVal = point.y * 2; // Y-value from the intersection point
+                }
+            } else if (state.activeBrick && dragStart) { // Dragging an active brick
+                const dx = event.clientX - dragStart.x;
+                const dy = event.clientY - dragStart.y;
+
+                // Determine drag axis based on camera view and mouse movement
+                // This is a simplified approach, a more robust solution would involve projecting mouse movement onto world axes
+                if (Math.abs(dx) > Math.abs(dy)) { // More horizontal movement
+                    dragAxis = 'x';
+                    rawVal = state.activeBrick.x + dx * 0.5; // Scale factor for sensitivity
+                } else { // More vertical movement
+                    dragAxis = 'z'; // Or 'y' depending on camera angle
+                    rawVal = state.activeBrick.z + dy * 0.5; // Scale factor for sensitivity
+                }
+                // For simplicity, let's assume we're dragging on the XZ plane for now
+                // A more advanced implementation would use raycasting against the ground plane
+                point = new THREE.Vector3(rawVal, 0, rawVal); // Placeholder
+            }
+
+
+            if (point) {
+                // --- LIMIT LOGIC (+/- 100 LDU for X/Z, 0-200 for Y) ---
+                let limitHit = false;
+                if (dragAxis === 'x' || dragAxis === 'z') {
+                    if (rawVal > 100) { rawVal = 100; limitHit = true; }
+                    if (rawVal < -100) { rawVal = -100; limitHit = true; }
+                } else if (dragAxis === 'y') {
+                    if (rawVal > 200) { rawVal = 200; limitHit = true; }
+                    if (rawVal < 0) { rawVal = 0; limitHit = true; }
+                }
+
+                // Mobile Haptic Feedback on Boundary Hit
+                if (limitHit && navigator.vibrate) {
+                    if (Math.abs(lastDragVal) < 100) {
+                        navigator.vibrate(50); // Strong vibration at boundary
+                    }
+                }
+
+                // --- STRONG MAGNETIC SNAPPING ---
+                // Snap radius: 3 LDU (much tighter for "ratchet" feel)
+                const snapPoint = Math.round(rawVal / 20) * 20;
+                const dist = Math.abs(rawVal - snapPoint);
+
+                let finalVal = rawVal;
+
+                // STRONG SNAP: Once within 3 LDU, lock hard to grid
+                if (dist < 3) {
+                    finalVal = snapPoint;
+                } else {
+                    // "Viscosity": Dampen movement outside snap?
+                    // Or just let it flow.
+                    // Let's stick to the strong snap radius (8 LDU = 40% of a stud)
+                    // This creates a "sticky" feel.
+                }
+
+                const newVal = finalVal;
+
+                // Calculate Velocity
+                const velocity = Math.abs(newVal - lastDragVal);
+
+                // Play Tick if value changed
+                if (Math.abs(newVal - lastDragVal) > 0.1) {
+                    // Ratchet tick on movement
+                    if (Math.floor(newVal / 20) !== Math.floor(lastDragVal / 20)) {
+                        playTick(); // Manual.html style
+                    }
+                }
+
+                lastDragVal = newVal;
+
+                // Update State
+                if (state.activeBrick) {
+                    const oldVal = state.activeBrick[dragAxis];
+                    state.activeBrick[dragAxis] = newVal;
+
+                    // Update the LDraw line
+                    const lineNum = state.selectedLineIndex;
+                    const parts = state.editorLines[lineNum].split(' ');
+                    if (dragAxis === 'x') parts[2] = newVal.toString();
+                    else if (dragAxis === 'y') parts[3] = newVal.toString();
+                    else if (dragAxis === 'z') parts[4] = newVal.toString();
+                    state.editorLines[lineNum] = parts.join(' ');
+
+                    // Play tick on grid increment
+                    if (Math.floor(oldVal / 20) !== Math.floor(newVal / 20)) {
+                        playTick();
+                    }
+                } else { // Fallback to seed if no active brick
+                    if (dragAxis === 'x') {
+                        const oldX = state.seed.x;
+                        state.seed.x = newVal;
+                        if (Math.sign(oldX) !== Math.sign(newVal)) playSweep('x');
+                    }
+                    if (dragAxis === 'z') {
+                        const oldZ = state.seed.z;
+                        state.seed.z = newVal;
+                        if (Math.sign(oldZ) !== Math.sign(newVal)) playSweep('z');
+                    }
+                    if (dragAxis === 'y') {
+                        state.seed.y = newVal;
+                    }
+                }
+
+                updateSeed();
+                updateSpatialAudio(state.activeBrick ? state.activeBrick.x : state.seed.x, state.activeBrick ? state.activeBrick.z : state.seed.z);
+
+                // Update Dials
+                document.querySelectorAll('.dial').forEach(d => {
+                    const currentX = state.activeBrick ? state.activeBrick.x : state.seed.x;
+                    const currentY = state.activeBrick ? state.activeBrick.y : state.seed.y;
+                    const currentZ = state.activeBrick ? state.activeBrick.z : state.seed.z;
+
+                    if (d.dataset.type === 'pos-x' && dragAxis === 'x') {
+                        d.dataset.val = currentX;
+                        d.innerText = Math.round(currentX);
+                    }
+                    if (d.dataset.type === 'pos-z' && dragAxis === 'z') {
+                        d.dataset.val = currentZ;
+                        d.innerText = Math.round(currentZ);
+                    }
+                    if (d.dataset.type === 'pos-y' && dragAxis === 'y') {
+                        d.dataset.val = currentY;
+                        d.innerText = Math.round(currentY);
+                    }
+                });
+            }
+        }
+
+        function onMouseUp() {
+            if (isDragging3D || state.activeBrick) {
+                // SNAP-ON-RELEASE: If close to a grid point, snap to it
+                const targetObject = state.activeBrick || state.seed;
+
+                if (dragAxis === 'x') {
+                    const snapPoint = Math.round(targetObject.x / 20) * 20;
+                    const dist = Math.abs(targetObject.x - snapPoint);
+                    if (dist < 10) { // Within half a stud
+                        targetObject.x = snapPoint;
+                        playSnap();
+                        if (navigator.vibrate) navigator.vibrate(15); // Snap haptic
+                    }
+                }
+                if (dragAxis === 'z') {
+                    const snapPoint = Math.round(targetObject.z / 20) * 20;
+                    const dist = Math.abs(targetObject.z - snapPoint);
+                    if (dist < 10) {
+                        targetObject.z = snapPoint;
+                        playSnap();
+                        if (navigator.vibrate) navigator.vibrate(15);
+                    }
+                }
+                if (dragAxis === 'y') {
+                    const snapPoint = Math.round(targetObject.y / 20) * 20;
+                    const dist = Math.abs(targetObject.y - snapPoint);
+                    if (dist < 10) {
+                        targetObject.y = snapPoint;
+                        playSnap();
+                        if (navigator.vibrate) navigator.vibrate(15);
+                    }
+                }
+
+                // If an active brick was moved, update its LDraw line
+                if (state.activeBrick && dragAxis) {
+                    const lineNum = state.selectedLineIndex;
+                    const parts = state.editorLines[lineNum].split(' ');
+                    if (dragAxis === 'x') parts[2] = targetObject.x.toString();
+                    else if (dragAxis === 'y') parts[3] = targetObject.y.toString();
+                    else if (dragAxis === 'z') parts[4] = targetObject.z.toString();
+                    state.editorLines[lineNum] = parts.join(' ');
+                }
+
+                updateSeed();
+                playSnap();
+                lastDragVal = 0;
+            }
+            isDragging3D = false;
+            dragAxis = null;
+            controls.enabled = true;
+        }
+
+        function onTouchStart(e) { e.preventDefault(); onMouseDown(e); }
+        function onTouchMove(e) { e.preventDefault(); onMouseMove(e); }
+
+        // --- LDRAW CODE GENERATOR ---
+        function generateLDrawCode() {
+            const x = state.seed.x;
+            const y = state.seed.y;
+            const z = state.seed.z;
+            const color = Math.round(state.seed.color);
+
+            // Standard 1x2 brick is 3004.dat
+            const ldrawCode = `1 ${color} ${x} ${y} ${z} 1 0 0 0 1 0 0 0 1 3004.dat`;
+
+            // Copy to clipboard
+            navigator.clipboard.writeText(ldrawCode).then(() => {
+                const statusEl = document.getElementById('status-text');
+                if (statusEl) {
+                    const oldText = statusEl.textContent;
+                    statusEl.textContent = '✅ LDraw code copied to clipboard!';
+                    setTimeout(() => statusEl.textContent = oldText, 2000);
+                }
+            });
+
+            console.log('LDraw Code:', ldrawCode);
+            return ldrawCode;
+        }
+
+        // --- CORNER SNAP VISUALIZATION ---
+        let cornerSnapHelpers = [];
+        function initCornerSnaps() {
+            // 4 bottom corners of the brick
+            const w = 10; const d = 20;
+            const offsets = [
+                { x: -w, z: -d }, { x: w, z: -d },
+                { x: -w, z: d }, { x: w, z: d }
+            ];
+
+            offsets.forEach(offset => {
+                // Corner marker (small cyan sphere)
+                const geo = new THREE.SphereGeometry(1.5, 8, 8);
+                const mat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 0.8 });
+                const marker = new THREE.Mesh(geo, mat);
+                marker.userData = { offset };
+
+                // Snap target (glowing ring on grid)
+                const ringGeo = new THREE.RingGeometry(1, 2, 16);
+                const ringMat = new THREE.MeshBasicMaterial({ color: 0x00ff00, transparent: true, opacity: 0, side: THREE.DoubleSide });
+                const ring = new THREE.Mesh(ringGeo, ringMat);
+                ring.rotation.x = -Math.PI / 2;
+                ring.position.y = 0.1;
+
+                cornerSnapHelpers.push({ marker, ring, offset });
+                seedScene.add(marker);
+                seedScene.add(ring);
+            });
+        }
+
+        function updateCornerSnaps(brickX, brickY, brickZ) {
+            cornerSnapHelpers.forEach(helper => {
+                const { marker, ring, offset } = helper;
+
+                // Update marker position (follows brick)
+                marker.position.set(
+                    brickX + offset.x,
+                    brickY, // Bottom of brick
+                    brickZ + offset.z
+                );
+
+                // Calculate snap target (nearest 20 LDU grid point)
+                const snapX = Math.round((brickX + offset.x) / 20) * 20;
+                const snapZ = Math.round((brickZ + offset.z) / 20) * 20;
+
+                ring.position.set(snapX, 0.1, snapZ);
+
+                // Distance from corner to snap target
+                const dx = (brickX + offset.x) - snapX;
+                const dz = (brickZ + offset.z) - snapZ;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+
+                //Show ring when close to snap point
+                if (dist < 10) {
+                    const intensity = 1 - (dist / 10);
+                    ring.material.opacity = intensity * 0.6;
+                    ring.scale.set(1 + intensity * 0.5, 1 + intensity * 0.5, 1);
+                } else {
+                    ring.material.opacity = 0;
+                }
+            });
+        }
+        // --- MIST PARTICLES ---
+        let mistSprites = []; // FIXED: Re-declared array
+
+        function initMistSprites() {
+            const group = new THREE.Group();
+            const material = new THREE.SpriteMaterial({
+                color: 0x00ffff,
+                transparent: true,
+                opacity: 0.3, // Always slightly visible
+                blending: THREE.AdditiveBlending
+            });
+
+            // PRECISION GRID DOTS - tiny controlled points of light
+            for (let x = -100; x <= 100; x += 20) {
+                for (let z = -100; z <= 100; z += 20) {
+                    const sprite = new THREE.Sprite(material.clone());
+                    sprite.position.set(x, 0.5, z);
+                    sprite.scale.set(1.5, 1.5, 1); // TINY
+                    sprite.userData = { baseOp: 0.3 };
+                    group.add(sprite);
+                    mistSprites.push(sprite);
+                }
+            }
+            seedScene.add(group);
+        }
+
+        function animateMist(targetX, targetZ) {
+            mistSprites.forEach(sprite => {
+                const dx = sprite.position.x - targetX;
+                const dz = sprite.position.z - targetZ;
+                const dist = Math.sqrt(dx * dx + dz * dz);
+
+                // ECHOLOCATION: Grid points "ping" when near
+                // Always visible at base level, brighten when close
+                if (dist < 30) {
+                    const intensity = 1 - (dist / 30);
+                    sprite.material.opacity = 0.3 + intensity * 0.7; // Brighten
+                    sprite.scale.set(1.5, 1.5, 1); // Stay small
+                } else {
+                    sprite.material.opacity = 0.3; // Always faintly visible
+                    sprite.scale.set(1.5, 1.5, 1);
+                }
+            });
+        }
+
+        function updateSeed() {
+            if (!seedBrick) return;
+
+            const x = state.seed.x;
+            const y = state.seed.y;
+            const z = state.seed.z;
+
+            // 1. Update Brick
+            seedBrick.position.set(x, y + 12, z);
+            const hex = ldrawColors[Math.round(state.seed.color)] || 0xffd700;
+            seedBrick.material.color.setHex(hex);
+
+            // Update Mist
+            animateMist(x, z);
+
+            // Update Corner Snap Visualization
+            updateCornerSnaps(x, y, z);
+
+            // FLOOR COLLISION DETECTION with RESISTANCE
+            // Bottom of brick is at y + 12 - 12 = y
+            if (seedHelpers.floor) {
+                if (y <= 0) {
+                    // GROUND RESISTANCE: Clamp to floor, play collision sound
+                    state.seed.y = 0;
+                    seedBrick.position.y = 12; // Reset visual
+                    seedHelpers.floor.material.color.setHex(0xff0000); // RED WARNING
+                    seedHelpers.floor.material.opacity = 0.5;
+
+                    // Play ground collision sound
+                    if (synth) {
+                        synth.triggerAttackRelease("C2", "32n");
+                    }
+                    if (navigator.vibrate) navigator.vibrate([30, 10, 30]); // Double thud
+                } else if (y < 5) {
+                    // Close to ground, subtle warning
+                    const intensity = 1 - (y / 5);
+                    seedHelpers.floor.material.color.setHex(0xff4400);
+                    seedHelpers.floor.material.opacity = 0.1 + intensity * 0.2;
+                } else {
+                    seedHelpers.floor.material.color.setHex(0x0088ff); // Blue normal
+                    seedHelpers.floor.material.opacity = 0.1;
+                }
+            }
+
+            // 2. Update Active Rails
+            seedHelpers.activeRailX.position.z = z;
+            seedHelpers.activeRailZ.position.x = x;
+
+            // Negative Logic for Rails
+            const isNegative = x < 0 || z < 0 || y < 0;
+            const railColor = isNegative ? 0xff0000 : 0xffd700;
+            seedHelpers.activeRailX.material.color.setHex(railColor);
+            seedHelpers.activeRailZ.material.color.setHex(railColor);
+
+            // 3. Update Corner Guides
+            const hw = 10; const hd = 20;
+            const corners = [
+                { x: x - hw, z: z - hd }, { x: x + hw, z: z - hd },
+                { x: x + hw, z: z + hd }, { x: x - hw, z: z + hd }
+            ];
+            const posAttr = seedHelpers.cornerLines.geometry.attributes.position;
+            let idx = 0;
+            corners.forEach(c => {
+                posAttr.setXYZ(idx++, c.x, y, c.z);
+                posAttr.setXYZ(idx++, c.x, 0, c.z);
+            });
+            posAttr.needsUpdate = true;
+
+            // Negative Logic for Corner Guides
+            seedHelpers.cornerLines.material.color.setHex(isNegative ? 0xff0000 : 0x444444);
+
+            // 4. Snap Glow Logic
+            // Check if we are snapped to a 20 LDU grid
+            const isSnappedX = Math.abs(x % 20) < 0.1;
+            const isSnappedZ = Math.abs(z % 20) < 0.1;
+
+            if (isSnappedX && isSnappedZ && seedHelpers.snapGlow) {
+                seedHelpers.snapGlow.visible = true;
+                seedHelpers.snapGlow.position.set(x, 0.1, z);
+                // Pulse opacity
+                const time = Date.now() * 0.005;
+                seedHelpers.snapGlow.material.opacity = 0.3 + Math.sin(time) * 0.2;
+            } else if (seedHelpers.snapGlow) {
+                seedHelpers.snapGlow.visible = false;
+            }
+
+            // 5. Update ALL control surfaces for multi-brick editor
+            updateAllControlSurfaces();
+        }
+
+        function animateSeed() {
+            requestAnimationFrame(animateSeed);
+            if (seedRenderer) seedRenderer.render(seedScene, seedCamera);
+        }
+
+        // --- ATOMS VISUALIZATION (HIGH FIDELITY) ---
+        let atomsScene, atomsCamera, atomsRenderer, atomsQuad;
+
+        function initAtoms() {
+            if (atomsRenderer) return;
+            const container = document.getElementById('atoms-canvas');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            atomsScene = new THREE.Scene();
+            atomsScene.background = new THREE.Color(0x050505);
+
+            atomsCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            atomsCamera.position.set(0, 40, 40);
+            atomsCamera.lookAt(0, 0, 0);
+
+            atomsRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            atomsRenderer.setSize(w, h);
+            container.appendChild(atomsRenderer.domElement);
+
+            const controls = new THREE.OrbitControls(atomsCamera, atomsRenderer.domElement);
+            controls.enableDamping = true;
+
+            // Grid (Same as Seed)
+            atomsScene.add(new THREE.GridHelper(100, 10, 0x444444, 0x222222));
+            atomsScene.add(new THREE.AxesHelper(20));
+
+            // The Quad (Dynamic Geometry)
+            const geometry = new THREE.BufferGeometry();
+            const vertices = new Float32Array([
+                -10, -10, 0,  // v0
+                10, -10, 0,  // v1
+                10, 10, 0,  // v2
+                -10, 10, 0   // v3
+            ]);
+            const indices = [0, 1, 2, 2, 3, 0];
+
+            geometry.setAttribute('position', new THREE.BufferAttribute(vertices, 3));
+            geometry.setIndex(indices);
+            geometry.computeVertexNormals();
+
+            // High Fidelity Material
+            const material = new THREE.MeshStandardMaterial({
+                color: 0xffd700,
+                roughness: 0.3,
+                metalness: 0.4,
+                side: THREE.DoubleSide,
+                polygonOffset: true,
+                polygonOffsetFactor: 1,
+                polygonOffsetUnits: 1
+            });
+            atomsQuad = new THREE.Mesh(geometry, material);
+            atomsScene.add(atomsQuad);
+
+            // Wireframe
+            const wireGeo = new THREE.WireframeGeometry(geometry);
+            const wireMat = new THREE.LineBasicMaterial({ color: 0xffffff });
+            const wire = new THREE.LineSegments(wireGeo, wireMat);
+            atomsQuad.add(wire);
+
+            // Vertices Markers
+            const dotGeo = new THREE.SphereGeometry(1);
+            const dotMat = new THREE.MeshBasicMaterial({ color: 0xff0000 });
+            for (let i = 0; i < 4; i++) {
+                const dot = new THREE.Mesh(dotGeo, dotMat);
+                dot.userData = { id: i }; // Track ID
+                atomsQuad.add(dot);
+            }
+
+            // Lights (Same as Seed)
+            const light = new THREE.DirectionalLight(0xffffff, 1.2);
+            light.position.set(50, 100, 50);
+            atomsScene.add(light);
+            atomsScene.add(new THREE.AmbientLight(0xffffff, 0.3));
+
+            const rimLight = new THREE.SpotLight(0xffd700, 0.5);
+            rimLight.position.set(-50, 50, -50);
+            rimLight.lookAt(0, 0, 0);
+            atomsScene.add(rimLight);
+
+            animateAtoms();
+        }
+
+        function updateAtoms() {
+            if (!atomsQuad) return;
+
+            // Update Color from State
+            const hex = ldrawColors[Math.round(state.seed.color)] || 0xffd700;
+            atomsQuad.material.color.setHex(hex);
+
+            // Update Vertices from State
+            const pos = atomsQuad.geometry.attributes.position;
+
+            // V1 -> Bottom Left (-10, -10)
+            pos.setXYZ(0, state.atoms.v1.x, state.atoms.v1.y, state.atoms.v1.z);
+
+            // V2 -> Bottom Right (10, -10)
+            pos.setXYZ(1, state.atoms.v2.x, state.atoms.v2.y, state.atoms.v2.z);
+
+            pos.needsUpdate = true;
+            atomsQuad.geometry.computeBoundingSphere();
+            atomsQuad.geometry.computeVertexNormals(); // Recompute normals for lighting
+
+            // Update markers
+            atomsQuad.children.forEach(child => {
+                if (child.geometry.type === 'SphereGeometry') {
+                    const idx = child.userData.id;
+                    child.position.set(pos.getX(idx), pos.getY(idx), pos.getZ(idx));
+                }
+            });
+        }
+
+        function animateAtoms() {
+            requestAnimationFrame(animateAtoms);
+            if (atomsRenderer) atomsRenderer.render(atomsScene, atomsCamera);
+        }
+
+        // --- TAB SWITCHING ---
+        function switchTab(tabId) {
+            document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+            document.querySelectorAll('.section-view').forEach(s => s.classList.remove('active'));
+
+            const btns = Array.from(document.querySelectorAll('.nav-tab'));
+            const btn = btns.find(b => b.getAttribute('onclick').includes(tabId));
+            if (btn) btn.classList.add('active');
+
+            document.getElementById(tabId).classList.add('active');
+
+            if (tabId === 'start') setTimeout(initSeed, 100);
+            if (tabId === 'dna') setTimeout(initGizmo, 100);
+            if (tabId === 'atoms') setTimeout(initAtoms, 100);
+            if (tabId === 'modes') setTimeout(initModes, 100);
+            if (tabId === 'commands') setTimeout(initCommands, 100);
+        }
+
+        // --- HAPTIC DIAL LOGIC ---
+        let activeDial = null;
+        let startY = 0;
+        let startVal = 0;
+
+        document.addEventListener('mousedown', (e) => {
+            if (e.target.classList.contains('dial') && !e.target.classList.contains('static')) {
+                initAudio();
+                activeDial = e.target;
+                startY = e.clientY;
+                startVal = parseFloat(activeDial.dataset.val);
+                activeDial.classList.add('dragging');
+
+                // Show HUD (with safety check)
+                const card = activeDial.closest('.card');
+                if (card) {
+                    const hud = card.querySelector('.ghost-hud');
+                    if (hud) {
+                        const labelEl = hud.querySelector('.hud-label');
+                        const valueEl = hud.querySelector('.hud-value');
+                        if (labelEl) labelEl.innerText = activeDial.dataset.label;
+                        if (valueEl) valueEl.innerText = startVal;
+                        hud.classList.add('visible');
+                    }
+                }
+
+                e.preventDefault();
+            }
+        });
+
+        document.addEventListener('mousemove', (e) => {
+            if (!activeDial) return;
+
+            const delta = startY - e.clientY;
+            const step = parseFloat(activeDial.dataset.step) || 1;
+            let newVal = startVal + (delta * step * 0.5); // Sensitivity
+
+            // Constraints
+            const min = parseFloat(activeDial.dataset.min);
+            const max = parseFloat(activeDial.dataset.max);
+            if (newVal < min) newVal = min;
+            if (newVal > max) newVal = max;
+
+            // Snap to Integer (Gravity)
+            if (step === 1) {
+                if (Math.abs(newVal - Math.round(newVal)) < 0.2) {
+                    newVal = Math.round(newVal);
+                }
+            } else {
+                newVal = Math.round(newVal * 10) / 10;
+            }
+
+            // Update State
+            const type = activeDial.dataset.type;
+            activeDial.dataset.val = newVal;
+            activeDial.innerText = Math.round(newVal * 100) / 100; // Clean display
+
+            // Color Coding
+            activeDial.classList.remove('pos', 'neg', 'zero');
+            if (newVal > 0) activeDial.classList.add('pos');
+            else if (newVal < 0) activeDial.classList.add('neg');
+            else activeDial.classList.add('zero');
+
+            // --- MULTI-BRICK UPDATE LOGIC ---
+            const lineIndex = parseInt(activeDial.dataset.line);
+            if (!isNaN(lineIndex) && state.brickObjects[lineIndex]) {
+                const parsed = state.brickObjects[lineIndex].userData.parsed;
+
+                // Update parsed data
+                if (type === 'pos-x') parsed.x = newVal;
+                if (type === 'pos-y') parsed.y = newVal;
+                if (type === 'pos-z') parsed.z = newVal;
+                if (type === 'color') parsed.color = newVal;
+
+                // Update Mesh Position
+                const brick = state.brickObjects[lineIndex];
+                brick.position.set(parsed.x, parsed.y + 12, parsed.z);
+                brick.material.color.setHex(ldrawColors[Math.round(parsed.color)] || 0xffd700);
+
+                // Reconstruct LDraw String
+                const parts = state.editorLines[lineIndex].trim().split(/\s+/);
+                // 1 <color> <x> <y> <z> ...
+                parts[1] = Math.round(parsed.color);
+                parts[2] = Math.round(parsed.x);
+                parts[3] = Math.round(parsed.y);
+                parts[4] = Math.round(parsed.z);
+                state.editorLines[lineIndex] = parts.join(' ');
+
+                // Set active brick
+                if (state.selectedLineIndex === lineIndex) {
+                    state.activeBrick = brick;
+                    state.seed.x = parsed.x;
+                    state.seed.y = parsed.y;
+                    state.seed.z = parsed.z;
+                    state.seed.color = parsed.color;
+                }
+
+                // Update Control Surfaces
+                updateAllControlSurfaces();
+            } else {
+                // Fallback for non-line dials (e.g. atoms, matrix)
+                if (type === 'v1x') state.atoms.v1.x = newVal;
+                if (type === 'v1y') state.atoms.v1.y = newVal;
+                if (type === 'v1z') state.atoms.v1.z = newVal;
+                if (type === 'v2x') state.atoms.v2.x = newVal;
+                if (type === 'v2y') state.atoms.v2.y = newVal;
+                if (type === 'v2z') state.atoms.v2.z = newVal;
+
+                if (type.startsWith('m')) {
+                    const idx = parseInt(type.substring(1));
+                    if (!isNaN(idx)) {
+                        state.matrix[idx] = newVal;
+                        updateGizmo();
+                    }
+                }
+                updateAtoms();
+            }
+
+            // Audio Feedback (The Ratchet)
+            // Only play if we crossed an integer threshold
+            if (Math.floor(newVal) !== Math.floor(startVal + (delta - 1) * step * 0.5)) {
+                playTick();
+            }
+        });
+
+        document.addEventListener('mouseup', () => {
+            if (activeDial) {
+                activeDial.classList.remove('dragging');
+                const card = activeDial.closest('.card');
+                if (card) {
+                    const hud = card.querySelector('.ghost-hud');
+                    if (hud) hud.classList.remove('visible');
+                }
+                activeDial = null;
+                playSnap();
+            }
+        });
+
+        // --- GIZMO (RESTORED) ---
+        let gizmoScene, gizmoCamera, gizmoRenderer, gizmoBrick;
+
+        function initGizmo() {
+            if (gizmoRenderer) return;
+            const container = document.getElementById('gizmo-canvas');
+            const w = container.clientWidth;
+            const h = container.clientHeight;
+
+            gizmoScene = new THREE.Scene();
+            gizmoScene.background = new THREE.Color(0x050505);
+
+            gizmoCamera = new THREE.PerspectiveCamera(45, w / h, 0.1, 1000);
+            gizmoCamera.position.set(50, 50, 50);
+            gizmoCamera.lookAt(0, 0, 0);
+
+            gizmoRenderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            gizmoRenderer.setSize(w, h);
+            container.appendChild(gizmoRenderer.domElement);
+
+            const controls = new THREE.OrbitControls(gizmoCamera, gizmoRenderer.domElement);
+            controls.enableDamping = true;
+
+            gizmoScene.add(new THREE.GridHelper(100, 10, 0x333333, 0x111111));
+            gizmoScene.add(new THREE.AxesHelper(20));
+
+            // Brick
+            const geometry = new THREE.BoxGeometry(20, 24, 40);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffd700, roughness: 0.4, metalness: 0.6 });
+            gizmoBrick = new THREE.Mesh(geometry, material);
+            gizmoScene.add(gizmoBrick);
+
+            // Edges
+            const edges = new THREE.EdgesGeometry(geometry);
+            gizmoBrick.add(new THREE.LineSegments(edges, new THREE.LineBasicMaterial({ color: 0x000000 })));
+
+            // Lights
+            const light = new THREE.DirectionalLight(0xffffff, 1);
+            light.position.set(20, 50, 20);
+            gizmoScene.add(light);
+            gizmoScene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+            animateGizmo();
+        }
+
+        function updateGizmo() {
+            if (!gizmoBrick) return;
+            const m = state.matrix;
+            const mat4 = new THREE.Matrix4();
+
+            // Map LDraw (Row Major 3x3) to Three.js (Column Major 4x4)
+            mat4.set(
+                m[0], m[1], m[2], 0,
+                m[3], m[4], m[5], 0,
+                m[6], m[7], m[8], 0,
+                0, 0, 0, 1
+            );
+
+            gizmoBrick.rotation.setFromRotationMatrix(mat4);
+        }
+
+        function animateGizmo() {
+            requestAnimationFrame(animateGizmo);
+            if (gizmoRenderer) gizmoRenderer.render(gizmoScene, gizmoCamera);
+        }
+
+        // --- MODES (RESTORED) ---
+        function initModes() {
+            const canvas = document.getElementById('modes-canvas');
+            canvas.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:Courier New;">Interactive Modes Visualizer</div>';
+        }
+
+        // --- COMMANDS (RESTORED) ---
+        function initCommands() {
+            const canvas = document.getElementById('commands-canvas');
+            canvas.innerHTML = '<div style="display:flex; justify-content:center; align-items:center; height:100%; color:#555; font-family:Courier New;">Timeline Visualizer</div>';
+        }
+
+        // Initialize Start Tab by default
+        setTimeout(initSeed, 100);
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,644 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>TETRAD-UNIF // Unified + TETRAD</title>
+    <link rel="stylesheet" href="frank-unified.css">
+    <script src="frank-base.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg: #03180c;
+            --panel: #052010;
+            --panel-dark: #03140d;
+            --border: #0c3a23;
+            --text: #aef3c1;
+            --text-muted: #5ea275;
+            --accent: #56ff9f;
+            --accent-soft: rgba(86, 255, 159, 0.12);
+            --accent-glow: rgba(86, 255, 159, 0.32);
+            --grid-highlight: rgba(86, 255, 159, 0.08);
+            --shadow: rgba(0, 0, 0, 0.45);
+            --transition: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            font-size: clamp(11px, 2.4vw, 13px);
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .header {
+            padding: 12px 16px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .title {
+            font-size: clamp(10px, 3vw, 12px);
+            color: var(--accent);
+            letter-spacing: 2px;
+            text-transform: uppercase;
+        }
+
+        select.scene-select {
+            background: var(--panel-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: clamp(9px, 2.5vw, 10px);
+            letter-spacing: 0.18em;
+            padding: 6px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s var(--transition);
+        }
+
+        select.scene-select:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+
+        .grid-section {
+            flex: 0 0 65vh;
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel-dark);
+            padding: 12px;
+            position: relative;
+        }
+
+        .grid-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        .grid-title {
+            font-size: clamp(9px, 2.5vw, 10px);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .corner-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .channel-btn {
+            width: 30px;
+            height: 30px;
+            border-radius: 50%;
+            background: var(--panel-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: 12px;
+            cursor: pointer;
+            transition: all 0.25s var(--transition);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .channel-btn:hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+            transform: scale(1.1);
+        }
+
+        .channel-btn:active {
+            transform: scale(0.9);
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 4px;
+            aspect-ratio: 1;
+            max-width: min(90vw, 500px);
+            width: 100%;
+            margin: 0 auto;
+        }
+
+        .grid-cell {
+            position: relative;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(14px, 3vw, 22px);
+            font-weight: 700;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.3s var(--transition);
+            aspect-ratio: 1;
+            min-height: 32px;
+        }
+
+        .grid-cell:hover {
+            border-color: var(--accent);
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 0 12px var(--accent-soft);
+        }
+
+        .grid-cell.occupied {
+            color: var(--text);
+            border-color: var(--accent);
+            background: linear-gradient(135deg, var(--grid-highlight) 0%, var(--panel) 100%);
+            box-shadow: 0 0 0 1px var(--accent-soft) inset, 0 2px 4px var(--shadow);
+        }
+
+        .grid-cell.occupied:hover {
+            background: linear-gradient(135deg, var(--accent-soft) 0%, var(--panel) 100%);
+            box-shadow: 0 0 16px var(--accent-glow);
+        }
+
+        .grid-label {
+            position: absolute;
+            bottom: 2px;
+            left: 2px;
+            right: 2px;
+            font-size: 6px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            padding: 1px 2px;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.6);
+            color: rgba(255, 255, 255, 0.95);
+            font-weight: 700;
+            line-height: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .catalog-bar {
+            margin-top: 10px;
+            padding-top: 8px;
+            border-top: 1px solid var(--border);
+            max-height: 80px;
+            overflow: hidden;
+        }
+
+        .catalog-label {
+            font-size: clamp(8px, 2vw, 9px);
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 8px;
+        }
+
+        .catalog-grid {
+            display: flex;
+            gap: 6px;
+            overflow-x: auto;
+            padding-bottom: 8px;
+        }
+
+        .catalog-card {
+            flex: 0 0 100px;
+            padding: 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .catalog-card:hover,
+        .catalog-card.selected {
+            border-color: var(--accent);
+            background: var(--accent-soft);
+        }
+
+        .catalog-card-name {
+            font-size: clamp(8px, 2vw, 9px);
+            color: var(--text);
+        }
+
+        .catalog-card-id {
+            font-size: clamp(7px, 1.8vw, 8px);
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .chat-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            background: var(--panel);
+            padding: 16px;
+            min-height: 0;
+            overflow: hidden;
+        }
+
+        .message-list {
+            flex: 1;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .message {
+            padding: 12px 14px;
+            background: var(--panel-dark);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-size: clamp(9px, 2.5vw, 10px);
+            transition: all 0.2s var(--transition);
+        }
+
+        .message.user {
+            border-left: 2px solid var(--accent);
+        }
+
+        .message.system {
+            border-left: 2px solid var(--text-muted);
+            opacity: 0.85;
+        }
+
+        .message-time {
+            font-size: clamp(7px, 1.8vw, 8px);
+            color: var(--text-muted);
+            margin-bottom: 4px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+        }
+
+        textarea.message-input {
+            flex: 1;
+            background: var(--panel-dark);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 8px 10px;
+            border-radius: 4px;
+            font-size: clamp(9px, 2.5vw, 10px);
+            line-height: 1.4;
+            resize: none;
+            min-height: 36px;
+            max-height: 80px;
+            font-family: inherit;
+            transition: all 0.3s var(--transition);
+        }
+
+        textarea.message-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 12px var(--accent-glow);
+        }
+
+        .send-btn {
+            padding: 8px 18px;
+            background: var(--panel-dark);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            font-size: clamp(8px, 2vw, 9px);
+            letter-spacing: 0.2em;
+            cursor: pointer;
+            transition: all 0.25s var(--transition);
+            border-radius: 4px;
+            font-family: inherit;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
+
+        .send-btn:not(:disabled):hover {
+            background: var(--accent);
+            color: var(--bg);
+            border-color: var(--accent);
+        }
+
+        .send-btn:disabled {
+            opacity: 0.35;
+            cursor: not-allowed;
+        }
+
+        .send-btn:active:not(:disabled) {
+            transform: scale(0.95);
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">◼ UNIFIED</div>
+        <select class="scene-select" id="scene-select">
+            <option value="">Select scene...</option>
+        </select>
+    </div>
+
+    <div class="grid-section">
+        <div class="grid-header">
+            <div class="grid-title">COMPOSER</div>
+            <div class="corner-buttons">
+                <button class="channel-btn" title="Clear Grid" onclick="clearGrid()">✕</button>
+                <button class="channel-btn" title="New Scene" onclick="createScene()">+</button>
+                <button class="channel-btn" title="Build Scene" onclick="buildScene()">◼</button>
+            </div>
+        </div>
+
+        <div id="grid"></div>
+
+        <div class="catalog-bar">
+            <div class="catalog-label">CATALOG</div>
+            <div class="catalog-grid" id="catalog-grid"></div>
+        </div>
+    </div>
+
+    <div class="chat-section">
+        <div class="message-list" id="message-list"></div>
+
+        <div class="input-wrapper">
+            <textarea class="message-input" id="message-input" rows="2" placeholder="Type message..."></textarea>
+            <button class="send-btn" id="send-btn">SEND</button>
+        </div>
+    </div>
+
+    <script>
+        let frank;
+        let grid = [];
+        let selectedPartId = null;
+        let smallFutures = {};
+
+        const sampleParts = [
+            { id: '3001', name: 'Brick 2x4' },
+            { id: '3004', name: 'Brick 1x2' },
+            { id: '3024', name: 'Plate 1x1' },
+            { id: '3022', name: 'Plate 2x2' }
+        ];
+
+        function init() {
+            frank = new FrankBase('tetrad-unif');
+            frank.onSceneLoad = onSceneLoad;
+            frank.onSceneSwitch = onSceneSwitch;
+            frank.onInboxUpdate = onInboxUpdate;
+
+            grid = frank.grid;
+
+            createGrid();
+            renderSceneSelect();
+            renderCatalog();
+            setupChatInput();
+            loadSmallFutures();
+            frank.loadActiveScene();
+
+            addMessage('system', 'TETRAD-UNIF ready');
+        }
+
+        async function loadSmallFutures() {
+            try {
+                const response = await fetch('wag-viewer-prime-integration-20251112-055341-copy/small-future-scenarios.json');
+                const data = await response.json();
+                smallFutures = data.scenarios;
+                addMessage('system', `Loaded ${Object.keys(smallFutures).length} Small Futures`);
+
+                const select = document.getElementById('scene-select');
+                const optgroup = document.createElement('optgroup');
+                optgroup.label = 'SMALL FUTURES';
+                Object.entries(smallFutures).slice(0, 50).forEach(([id, scenario]) => {
+                    const option = document.createElement('option');
+                    option.value = `sf-${id}`;
+                    option.textContent = scenario.name;
+                    optgroup.appendChild(option);
+                });
+                select.appendChild(optgroup);
+            } catch (error) {
+                console.warn('Could not load Small Futures:', error);
+            }
+        }
+
+        function setupChatInput() {
+            const input = document.getElementById('message-input');
+            const sendBtn = document.getElementById('send-btn');
+
+            input.addEventListener('input', () => {
+                input.style.height = 'auto';
+                input.style.height = Math.min(input.scrollHeight, 80) + 'px';
+                sendBtn.disabled = !input.value.trim();
+            });
+
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    sendMessage();
+                }
+            });
+
+            sendBtn.onclick = sendMessage;
+            sendBtn.disabled = true;
+        }
+
+        function sendMessage() {
+            const input = document.getElementById('message-input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addMessage('user', text);
+
+            if (frank.messageHandler.bus) {
+                frank.messageHandler.send('chat-message', { text });
+            }
+
+            input.value = '';
+            input.style.height = 'auto';
+            document.getElementById('send-btn').disabled = true;
+        }
+
+        function createGrid() {
+            const gridEl = document.getElementById('grid');
+            gridEl.innerHTML = '';
+
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.dataset.index = i;
+
+                const label = document.createElement('div');
+                label.className = 'grid-label';
+                label.textContent = grid[i].label;
+                cell.appendChild(label);
+
+                cell.addEventListener('click', () => onCellClick(i));
+                cell.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    clearCell(i);
+                });
+
+                gridEl.appendChild(cell);
+            }
+
+            updateGrid();
+        }
+
+        function onCellClick(idx) {
+            if (selectedPartId) {
+                frank.assignToCell(idx, selectedPartId);
+                updateGrid();
+                const part = sampleParts.find(p => p.id === selectedPartId);
+                addMessage('user', `Placed: ${part.name} at ${grid[idx].label}`);
+            }
+        }
+
+        function clearCell(idx) {
+            frank.clearCell(idx);
+            updateGrid();
+            addMessage('system', `Cleared: ${grid[idx].label}`);
+        }
+
+        function clearGrid() {
+            if (!confirm('Clear entire grid?')) return;
+            grid.forEach((_, i) => frank.clearCell(i));
+            updateGrid();
+            addMessage('system', 'Grid cleared');
+        }
+
+        function updateGrid() {
+            const gridEl = document.getElementById('grid');
+            grid.forEach((cell, i) => {
+                const div = gridEl.children[i];
+                if (cell.occupantId) {
+                    div.classList.add('occupied');
+                    const part = sampleParts.find(p => p.id === cell.occupantId);
+                    if (part) {
+                        div.textContent = part.id;
+                    }
+                } else {
+                    div.classList.remove('occupied');
+                    div.innerHTML = `<div class="grid-label">${grid[i].label}</div>`;
+                }
+            });
+        }
+
+        function renderCatalog() {
+            const list = document.getElementById('catalog-grid');
+            list.innerHTML = '';
+
+            sampleParts.forEach(part => {
+                const card = document.createElement('div');
+                card.className = 'catalog-card';
+                if (part.id === selectedPartId) card.classList.add('selected');
+
+                card.innerHTML = `
+                    <div class="catalog-card-name">${part.name}</div>
+                    <div class="catalog-card-id">${part.id}</div>
+                `;
+                card.onclick = () => {
+                    selectedPartId = part.id;
+                    renderCatalog();
+                    addMessage('user', `Selected: ${part.name}`);
+                };
+                list.appendChild(card);
+            });
+        }
+
+        function renderSceneSelect() {
+            const select = document.getElementById('scene-select');
+            const scenes = frank.sceneManager.listScenes();
+            const activeId = frank.sceneManager.activeSceneId;
+
+            const optgroups = select.querySelectorAll('optgroup');
+            select.innerHTML = '<option value="">Select scene...</option>';
+            optgroups.forEach(og => select.appendChild(og));
+
+            if (scenes.length > 0) {
+                const userGroup = document.createElement('optgroup');
+                userGroup.label = 'MY SCENES';
+                scenes.forEach(scene => {
+                    const option = document.createElement('option');
+                    option.value = scene.id;
+                    option.textContent = scene.name;
+                    if (scene.id === activeId) option.selected = true;
+                    userGroup.appendChild(option);
+                });
+                select.insertBefore(userGroup, select.firstChild.nextSibling);
+            }
+
+            select.onchange = () => {
+                if (select.value) frank.switchScene(select.value);
+            };
+        }
+
+        function createScene() {
+            const name = prompt('Scene name:', `Scene ${frank.sceneManager.getSceneCount() + 1}`);
+            if (name) {
+                const scene = frank.sceneManager.createScene(name);
+                frank.switchScene(scene.id);
+                addMessage('user', `Created: ${name}`);
+            }
+        }
+
+        function buildScene() {
+            const occupied = grid.filter(c => c.occupantId);
+            if (occupied.length === 0) {
+                addMessage('system', 'Grid is empty');
+                return;
+            }
+            addMessage('user', `Built scene with ${occupied.length} parts`);
+        }
+
+        function onSceneLoad(scene) {
+            updateGrid();
+            renderSceneSelect();
+            addMessage('system', `Loaded: ${scene.name}`);
+        }
+
+        function onSceneSwitch(sceneId) {
+            const scene = frank.sceneManager.getScene(sceneId);
+            updateGrid();
+            renderCatalog();
+            renderSceneSelect();
+            addMessage('user', `Switched to: ${scene.name}`);
+        }
+
+        function onInboxUpdate(packet) {
+            addMessage('system', `Received: ${packet.kind}`);
+        }
+
+        function addMessage(type, text) {
+            const list = document.getElementById('message-list');
+            const msg = document.createElement('div');
+            msg.className = `message ${type}`;
+
+            const time = new Date().toLocaleTimeString();
+            msg.innerHTML = `
+                <div class="message-time">${time}</div>
+                <div>${text}</div>
+            `;
+
+            list.appendChild(msg);
+            list.scrollTop = list.scrollHeight;
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

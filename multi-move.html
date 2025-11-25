@@ -1,0 +1,725 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG Master Builder v9</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            /* Deep Industrial Theme */
+            --bg: #020203;
+            --panel: #0a0a0c;
+            --text: #889;
+            --accent: #ffcc00;
+            --border: #222;
+
+            /* Telemetry Colors */
+            --c-x: #ff3366;
+            --c-y: #00ffaa;
+            --c-z: #3366ff;
+
+            /* Grid Colors */
+            --grid-base: #112233;
+            --grid-highlight: #004455;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 3D Viewport */
+        #viewport {
+            height: 60vh;
+            width: 100%;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* HUD Layer */
+        #hud-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hud-tag {
+            position: absolute;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            padding: 2px 4px;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid;
+            transform: translate(-50%, -50%);
+            display: none;
+            /* JS toggles */
+            white-space: nowrap;
+        }
+
+        .tag-x {
+            color: var(--c-x);
+            border-color: var(--c-x);
+        }
+
+        .tag-y {
+            color: var(--c-y);
+            border-color: var(--c-y);
+        }
+
+        .tag-z {
+            color: var(--c-z);
+            border-color: var(--c-z);
+        }
+
+        /* Editor Panel */
+        #editor-container {
+            height: 40vh;
+            background: var(--panel);
+            border-top: 2px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .toolbar {
+            height: 36px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #151515;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 3px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* List */
+        #code-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+        }
+
+        .line-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            height: 40px;
+            background: var(--panel);
+            transition: background 0.1s;
+        }
+
+        .line-row:hover {
+            background: #101015;
+        }
+
+        .line-row.selected {
+            background: rgba(255, 204, 0, 0.08);
+            border-left: 3px solid var(--accent);
+        }
+
+        .line-row.header {
+            background: #050505;
+            color: #666;
+            cursor: pointer;
+            font-style: italic;
+        }
+
+        .line-row.header:hover {
+            color: var(--accent);
+        }
+
+        .checkbox {
+            width: 32px;
+            display: flex;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .line-row.selected .checkbox {
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .tokens {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            gap: 6px;
+            padding: 0 10px;
+            height: 100%;
+            scrollbar-width: none;
+        }
+
+        .dial {
+            padding: 3px 5px;
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 2px;
+            min-width: 30px;
+            text-align: center;
+            cursor: ns-resize;
+            flex-shrink: 0;
+            user-select: none;
+            font-weight: bold;
+            font-size: 11px;
+            touch-action: none;
+        }
+
+        .dial:hover {
+            border-color: #555;
+        }
+
+        .dial.dragging {
+            background: var(--accent);
+            color: #000 !important;
+            transform: scale(1.1);
+            z-index: 100;
+        }
+
+        /* Semantic Colors */
+        .x-val {
+            color: var(--c-x);
+        }
+
+        .y-val {
+            color: var(--c-y);
+        }
+
+        .z-val {
+            color: var(--c-z);
+        }
+
+        .c-val {
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .m-val {
+            color: #666;
+            font-weight: normal;
+            font-size: 10px;
+        }
+
+        /* Raw Overlay */
+        #raw-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #333;
+            padding: 15px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="viewport">
+        <div id="hud-layer"></div>
+    </div>
+
+    <div id="editor-container">
+        <div class="toolbar">
+            <div class="brand">WAG MASTER v9</div>
+            <div style="display:flex; gap:10px">
+                <button class="btn" onclick="toggleRaw()">RAW</button>
+                <button class="btn" onclick="exportCode()">COPY</button>
+            </div>
+        </div>
+        <div id="code-scroll"></div>
+    </div>
+
+    <div id="raw-overlay">
+        <h3 style="color:var(--accent); margin:0 0 10px 0">SOURCE CODE</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div style="display:flex; gap:10px">
+            <button class="btn" onclick="loadRaw()"
+                style="flex:1; color:var(--accent); border-color:var(--accent)">LOAD</button>
+            <button class="btn" onclick="toggleRaw()" style="flex:1">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. DATA --- */
+        const DEFAULT_MPD = `0 FILE wag_master_v9.mpd
+0 // BASEPLATE
+1 15 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // RED PILLAR
+1 4 -60 -24 -60 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 -60 -48 -60 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 -60 -72 -60 1 0 0 0 1 0 0 0 1 3001.dat
+0 // BLUE PILLAR
+1 1 60 -24 60 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 60 -48 60 1 0 0 0 1 0 0 0 1 3001.dat`;
+
+        let state = { lines: [], audioReady: false };
+
+        // --- 2. AUDIO ---
+        let click, alarm;
+        async function initAudio() {
+            if (state.audioReady) return;
+            await Tone.start();
+            click = new Tone.MembraneSynth({ envelope: { attack: 0.001, decay: 0.05 } }).toDestination();
+            click.volume.value = -18;
+            alarm = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { release: 0.1 } }).toDestination();
+            alarm.volume.value = -15;
+            state.audioReady = true;
+        }
+        function sfxTick() { if (state.audioReady) click.triggerAttackRelease("C2", "32n"); }
+        function sfxSnap() { if (state.audioReady) click.triggerAttackRelease("G2", "32n"); }
+        function sfxCollide() { if (state.audioReady) alarm.triggerAttackRelease("A3", "16n"); }
+
+        // --- 3. PARSER ---
+        function parse(text) {
+            state.lines = text.split('\n').map((raw, i) => {
+                raw = raw.trim();
+                if (!raw) return { id: i, type: -1, raw: "" };
+                const p = raw.split(/\s+/);
+                const type = parseInt(p[0]);
+                if (type === 1 && p.length >= 14) {
+                    return {
+                        id: i, type: 1, isPart: true,
+                        color: parseInt(p[1]),
+                        x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
+                        matrix: p.slice(5, 14).map(parseFloat),
+                        file: p.slice(14).join(' '),
+                        raw: raw, selected: false
+                    };
+                } else if (type === 0) {
+                    return { id: i, type: 0, isHeader: true, raw: raw, selected: false };
+                }
+                return { id: i, type: type, isPart: false, raw: raw };
+            });
+            // Auto-select first group
+            const first = state.lines.find(l => l.isPart);
+            if (first) first.selected = true;
+        }
+
+        function compile(line) {
+            if (line.isPart) {
+                const m = line.matrix.map(n => Math.round(n * 1000) / 1000);
+                line.raw = `1 ${line.color} ${Math.round(line.x)} ${Math.round(line.y)} ${Math.round(line.z)} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        function duplicateLine(id) {
+            const src = state.lines[id];
+            if (!src || !src.isPart) return;
+            const clone = JSON.parse(JSON.stringify(src));
+            clone.y -= 24; // Stack on top
+            compile(clone);
+            state.lines.splice(id + 1, 0, clone);
+            state.lines.forEach((l, i) => l.id = i); // Re-index
+            renderEditor(); update3D();
+        }
+
+        // --- 4. THREE.JS ---
+        const scene = new THREE.Scene();
+        scene.background = new THREE.Color(0x020203);
+        scene.fog = new THREE.Fog(0x020203, 300, 800);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight * 0.6), 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(200, 220, 200);
+        camera.lookAt(0, 0, 0);
+
+        // GROUPS
+        const worldRoot = new THREE.Group();
+        worldRoot.scale.set(1, -1, 1); // Flip Y for LDraw
+        scene.add(worldRoot);
+
+        const teleRoot = new THREE.Group();
+        scene.add(teleRoot); // No flip for telemetry
+
+        // --- THE CONTAINMENT FIELD (Walls) ---
+        const BOUNDS = 160; // Size of the box
+        const walls = {
+            floor: createWallPlane(BOUNDS, 0x00ffaa),
+            ceil: createWallPlane(BOUNDS, 0x00ffaa),
+            left: createWallPlane(BOUNDS, 0xff3366),
+            right: createWallPlane(BOUNDS, 0xff3366),
+            back: createWallPlane(BOUNDS, 0x3366ff),
+            front: createWallPlane(BOUNDS, 0x3366ff),
+        };
+
+        // Position Walls
+        walls.floor.rotation.x = -Math.PI / 2;
+
+        walls.ceil.rotation.x = Math.PI / 2;
+        walls.ceil.position.y = 200; // Height of room
+
+        walls.back.position.set(0, 100, -BOUNDS);
+
+        walls.front.position.set(0, 100, BOUNDS);
+        walls.front.rotation.y = Math.PI;
+
+        walls.left.rotation.y = Math.PI / 2;
+        walls.left.position.set(-BOUNDS, 100, 0);
+
+        walls.right.rotation.y = -Math.PI / 2;
+        walls.right.position.set(BOUNDS, 100, 0);
+
+        function createWallPlane(size, color) {
+            // Grid Helper + Transparent Plane for Collision Glow
+            const group = new THREE.Group();
+
+            // Grid
+            const g = new THREE.GridHelper(size * 2, 20, color, 0x112233);
+            g.rotation.x = Math.PI / 2; // Rotate grid to be a plane facing Z
+            group.add(g);
+
+            // Collision Mesh (Glows when hit)
+            const geo = new THREE.PlaneGeometry(size * 2, size * 2);
+            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData.isWall = true;
+            group.add(mesh);
+
+            scene.add(group);
+            return group;
+        }
+
+        // --- TELEMETRY POOL (Multi-Target) ---
+        const MAX_SELECT = 50;
+        const shadowPool = [];
+        const shadowMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+        const boxProjGeo = new THREE.PlaneGeometry(1, 1);
+
+        for (let i = 0; i < MAX_SELECT * 5; i++) { // 5 shadows per brick
+            const m = new THREE.Mesh(boxProjGeo, shadowMat.clone());
+            m.visible = false;
+            teleRoot.add(m);
+            shadowPool.push(m);
+        }
+
+        // HUD Label Pool
+        const labelPool = [];
+        function getLabel(i) {
+            if (!labelPool[i]) {
+                const el = document.createElement('div');
+                el.className = 'hud-tag';
+                document.getElementById('hud-layer').appendChild(el);
+                labelPool[i] = el;
+            }
+            return labelPool[i];
+        }
+
+        // --- RENDERER ---
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+        const lColors = { 0: 0x222, 1: 0x0055BF, 2: 0x257A24, 4: 0xC91A09, 14: 0xFFD700, 15: 0xEEE, 25: 0xffaa00 };
+
+        function update3D() {
+            // 1. Rebuild Bricks
+            const kill = [];
+            worldRoot.traverse(c => { if (c.userData.isBrick) kill.push(c); });
+            kill.forEach(c => worldRoot.remove(c));
+
+            // Reset Telemetry
+            shadowPool.forEach(s => s.visible = false);
+            labelPool.forEach(l => l.style.display = 'none');
+
+            // Reset Wall Glows
+            Object.values(walls).forEach(w => w.children[1].material.opacity = 0);
+
+            let shadowIdx = 0;
+            let labelIdx = 0;
+            let collisionDetected = false;
+
+            state.lines.forEach(line => {
+                if (line.isPart) {
+                    // -- BRICK MESH --
+                    const m = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({
+                        color: lColors[line.color] || 0x888, roughness: 0.5, metalness: 0.2
+                    }));
+                    m.userData.isBrick = true;
+
+                    // Dimensions
+                    let s = [20, 24, 20];
+                    if (line.file.includes('3811')) s = [320, 4, 320];
+                    m.scale.set(s[0], s[1], s[2]);
+                    m.position.set(line.x, line.y, line.z);
+
+                    const mat = new THREE.Matrix4();
+                    mat.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], 0,
+                        line.matrix[3], line.matrix[4], line.matrix[5], 0,
+                        line.matrix[6], line.matrix[7], line.matrix[8], 0,
+                        0, 0, 0, 1
+                    );
+                    m.rotation.setFromRotationMatrix(mat);
+
+                    if (line.selected) {
+                        m.material.emissive.setHex(0x332200);
+                        const wire = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineBasicMaterial({ color: 0xffd700 }));
+                        meshWire = wire; // scope reference not needed
+                        m.add(wire);
+
+                        // -- TELEMETRY (Per Selected Brick) --
+                        const vx = line.x;
+                        const vy = -line.y; // Visual Y
+                        const vz = line.z;
+                        const brickColor = lColors[line.color] || 0xffffff;
+
+                        // 1. Project to Floor (Green Axis)
+                        setShadow(shadowIdx++, vx, 0, vz, s[0], s[2], -Math.PI / 2, 0, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), vx, 0, vz, `Y:${Math.round(line.y)}`, 'tag-y');
+
+                        // 2. Project to Left Wall (Red Axis)
+                        setShadow(shadowIdx++, -BOUNDS, vy, vz, s[2], s[1], 0, Math.PI / 2, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), -BOUNDS, vy, vz, `X:${Math.round(vx)}`, 'tag-x');
+
+                        // 3. Project to Back Wall (Blue Axis)
+                        setShadow(shadowIdx++, vx, vy, -BOUNDS, s[0], s[1], 0, 0, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), vx, vy, -BOUNDS, `Z:${Math.round(vz)}`, 'tag-z');
+
+                        // 4. Project to Right Wall (Optional/contextual)
+                        setShadow(shadowIdx++, BOUNDS, vy, vz, s[2], s[1], 0, -Math.PI / 2, 0, brickColor);
+
+                        // 5. Project to Front Wall
+                        setShadow(shadowIdx++, vx, vy, BOUNDS, s[0], s[1], 0, Math.PI, 0, brickColor);
+
+
+                        // -- COLLISION DETECTION --
+                        // Check Boundaries
+                        if (vy < 0) { walls.floor.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vy > 200) { walls.ceil.children[1].material.opacity = 0.4; collisionDetected = true; }
+
+                        if (vx < -BOUNDS) { walls.left.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vx > BOUNDS) { walls.right.children[1].material.opacity = 0.4; collisionDetected = true; }
+
+                        if (vz < -BOUNDS) { walls.back.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vz > BOUNDS) { walls.front.children[1].material.opacity = 0.4; collisionDetected = true; }
+                    }
+
+                    worldRoot.add(m);
+                }
+            });
+
+            if (collisionDetected) sfxCollide();
+        }
+
+        function setShadow(idx, x, y, z, w, h, rx, ry, rz, col) {
+            if (idx >= shadowPool.length) return;
+            const s = shadowPool[idx];
+            s.visible = true;
+            s.position.set(x, y, z);
+            s.scale.set(w, h, 1);
+            s.rotation.set(rx, ry, rz);
+            s.material.color.setHex(col);
+        }
+
+        function updateLabel(el, x, y, z, txt, cls) {
+            const v = new THREE.Vector3(x, y, z);
+            v.project(camera);
+            if (v.z > 1) { el.style.display = 'none'; return; }
+            el.className = `hud-tag ${cls}`;
+            el.style.display = 'block';
+            el.style.left = `${(v.x * .5 + .5) * renderer.domElement.clientWidth}px`;
+            el.style.top = `${(-(v.y * .5) + .5) * renderer.domElement.clientHeight}px`;
+            el.innerText = txt;
+        }
+
+        /* --- 5. EDITOR --- */
+        function renderEditor() {
+            const c = document.getElementById('code-scroll');
+            c.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+
+                if (line.isHeader) {
+                    row.className = 'line-row header';
+                    row.innerHTML = `<div style="padding-left:10px">${line.raw}</div>`;
+                    row.onclick = () => selectSection(line.id);
+                    c.appendChild(row); return;
+                }
+
+                row.className = `line-row ${line.selected ? 'selected' : ''}`;
+                row.oncontextmenu = (e) => { e.preventDefault(); duplicateLine(line.id); };
+
+                const chk = document.createElement('div');
+                chk.className = 'checkbox'; chk.innerText = line.selected ? '☑' : '☐';
+                chk.onclick = () => toggleSelect(line);
+                row.appendChild(chk);
+
+                const tok = document.createElement('div');
+                tok.className = 'tokens';
+
+                if (line.isPart) {
+                    tok.appendChild(makeDial(line, 'color', 1, 'C', 'c-val'));
+                    tok.appendChild(makeDial(line, 'x', 20, 'X', 'x-val'));
+                    tok.appendChild(makeDial(line, 'y', 8, 'Y', 'y-val'));
+                    tok.appendChild(makeDial(line, 'z', 20, 'Z', 'z-val'));
+                    for (let i = 0; i < 9; i++) tok.appendChild(makeMatrixDial(line, i));
+                } else {
+                    tok.innerText = line.raw; tok.style.color = '#555';
+                }
+                row.appendChild(tok);
+                c.appendChild(row);
+            });
+        }
+
+        function toggleSelect(line) { initAudio(); line.selected = !line.selected; sfxTick(); renderEditor(); update3D(); }
+
+        function selectSection(id) {
+            initAudio(); let i = id + 1;
+            while (i < state.lines.length && state.lines[i].type !== 0) {
+                if (state.lines[i].isPart) state.lines[i].selected = true;
+                i++;
+            }
+            sfxSnap(); renderEditor(); update3D();
+        }
+
+        function makeDial(obj, key, step, lbl, cls) {
+            const el = document.createElement('div');
+            el.className = 'dial';
+            el.innerHTML = `<span class="x-val" style="font-size:8px; margin-right:2px">${lbl}</span><span class="${cls}">${Math.round(obj[key])}</span>`;
+
+            let startY = 0, startVal = 0;
+            const start = (y) => { initAudio(); startY = y; startVal = obj[key]; el.classList.add('dragging'); }
+            const move = (y) => {
+                const d = Math.round((startY - y) / 10) * step;
+                const nv = startVal + d;
+                if (nv !== obj[key]) {
+                    const diff = nv - obj[key];
+                    obj[key] = nv;
+                    if (obj.selected) state.lines.forEach(l => { if (l.isPart && l.selected && l !== obj) l[key] += diff; });
+                    el.querySelector(`.${cls}`).innerText = nv;
+                    compile(obj); update3D(); sfxTick();
+                }
+            }
+            const end = () => { el.classList.remove('dragging'); renderEditor(); sfxSnap(); }
+
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY) }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY) }, { passive: false });
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', e => { start(e.clientY); const mm = ev => move(ev.clientY); const mu = () => { end(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu) }; window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu); });
+            return el;
+        }
+
+        function makeMatrixDial(obj, idx) {
+            const el = document.createElement('div');
+            el.className = 'dial m-val';
+            el.innerText = Math.round(obj.matrix[idx] * 10) / 10;
+            let startY = 0;
+            const h = (y) => {
+                const d = (startY - y) / 50;
+                const v = Math.round((obj.matrix[idx] + d) * 10) / 10;
+                if (v !== obj.matrix[idx]) {
+                    obj.matrix[idx] = v; el.innerText = v; compile(obj); update3D();
+                }
+            }
+            el.addEventListener('touchstart', e => { startY = e.touches[0].clientY }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); h(e.touches[0].clientY) }, { passive: false });
+            return el;
+        }
+
+        /* --- INIT --- */
+        function toggleRaw() {
+            const e = document.getElementById('raw-overlay');
+            if (e.style.display === 'flex') e.style.display = 'none';
+            else { document.getElementById('raw-text').value = state.lines.map(l => l.raw).join('\n'); e.style.display = 'flex'; }
+        }
+        function loadRaw() { parse(document.getElementById('raw-text').value); renderEditor(); update3D(); toggleRaw(); }
+        function exportCode() { navigator.clipboard.writeText(state.lines.map(l => l.raw).join('\n')).then(() => alert('Copied!')); }
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight * 0.6);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+        });
+
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(100, 300, 100);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+        parse(DEFAULT_MPD);
+        renderEditor();
+        update3D();
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+            // Re-run HUD Logic every frame for smoothness
+            let lIdx = 0;
+            state.lines.forEach(line => {
+                if (line.isPart && line.selected) {
+                    const vx = line.x; const vy = -line.y; const vz = line.z;
+                    // Reuse label pool logic
+                    const lblY = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblY, vx, 0, vz, `Y:${Math.round(line.y)}`, 'tag-y');
+
+                    const lblX = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblX, -160, vy, vz, `X:${Math.round(vx)}`, 'tag-x'); // 160 is BOUNDS
+
+                    const lblZ = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblZ, vx, vy, -160, `Z:${Math.round(vz)}`, 'tag-z');
+                }
+            });
+            renderer.render(scene, camera);
+        }
+        animate();
+
+    </script>
+</body>
+
+</html>

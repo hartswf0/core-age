@@ -1,0 +1,695 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Architecture Decision Matrix</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2300FF88'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-green);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-green);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #66ffaa;
+            border: 3px solid #00cc66;
+            border-bottom: none;
+        }
+
+        /* Main instruction area */
+        .instruction-page {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: none;
+        }
+
+        .instruction-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* LEGO instruction step box */
+        .step-brick {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 4px solid #333;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .step-number-brick {
+            position: absolute;
+            top: -20px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-green);
+            color: #000;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 255, 136, 0.4);
+            border: 4px solid #000;
+        }
+
+        .step-number-brick::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 16px;
+            border-radius: 8px 8px 0 0;
+            background: #66ffaa;
+            border: 3px solid #000;
+            border-bottom: none;
+        }
+
+        .step-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .step-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-panel {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-green);
+            letter-spacing: 1px;
+        }
+
+        .step-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* UI Mockups */
+        .ui-mockup {
+            width: 100%;
+            background: #0a0a0a;
+            border: 3px solid var(--lego-green);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ui-header {
+            background: #1a1a1a;
+            padding: 12px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ui-title {
+            color: var(--lego-green);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ui-body {
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        /* Code display blocks */
+        .code-brick {
+            background: #000;
+            border: 3px solid var(--lego-green);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #0f0;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #000;
+            padding: 0 8px;
+            color: var(--lego-green);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        .nav-brick {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 3px solid var(--lego-green);
+            border-radius: 8px;
+            color: var(--lego-green);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-brick:hover {
+            background: var(--lego-green);
+            color: #000;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+
+        .progress-stud {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: #333;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .progress-stud.active {
+            background: var(--lego-green);
+            border-color: var(--lego-green);
+            box-shadow: 0 0 8px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Callout box */
+        .callout-box {
+            position: absolute;
+            background: #000;
+            border: 2px solid var(--lego-green);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: var(--lego-green);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+        }
+
+        /* Comparison Table */
+        .comparison-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+            font-size: 12px;
+        }
+
+        .comparison-table th,
+        .comparison-table td {
+            border: 1px solid #333;
+            padding: 12px;
+            text-align: left;
+        }
+
+        .comparison-table th {
+            background: #1a1a1a;
+            color: var(--lego-green);
+            border-bottom: 2px solid var(--lego-green);
+        }
+
+        .comparison-table td {
+            background: #0a0a0a;
+        }
+
+        .comparison-table tr:hover td {
+            background: #111;
+        }
+
+        /* Grid for precedents */
+        .precedent-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .precedent-card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .precedent-title {
+            color: var(--lego-yellow);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .precedent-desc {
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <!-- STEP 1: The Big 10 Precedents -->
+    <div class="instruction-page active" data-step="1">
+        <div class="header-brick">
+            <div class="header-title">🏛️ INDUSTRY PRECEDENTS</div>
+            <div class="step-counter">1</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="precedent-grid">
+                            <div class="precedent-card">
+                                <div class="precedent-title">Autodesk Fusion 360</div>
+                                <div class="precedent-desc">Parametric Timeline = Your MPD Lines. Features are recorded
+                                    with temporal identity.</div>
+                            </div>
+                            <div class="precedent-card">
+                                <div class="precedent-title">Blender 3D</div>
+                                <div class="precedent-desc">"For CAD purposes, use parenting." Your Group hierarchy
+                                    mirrors this exactly.</div>
+                            </div>
+                            <div class="precedent-card">
+                                <div class="precedent-title">SolidWorks / NX</div>
+                                <div class="precedent-desc">Feature Trees are the 30-year industry standard for ordered
+                                    creation steps.</div>
+                            </div>
+                            <div class="precedent-card">
+                                <div class="precedent-title">LEGO Standards</div>
+                                <div class="precedent-desc">LDView, Bricklink Studio all maintain per-part identity.
+                                    Never monolithic.</div>
+                            </div>
+                            <div class="precedent-card">
+                                <div class="precedent-title">Babylon.js</div>
+                                <div class="precedent-desc">Learned the hard way: flattening hierarchies destroys
+                                    serialization context.</div>
+                            </div>
+                            <div class="precedent-card">
+                                <div class="precedent-title">Three.js Community</div>
+                                <div class="precedent-desc">Consensus: "Merging objects causes you to lose individual
+                                    identity."</div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="bottom: -10px; right: 20px;">
+                            ✅ You are in good company
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Canonical Patterns</div>
+                        <div class="step-desc">
+                            You aren't inventing this. You are implementing the <strong>canonical pattern</strong> used
+                            across professional CAD software, 3D modeling tools, and game engines for over 30
+                            years.<br><br>
+                            <strong>The Core Truth:</strong><br>
+                            In CAD, "Identity" is more important than "Batching". Every bolt, screw, and brick must be
+                            addressable.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: The Trade-off -->
+    <div class="instruction-page" data-step="2">
+        <div class="header-brick">
+            <div class="header-title">⚖️ THE TRADE-OFF</div>
+            <div class="step-counter">2</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div style="width: 100%; padding: 10px;">
+                            <table class="comparison-table">
+                                <thead>
+                                    <tr>
+                                        <th>Metric</th>
+                                        <th>Arch A (Blob)</th>
+                                        <th>Arch B (Structural)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td>Draw Calls</td>
+                                        <td>Low (~10)</td>
+                                        <td>High (~3,000)</td>
+                                    </tr>
+                                    <tr>
+                                        <td>GPU Batching</td>
+                                        <td>Optimized</td>
+                                        <td>Fragmented</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Per-Object Query</td>
+                                        <td>❌ Impossible</td>
+                                        <td>✅ <code>userData.lineNum</code></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Debugging</td>
+                                        <td>❌ Opaque</td>
+                                        <td>✅ Transparent</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Raycast Provenance</td>
+                                        <td>❌ Lost</td>
+                                        <td>✅ Instant</td>
+                                    </tr>
+                                    <tr>
+                                        <td>CAD Editability</td>
+                                        <td>❌ Hard</td>
+                                        <td>✅ Easy</td>
+                                    </tr>
+                                    <tr>
+                                        <td>Industry Standard</td>
+                                        <td>❌ No</td>
+                                        <td>✅ Yes (30+ years)</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Why Arch B is Correct</div>
+                        <div class="step-desc">
+                            <strong>When Arch A is Right:</strong><br>
+                            Real-time games, precomputed rendering, simple viewers where you just look.<br><br>
+                            <strong>When Arch B is Right:</strong><br>
+                            CAD viewers (your case), editors, parametric systems, anything where "which object?"
+                            matters.<br><br>
+                            We traded <strong>Rendering Performance</strong> (which we have in abundance) for
+                            <strong>Data Integrity</strong> (which we desperately needed).
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Validation -->
+    <div class="instruction-page" data-step="3">
+        <div class="header-brick">
+            <div class="header-title">💬 EXPERT VALIDATION</div>
+            <div class="step-counter">3</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div style="display: flex; flex-direction: column; gap: 20px; width: 100%; padding: 20px;">
+                            <div style="background: #111; border-left: 4px solid var(--lego-orange); padding: 15px;">
+                                <div style="font-size: 18px; font-style: italic; margin-bottom: 10px;">"For CAD
+                                    purposes, use parenting without assigning matrix."</div>
+                                <div style="color: var(--lego-orange); font-weight: bold;">— Blender Manual</div>
+                            </div>
+
+                            <div style="background: #111; border-left: 4px solid var(--lego-blue); padding: 15px;">
+                                <div style="font-size: 18px; font-style: italic; margin-bottom: 10px;">"Merging objects
+                                    can cause you to lose individual per-object identity."</div>
+                                <div style="color: var(--lego-blue); font-weight: bold;">— Three.js Optimization Guide
+                                </div>
+                            </div>
+
+                            <div style="background: #111; border-left: 4px solid var(--lego-red); padding: 15px;">
+                                <div style="font-size: 18px; font-style: italic; margin-bottom: 10px;">"You cannot use
+                                    abstractMeshes as they do not support serialization and lose all contextual info."
+                                </div>
+                                <div style="color: var(--lego-red); font-weight: bold;">— Babylon.js Core Team</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">The Industry Speaks</div>
+                        <div class="step-desc">
+                            Every major 3D engine and tool acknowledges the same truth: <strong>Optimization destroys
+                                Identity.</strong><br><br>
+                            If you need Identity (and we do), you must forego the simplest optimizations (merging) and
+                            use structural hierarchy instead.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 4: Innovation -->
+    <div class="instruction-page" data-step="4">
+        <div class="header-brick">
+            <div class="header-title">🚀 YOUR INNOVATION</div>
+            <div class="step-counter">4</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title">WEBGL CAD PATTERN</div>
+                            </div>
+                            <div class="ui-body"
+                                style="background: #050505; display: flex; align-items: center; justify-content: center;">
+                                <div style="text-align: center;">
+                                    <div style="font-size: 48px; margin-bottom: 10px;">🏗️ + 🌐</div>
+                                    <div style="color: var(--lego-green); font-weight: bold;">CAD PATTERNS</div>
+                                    <div style="color: #888; font-size: 12px;">on the Web</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="bottom: 20px; left: 20px;">
+                            Legacy Meets Future
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Porting Patterns</div>
+                        <div class="step-desc">
+                            <strong>What you've done:</strong><br>
+                            • Taken the 30-year-old CAD feature tree pattern.<br>
+                            • Implemented it in Three.js/WebGL for LEGO models.<br>
+                            • Added real-time querying and debugging.<br>
+                            • Preserved spatial provenance through the render pipeline.<br><br>
+                            <strong>Why this matters:</strong><br>
+                            LEGO is fundamentally discrete. Users click a stud and need to know "which brick?".
+                            Architecture B makes this trivial.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+                <button class="nav-brick" onclick="window.close()">START BUILDING →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress-bar">
+        <div class="progress-stud active" onclick="showStep(1)"></div>
+        <div class="progress-stud" onclick="showStep(2)"></div>
+        <div class="progress-stud" onclick="showStep(3)"></div>
+        <div class="progress-stud" onclick="showStep(4)"></div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function showStep(step) {
+            document.querySelectorAll('.instruction-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            document.querySelectorAll('.progress-stud').forEach((stud, i) => {
+                stud.classList.toggle('active', i + 1 === step);
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep(step) {
+            showStep(step);
+        }
+
+        function prevStep(step) {
+            showStep(step);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStep < 4) {
+                nextStep(currentStep + 1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                prevStep(currentStep - 1);
+            }
+        });
+    </script>
+</body>
+
+</html>

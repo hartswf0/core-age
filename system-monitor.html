@@ -1,0 +1,1299 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>WeaverOS · TUI System Map</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        :root {
+            --bg-main: #020617;
+            --bg-panel: #020617;
+            --bg-panel-alt: #020617;
+            --border-strong: #111827;
+            --border-soft: #1f2937;
+            --accent-root: #22c55e;
+            --accent-kernel: #22c55e;
+            --accent-group: #38bdf8;
+            --accent-process: #0ea5e9;
+            --accent-daemon: #fb7185;
+            --accent-bus: #f97316;
+            --accent-spec: #a855f7;
+            --accent-syscall: #a855f7;
+            --accent-dir: #e5e7eb;
+            --accent-runlevel: #22c55e;
+            --accent-obs: #f97316;
+            --accent-hub: #ec4899;
+            --accent-contract: #22c55e;
+            --accent-bin: #f59e0b;
+            --text-main: #e5e7eb;
+            --text-muted: #9ca3af;
+            --text-soft: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background: radial-gradient(circle at top, #020617 0%, #020617 40%, #000 100%);
+            color: var(--text-main);
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI",
+                "JetBrains Mono", "Fira Code", monospace;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: stretch;
+        }
+
+        #app {
+            width: 100%;
+            max-width: 1280px;
+            margin: 12px;
+            border-radius: 12px;
+            border: 1px solid var(--border-strong);
+            background: radial-gradient(circle at top left, rgba(56, 189, 248, 0.08), transparent 55%),
+                radial-gradient(circle at top right, rgba(168, 85, 247, 0.08), transparent 55%),
+                linear-gradient(180deg, #020617, #020617);
+            box-shadow: 0 24px 80px rgba(0, 0, 0, 0.9);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            border-bottom: 1px solid var(--border-soft);
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        header .title-block {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        header .title {
+            font-size: 14px;
+            letter-spacing: 0.22em;
+            text-transform: uppercase;
+            color: var(--text-main);
+        }
+
+        header .subtitle {
+            font-size: 11px;
+            color: var(--text-muted);
+            max-width: 520px;
+        }
+
+        header .status {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 11px;
+            color: var(--text-soft);
+        }
+
+        .status-leds {
+            display: flex;
+            gap: 4px;
+        }
+
+        .status-led {
+            width: 7px;
+            height: 7px;
+            border-radius: 999px;
+            border: 1px solid #020617;
+            box-shadow: 0 0 8px rgba(0, 0, 0, 0.8);
+        }
+
+        .led-root {
+            background: var(--accent-root);
+        }
+
+        .led-bus {
+            background: var(--accent-bus);
+        }
+
+        .led-gold {
+            background: #eab308;
+        }
+
+        .status-keyhint {
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid var(--border-soft);
+            background: #020617;
+        }
+
+        .main {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .sidebar {
+            width: 260px;
+            border-right: 1px solid var(--border-soft);
+            background: rgba(2, 6, 23, 0.98);
+            display: flex;
+            flex-direction: column;
+            min-width: 180px;
+        }
+
+        .sidebar-header {
+            padding: 8px 10px;
+            border-bottom: 1px solid var(--border-soft);
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        .tree-view {
+            flex: 1;
+            overflow: auto;
+            padding: 6px 6px 8px 6px;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+        }
+
+        .tree-node {
+            --depth: 0;
+            margin-bottom: 2px;
+        }
+
+        .tree-node-btn {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+            border: none;
+            background: transparent;
+            color: var(--text-soft);
+            padding: 2px 6px 2px calc(6px + var(--depth) * 12px);
+            border-radius: 4px;
+            text-align: left;
+            font-size: 11px;
+            font-family: inherit;
+            cursor: pointer;
+            transition: background 0.08s ease, color 0.08s ease;
+        }
+
+        .tree-node-kind {
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: var(--text-muted);
+            flex-shrink: 0;
+        }
+
+        .tree-node-label {
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .tree-node-btn:hover {
+            background: #0b1220;
+            color: var(--text-main);
+        }
+
+        .tree-node.is-selected .tree-node-btn {
+            background: #111827;
+            color: #eab308;
+        }
+
+        .tree-node.is-selected .tree-node-kind {
+            color: #eab308;
+        }
+
+        .canvas-column {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            min-width: 0;
+            border-right: 1px solid var(--border-soft);
+        }
+
+        .canvas-header {
+            padding: 6px 10px;
+            border-bottom: 1px solid var(--border-soft);
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .canvas-header span {
+            white-space: nowrap;
+        }
+
+        .canvas-panel {
+            flex: 1;
+            position: relative;
+            background: #020617;
+            overflow: auto;
+        }
+
+        #tuiCanvas {
+            display: block;
+            width: 100%;
+        }
+
+        .inspector {
+            width: 320px;
+            min-width: 220px;
+            background: rgba(2, 6, 23, 0.96);
+            display: flex;
+            flex-direction: column;
+            font-family: "JetBrains Mono", monospace;
+            font-size: 11px;
+        }
+
+        .inspector-header {
+            padding: 8px 10px 6px;
+            border-bottom: 1px solid var(--border-soft);
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .inspector-title {
+            font-size: 11px;
+            color: var(--accent-root);
+        }
+
+        .inspector-meta {
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .inspector-body {
+            padding: 8px 10px;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow: auto;
+        }
+
+        .inspector-section-label {
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        .inspector-description {
+            white-space: pre-wrap;
+            color: var(--text-main);
+        }
+
+        .inspector-children {
+            white-space: pre;
+            color: var(--text-soft);
+        }
+
+        footer {
+            border-top: 1px solid var(--border-soft);
+            padding: 6px 10px;
+            font-size: 11px;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            gap: 10px;
+            font-family: "JetBrains Mono", monospace;
+        }
+
+        footer span {
+            white-space: nowrap;
+        }
+
+        @media (max-width: 900px) {
+            .main {
+                flex-direction: column;
+            }
+
+            .sidebar {
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--border-soft);
+                max-height: 180px;
+            }
+
+            .canvas-column {
+                border-right: none;
+                border-bottom: 1px solid var(--border-soft);
+            }
+
+            .inspector {
+                width: 100%;
+                min-height: 160px;
+                max-height: 260px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="app">
+        <header>
+            <div class="title-block">
+                <div class="title">WEAVEROS :: TUI SYSTEM MAP</div>
+                <div class="subtitle">
+                    Unified L-System Ontology Operating System for TRUBADOR – visualizing kernel, processes,
+                    syscalls, runlevels, and hubs as one canvas.
+                </div>
+            </div>
+            <div class="status">
+                <div class="status-leds">
+                    <div class="status-led led-root" title="Kernel OK"></div>
+                    <div class="status-led led-bus" title="Buses live"></div>
+                    <div class="status-led led-gold" title="GOLD contract"></div>
+                </div>
+                <div class="status-keyhint">
+                    ← → ↑ ↓ / h j k l · click nodes
+                </div>
+            </div>
+        </header>
+
+        <div class="main">
+            <aside class="sidebar">
+                <div class="sidebar-header">WeaverOS Tree</div>
+                <div id="treeView" class="tree-view"></div>
+            </aside>
+
+            <section class="canvas-column">
+                <div class="canvas-header">
+                    <span>TUI Canvas · Process + Kernel Topology</span>
+                    <span>ASCII grid · nodes = components · lines = relationships</span>
+                </div>
+                <div class="canvas-panel">
+                    <canvas id="tuiCanvas"></canvas>
+                </div>
+            </section>
+
+            <aside class="inspector">
+                <div class="inspector-header">
+                    <div id="inspectorTitle" class="inspector-title">&lt;WeaverOS&gt;</div>
+                    <div id="inspectorMeta" class="inspector-meta">root · weaverOS</div>
+                </div>
+                <div class="inspector-body">
+                    <div>
+                        <div class="inspector-section-label">Description</div>
+                        <div id="inspectorDescription" class="inspector-description"></div>
+                    </div>
+                    <div>
+                        <div class="inspector-section-label">Children</div>
+                        <pre id="inspectorChildren" class="inspector-children"></pre>
+                    </div>
+                </div>
+            </aside>
+        </div>
+
+        <footer>
+            <span>Mode: TUI / OS map · Kernel: GOLD + skeleton-v2 + StudMap MPD</span>
+            <span>Hint: start at &lt;WeaverOS_Kernel&gt; or runlevel-0 :: boot_shell</span>
+        </footer>
+    </div>
+
+    <script>
+        // --- 1. WeaverOS Model ---------------------------------------------------
+
+        const weaverModel = {
+            id: "weaverOS",
+            label: "<WeaverOS>",
+            kind: "root",
+            description:
+                "Unified L-System Ontology Operating System for TRUBADOR scenes.\n" +
+                "KERNEL = data + ontology + buses; PROCESS MODEL = daemons + user tools; " +
+                "SYSCALL TABLE = contract; SCHEDULER = runlevels from SWISS → MENTO.",
+            children: [
+                {
+                    id: "kernel",
+                    label: "KERNEL",
+                    kind: "group",
+                    description: "Core data types and communication buses that everything else speaks.",
+                    children: [
+                        {
+                            id: "dataKernel",
+                            label: "<DataKernel>",
+                            kind: "kernel-module",
+                            description: "GOLD, MPD, skeleton-v2, StudMap MPD: the core scene data structures.",
+                            children: [
+                                {
+                                    id: "mpdFormat",
+                                    label: "<MPD format>",
+                                    kind: "data-type",
+                                    description: "Initial axiom / scene bytecode: '0 FILE scene.mpd'."
+                                },
+                                {
+                                    id: "goldScene",
+                                    label: "<GOLD scene>",
+                                    kind: "data-type",
+                                    description: "Integrated process state: mpd_content + stud_skeleton_v2 + violations + timelines."
+                                },
+                                {
+                                    id: "skeletonV2",
+                                    label: "<skeleton-v2>",
+                                    kind: "data-type",
+                                    description: "Per-stud grid skeleton, per line / gridX / gridZ / layer."
+                                },
+                                {
+                                    id: "studMap",
+                                    label: "<StudMap MPD>",
+                                    kind: "data-type",
+                                    description: "Ownership annotations and stud mappings as MPD comments (!STUDMAP)."
+                                }
+                            ]
+                        },
+                        {
+                            id: "ontologyKernel",
+                            label: "<OntologyKernel>",
+                            kind: "kernel-module",
+                            description:
+                                "L-System spec (axiom, production rules) + stratified ontologies " +
+                                "(generator, structural, temporal, spatial, diagnostic, constructive).",
+                            children: [
+                                {
+                                    id: "lspec",
+                                    label: "<L-System Spec>",
+                                    kind: "spec",
+                                    description: "Formal definition of axiom ω, production rules P, iterations, and emergence."
+                                },
+                                {
+                                    id: "layers",
+                                    label: "<StratifiedOntologies>",
+                                    kind: "spec",
+                                    description:
+                                        "Generator (rules), Structural (skeleton graph), Temporal (mesh births), " +
+                                        "Spatial (grid/LDU), Diagnostic (pathologies), Constructive (assembly traces)."
+                                }
+                            ]
+                        },
+                        {
+                            id: "ipcKernel",
+                            label: "<IPCKernel>",
+                            kind: "kernel-module",
+                            description: "Buses and persistence primitives: wag-frank, studio shells, localStorage slots.",
+                            children: [
+                                {
+                                    id: "wagFrankBus",
+                                    label: "<wag-frank bus>",
+                                    kind: "bus",
+                                    description:
+                                        "BroadcastChannel('wag-frank'). Carries redbull-line, redbull-gold, and other scene events."
+                                },
+                                {
+                                    id: "studioBus",
+                                    label: "<studio_postMessage_bus>",
+                                    kind: "bus",
+                                    description:
+                                        "window.postMessage pattern used by TIMBER / COOL / Bull shells to relay GOLD and commands."
+                                },
+                                {
+                                    id: "storageSlots",
+                                    label: "<localStorage_slots>",
+                                    kind: "storage",
+                                    description:
+                                        "Persistent slots like localStorage.wag_redbull_gold for GOLD snapshots and StudMap exports."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: "processModel",
+                    label: "PROCESS MODEL",
+                    kind: "group",
+                    description: "System daemons, interactive tools, and /bin families.",
+                    children: [
+                        {
+                            id: "systemDaemons",
+                            label: "<SystemDaemons>",
+                            kind: "process-group",
+                            description: "Always-on background services that support user tools.",
+                            children: [
+                                {
+                                    id: "frankDaemon",
+                                    label: "<FRANK_daemon>",
+                                    kind: "daemon",
+                                    description: "Owns wag-frank bus; routes GOLD and MPD events between tools."
+                                },
+                                {
+                                    id: "pathologySuite",
+                                    label: "<Pathology_daemon_suite>",
+                                    kind: "daemon",
+                                    description: "Runs skeleton & mesh pathology specs; feeds pathology-report-viewer."
+                                },
+                                {
+                                    id: "temporalSuite",
+                                    label: "<Temporal_daemon_suite>",
+                                    kind: "daemon",
+                                    description: "Handles mesh timelines and temporal instrumentation for evolution views."
+                                }
+                            ]
+                        },
+                        {
+                            id: "userProcesses",
+                            label: "<UserProcesses>",
+                            kind: "process-group",
+                            description: "Interactive processes launched from SWISS / studios.",
+                            children: [
+                                {
+                                    id: "swissShell",
+                                    label: "<SWISS_shell>",
+                                    kind: "process",
+                                    description: "Login shell / manifest (index.html). User chooses scene bricks and studios."
+                                },
+                                {
+                                    id: "courage",
+                                    label: "<COURAGE_editor>",
+                                    kind: "process",
+                                    description: "MPD editor + compiler. Runs Red Bull sampler; emits GOLD + skeleton-v2."
+                                },
+                                {
+                                    id: "ontologyWeaver",
+                                    label: "<OntologyWeaver_suite>",
+                                    kind: "process",
+                                    description:
+                                        "Assembly Line + Line Grid + pathology tools. Builds StudMap MPD and structural diagnostics."
+                                },
+                                {
+                                    id: "cool",
+                                    label: "<COOL_grid_server>",
+                                    kind: "process",
+                                    description: "Canonical grid + skeleton normalization for any compatible viewer."
+                                },
+                                {
+                                    id: "were",
+                                    label: "<WERE_lab>",
+                                    kind: "process",
+                                    description: "Skeleton lab. Round-trips between GOLD and skeleton MPD; checks coverage."
+                                },
+                                {
+                                    id: "master",
+                                    label: "<MASTER_overlay>",
+                                    kind: "process",
+                                    description: "Overlay editor. GOLD on compact MPD; resolves conflicts, locks in edits."
+                                },
+                                {
+                                    id: "mento",
+                                    label: "<MENTO_capture>",
+                                    kind: "process",
+                                    description: "Narrative capture. Binds GOLD scenes to time, camera, and annotations."
+                                }
+                            ]
+                        },
+                        {
+                            id: "binaries",
+                            label: "<WeaverOS_Binaries>",
+                            kind: "process-group",
+                            description: "File families as /bin genomes.",
+                            children: [
+                                {
+                                    id: "wagBin",
+                                    label: "<WAG_family_bin>",
+                                    kind: "bin-family",
+                                    description: "wag-* executables (wag-brave, wag-grid-walk, wag-were-twilight). Grammar/generator tools."
+                                },
+                                {
+                                    id: "multiBin",
+                                    label: "<Multi_family_bin>",
+                                    kind: "bin-family",
+                                    description: "multi-* (multi-good, multi-move, multi-move-bones). Multi-object / parallel ops."
+                                },
+                                {
+                                    id: "timberBin",
+                                    label: "<Timber_family_bin>",
+                                    kind: "bin-family",
+                                    description: "timber-* and TIMBER-tutorial. Tree-like viewers and teaching surfaces."
+                                },
+                                {
+                                    id: "miscBin",
+                                    label: "<Unclassified_bin>",
+                                    kind: "bin-family",
+                                    description: "lim.html, dna.html, mfr.html: to be classified / named by ontology."
+                                }
+                            ]
+                        }
+                    ]
+                },
+                {
+                    id: "filesystem",
+                    label: "FILESYSTEM",
+                    kind: "group",
+                    description: "WeaverFS: logical directory layout for the workspace.",
+                    children: [
+                        {
+                            id: "dirKernel",
+                            label: "/kernel/",
+                            kind: "dir",
+                            description: "Schemas and core specs (data contracts, L-System spec)."
+                        },
+                        {
+                            id: "dirBin",
+                            label: "/bin/",
+                            kind: "dir",
+                            description: "HTML tools as executables: courage.html, wag-brave.html, assembly-line.html, etc."
+                        },
+                        {
+                            id: "dirEtc",
+                            label: "/etc/",
+                            kind: "dir",
+                            description: "Instrumentation & pathology schemas: temporal-mesh-*, pathology-report-schema.md."
+                        },
+                        {
+                            id: "dirTutorials",
+                            label: "/usr/share/tutorials/",
+                            kind: "dir",
+                            description: "Brick Haven and TIMBER tutorials; documented case studies."
+                        },
+                        {
+                            id: "dirLogs",
+                            label: "/var/log/",
+                            kind: "dir",
+                            description: "Pathology, mesh timeline, and GOLD snapshot logs."
+                        },
+                        {
+                            id: "dirManifest",
+                            label: "/home/user/manifest/",
+                            kind: "dir",
+                            description: "SWISS manifest index.html + swiss-frank-grace-studio.html."
+                        }
+                    ]
+                },
+                {
+                    id: "syscalls",
+                    label: "SYSCALL TABLE",
+                    kind: "group",
+                    description: "API surface between user processes and the kernel.",
+                    children: [
+                        {
+                            id: "sysLoadMPD",
+                            label: "[sys_load_mpd]",
+                            kind: "syscall",
+                            description: "Load an MPD file into memory so COURAGE / labs can operate on it."
+                        },
+                        {
+                            id: "sysRunRedbull",
+                            label: "[sys_run_redbull]",
+                            kind: "syscall",
+                            description: "Run P1–P4 (MPD → SpatialNode → MeshBirth → SkeletonNode → PathologyCheck)."
+                        },
+                        {
+                            id: "sysEmitGold",
+                            label: "[sys_emit_gold]",
+                            kind: "syscall",
+                            description: "Persist GOLD to localStorage and emit it on wag-frank bus."
+                        },
+                        {
+                            id: "sysIngestGold",
+                            label: "[sys_ingest_gold]",
+                            kind: "syscall",
+                            description: "Load GOLD from file, localStorage, or bus into in-memory structures."
+                        },
+                        {
+                            id: "sysWeave",
+                            label: "[sys_weave_ontology]",
+                            kind: "syscall",
+                            description: "Build StudMap MPD and structural diagnostics from GOLD."
+                        },
+                        {
+                            id: "sysNormalize",
+                            label: "[sys_normalize_grid]",
+                            kind: "syscall",
+                            description: "Produce canonical grid_spec and normalized skeletons for viewers (COOL)."
+                        },
+                        {
+                            id: "sysRoundtrip",
+                            label: "[sys_roundtrip_skeleton]",
+                            kind: "syscall",
+                            description: "Round-trip GOLD ↔ skeleton MPD, checking coverage and ownership."
+                        },
+                        {
+                            id: "sysOverlay",
+                            label: "[sys_overlay_master]",
+                            kind: "syscall",
+                            description: "Overlay GOLD on MPD, resolve conflicts, and write corrected MPD / GOLD."
+                        },
+                        {
+                            id: "sysCapture",
+                            label: "[sys_capture_moment]",
+                            kind: "syscall",
+                            description: "Record narrative moments bound to GOLD + camera + time."
+                        }
+                    ]
+                },
+                {
+                    id: "scheduler",
+                    label: "SCHEDULER",
+                    kind: "group",
+                    description: "Runlevels / pipelines from SWISS → MENTO.",
+                    children: [
+                        {
+                            id: "runlevel0",
+                            label: "runlevel-0 :: boot_shell",
+                            kind: "runlevel",
+                            description: "Start SWISS shell; user chooses a scene/brick."
+                        },
+                        {
+                            id: "runlevel1",
+                            label: "runlevel-1 :: edit_compile",
+                            kind: "runlevel",
+                            description: "COURAGE editor: MPD editing and Red Bull sampling to GOLD."
+                        },
+                        {
+                            id: "runlevel2",
+                            label: "runlevel-2 :: weave_ontology",
+                            kind: "runlevel",
+                            description: "Assembly Line / Line Grid weave structural + temporal ontologies."
+                        },
+                        {
+                            id: "runlevel3",
+                            label: "runlevel-3 :: normalize_grid",
+                            kind: "runlevel",
+                            description: "COOL canonicalizes studs into grid_spec and normalized skeletons."
+                        },
+                        {
+                            id: "runlevel4",
+                            label: "runlevel-4 :: probe_structure",
+                            kind: "runlevel",
+                            description: "WERE and MASTER lab: round-trip skeleton MPDs and fix conflicts."
+                        },
+                        {
+                            id: "runlevel5",
+                            label: "runlevel-5 :: capture_narrative",
+                            kind: "runlevel",
+                            description: "MENTO capture of moments, timelines, and narrative generations."
+                        }
+                    ]
+                },
+                {
+                    id: "observability",
+                    label: "OBSERVABILITY",
+                    kind: "group",
+                    description: "Temporal, diagnostic, and assembly views.",
+                    children: [
+                        {
+                            id: "temporalView",
+                            label: "<TemporalLayer>",
+                            kind: "obs",
+                            description: "Mesh births and evolution through temporal-mesh-lab and instrumentation."
+                        },
+                        {
+                            id: "diagnosticView",
+                            label: "<DiagnosticLayer>",
+                            kind: "obs",
+                            description: "Pathology reports, schemas, and diagnosis specs."
+                        },
+                        {
+                            id: "constructiveView",
+                            label: "<ConstructiveLayer_views>",
+                            kind: "obs",
+                            description: "Assembly traces via assembly-line.html and brick_haven_tutorial."
+                        }
+                    ]
+                },
+                {
+                    id: "desktops",
+                    label: "DESKTOP ENVS",
+                    kind: "group",
+                    description: "Ontology-based hubs / studio shells.",
+                    children: [
+                        {
+                            id: "spatialHub",
+                            label: "<spatial-hub.html>",
+                            kind: "hub",
+                            description: "Grid / alignment desktop: grid-walk, wag-grid-walk, mpd-line-grid-viewer, multi-move."
+                        },
+                        {
+                            id: "temporalHub",
+                            label: "<temporal-hub.html>",
+                            kind: "hub",
+                            description: "Time / evolution desktop: temporal-mesh-lab + specs."
+                        },
+                        {
+                            id: "structuralHub",
+                            label: "<structural-hub.html>",
+                            kind: "hub",
+                            description: "Skeleton / graph desktop: skeleton-ontology-explorer, skeleton-control-room, bindings."
+                        }
+                    ]
+                },
+                {
+                    id: "contract",
+                    label: "CONTRACT",
+                    kind: "group",
+                    description: "GOLD / skeleton-v2 / StudMap MPD as lingua franca.",
+                    children: [
+                        {
+                            id: "goldContract",
+                            label: "<GOLD format>",
+                            kind: "contract",
+                            description: "Canonical serialization of integrated outputs from any compliant tool."
+                        },
+                        {
+                            id: "skeletonContract",
+                            label: "<skeleton-v2>",
+                            kind: "contract",
+                            description: "Stud grid schema shared across COURAGE, Weaver labs, and COOL."
+                        },
+                        {
+                            id: "studMapContract",
+                            label: "<StudMap MPD>",
+                            kind: "contract",
+                            description: "Bridge format into external LDraw-compatible pipelines."
+                        }
+                    ]
+                }
+            ]
+        };
+
+        // --- 2. Layout + State ---------------------------------------------------
+
+        const state = {
+            root: weaverModel,
+            flatNodes: [],
+            idToNode: new Map(),
+            idToParent: new Map(),
+            idToDepth: new Map(),
+            positions: {},
+            selectedId: weaverModel.id,
+            treeNodeEls: new Map(),
+        };
+
+        function buildIndices(node, parentId = null, depth = 0) {
+            state.flatNodes.push(node);
+            state.idToNode.set(node.id, node);
+            state.idToDepth.set(node.id, depth);
+            if (parentId) state.idToParent.set(node.id, parentId);
+
+            if (node.children && node.children.length) {
+                node.children.forEach((child) => buildIndices(child, node.id, depth + 1));
+            }
+        }
+
+        // --- 3. Tree View --------------------------------------------------------
+
+        function kindShort(kind) {
+            switch (kind) {
+                case "root": return "RT";
+                case "group": return "GR";
+                case "kernel-module": return "KN";
+                case "data-type": return "DT";
+                case "spec": return "SP";
+                case "bus": return "BUS";
+                case "storage": return "ST";
+                case "process-group": return "PG";
+                case "daemon": return "DM";
+                case "process": return "PR";
+                case "bin-family": return "BIN";
+                case "dir": return "DIR";
+                case "syscall": return "SC";
+                case "runlevel": return "RL";
+                case "obs": return "OBS";
+                case "hub": return "HUB";
+                case "contract": return "CT";
+                default: return "__";
+            }
+        }
+
+        function buildTreeView(node, container, depth = 0) {
+            const wrapper = document.createElement("div");
+            wrapper.className = "tree-node";
+            wrapper.style.setProperty("--depth", depth);
+
+            const btn = document.createElement("button");
+            btn.className = "tree-node-btn";
+            btn.type = "button";
+
+            const kindSpan = document.createElement("span");
+            kindSpan.className = "tree-node-kind";
+            kindSpan.textContent = kindShort(node.kind);
+
+            const labelSpan = document.createElement("span");
+            labelSpan.className = "tree-node-label";
+            labelSpan.textContent = node.label;
+
+            btn.appendChild(kindSpan);
+            btn.appendChild(labelSpan);
+
+            btn.addEventListener("click", () => {
+                selectNode(node.id);
+            });
+
+            wrapper.appendChild(btn);
+            container.appendChild(wrapper);
+
+            state.treeNodeEls.set(node.id, wrapper);
+
+            if (node.children && node.children.length) {
+                node.children.forEach((child) =>
+                    buildTreeView(child, container, depth + 1)
+                );
+            }
+        }
+
+        function updateTreeSelection() {
+            state.treeNodeEls.forEach((el, id) => {
+                el.classList.toggle("is-selected", id === state.selectedId);
+            });
+        }
+
+        // --- 4. Canvas Rendering -------------------------------------------------
+
+        function nodeColor(kind) {
+            switch (kind) {
+                case "root": return getComputedStyle(document.documentElement).getPropertyValue("--accent-root");
+                case "group": return getComputedStyle(document.documentElement).getPropertyValue("--accent-group");
+                case "kernel-module": return getComputedStyle(document.documentElement).getPropertyValue("--accent-kernel");
+                case "data-type": return "#facc15";
+                case "spec": return getComputedStyle(document.documentElement).getPropertyValue("--accent-spec");
+                case "bus": return getComputedStyle(document.documentElement).getPropertyValue("--accent-bus");
+                case "storage": return "#4ade80";
+                case "process-group": return getComputedStyle(document.documentElement).getPropertyValue("--accent-group");
+                case "daemon": return getComputedStyle(document.documentElement).getPropertyValue("--accent-daemon");
+                case "process": return getComputedStyle(document.documentElement).getPropertyValue("--accent-process");
+                case "bin-family": return getComputedStyle(document.documentElement).getPropertyValue("--accent-bin");
+                case "dir": return getComputedStyle(document.documentElement).getPropertyValue("--accent-dir");
+                case "syscall": return getComputedStyle(document.documentElement).getPropertyValue("--accent-syscall");
+                case "runlevel": return getComputedStyle(document.documentElement).getPropertyValue("--accent-runlevel");
+                case "obs": return getComputedStyle(document.documentElement).getPropertyValue("--accent-obs");
+                case "hub": return getComputedStyle(document.documentElement).getPropertyValue("--accent-hub");
+                case "contract": return getComputedStyle(document.documentElement).getPropertyValue("--accent-contract");
+                default: return "#e5e7eb";
+            }
+        }
+
+        function layoutAndRenderCanvas() {
+            const canvas = document.getElementById("tuiCanvas");
+            const panel = canvas.parentElement;
+            const rect = panel.getBoundingClientRect();
+            const width = rect.width || 800;
+
+            // Compute depth info
+            let maxDepth = 0;
+            const depthCounts = new Map();
+            state.flatNodes.forEach((node) => {
+                const depth = state.idToDepth.get(node.id) || 0;
+                maxDepth = Math.max(maxDepth, depth);
+                depthCounts.set(depth, (depthCounts.get(depth) || 0) + 1);
+            });
+
+            const rowHeight = 64;
+            const maxCount = Array.from(depthCounts.values()).reduce(
+                (acc, v) => Math.max(acc, v),
+                1
+            );
+
+            const marginX = 40;
+            const marginY = 40;
+            const height = marginY * 2 + maxCount * rowHeight;
+
+            const ratio = window.devicePixelRatio || 1;
+            canvas.width = width * ratio;
+            canvas.height = height * ratio;
+            canvas.style.width = width + "px";
+            canvas.style.height = height + "px";
+
+            const ctx = canvas.getContext("2d");
+            ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+            // Clear + background
+            ctx.fillStyle = "#020617";
+            ctx.fillRect(0, 0, width, height);
+
+            // ASCII-ish grid
+            ctx.strokeStyle = "#0b1120";
+            ctx.lineWidth = 1;
+            const step = 16;
+            for (let x = 0; x < width; x += step) {
+                ctx.beginPath();
+                ctx.moveTo(x + 0.5, 0);
+                ctx.lineTo(x + 0.5, height);
+                ctx.stroke();
+            }
+            for (let y = 0; y < height; y += step) {
+                ctx.beginPath();
+                ctx.moveTo(0, y + 0.5);
+                ctx.lineTo(width, y + 0.5);
+                ctx.stroke();
+            }
+
+            // Layout nodes
+            const usableWidth = width - marginX * 2;
+            const columns = maxDepth + 1 || 1;
+            const columnWidth = Math.max(160, usableWidth / columns);
+            const nodeWidth = Math.min(220, columnWidth - 26);
+            const nodeHeight = 40;
+
+            state.positions = {};
+            const depthIndices = new Map();
+
+            state.flatNodes.forEach((node) => {
+                const depth = state.idToDepth.get(node.id) || 0;
+                const idx = depthIndices.get(depth) || 0;
+                depthIndices.set(depth, idx + 1);
+
+                const x = marginX + depth * columnWidth;
+                const y = marginY + idx * rowHeight;
+                state.positions[node.id] = {
+                    x,
+                    y,
+                    width: nodeWidth,
+                    height: nodeHeight
+                };
+            });
+
+            // Draw edges (parent → child)
+            ctx.strokeStyle = "#1f2937";
+            ctx.lineWidth = 1;
+            state.flatNodes.forEach((node) => {
+                const parentId = state.idToParent.get(node.id);
+                if (!parentId) return;
+                const posParent = state.positions[parentId];
+                const posChild = state.positions[node.id];
+                if (!posParent || !posChild) return;
+
+                const x1 = posParent.x + posParent.width;
+                const y1 = posParent.y + posParent.height / 2;
+                const x2 = posChild.x;
+                const y2 = posChild.y + posChild.height / 2;
+
+                ctx.beginPath();
+                ctx.moveTo(x1 + 1, y1);
+                const midX = (x1 + x2) / 2;
+                ctx.lineTo(midX, y1);
+                ctx.lineTo(midX, y2);
+                ctx.lineTo(x2 - 4, y2);
+                ctx.stroke();
+            });
+
+            // Draw nodes
+            state.flatNodes.forEach((node) => {
+                const pos = state.positions[node.id];
+                if (!pos) return;
+                const isSelected = node.id === state.selectedId;
+
+                const radius = 4;
+                const { x, y, width: w, height: h } = pos;
+
+                // Node background
+                ctx.beginPath();
+                ctx.moveTo(x + radius, y);
+                ctx.lineTo(x + w - radius, y);
+                ctx.quadraticCurveTo(x + w, y, x + w, y + radius);
+                ctx.lineTo(x + w, y + h - radius);
+                ctx.quadraticCurveTo(x + w, y + h, x + w - radius, y + h);
+                ctx.lineTo(x + radius, y + h);
+                ctx.quadraticCurveTo(x, y + h, x, y + h - radius);
+                ctx.lineTo(x, y + radius);
+                ctx.quadraticCurveTo(x, y, x + radius, y);
+                ctx.closePath();
+
+                ctx.fillStyle = isSelected ? "#020617" : "#020617";
+                ctx.fill();
+
+                ctx.lineWidth = isSelected ? 2 : 1;
+                ctx.strokeStyle = isSelected ? "#eab308" : "#64748b";
+                ctx.stroke();
+
+                // Label
+                ctx.font = "11px 'JetBrains Mono', monospace";
+                ctx.textBaseline = "middle";
+                ctx.fillStyle = nodeColor(node.kind);
+                const paddingX = 7;
+                const maxLabelWidth = w - paddingX * 2;
+
+                let text = node.label;
+                let measured = ctx.measureText(text);
+                if (measured.width > maxLabelWidth) {
+                    while (text.length > 3 && ctx.measureText(text + "…").width > maxLabelWidth) {
+                        text = text.slice(0, -1);
+                    }
+                    text = text + "…";
+                }
+
+                ctx.fillText(text, x + paddingX, y + h / 2 - 1);
+
+                // Kind mini-tag
+                ctx.font = "9px 'JetBrains Mono', monospace";
+                ctx.fillStyle = isSelected ? "#e5e7eb" : "#6b7280";
+                const kind = kindShort(node.kind);
+                ctx.fillText(kind, x + w - paddingX - ctx.measureText(kind).width, y + h / 2 - 1);
+            });
+        }
+
+        // --- 5. Inspector --------------------------------------------------------
+
+        function updateInspector() {
+            const node = state.idToNode.get(state.selectedId) || state.root;
+            const titleEl = document.getElementById("inspectorTitle");
+            const metaEl = document.getElementById("inspectorMeta");
+            const descEl = document.getElementById("inspectorDescription");
+            const childrenEl = document.getElementById("inspectorChildren");
+
+            titleEl.textContent = node.label;
+            metaEl.textContent = `${node.kind} · ${node.id}`;
+
+            descEl.textContent = node.description || "No description.";
+
+            let childLines = "";
+            if (node.children && node.children.length) {
+                childLines = node.children
+                    .map((child) => `- ${child.label} (${child.kind})`)
+                    .join("\n");
+            } else {
+                childLines = "(no children)";
+            }
+            childrenEl.textContent = childLines;
+        }
+
+        // --- 6. Selection + Navigation ------------------------------------------
+
+        function selectNode(id) {
+            if (!state.idToNode.has(id)) return;
+            state.selectedId = id;
+            updateTreeSelection();
+            updateInspector();
+            layoutAndRenderCanvas();
+            scrollTreeNodeIntoView(id);
+        }
+
+        function scrollTreeNodeIntoView(id) {
+            const el = state.treeNodeEls.get(id);
+            const container = document.getElementById("treeView");
+            if (!el || !container) return;
+            const rect = el.getBoundingClientRect();
+            const crect = container.getBoundingClientRect();
+            if (rect.top < crect.top) {
+                container.scrollTop += rect.top - crect.top - 10;
+            } else if (rect.bottom > crect.bottom) {
+                container.scrollTop += rect.bottom - crect.bottom + 10;
+            }
+        }
+
+        function moveSelection(delta) {
+            const idx = state.flatNodes.findIndex((n) => n.id === state.selectedId);
+            if (idx === -1) return;
+            const next = Math.min(
+                state.flatNodes.length - 1,
+                Math.max(0, idx + delta)
+            );
+            const node = state.flatNodes[next];
+            selectNode(node.id);
+        }
+
+        function goParent() {
+            const parentId = state.idToParent.get(state.selectedId);
+            if (parentId) selectNode(parentId);
+        }
+
+        function goChild() {
+            const node = state.idToNode.get(state.selectedId);
+            if (node && node.children && node.children.length > 0) {
+                selectNode(node.children[0].id);
+            }
+        }
+
+        function handleKey(e) {
+            const key = e.key;
+            const navigationKeys = [
+                "ArrowUp",
+                "ArrowDown",
+                "ArrowLeft",
+                "ArrowRight",
+                "j",
+                "k",
+                "h",
+                "l"
+            ];
+            if (navigationKeys.includes(key)) {
+                e.preventDefault();
+            }
+
+            if (key === "ArrowUp" || key === "k") {
+                moveSelection(-1);
+            } else if (key === "ArrowDown" || key === "j") {
+                moveSelection(1);
+            } else if (key === "ArrowLeft" || key === "h") {
+                goParent();
+            } else if (key === "ArrowRight" || key === "l") {
+                goChild();
+            }
+        }
+
+        // --- 7. Hit Testing ------------------------------------------------------
+
+        function findNodeAtCanvasPoint(x, y) {
+            for (let i = state.flatNodes.length - 1; i >= 0; i--) {
+                const node = state.flatNodes[i];
+                const pos = state.positions[node.id];
+                if (!pos) continue;
+                if (
+                    x >= pos.x &&
+                    x <= pos.x + pos.width &&
+                    y >= pos.y &&
+                    y <= pos.y + pos.height
+                ) {
+                    return node;
+                }
+            }
+            return null;
+        }
+
+        function onCanvasClick(event) {
+            const canvas = event.currentTarget;
+            const rect = canvas.getBoundingClientRect();
+            const ratio = window.devicePixelRatio || 1;
+            const x = (event.clientX - rect.left) * (canvas.width / rect.width) / ratio;
+            const y = (event.clientY - rect.top) * (canvas.height / rect.height) / ratio;
+
+            // But we already scaled ctx to ratio: positions are in CSS px,
+            // so we can simply use client coords relative to rect:
+            const cssX = event.clientX - rect.left;
+            const cssY = event.clientY - rect.top;
+
+            const node = findNodeAtCanvasPoint(cssX, cssY);
+            if (node) {
+                selectNode(node.id);
+            }
+        }
+
+        // --- 8. Init -------------------------------------------------------------
+
+        function initWeaverOS() {
+            buildIndices(state.root);
+            const treeContainer = document.getElementById("treeView");
+            buildTreeView(state.root, treeContainer, 0);
+            updateTreeSelection();
+            updateInspector();
+            layoutAndRenderCanvas();
+
+            const canvas = document.getElementById("tuiCanvas");
+            canvas.addEventListener("click", onCanvasClick);
+            window.addEventListener("keydown", handleKey);
+
+            window.addEventListener("resize", () => {
+                // Re-render on resize
+                layoutAndRenderCanvas();
+            });
+        }
+
+        document.addEventListener("DOMContentLoaded", initWeaverOS);
+    </script>
+</body>
+
+</html>

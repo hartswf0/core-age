@@ -1,0 +1,2888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Unified L-System Ontology Weaver</title>
+    <style>
+        :root {
+            --bg-void: #050508;
+            --bg-panel: #0f0f16;
+            --text-primary: #e2e8f0;
+            --text-dim: #64748b;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-blue: #3b82f6;
+            --accent-red: #ef4444;
+            --accent-pink: #ec4899;
+            --border-color: #1e293b;
+            --glass: rgba(15, 23, 42, 0.7);
+        }
+
+        /* Neural Flow Visualization */
+        .neural-flow-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 7;
+        }
+
+        .flow-particle {
+            position: absolute;
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            pointer-events: none;
+            box-shadow: 0 0 8px currentColor;
+            animation: pulse 0.8s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.8;
+            }
+
+            50% {
+                transform: scale(1.4);
+                opacity: 1;
+            }
+        }
+
+        @keyframes flow {
+            0% {
+                offset-distance: 0%;
+                opacity: 0;
+            }
+
+            10% {
+                opacity: 1;
+            }
+
+            90% {
+                opacity: 1;
+            }
+
+            100% {
+                offset-distance: 100%;
+                opacity: 0;
+            }
+        }
+
+        /* Timeline Viewer */
+        .timeline-panel {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 200px;
+            background: var(--bg-panel);
+            border-top: 1px solid var(--border-color);
+            z-index: 20;
+            display: none;
+            flex-direction: column;
+            box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .timeline-panel.active {
+            display: flex;
+        }
+
+        .timeline-header {
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .timeline-title {
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        .timeline-controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .timeline-body {
+            flex: 1;
+            overflow-x: auto;
+            overflow-y: hidden;
+            padding: 12px;
+            display: flex;
+            gap: 4px;
+        }
+
+        .timeline-lane {
+            min-width: 60px;
+            height: 100%;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            transition: all 0.2s;
+        }
+
+        .timeline-lane:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(15, 23, 42, 0.8);
+        }
+
+        .timeline-lane-header {
+            font-size: 9px;
+            padding: 4px;
+            text-align: center;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .timeline-events {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .timeline-event {
+            position: absolute;
+            left: 4px;
+            right: 4px;
+            height: 20px;
+            border-radius: 3px;
+            font-size: 8px;
+            padding: 2px 4px;
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+        }
+
+        .timeline-event:hover {
+            transform: scale(1.05);
+            z-index: 10;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .timeline-event.source-redbull {
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-pink));
+        }
+
+        .timeline-event.source-template {
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
+        }
+
+        .timeline-event.source-gotmilk {
+            background: linear-gradient(135deg, var(--accent-green), var(--accent-cyan));
+        }
+
+        /* Diff Matrix View */
+        .diff-matrix {
+            margin-top: 8px;
+            padding: 8px;
+            background: rgba(15, 23, 42, 0.7);
+            border: 1px solid var(--border-color);
+            border-radius: 4px;
+            font-size: 9px;
+        }
+
+        .diff-row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+
+        .diff-label {
+            min-width: 80px;
+            color: var(--text-dim);
+            font-weight: 600;
+        }
+
+        .diff-value {
+            flex: 1;
+            padding: 2px 4px;
+            border-radius: 3px;
+            font-family: monospace;
+        }
+
+        .diff-value.match {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--accent-green);
+        }
+
+        .diff-value.mismatch {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--accent-red);
+        }
+
+        /* Assembly Line Animation */
+        .assembly-mode .column {
+            transition: all 0.5s ease-in-out;
+        }
+
+        .assembly-mode .item {
+            transition: all 0.4s cubic-bezier(0.4, 0.0, 0.2, 1);
+            transform-origin: center;
+        }
+
+        .assembly-mode .item.building {
+            animation: assemblyBuild 1.2s ease-in-out;
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 20px rgba(6, 182, 212, 0.4);
+        }
+
+        @keyframes assemblyBuild {
+            0% {
+                transform: scale(0.8) rotateY(-20deg);
+                opacity: 0;
+            }
+
+            50% {
+                transform: scale(1.05) rotateY(0deg);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) rotateY(0deg);
+                opacity: 1;
+            }
+        }
+
+        .line-number-badge {
+            position: absolute;
+            top: -8px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: linear-gradient(135deg, var(--accent-cyan), var(--accent-purple));
+            color: #fff;
+            padding: 4px 12px;
+            border-radius: 999px;
+            font-size: 11px;
+            font-weight: bold;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            opacity: 0;
+            animation: badgeFloat 1s ease-in-out forwards;
+        }
+
+        @keyframes badgeFloat {
+            0% {
+                opacity: 0;
+                transform: translateX(-50%) translateY(-20px);
+            }
+
+            100% {
+                opacity: 1;
+                transform: translateX(-50%) translateY(0);
+            }
+        }
+
+        .assembly-progress {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            width: 0%;
+            transition: width 0.8s ease-in-out;
+            box-shadow: 0 0 10px currentColor;
+        }
+
+        .assembly-status {
+            position: fixed;
+            top: 80px;
+            right: 24px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-cyan);
+            border-radius: 8px;
+            padding: 12px 16px;
+            z-index: 100;
+            min-width: 200px;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .assembly-status.active {
+            display: block;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .status-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 6px 0;
+            border-bottom: 1px solid rgba(100, 116, 139, 0.3);
+            font-size: 11px;
+        }
+
+        .status-row:last-child {
+            border-bottom: none;
+        }
+
+        .status-label {
+            color: var(--text-dim);
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+
+        .status-value {
+            color: var(--accent-cyan);
+            font-weight: bold;
+            font-family: monospace;
+        }
+
+        .assembly-controls {
+            margin-top: 12px;
+            display: flex;
+            gap: 6px;
+        }
+
+        .assembly-btn {
+            flex: 1;
+            padding: 6px;
+            border-radius: 4px;
+            border: 1px solid var(--accent-cyan);
+            background: transparent;
+            color: var(--accent-cyan);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+        }
+
+        .assembly-btn:hover {
+            background: rgba(6, 182, 212, 0.2);
+        }
+
+        .assembly-btn.pause {
+            border-color: var(--accent-orange);
+            color: var(--accent-orange);
+        }
+
+        .assembly-btn.pause:hover {
+            background: rgba(245, 158, 11, 0.2);
+        }
+
+        /* Number scrolling animation */
+        @keyframes numberScroll {
+            0% {
+                transform: translateY(100%);
+                opacity: 0;
+            }
+
+            50% {
+                opacity: 1;
+            }
+
+            100% {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        .scroll-number {
+            display: inline-block;
+            animation: numberScroll 0.4s ease-out;
+        }
+
+        .scroll-number:nth-child(1) {
+            animation-delay: 0s;
+        }
+
+        .scroll-number:nth-child(2) {
+            animation-delay: 0.05s;
+        }
+
+        .scroll-number:nth-child(3) {
+            animation-delay: 0.1s;
+        }
+
+        .scroll-number:nth-child(4) {
+            animation-delay: 0.15s;
+        }
+
+        .scroll-number:nth-child(5) {
+            animation-delay: 0.2s;
+        }
+
+        .scroll-number:nth-child(6) {
+            animation-delay: 0.25s;
+        }
+
+        .scroll-number:nth-child(7) {
+            animation-delay: 0.3s;
+        }
+
+        .scroll-number:nth-child(8) {
+            animation-delay: 0.35s;
+        }
+
+        /* Stud pop-in animation */
+        .stud-dot.assembling {
+            animation: studPopIn 0.3s ease-out;
+        }
+
+        @keyframes studPopIn {
+            0% {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            70% {
+                transform: scale(1.3);
+            }
+
+            100% {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        /* Canvas build animation */
+        .preview-canvas.building {
+            animation: canvasBuild 0.8s ease-in-out;
+        }
+
+        @keyframes canvasBuild {
+            0% {
+                transform: scale(0.5) rotate(-10deg);
+                opacity: 0;
+                filter: blur(4px);
+            }
+
+            100% {
+                transform: scale(1) rotate(0deg);
+                opacity: 1;
+                filter: blur(0);
+            }
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background-color: var(--bg-void);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- Header --- */
+        header {
+            height: 70px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--bg-panel);
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        .header-left {
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        h1 {
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--accent-cyan), var(--accent-purple));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .subtitle {
+            font-size: 11px;
+            color: var(--text-dim);
+        }
+
+        .header-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .control-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 10px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.5);
+        }
+
+        .control-group label {
+            font-size: 10px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .control-group input[type="range"] {
+            width: 100px;
+            height: 4px;
+            background: #1f2937;
+            border-radius: 2px;
+            outline: none;
+        }
+
+        .control-group input[type="range"]::-webkit-slider-thumb {
+            appearance: none;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--accent-purple);
+            cursor: pointer;
+        }
+
+        .control-group .value {
+            font-size: 10px;
+            color: var(--accent-cyan);
+            font-weight: 600;
+            min-width: 32px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.8);
+            color: var(--text-primary);
+            font-size: 10px;
+            text-transform: uppercase;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .btn.active {
+            background: linear-gradient(135deg, var(--accent-purple), #6366f1);
+            border-color: var(--accent-purple);
+        }
+
+        /* --- Main Layout --- */
+        main {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* SVG Overlay for "The Weave" */
+        #weave-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        /* --- Columns --- */
+        .column {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--border-color);
+            background: rgba(5, 5, 8, 0.5);
+            min-width: 280px;
+            transition: all 0.3s;
+            position: relative;
+        }
+
+        .column:last-child {
+            border-right: none;
+        }
+
+        .column.expanded {
+            flex: 2;
+        }
+
+        .col-header {
+            padding: 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            border-bottom: 1px solid var(--border-color);
+            background: var(--bg-panel);
+            position: sticky;
+            top: 0;
+            z-index: 2;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 8px;
+        }
+
+        .col-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .col-icon {
+            width: 14px;
+            height: 14px;
+            opacity: 0.7;
+        }
+
+        .expand-col-btn {
+            padding: 2px 6px;
+            font-size: 9px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--text-dim);
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        .expand-col-btn:hover {
+            border-color: var(--accent-cyan);
+            color: var(--accent-cyan);
+        }
+
+        .col-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            scrollbar-width: thin;
+            scrollbar-color: var(--border-color) transparent;
+        }
+
+        /* --- Cards/Items --- */
+        .item {
+            margin-bottom: 12px;
+            padding: 12px;
+            background: var(--bg-panel);
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-size: 12px;
+            min-height: 80px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .item:hover {
+            border-color: var(--accent-cyan);
+            background: #161b22;
+            z-index: 6;
+        }
+
+        .item.active {
+            border-color: var(--accent-purple);
+            box-shadow: 0 0 15px rgba(139, 92, 246, 0.15);
+            background: #1a1a24;
+        }
+
+        .item.dim {
+            opacity: 0.3;
+        }
+
+        /* --- Source (Void) Column --- */
+        .col-void .item {
+            font-family: 'Courier New', monospace;
+            color: #475569;
+            word-break: break-all;
+            border-left: 2px solid #334155;
+        }
+
+        .col-void .item.active {
+            color: var(--accent-cyan);
+            border-left-color: var(--accent-cyan);
+            text-shadow: 0 0 5px rgba(6, 182, 212, 0.5);
+        }
+
+        .line-index {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 9px;
+            color: #334155;
+            font-weight: bold;
+        }
+
+        .item.active .line-index {
+            color: var(--accent-purple);
+        }
+
+        /* --- Template (Entity) Column --- */
+        .template-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 8px;
+        }
+
+        .badge {
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 10px;
+            font-weight: bold;
+            background: #334155;
+            color: #cbd5e1;
+        }
+
+        .badge-type-1 {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--accent-cyan);
+            border: 1px solid rgba(6, 182, 212, 0.3);
+        }
+
+        .badge-type-4 {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--accent-purple);
+            border: 1px solid rgba(139, 92, 246, 0.3);
+        }
+
+        .part-name {
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .weathering-info {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            margin-top: 4px;
+        }
+
+        .color-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            display: inline-block;
+        }
+
+        /* --- Morphism (Transform) Column --- */
+        .matrix-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 2px;
+            margin-top: 6px;
+            opacity: 0.5;
+        }
+
+        .matrix-val {
+            background: rgba(255, 255, 255, 0.05);
+            text-align: center;
+            padding: 2px;
+            font-size: 9px;
+            color: var(--text-dim);
+        }
+
+        .coord-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 6px;
+            border-bottom: 1px solid #333;
+            padding-bottom: 4px;
+        }
+
+        .coord {
+            color: var(--accent-green);
+        }
+
+        /* --- Stud Galaxy Styles --- */
+        .stud-galaxy-container {
+            margin-top: 8px;
+            padding-top: 8px;
+            border-top: 1px dashed #333;
+            position: relative;
+        }
+
+        .stud-galaxy-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--text-dim);
+            margin-bottom: 6px;
+            align-items: center;
+        }
+
+        .stud-count-badge {
+            color: var(--accent-orange);
+            font-weight: bold;
+            background: rgba(245, 158, 11, 0.1);
+            padding: 1px 4px;
+            border-radius: 3px;
+        }
+
+        /* DOM Grid (Small Scale) */
+        .stud-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(6px, 1fr));
+            gap: 2px;
+            max-height: 40px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-in-out;
+            position: relative;
+        }
+
+        .stud-grid.expanded {
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .stud-dot {
+            width: 6px;
+            height: 6px;
+            background-color: #334155;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .stud-dot:hover {
+            background-color: var(--accent-orange);
+            transform: scale(1.8);
+            box-shadow: 0 0 4px var(--accent-orange);
+        }
+
+        /* Canvas Grid (Large Scale) */
+        .stud-galaxy-canvas {
+            width: 100%;
+            height: 80px;
+            background: #0a0a0f;
+            border-radius: 4px;
+            cursor: crosshair;
+            image-rendering: pixelated;
+            border: 1px solid #222;
+        }
+
+        /* Tooltip */
+        .galaxy-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-orange);
+            color: #fff;
+            padding: 4px 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 100;
+            white-space: nowrap;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            display: none;
+        }
+
+        .expand-toggle {
+            font-size: 9px;
+            text-align: center;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            margin-top: 4px;
+            border-top: 1px solid transparent;
+            opacity: 0.7;
+        }
+
+        .expand-toggle:hover {
+            opacity: 1;
+            text-decoration: underline;
+        }
+
+        /* --- Action (Artifact) Column --- */
+        .artifact-container {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            height: 100%;
+        }
+
+        .preview-canvas {
+            width: 100%;
+            height: 120px;
+            background: #000;
+            border: 1px solid #333;
+            border-radius: 4px;
+        }
+
+        .action-controls {
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+        }
+
+        .action-btn {
+            background: transparent;
+            border: 1px solid var(--accent-cyan);
+            color: var(--accent-cyan);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            text-transform: uppercase;
+            transition: 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            flex: 1;
+        }
+
+        .action-btn:hover {
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 10px rgba(6, 182, 212, 0.2);
+        }
+
+        /* Transform Visualization */
+        .transform-viz {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.5);
+            font-size: 9px;
+            color: var(--text-dim);
+            font-family: "Fira Code", monospace;
+            line-height: 1.6;
+            border: 1px solid rgba(55, 65, 81, 0.5);
+        }
+
+        .transform-viz .label {
+            color: var(--accent-cyan);
+            font-weight: 600;
+        }
+
+        /* Comparison View */
+        .comparison-view {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+        }
+
+        .comparison-card {
+            flex: 1;
+            padding: 6px;
+            border-radius: 4px;
+            background: rgba(15, 23, 42, 0.5);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            font-size: 10px;
+        }
+
+        .comparison-card .title {
+            color: var(--accent-purple);
+            font-weight: 600;
+            margin-bottom: 4px;
+            font-size: 9px;
+            text-transform: uppercase;
+        }
+
+        .comparison-card .value {
+            color: var(--text-primary);
+            font-family: "Fira Code", monospace;
+            font-size: 9px;
+            line-height: 1.4;
+        }
+
+        /* Data Flow Visualization */
+        .data-flow-viz {
+            margin-top: 8px;
+            padding: 8px;
+            border-radius: 6px;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .flow-step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 6px;
+            border-radius: 4px;
+            background: rgba(30, 41, 59, 0.4);
+            transition: all 200ms;
+        }
+
+        .flow-step.active {
+            background: rgba(99, 102, 241, 0.2);
+            border-left: 2px solid var(--accent-purple);
+        }
+
+        .flow-arrow {
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        /* Utils */
+        .hidden {
+            display: none;
+        }
+
+        @media (max-width: 1200px) {
+            .column {
+                min-width: 220px;
+            }
+
+            .header-controls {
+                flex-wrap: wrap;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="header-left">
+            <h1>Unified L-System Ontology Weaver</h1>
+            <div class="subtitle">Media for Thinking: MPD → Entity → Transform → Artifact Pipeline</div>
+        </div>
+        <div class="header-controls">
+            <button class="btn" onclick="document.getElementById('goldFileInput').click()"
+                style="border-color: var(--accent-cyan); color: var(--accent-cyan);">
+                📁 Load GOLD
+            </button>
+            <input type="file" id="goldFileInput" accept=".json" style="display: none;" onchange="loadGoldFile(event)">
+            <div class="control-group">
+                <label>Rotation:</label>
+                <input type="range" id="rotationSlider" min="0" max="360" value="45" step="1">
+                <span class="value" id="rotationValue">45°</span>
+            </div>
+            <div class="control-group">
+                <label>Zoom:</label>
+                <input type="range" id="zoomSlider" min="50" max="200" value="100" step="5">
+                <span class="value" id="zoomValue">100%</span>
+            </div>
+            <button class="btn" id="flowBtn">Data Flow</button>
+            <button class="btn" id="compareBtn">Compare</button>
+            <button class="btn" id="transformBtn">Transforms</button>
+            <button class="btn" id="neuralFlowBtn">Neural Flow</button>
+            <button class="btn" id="timelineBtn">Timeline</button>
+            <button class="btn" id="assemblyBtn">🏭 Assembly Line</button>
+            <button class="btn" id="redBullBtn" style="background: linear-gradient(135deg, #ef4444, #dc2626);">🐂 Red
+                Bull</button>
+        </div>
+    </header>
+
+    <!-- Assembly Status Panel -->
+    <div class="assembly-status" id="assemblyStatus">
+        <div class="status-row">
+            <span class="status-label">Current Line:</span>
+            <span class="status-value" id="currentLine">—</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Progress:</span>
+            <span class="status-value" id="assemblyProgress">0%</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Studs Built:</span>
+            <span class="status-value" id="studsBui lt">0</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Status:</span>
+            <span class="status-value" id="assemblyState">Idle</span>
+        </div>
+        <div class="assembly-controls">
+            <button class="assembly-btn" onclick="assemblyPlay()">▶️ Play</button>
+            <button class="assembly-btn pause" onclick="assemblyPause()">⏸️ Pause</button>
+            <button class="assembly-btn" onclick="assemblyStep()">⏭️ Step</button>
+            <button class="assembly-btn" onclick="assemblyReset()">🔄 Reset</button>
+        </div>
+    </div>
+
+    <!-- Red Bull Simulation Panel -->
+    <div class="assembly-status" id="redBullStatus" style="top: 300px; border-color: var(--accent-red);">
+        <div
+            style="text-align: center; margin-bottom: 8px; color: var(--accent-red); font-weight: bold; text-transform: uppercase; font-size: 12px;">
+            🐂 Red Bull Sampler
+        </div>
+        <div class="status-row">
+            <span class="status-label">Sampling Line:</span>
+            <span class="status-value" id="rbCurrentLine">—</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Sample Rate:</span>
+            <span class="status-value" id="rbSampleRate">50ms</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Emit Rate:</span>
+            <span class="status-value" id="rbEmitRate">150ms</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Bus Messages:</span>
+            <span class="status-value" id="rbBusCount">0</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Buffer Size:</span>
+            <span class="status-value" id="rbBufferSize">0</span>
+        </div>
+        <div class="status-row">
+            <span class="status-label">Status:</span>
+            <span class="status-value" id="rbState">Idle</span>
+        </div>
+        <div class="assembly-controls">
+            <button class="assembly-btn" onclick="redBullStart()"
+                style="border-color: var(--accent-red); color: var(--accent-red);">▶️ Start</button>
+            <button class="assembly-btn pause" onclick="redBullStop()">⏹️ Stop</button>
+            <button class="assembly-btn" onclick="redBullClearLog()" style="font-size: 9px;">🗑️ Clear Log</button>
+        </div>
+        <div
+            style="margin-top: 8px; padding: 8px; background: rgba(0,0,0,0.3); border-radius: 4px; max-height: 100px; overflow-y: auto; font-size: 9px; font-family: monospace;">
+            <div id="rbBusLog" style="color: #666;">Bus log appears here...</div>
+        </div>
+    </div>
+
+    <main id="app">
+        <svg id="weave-canvas"></svg>
+        <canvas id="neural-flow-canvas" class="neural-flow-overlay"></canvas>
+        <div id="galaxy-tooltip" class="galaxy-tooltip"></div>
+
+        <!-- Column 1: The Void (Raw Source) -->
+        <div class="column col-void">
+            <div class="col-header">
+                <div class="col-title">
+                    <span class="col-icon">⚡</span>
+                    Source Layer (The Void)
+                </div>
+                <button class="expand-col-btn" onclick="toggleColumn(0)">⇔</button>
+            </div>
+            <div class="col-content" id="list-void"></div>
+        </div>
+
+        <!-- Column 2: Template (Entity/Weathering) -->
+        <div class="column col-template">
+            <div class="col-header">
+                <div class="col-title">
+                    <span class="col-icon">🧩</span>
+                    Template Layer (Entity)
+                </div>
+                <button class="expand-col-btn" onclick="toggleColumn(1)">⇔</button>
+            </div>
+            <div class="col-content" id="list-template"></div>
+        </div>
+
+        <!-- Column 3: Morphism (Transformation) -->
+        <div class="column col-morphism">
+            <div class="col-header">
+                <div class="col-title">
+                    <span class="col-icon">📐</span>
+                    Transformation Layer (Stud Galaxy)
+                </div>
+                <button class="expand-col-btn" onclick="toggleColumn(2)">⇔</button>
+            </div>
+            <div class="col-content" id="list-morphism"></div>
+        </div>
+
+        <!-- Column 4: Action (Artifact/Visual) -->
+        <div class="column col-action">
+            <div class="col-header">
+                <div class="col-title">
+                    <span class="col-icon">👁️</span>
+                    Execution Layer (Artifact)
+                </div>
+                <button class="expand-col-btn" onclick="toggleColumn(3)">⇔</button>
+            </div>
+            <div class="col-content" id="list-action"></div>
+        </div>
+    </main>
+
+    <!-- Timeline Panel -->
+    <div class="timeline-panel" id="timelinePanel">
+        <div class="timeline-header">
+            <div class="timeline-title">🕐 Temporal Event Stream (Line × Time × Source)</div>
+            <div class="timeline-controls">
+                <button class="btn" onclick="simulateRedBullStream()">▶️ Simulate Red Bull</button>
+                <button class="btn" onclick="simulateTemplateStream()">▶️ Simulate Template</button>
+                <button class="btn" onclick="showDiffMatrix()">🔍 Show Diff</button>
+                <button class="btn" onclick="closeTimeline()">✕</button>
+            </div>
+        </div>
+        <div class="timeline-body" id="timelineBody"></div>
+    </div>
+
+    <script>
+        // === NEURAL FLOW STATE ===
+        const neuralState = {
+            active: false,
+            particles: [],
+            timeline: {}, // lineIndex -> [{t, source, nodes}]
+            animationFrame: null
+        };
+
+        // === ASSEMBLY LINE STATE ===
+        const assemblyState = {
+            active: false,
+            currentLine: 0,
+            paused: false,
+            speed: 1200, // ms per line
+            totalStuds: 0,
+            timeoutId: null
+        };
+
+        // === RED BULL SIMULATION STATE ===
+        const redBullState = {
+            active: false,
+            sampleInterval: null,
+            emitInterval: null,
+            currentSampleLine: 0,
+            sampleBuffer: [], // Simulates Courage's internal buffer
+            emitRate: 150, // ms between emissions
+            sampleRate: 50, // ms between samples (simulating 60fps-ish)
+            totalEmitted: 0,
+            busLog: [] // Simulates messages on wag-frank bus
+        };
+        // === STATE ===
+        const state = {
+            rotation: 45,
+            zoom: 100,
+            showFlow: false,
+            showComparison: false,
+            showTransforms: false,
+            dimOthers: false,
+            selectedId: null,
+            neuralFlow: false,
+            showTimeline: false,
+            goldLoaded: false,
+            goldData: null
+        };
+
+        // === GOLD FILE LOADING ===
+        window.loadGoldFile = function (event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const gold = JSON.parse(e.target.result);
+                    processGoldFile(gold);
+                } catch (err) {
+                    alert('Error loading GOLD file: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        };
+
+        function processGoldFile(gold) {
+            state.goldData = gold;
+            state.goldLoaded = true;
+
+            // Extract MPD content
+            const mpdContent = gold.mpd_content || '';
+
+            // Update the global mpdText and reprocess
+            window.currentMpdText = mpdContent;
+            window.currentStudSkeleton = gold.stud_skeleton || gold.stud_skeleton_v2?.nodes || [];
+
+            // Rebuild the entire DOM with new data
+            rebuildFromGold();
+
+            // Show success message
+            const lineCount = gold.line_count || 'unknown';
+            const studCount = window.currentStudSkeleton.length;
+            alert(`✅ GOLD loaded!\n\nLines: ${lineCount}\nStuds: ${studCount}\n\nReady for assembly line visualization.`);
+        }
+
+        function rebuildFromGold() {
+            if (!window.currentMpdText) return;
+
+            // Reparse MPD
+            const lines = window.currentMpdText.split('\n').filter(l => l.trim().length > 0);
+
+            // Reprocess
+            window.rawData = lines;
+            window.processedData = lines.map((line, idx) => parseLine(line, idx));
+
+            // Rebuild DOM
+            rebuildDOM();
+        }
+
+        // === MPD DATA ===
+        let currentMpdText = null;
+        let currentStudSkeleton = [];
+        const mpdText = `0 FILE monkey-data-center.mpd
+0 Monkey Data Center - Container First Build
+0 Name: monkey-data-center.mpd
+0 Author: Master Builder Method
+0 STEP 1: NORTH WALL
+1 72 0 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 20 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+1 72 -20 -24 -80 1 0 0 0 1 0 0 0 1 15561.dat
+0 Control panel detail
+1 1 0 -48 -80 1 0 0 0 1 0 0 0 1 14718px1.dat
+1 15 20 -48 -80 1 0 0 0 1 0 0 0 1 5306.dat
+1 15 -20 -48 -80 1 0 0 0 1 0 0 0 1 5306.dat
+0 STEP 2: EAST WALL
+1 72 80 -24 0 0 0 1 0 1 0 -1 0 0 15561.dat
+1 72 80 -24 20 0 0 1 0 1 0 -1 0 0 15561.dat
+1 72 80 -24 -20 0 0 1 0 1 0 -1 0 0 15561.dat
+0 Lighting control panels
+1 14 80 -48 0 0 0 1 0 1 0 -1 0 0 14718px1.dat
+1 4 80 -48 20 0 0 1 0 1 0 -1 0 0 5306.dat
+1 4 80 -48 -20 0 0 1 0 1 0 -1 0 0 5306.dat
+0 STEP 5: FLOOR BASE (Large Plate Simulation)
+1 72 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+1 72 20 0 0 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 -20 0 0 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 0 0 20 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+1 72 0 0 -20 1 0 0 0 1 0 0 0 1 3069bpc0.dat
+0 STEP 8: ALPHA MONKEY
+1 6 0 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+0 STEP 9: BETA MONKEY
+1 6 60 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+0 STEP 10: GAMMA MONKEY
+1 6 -60 -80 0 1 0 0 0 1 0 0 0 1 3626bph4.dat
+`;
+
+        const rawData = mpdText.split('\n').filter(l => l.trim().length > 0);
+
+        const ldrawColors = {
+            0: "#000000", 1: "#0055BF", 4: "#C91A09", 6: "#00AA00",
+            14: "#585858", 15: "#FFFFFF", 72: "#E6E6E6"
+        };
+
+        // === STUD LIBRARY ===
+        const studLibrary = {
+            "15561.dat": [{ x: -10, y: 0, z: 0 }, { x: 10, y: 0, z: 0 }],
+            "14718px1.dat": [{ x: 0, y: 0, z: 0 }, { x: 0, y: 0, z: 20 }],
+            "5306.dat": [{ x: 0, y: 0, z: 0 }],
+            "3069bpc0.dat": [{ x: 0, y: 0, z: 0 }],
+            "3626bph4.dat": [{ x: 0, y: -8, z: 0 }],
+            "3811.dat": (function () {
+                const studs = [];
+                const w = 32, h = 32;
+                const startX = -310, startZ = -310;
+                for (let x = 0; x < w; x++) {
+                    for (let z = 0; z < h; z++) {
+                        studs.push({ x: startX + x * 20, y: 0, z: startZ + z * 20 });
+                    }
+                }
+                return studs;
+            })()
+        };
+
+        // === PARSING ===
+        function parseLine(line, index) {
+            const tokens = line.trim().split(/\s+/);
+            const type = tokens[0];
+
+            let entity = {
+                id: index,
+                type: type,
+                raw: line,
+                name: "Unknown",
+                color: 16,
+                colorHex: "#666"
+            };
+
+            let morphism = {
+                x: 0, y: 0, z: 0,
+                matrix: [1, 0, 0, 0, 1, 0, 0, 0, 1],
+                isGeometry: false,
+                studs: []
+            };
+
+            let geometry = [];
+
+            if (type === '1') {
+                entity.color = parseInt(tokens[1]);
+                entity.colorHex = ldrawColors[entity.color] || "#888";
+                morphism.x = parseFloat(tokens[2]);
+                morphism.y = parseFloat(tokens[3]);
+                morphism.z = parseFloat(tokens[4]);
+                morphism.matrix = tokens.slice(5, 14).map(Number);
+                entity.name = tokens.slice(14).join(" ");
+                morphism.isGeometry = true;
+
+                const partKey = entity.name.toLowerCase();
+                const template = studLibrary[partKey];
+
+                if (template) {
+                    morphism.studs = template.map((s, sIdx) => {
+                        const m = morphism.matrix;
+                        const wx = m[0] * s.x + m[1] * s.y + m[2] * s.z + morphism.x;
+                        const wy = m[3] * s.x + m[4] * s.y + m[5] * s.z + morphism.y;
+                        const wz = m[6] * s.x + m[7] * s.y + m[8] * s.z + morphism.z;
+
+                        return {
+                            x: wx, y: wy, z: wz,
+                            localX: s.x, localY: s.y, localZ: s.z,
+                            gridX: Math.round(wx / 20),
+                            gridZ: Math.round(wz / 20),
+                            layer: Math.round(-wy / 8),
+                            idx: sIdx
+                        };
+                    });
+                    geometry = morphism.studs;
+                } else {
+                    geometry = [
+                        { x: morphism.x - 10, y: morphism.y, z: morphism.z - 10 },
+                        { x: morphism.x + 10, y: morphism.y, z: morphism.z + 10 }
+                    ];
+                }
+            } else if (type === '0') {
+                entity.name = "Meta Command";
+                entity.isMeta = true;
+                if (line.includes("STEP")) entity.name = line.substring(2);
+            }
+
+            return { entity, morphism, geometry };
+        }
+
+        const processedData = rawData.map((line, idx) => parseLine(line, idx));
+
+        // === DOM CONTAINERS ===
+        const containers = {
+            void: document.getElementById('list-void'),
+            template: document.getElementById('list-template'),
+            morphism: document.getElementById('list-morphism'),
+            action: document.getElementById('list-action')
+        };
+        const galaxyTooltip = document.getElementById('galaxy-tooltip');
+
+        // === DOM GENERATION ===
+        function createDOM() {
+            processedData.forEach((data, i) => {
+                createVoidItem(data, i);
+                createTemplateItem(data, i);
+                createMorphismItem(data, i);
+                createActionItem(data, i);
+            });
+        }
+
+        function createVoidItem(data, i) {
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.textContent = data.entity.raw.length > 30 ?
+                data.entity.raw.substring(0, 27) + '...' : data.entity.raw;
+            el.dataset.id = i;
+            el.innerHTML += `<span class="line-index">#${i}</span>`;
+            containers.void.appendChild(el);
+        }
+
+        function createTemplateItem(data, i) {
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.dataset.id = i;
+
+            if (data.entity.isMeta) {
+                el.innerHTML = `<div class="part-name" style="color:#888">${data.entity.name}</div>`;
+                el.style.opacity = "0.7";
+                el.style.borderStyle = "dashed";
+            } else {
+                el.innerHTML = `
+                <span class="line-index">#${i}</span>
+                <div class="template-header">
+                    <span class="badge badge-type-${data.entity.type}">Type ${data.entity.type}</span>
+                </div>
+                <div class="part-name">${data.entity.name}</div>
+                <div class="weathering-info">
+                    <span class="color-dot" style="background:${data.entity.colorHex}"></span>
+                    <span style="font-size:10px; color:#999">ID: ${data.entity.color}</span>
+                </div>
+            `;
+
+                if (state.showFlow) {
+                    el.innerHTML += `
+                    <div class="data-flow-viz" style="margin-top:8px;">
+                        <div class="flow-step active">
+                            <span class="flow-arrow">➊</span>
+                            <span>Parsed from line ${i}</span>
+                        </div>
+                        <div class="flow-step active">
+                            <span class="flow-arrow">➋</span>
+                            <span>Entity: ${data.entity.name}</span>
+                        </div>
+                    </div>
+                `;
+                }
+            }
+            containers.template.appendChild(el);
+        }
+
+        function createMorphismItem(data, i) {
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.dataset.id = i;
+
+            if (data.morphism.isGeometry) {
+                const studCount = data.morphism.studs.length;
+                let studHTML = '';
+                const gridId = `stud-grid-${i}`;
+
+                if (studCount > 0) {
+                    const useCanvas = studCount > 100;
+                    const expandNeeded = studCount > 16;
+
+                    if (useCanvas) {
+                        const canvasId = `galaxy-cvs-${i}`;
+                        studHTML = `
+                        <div class="stud-galaxy-container">
+                            <div class="stud-galaxy-header">
+                                <span>GALAXY MAP</span>
+                                <span class="stud-count-badge">${studCount} STUDS</span>
+                            </div>
+                            <canvas id="${canvasId}" class="stud-galaxy-canvas" width="300" height="80"></canvas>
+                            <div style="font-size:9px; color:#666; margin-top:2px; text-align:right">High Density Mode</div>
+                        </div>
+                    `;
+                        setTimeout(() => renderGalaxyCanvas(canvasId, data.morphism.studs, i), 0);
+                    } else {
+                        const dotsHTML = data.morphism.studs.map(s => `
+                        <div class="stud-dot" 
+                             data-stud='${JSON.stringify({ g: [s.gridX, s.gridZ], i: s.idx, l: [s.localX, s.localY, s.localZ], w: [s.x.toFixed(1), s.y.toFixed(1), s.z.toFixed(1)] })}'
+                             onmouseenter="showDomTooltip(event, this.dataset.stud)"
+                             onmouseleave="hideDomTooltip()"
+                        ></div>
+                    `).join('');
+
+                        const toggleHTML = expandNeeded ?
+                            `<div class="expand-toggle" onclick="toggleGrid('${gridId}')">⇅ Expand / Collapse</div>` : '';
+
+                        studHTML = `
+                        <div class="stud-galaxy-container">
+                            <div class="stud-galaxy-header">
+                                <span>STUD MAPPING</span>
+                                <span class="stud-count-badge">${studCount} STUDS</span>
+                            </div>
+                            <div class="stud-grid" id="${gridId}">
+                                ${dotsHTML}
+                            </div>
+                            ${toggleHTML}
+                        </div>
+                    `;
+                    }
+                } else {
+                    studHTML = `<div class="stud-galaxy-container" style="opacity:0.5; font-size:10px;">No Studs</div>`;
+                }
+
+                let matHTML = `<div class="matrix-grid">
+                    ${data.morphism.matrix.map(n => `<div class="matrix-val">${n.toFixed(1)}</div>`).join('')}
+                </div>`;
+
+                let transformHTML = '';
+                if (state.showTransforms && studCount > 0) {
+                    const s = data.morphism.studs[0];
+                    const m = data.morphism.matrix;
+                    transformHTML = `
+                    <div class="transform-viz">
+                        <span class="label">Transform Matrix (Example S0):</span><br>
+                        [${m[0].toFixed(1)} ${m[1].toFixed(1)} ${m[2].toFixed(1)}]   [${s.localX}]   [${data.morphism.x}]   [${s.x.toFixed(1)}]<br>
+                        [${m[3].toFixed(1)} ${m[4].toFixed(1)} ${m[5].toFixed(1)}] × [${s.localY}] + [${data.morphism.y}] = [${s.y.toFixed(1)}]<br>
+                        [${m[6].toFixed(1)} ${m[7].toFixed(1)} ${m[8].toFixed(1)}]   [${s.localZ}]   [${data.morphism.z}]   [${s.z.toFixed(1)}]
+                    </div>
+                `;
+                }
+
+                let comparisonHTML = '';
+                if (state.showComparison && studCount > 0 && studCount <= 8) {
+                    const localList = data.morphism.studs.map((s, idx) =>
+                        `S${idx}: (${s.localX}, ${s.localY}, ${s.localZ})`
+                    ).join('<br>');
+                    const worldList = data.morphism.studs.map((s, idx) =>
+                        `S${idx}: (${s.x.toFixed(1)}, ${s.y.toFixed(1)}, ${s.z.toFixed(1)})`
+                    ).join('<br>');
+
+                    comparisonHTML = `
+                    <div class="comparison-view">
+                        <div class="comparison-card">
+                            <div class="title">Local Space</div>
+                            <div class="value">${localList}</div>
+                        </div>
+                        <div class="comparison-card">
+                            <div class="title">World Space</div>
+                            <div class="value">${worldList}</div>
+                        </div>
+                    </div>
+                `;
+                }
+
+                el.innerHTML = `
+                <span class="line-index">#${i}</span>
+                <div class="coord-row">
+                    <span>POS</span>
+                    <span class="coord">X:${data.morphism.x.toFixed(0)} Y:${data.morphism.y.toFixed(0)} Z:${data.morphism.z.toFixed(0)}</span>
+                </div>
+                ${matHTML}
+                ${studHTML}
+                ${transformHTML}
+                ${comparisonHTML}
+            `;
+            } else {
+                el.innerHTML = `<span style="color:#555">Identity / Null</span>`;
+            }
+            containers.morphism.appendChild(el);
+        }
+
+        function createActionItem(data, i) {
+            const el = document.createElement('div');
+            el.className = 'item';
+            el.dataset.id = i;
+
+            if (data.morphism.isGeometry) {
+                const canvasId = `canvas-${i}`;
+                el.innerHTML = `
+                <div class="artifact-container">
+                    <canvas id="${canvasId}" class="preview-canvas"></canvas>
+                    <div class="action-controls">
+                        <button class="action-btn" onclick="exportJSON(${i})">
+                            <span>⭳</span> JSON
+                        </button>
+                        <button class="action-btn" onclick="redrawPreview(${i})">
+                            <span>🔄</span> Redraw
+                        </button>
+                    </div>
+                </div>
+            `;
+                setTimeout(() => drawPreview(canvasId, data, i), 0);
+            } else {
+                el.innerHTML = `<span style="color:#444">No Visual Output</span>`;
+            }
+            containers.action.appendChild(el);
+        }
+
+        // === GALAXY CANVAS RENDERER ===
+        function renderGalaxyCanvas(canvasId, studs, lineId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+            const ctx = canvas.getContext('2d');
+            const w = canvas.width;
+            const h = canvas.height;
+
+            ctx.fillStyle = "#0a0a0f";
+            ctx.fillRect(0, 0, w, h);
+
+            let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+            studs.forEach(s => {
+                if (s.x < minX) minX = s.x;
+                if (s.x > maxX) maxX = s.x;
+                if (s.z < minZ) minZ = s.z;
+                if (s.z > maxZ) maxZ = s.z;
+            });
+
+            const pad = 20;
+            const rangeX = (maxX - minX) || 1;
+            const rangeZ = (maxZ - minZ) || 1;
+            const scaleX = (w - pad * 2) / rangeX;
+            const scaleZ = (h - pad * 2) / rangeZ;
+            const scale = Math.min(scaleX, scaleZ);
+
+            const rad = (state.rotation * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            const rotatedStuds = studs.map(s => ({
+                ...s,
+                rx: s.x * cos - s.z * sin,
+                rz: s.x * sin + s.z * cos
+            }));
+
+            const centerX = (minX + maxX) / 2;
+            const centerZ = (minZ + maxZ) / 2;
+            const rcx = centerX * cos - centerZ * sin;
+            const rcz = centerX * sin + centerZ * cos;
+
+            const zoomScale = scale * (state.zoom / 100);
+            const offsetX = w / 2 - rcx * zoomScale;
+            const offsetZ = h / 2 - rcz * zoomScale;
+
+            // Draw grid
+            ctx.strokeStyle = "rgba(55, 65, 81, 0.3)";
+            ctx.lineWidth = 1;
+            ctx.setLineDash([2, 2]);
+            for (let i = -5; i <= 5; i++) {
+                const gx = w / 2 + i * 40 * (state.zoom / 100);
+                ctx.beginPath();
+                ctx.moveTo(gx, 0);
+                ctx.lineTo(gx, h);
+                ctx.stroke();
+            }
+            ctx.setLineDash([]);
+
+            // Draw studs
+            ctx.fillStyle = "#3b82f6";
+            rotatedStuds.forEach(s => {
+                const px = s.rx * zoomScale + offsetX;
+                const pz = s.rz * zoomScale + offsetZ;
+                ctx.fillRect(px - 1, pz - 1, 3, 3);
+            });
+
+            // Interaction
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const mx = e.clientX - rect.left;
+                const my = e.clientY - rect.top;
+
+                let nearest = null;
+                let minDist = 12;
+
+                rotatedStuds.forEach(s => {
+                    const px = s.rx * zoomScale + offsetX;
+                    const pz = s.rz * zoomScale + offsetZ;
+                    const dist = Math.sqrt((px - mx) ** 2 + (pz - my) ** 2);
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearest = s;
+                    }
+                });
+
+                if (nearest) {
+                    galaxyTooltip.style.display = 'block';
+                    galaxyTooltip.style.left = (e.pageX + 10) + 'px';
+                    galaxyTooltip.style.top = (e.pageY - 10) + 'px';
+                    galaxyTooltip.innerHTML = `
+                    <strong>Stud ${nearest.idx}</strong><br>
+                    Grid: [${nearest.gridX}, ${nearest.gridZ}]<br>
+                    Local: (${nearest.localX}, ${nearest.localY}, ${nearest.localZ})<br>
+                    World: (${nearest.x.toFixed(1)}, ${nearest.y.toFixed(1)}, ${nearest.z.toFixed(1)})<br>
+                    Layer: ${nearest.layer}
+                `;
+                    canvas.style.cursor = 'pointer';
+                } else {
+                    galaxyTooltip.style.display = 'none';
+                    canvas.style.cursor = 'crosshair';
+                }
+            });
+
+            canvas.addEventListener('mouseleave', () => {
+                galaxyTooltip.style.display = 'none';
+            });
+        }
+
+        // === DOM TOOLTIPS ===
+        window.showDomTooltip = function (e, studJson) {
+            const s = JSON.parse(studJson);
+            galaxyTooltip.style.display = 'block';
+            galaxyTooltip.style.left = (e.pageX + 10) + 'px';
+            galaxyTooltip.style.top = (e.pageY - 10) + 'px';
+            galaxyTooltip.innerHTML = `
+            <strong>Stud ${s.i}</strong><br>
+            Grid: [${s.g[0]}, ${s.g[1]}]<br>
+            Local: (${s.l[0]}, ${s.l[1]}, ${s.l[2]})<br>
+            World: (${s.w[0]}, ${s.w[1]}, ${s.w[2]})
+        `;
+        }
+
+        window.hideDomTooltip = function () {
+            galaxyTooltip.style.display = 'none';
+        }
+
+        window.toggleGrid = function (id) {
+            const grid = document.getElementById(id);
+            if (grid) grid.classList.toggle('expanded');
+        }
+
+        // === PREVIEW CANVAS ===
+        function drawPreview(canvasId, data, lineId) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width * window.devicePixelRatio;
+            canvas.height = rect.height * window.devicePixelRatio;
+
+            const ctx = canvas.getContext('2d');
+            ctx.setTransform(window.devicePixelRatio, 0, 0, window.devicePixelRatio, 0, 0);
+
+            const w = rect.width;
+            const h = rect.height;
+
+            ctx.fillStyle = "#0a0a0f";
+            ctx.fillRect(0, 0, w, h);
+
+            const rad = (state.rotation * Math.PI) / 180;
+            const cos = Math.cos(rad);
+            const sin = Math.sin(rad);
+
+            if (data.morphism.studs.length > 0) {
+                const studs = data.morphism.studs;
+                let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+
+                studs.forEach(s => {
+                    const rx = s.x * cos - s.z * sin;
+                    const rz = s.x * sin + s.z * cos;
+                    if (rx < minX) minX = rx;
+                    if (rx > maxX) maxX = rx;
+                    if (rz < minZ) minZ = rz;
+                    if (rz > maxZ) maxZ = rz;
+                });
+
+                const pad = 15;
+                const rangeX = (maxX - minX) || 1;
+                const rangeZ = (maxZ - minZ) || 1;
+                const scale = Math.min((w - pad * 2) / rangeX, (h - pad * 2) / rangeZ) * (state.zoom / 100);
+
+                const cx = w / 2;
+                const cy = h / 2;
+
+                ctx.fillStyle = data.entity.colorHex;
+                ctx.strokeStyle = data.entity.colorHex;
+
+                // Draw connections
+                if (studs.length > 1 && lineId === state.selectedId) {
+                    ctx.strokeStyle = 'rgba(139, 92, 246, 0.4)';
+                    ctx.lineWidth = 1;
+                    ctx.beginPath();
+                    studs.forEach((s, idx) => {
+                        const rx = s.x * cos - s.z * sin;
+                        const rz = s.x * sin + s.z * cos;
+                        const px = cx + (rx - (minX + maxX) / 2) * scale;
+                        const py = cy + (rz - (minZ + maxZ) / 2) * scale;
+                        if (idx === 0) ctx.moveTo(px, py);
+                        else ctx.lineTo(px, py);
+                    });
+                    ctx.closePath();
+                    ctx.stroke();
+                }
+
+                // Draw studs
+                studs.forEach(s => {
+                    const rx = s.x * cos - s.z * sin;
+                    const rz = s.x * sin + s.z * cos;
+                    const px = cx + (rx - (minX + maxX) / 2) * scale;
+                    const py = cy + (rz - (minZ + maxZ) / 2) * scale;
+
+                    const radius = lineId === state.selectedId ? 3 : 2;
+                    ctx.beginPath();
+                    ctx.arc(px, py, radius, 0, Math.PI * 2);
+                    ctx.fillStyle = lineId === state.selectedId ? data.entity.colorHex : 'rgba(148, 163, 184, 0.5)';
+                    ctx.fill();
+
+                    if (lineId === state.selectedId) {
+                        ctx.strokeStyle = '#1a1a24';
+                        ctx.lineWidth = 1;
+                        ctx.stroke();
+                    }
+                });
+            } else {
+                ctx.strokeStyle = data.entity.colorHex;
+                ctx.strokeRect(w / 2 - 10, h / 2 - 10, 20, 20);
+            }
+        }
+
+        window.redrawPreview = function (id) {
+            const canvas = document.getElementById(`canvas-${id}`);
+            if (canvas) drawPreview(`canvas-${id}`, processedData[id], id);
+
+            // Redraw all galaxy canvases
+            processedData.forEach((data, idx) => {
+                if (data.morphism.studs.length > 100) {
+                    renderGalaxyCanvas(`galaxy-cvs-${idx}`, data.morphism.studs, idx);
+                }
+            });
+        }
+
+        // === WEAVE (SVG CONNECTIONS) ===
+        const svg = document.getElementById('weave-canvas');
+
+        function drawWeave(id) {
+            while (svg.lastChild) svg.removeChild(svg.lastChild);
+            if (id === null || isNaN(id)) return;
+
+            const els = [
+                document.querySelector(`#list-void .item[data-id="${id}"]`),
+                document.querySelector(`#list-template .item[data-id="${id}"]`),
+                document.querySelector(`#list-morphism .item[data-id="${id}"]`),
+                document.querySelector(`#list-action .item[data-id="${id}"]`)
+            ];
+
+            if (els.some(el => !el)) return;
+
+            const pathColor = processedData[id].entity.colorHex;
+
+            for (let i = 0; i < els.length - 1; i++) {
+                const start = getCenter(els[i]);
+                const end = getCenter(els[i + 1]);
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const dist = (end.x - start.x) / 2;
+                const d = `M ${start.x} ${start.y} C ${start.x + dist} ${start.y}, ${end.x - dist} ${end.y}, ${end.x} ${end.y}`;
+
+                path.setAttribute("d", d);
+                path.setAttribute("stroke", pathColor === "#000000" ? "#444" : pathColor);
+                path.setAttribute("stroke-width", "2");
+                path.setAttribute("fill", "none");
+                path.setAttribute("stroke-linecap", "round");
+                path.style.filter = `drop-shadow(0 0 6px ${pathColor})`;
+                svg.appendChild(path);
+            }
+        }
+
+        function getCenter(el) {
+            const rect = el.getBoundingClientRect();
+            const mainRect = document.querySelector('main').getBoundingClientRect();
+            return {
+                x: rect.left - mainRect.left + rect.width / 2,
+                y: rect.top - mainRect.top + rect.height / 2
+            };
+        }
+
+        // === INTERACTIVITY ===
+        function setupInteractivity() {
+            const items = document.querySelectorAll('.item');
+
+            items.forEach(item => {
+                item.addEventListener('mouseenter', () => {
+                    const id = parseInt(item.dataset.id);
+                    highlightRow(id);
+                    drawWeave(id);
+                    state.selectedId = id;
+
+                    // Redraw preview with selection
+                    const canvas = document.getElementById(`canvas-${id}`);
+                    if (canvas) drawPreview(`canvas-${id}`, processedData[id], id);
+                });
+            });
+
+            document.getElementById('app').addEventListener('mouseleave', () => {
+                clearHighlights();
+                drawWeave(null);
+                galaxyTooltip.style.display = 'none';
+                state.selectedId = null;
+
+                // Redraw all previews without selection
+                processedData.forEach((data, idx) => {
+                    const canvas = document.getElementById(`canvas-${idx}`);
+                    if (canvas) drawPreview(`canvas-${idx}`, data, null);
+                });
+            });
+
+            document.querySelectorAll('.col-content').forEach(col => {
+                col.addEventListener('scroll', () => {
+                    const hoverItem = document.querySelector('.item:hover');
+                    if (hoverItem) {
+                        const id = parseInt(hoverItem.dataset.id);
+                        drawWeave(id);
+                    }
+                });
+            });
+        }
+
+        function highlightRow(id) {
+            clearHighlights();
+            document.querySelectorAll(`.item[data-id="${id}"]`).forEach(el => {
+                el.classList.add('active');
+                if (state.dimOthers) {
+                    document.querySelectorAll('.item').forEach(otherEl => {
+                        if (parseInt(otherEl.dataset.id) !== id) {
+                            otherEl.classList.add('dim');
+                        }
+                    });
+                }
+            });
+        }
+
+        function clearHighlights() {
+            document.querySelectorAll('.item').forEach(el => {
+                el.classList.remove('active', 'dim');
+            });
+        }
+
+        // === CONTROLS ===
+        document.getElementById('rotationSlider').addEventListener('input', (e) => {
+            state.rotation = Number(e.target.value);
+            document.getElementById('rotationValue').textContent = `${state.rotation}°`;
+            redrawAll();
+        });
+
+        document.getElementById('zoomSlider').addEventListener('input', (e) => {
+            state.zoom = Number(e.target.value);
+            document.getElementById('zoomValue').textContent = `${state.zoom}%`;
+            redrawAll();
+        });
+
+        document.getElementById('flowBtn').addEventListener('click', () => {
+            state.showFlow = !state.showFlow;
+            state.dimOthers = state.showFlow;
+            document.getElementById('flowBtn').classList.toggle('active', state.showFlow);
+            rebuildDOM();
+        });
+
+        document.getElementById('compareBtn').addEventListener('click', () => {
+            state.showComparison = !state.showComparison;
+            document.getElementById('compareBtn').classList.toggle('active', state.showComparison);
+            rebuildDOM();
+        });
+
+        document.getElementById('transformBtn').addEventListener('click', () => {
+            state.showTransforms = !state.showTransforms;
+            document.getElementById('transformBtn').classList.toggle('active', state.showTransforms);
+            rebuildDOM();
+        });
+
+        window.toggleColumn = function (idx) {
+            const columns = document.querySelectorAll('.column');
+            columns[idx].classList.toggle('expanded');
+        }
+
+        function redrawAll() {
+            processedData.forEach((data, idx) => {
+                const canvas = document.getElementById(`canvas-${idx}`);
+                if (canvas) drawPreview(`canvas-${idx}`, data, state.selectedId);
+
+                if (data.morphism.studs.length > 100) {
+                    renderGalaxyCanvas(`galaxy-cvs-${idx}`, data.morphism.studs, idx);
+                }
+            });
+        }
+
+        function rebuildDOM() {
+            Object.values(containers).forEach(c => c.innerHTML = '');
+            createDOM();
+            setupInteractivity();
+        }
+
+        // === EXPORT ===
+        window.exportJSON = function (id) {
+            const data = processedData[id];
+            const artifact = {
+                meta: {
+                    generator: "Unified L-System Ontology Weaver",
+                    timestamp: new Date().toISOString(),
+                    line_id: id
+                },
+                source_layer: {
+                    raw_string: data.entity.raw,
+                    line_index: id
+                },
+                template_layer: {
+                    type: data.entity.type,
+                    name: data.entity.name,
+                    color: data.entity.color,
+                    color_hex: data.entity.colorHex
+                },
+                transformation_layer: {
+                    position: {
+                        x: data.morphism.x,
+                        y: data.morphism.y,
+                        z: data.morphism.z
+                    },
+                    matrix: data.morphism.matrix,
+                    studs: data.morphism.studs.map(s => ({
+                        local: { x: s.localX, y: s.localY, z: s.localZ },
+                        world: { x: s.x, y: s.y, z: s.z },
+                        grid: { x: s.gridX, z: s.gridZ },
+                        layer: s.layer,
+                        index: s.idx
+                    }))
+                },
+                execution_layer: {
+                    geometry_skeleton: data.geometry,
+                    stud_count: data.morphism.studs.length
+                }
+            };
+
+            const blob = new Blob([JSON.stringify(artifact, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `artifact_line_${id}.json`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        };
+
+        // === NEURAL FLOW VISUALIZATION ===
+        function initNeuralFlow() {
+            const canvas = document.getElementById('neural-flow-canvas');
+            const rect = canvas.getBoundingClientRect();
+            canvas.width = rect.width;
+            canvas.height = rect.height;
+        }
+
+        function createFlowParticle(startCol, endCol, lineId, source) {
+            const startEl = document.querySelector(`#list-${startCol} .item[data-id="${lineId}"]`);
+            const endEl = document.querySelector(`#list-${endCol} .item[data-id="${lineId}"]`);
+
+            if (!startEl || !endEl) return null;
+
+            const start = getCenter(startEl);
+            const end = getCenter(endEl);
+
+            const colors = {
+                'redbull': 'var(--accent-red)',
+                'template': 'var(--accent-cyan)',
+                'gotmilk': 'var(--accent-green)'
+            };
+
+            return {
+                startX: start.x,
+                startY: start.y,
+                endX: end.x,
+                endY: end.y,
+                progress: 0,
+                color: colors[source] || 'var(--accent-purple)',
+                lineId,
+                source,
+                startCol,
+                endCol
+            };
+        }
+
+        function animateNeuralFlow() {
+            if (!state.neuralFlow) return;
+
+            const canvas = document.getElementById('neural-flow-canvas');
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Update and draw particles
+            neuralState.particles = neuralState.particles.filter(p => {
+                p.progress += 0.02;
+
+                if (p.progress > 1) return false;
+
+                // Bezier curve
+                const t = p.progress;
+                const dist = (p.endX - p.startX) / 2;
+                const cpX1 = p.startX + dist;
+                const cpY1 = p.startY;
+                const cpX2 = p.endX - dist;
+                const cpY2 = p.endY;
+
+                const x = Math.pow(1 - t, 3) * p.startX +
+                    3 * Math.pow(1 - t, 2) * t * cpX1 +
+                    3 * (1 - t) * Math.pow(t, 2) * cpX2 +
+                    Math.pow(t, 3) * p.endX;
+
+                const y = Math.pow(1 - t, 3) * p.startY +
+                    3 * Math.pow(1 - t, 2) * t * cpY1 +
+                    3 * (1 - t) * Math.pow(t, 2) * cpY2 +
+                    Math.pow(t, 3) * p.endY;
+
+                // Draw particle with trail
+                ctx.save();
+                ctx.shadowBlur = 8;
+                ctx.shadowColor = p.color;
+                ctx.fillStyle = p.color;
+                ctx.globalAlpha = 1 - t * 0.3;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.restore();
+
+                // Draw trail
+                ctx.save();
+                ctx.strokeStyle = p.color;
+                ctx.globalAlpha = 0.3 * (1 - t);
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(p.startX, p.startY);
+                ctx.bezierCurveTo(cpX1, cpY1, cpX2, cpY2, x, y);
+                ctx.stroke();
+                ctx.restore();
+
+                return true;
+            });
+
+            neuralState.animationFrame = requestAnimationFrame(animateNeuralFlow);
+        }
+
+        function emitNeuralEvent(lineId, source) {
+            // Simulate bus message
+            const t = performance.now();
+            const data = processedData[lineId];
+
+            if (!data || !data.morphism.isGeometry) return;
+
+            // Add to timeline
+            if (!neuralState.timeline[lineId]) {
+                neuralState.timeline[lineId] = [];
+            }
+
+            neuralState.timeline[lineId].push({
+                t,
+                source,
+                nodes: data.morphism.studs,
+                lineIndex: lineId
+            });
+
+            // Create flow particles through all columns
+            const columns = ['void', 'template', 'morphism', 'action'];
+            for (let i = 0; i < columns.length - 1; i++) {
+                const particle = createFlowParticle(columns[i], columns[i + 1], lineId, source);
+                if (particle) {
+                    neuralState.particles.push(particle);
+                }
+            }
+
+            // Update timeline UI if visible
+            if (state.showTimeline) {
+                updateTimelineLane(lineId);
+            }
+        }
+
+        // === TIMELINE VISUALIZATION ===
+        function initTimeline() {
+            const body = document.getElementById('timelineBody');
+            body.innerHTML = '';
+
+            processedData.forEach((data, idx) => {
+                if (!data.morphism.isGeometry) return;
+
+                const lane = document.createElement('div');
+                lane.className = 'timeline-lane';
+                lane.dataset.lineId = idx;
+
+                lane.innerHTML = `
+                <div class="timeline-lane-header">Line ${idx}</div>
+                <div class="timeline-events" id="timeline-events-${idx}"></div>
+            `;
+
+                body.appendChild(lane);
+            });
+        }
+
+        function updateTimelineLane(lineId) {
+            const events = neuralState.timeline[lineId] || [];
+            const container = document.getElementById(`timeline-events-${lineId}`);
+            if (!container) return;
+
+            container.innerHTML = '';
+            const height = container.clientHeight;
+            const totalTime = 10000; // 10 seconds max view
+
+            events.forEach((event, idx) => {
+                const relTime = event.t - (events[0]?.t || event.t);
+                const yPos = (relTime / totalTime) * (height - 25);
+
+                const el = document.createElement('div');
+                el.className = `timeline-event source-${event.source}`;
+                el.style.top = `${Math.min(yPos, height - 25)}px`;
+                el.textContent = event.source.toUpperCase();
+                el.title = `${event.source} @ ${relTime.toFixed(0)}ms - ${event.nodes.length} studs`;
+
+                el.onclick = () => showEventDetail(event, lineId);
+
+                container.appendChild(el);
+            });
+        }
+
+        function showEventDetail(event, lineId) {
+            alert(`Event Detail:\n\nLine: ${lineId}\nSource: ${event.source}\nTime: ${event.t.toFixed(2)}ms\nStuds: ${event.nodes.length}\n\nClick "Show Diff" to compare sources.`);
+        }
+
+        window.simulateRedBullStream = function () {
+            let delay = 0;
+            processedData.forEach((data, idx) => {
+                if (data.morphism.isGeometry) {
+                    setTimeout(() => emitNeuralEvent(idx, 'redbull'), delay);
+                    delay += 100;
+                }
+            });
+        };
+
+        window.simulateTemplateStream = function () {
+            let delay = 0;
+            processedData.forEach((data, idx) => {
+                if (data.morphism.isGeometry) {
+                    setTimeout(() => emitNeuralEvent(idx, 'template'), delay);
+                    delay += 150;
+                }
+            });
+        };
+
+        window.showDiffMatrix = function () {
+            const lineId = prompt("Enter line ID to compare sources:");
+            if (!lineId || !neuralState.timeline[lineId]) {
+                alert("No timeline data for that line!");
+                return;
+            }
+
+            const events = neuralState.timeline[lineId];
+            const redbull = events.find(e => e.source === 'redbull');
+            const template = events.find(e => e.source === 'template');
+
+            if (!redbull || !template) {
+                alert("Need both Red Bull and Template events for this line!");
+                return;
+            }
+
+            const rbSet = new Set(redbull.nodes.map(n => `${n.gridX},${n.gridZ},${n.layer}`));
+            const tmpSet = new Set(template.nodes.map(n => `${n.gridX},${n.gridZ},${n.layer}`));
+
+            const matching = [...rbSet].filter(key => tmpSet.has(key)).length;
+            const rbExtra = redbull.nodes.length - matching;
+            const tmpExtra = template.nodes.length - matching;
+
+            const diff = `
+TEMPORAL DIFFERENCE MATRIX (Line ${lineId}):
+
+Red Bull Studs:     ${redbull.nodes.length}
+Template Studs:     ${template.nodes.length}
+Matching:           ${matching}
+Red Bull Extra:     ${rbExtra}
+Template Extra:     ${tmpExtra}
+Agreement Rate:     ${(matching / Math.max(redbull.nodes.length, template.nodes.length) * 100).toFixed(1)}%
+
+${rbExtra > 0 ? '⚠️ Red Bull over-sampled' : ''}
+${tmpExtra > 0 ? '⚠️ Template has extra studs' : ''}
+${matching === redbull.nodes.length && matching === template.nodes.length ? '✅ Perfect match!' : ''}
+        `.trim();
+
+            alert(diff);
+        };
+
+        window.closeTimeline = function () {
+            state.showTimeline = false;
+            document.getElementById('timelinePanel').classList.remove('active');
+            document.getElementById('timelineBtn').classList.remove('active');
+        };
+
+        // === ENHANCED CONTROLS ===
+        document.getElementById('neuralFlowBtn').addEventListener('click', () => {
+            state.neuralFlow = !state.neuralFlow;
+            document.getElementById('neuralFlowBtn').classList.toggle('active', state.neuralFlow);
+
+            if (state.neuralFlow) {
+                initNeuralFlow();
+                animateNeuralFlow();
+            } else {
+                if (neuralState.animationFrame) {
+                    cancelAnimationFrame(neuralState.animationFrame);
+                }
+                const canvas = document.getElementById('neural-flow-canvas');
+                const ctx = canvas.getContext('2d');
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+            }
+        });
+
+        document.getElementById('timelineBtn').addEventListener('click', () => {
+            state.showTimeline = !state.showTimeline;
+            document.getElementById('timelinePanel').classList.toggle('active', state.showTimeline);
+            document.getElementById('timelineBtn').classList.toggle('active', state.showTimeline);
+
+            if (state.showTimeline) {
+                initTimeline();
+            }
+        });
+
+        // === ASSEMBLY LINE ANIMATION ===
+        function startAssemblyLine() {
+            assemblyState.active = true;
+            assemblyState.currentLine = 0;
+            assemblyState.paused = false;
+            assemblyState.totalStuds = 0;
+
+            document.getElementById('app').classList.add('assembly-mode');
+            document.getElementById('assemblyStatus').classList.add('active');
+            document.getElementById('assemblyState').textContent = 'Running';
+
+            processNextLine();
+        }
+
+        function processNextLine() {
+            if (!assemblyState.active || assemblyState.paused) return;
+
+            // Find next geometry line
+            while (assemblyState.currentLine < processedData.length) {
+                const data = processedData[assemblyState.currentLine];
+                if (data.morphism.isGeometry) break;
+                assemblyState.currentLine++;
+            }
+
+            if (assemblyState.currentLine >= processedData.length) {
+                finishAssembly();
+                return;
+            }
+
+            const lineId = assemblyState.currentLine;
+            animateLineBuild(lineId);
+
+            assemblyState.currentLine++;
+            assemblyState.timeoutId = setTimeout(processNextLine, assemblyState.speed);
+        }
+
+        function animateLineBuild(lineId) {
+            const data = processedData[lineId];
+            const studCount = data.morphism.studs.length;
+
+            // Update status
+            document.getElementById('currentLine').textContent = `#${lineId}`;
+            document.getElementById('assemblyProgress').textContent =
+                `${Math.round((lineId / processedData.length) * 100)}%`;
+            assemblyState.totalStuds += studCount;
+            document.getElementById('studsBui lt').textContent = assemblyState.totalStuds;
+
+            // Animate each column with delays
+            const columns = ['void', 'template', 'morphism', 'action'];
+
+            columns.forEach((col, colIdx) => {
+                setTimeout(() => {
+                    animateColumnBuild(col, lineId, colIdx);
+                }, colIdx * 300);
+            });
+        }
+
+        function animateColumnBuild(column, lineId, colIdx) {
+            const item = document.querySelector(`#list-${column} .item[data-id="${lineId}"]`);
+            if (!item) return;
+
+            // Scroll into view
+            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+            // Add building class
+            item.classList.add('building');
+            setTimeout(() => item.classList.remove('building'), 1200);
+
+            // Add line number badge
+            const badge = document.createElement('div');
+            badge.className = 'line-number-badge';
+            badge.textContent = `LINE ${lineId}`;
+            item.appendChild(badge);
+            setTimeout(() => badge.remove(), 1000);
+
+            // Add progress bar
+            const progress = document.createElement('div');
+            progress.className = 'assembly-progress';
+            item.appendChild(progress);
+            setTimeout(() => progress.style.width = '100%', 50);
+            setTimeout(() => progress.remove(), 850);
+
+            // Column-specific animations
+            if (column === 'template') {
+                animateTemplateNumbers(item, lineId);
+            } else if (column === 'morphism') {
+                animateMorphismStuds(item, lineId);
+            } else if (column === 'action') {
+                animateActionCanvas(item, lineId);
+            }
+        }
+
+        function animateTemplateNumbers(item, lineId) {
+            const data = processedData[lineId];
+
+            // Animate part name with scrolling numbers
+            const partNameEl = item.querySelector('.part-name');
+            if (partNameEl) {
+                const text = partNameEl.textContent;
+                partNameEl.innerHTML = '';
+
+                // Split into characters and wrap each in span
+                for (let i = 0; i < text.length; i++) {
+                    const span = document.createElement('span');
+                    span.className = 'scroll-number';
+                    span.textContent = text[i];
+                    span.style.animationDelay = `${i * 0.03}s`;
+                    partNameEl.appendChild(span);
+                }
+            }
+
+            // Pulse the color dot
+            const colorDot = item.querySelector('.color-dot');
+            if (colorDot) {
+                colorDot.style.animation = 'pulse 0.6s ease-in-out 2';
+            }
+        }
+
+        function animateMorphismStuds(item, lineId) {
+            const data = processedData[lineId];
+
+            // Animate coordinate values
+            const coords = item.querySelectorAll('.coord');
+            coords.forEach((coord, idx) => {
+                coord.style.animation = 'none';
+                setTimeout(() => {
+                    coord.style.animation = 'numberScroll 0.4s ease-out';
+                }, idx * 100);
+            });
+
+            // Animate stud dots popping in
+            const studDots = item.querySelectorAll('.stud-dot');
+            studDots.forEach((dot, idx) => {
+                setTimeout(() => {
+                    dot.classList.add('assembling');
+                    setTimeout(() => dot.classList.remove('assembling'), 300);
+                }, idx * 30);
+            });
+
+            // Animate galaxy canvas if present
+            const canvas = item.querySelector('.stud-galaxy-canvas');
+            if (canvas) {
+                canvas.style.opacity = '0';
+                canvas.style.transform = 'scale(0.8)';
+                setTimeout(() => {
+                    canvas.style.transition = 'all 0.6s ease-out';
+                    canvas.style.opacity = '1';
+                    canvas.style.transform = 'scale(1)';
+                }, 100);
+            }
+        }
+
+        function animateActionCanvas(item, lineId) {
+            const canvas = item.querySelector('.preview-canvas');
+            if (canvas) {
+                canvas.classList.add('building');
+                setTimeout(() => canvas.classList.remove('building'), 800);
+
+                // Redraw with animation
+                setTimeout(() => {
+                    drawPreview(`canvas-${lineId}`, processedData[lineId], lineId);
+                }, 300);
+            }
+        }
+
+        function finishAssembly() {
+            assemblyState.active = false;
+            document.getElementById('assemblyState').textContent = 'Complete ✓';
+
+            setTimeout(() => {
+                if (!assemblyState.active) {
+                    document.getElementById('app').classList.remove('assembly-mode');
+                    document.getElementById('assemblyStatus').classList.remove('active');
+                }
+            }, 2000);
+        }
+
+        window.assemblyPlay = function () {
+            if (!assemblyState.active) {
+                startAssemblyLine();
+            } else {
+                assemblyState.paused = false;
+                document.getElementById('assemblyState').textContent = 'Running';
+                processNextLine();
+            }
+        };
+
+        window.assemblyPause = function () {
+            assemblyState.paused = true;
+            document.getElementById('assemblyState').textContent = 'Paused';
+            if (assemblyState.timeoutId) {
+                clearTimeout(assemblyState.timeoutId);
+            }
+        };
+
+        window.assemblyStep = function () {
+            if (!assemblyState.active) {
+                assemblyState.active = true;
+                assemblyState.currentLine = 0;
+                assemblyState.totalStuds = 0;
+                document.getElementById('app').classList.add('assembly-mode');
+                document.getElementById('assemblyStatus').classList.add('active');
+            }
+
+            assemblyState.paused = true;
+
+            // Find next geometry line
+            while (assemblyState.currentLine < processedData.length) {
+                const data = processedData[assemblyState.currentLine];
+                if (data.morphism.isGeometry) break;
+                assemblyState.currentLine++;
+            }
+
+            if (assemblyState.currentLine < processedData.length) {
+                animateLineBuild(assemblyState.currentLine);
+                assemblyState.currentLine++;
+                document.getElementById('assemblyState').textContent = 'Stepping';
+            } else {
+                finishAssembly();
+            }
+        };
+
+        window.assemblyReset = function () {
+            assemblyState.active = false;
+            assemblyState.paused = false;
+            assemblyState.currentLine = 0;
+            assemblyState.totalStuds = 0;
+
+            if (assemblyState.timeoutId) {
+                clearTimeout(assemblyState.timeoutId);
+            }
+
+            document.getElementById('app').classList.remove('assembly-mode');
+            document.getElementById('assemblyStatus').classList.remove('active');
+
+            // Clear all animations
+            document.querySelectorAll('.item').forEach(item => {
+                item.classList.remove('building');
+                item.querySelectorAll('.line-number-badge, .assembly-progress').forEach(el => el.remove());
+            });
+        };
+
+        document.getElementById('assemblyBtn').addEventListener('click', () => {
+            const isActive = document.getElementById('assemblyBtn').classList.toggle('active');
+
+            if (isActive) {
+                startAssemblyLine();
+            } else {
+                assemblyReset();
+            }
+        });
+
+        // === RED BULL SIMULATION ===
+        // Simulates Courage's internal Red Bull sampling loop
+        function redBullStart() {
+            redBullState.active = true;
+            redBullState.currentSampleLine = 0;
+            redBullState.sampleBuffer = [];
+            redBullState.totalEmitted = 0;
+            redBullState.busLog = [];
+
+            document.getElementById('redBullStatus').classList.add('active');
+            document.getElementById('rbState').textContent = 'Sampling';
+
+            // Simulate Courage's internal sampling loop (runs at ~60fps)
+            redBullState.sampleInterval = setInterval(() => {
+                redBullSampleFrame();
+            }, redBullState.sampleRate);
+
+            // Simulate emitting to bus at different rate
+            redBullState.emitInterval = setInterval(() => {
+                redBullEmitToBus();
+            }, redBullState.emitRate);
+        }
+
+        function redBullSampleFrame() {
+            if (!redBullState.active) return;
+
+            // Find next geometry line to sample
+            while (redBullState.currentSampleLine < processedData.length) {
+                const data = processedData[redBullState.currentSampleLine];
+                if (data.morphism.isGeometry) break;
+                redBullState.currentSampleLine++;
+            }
+
+            if (redBullState.currentSampleLine >= processedData.length) {
+                // Loop back
+                redBullState.currentSampleLine = 0;
+                return;
+            }
+
+            const lineId = redBullState.currentSampleLine;
+            const data = processedData[lineId];
+            const tStart = performance.now();
+
+            // SIMULATE THE REAL RED BULL PATHOLOGY:
+            // 1. Try primary sampler (computeStudSkeletonAndPlanes) on micro-MPD
+            // 2. It returns 0 studs because no userData.lineNum annotations
+            // 3. Fallback to coarse grid sampler
+
+            let primaryStuds = [];
+            let fallbackStuds = [];
+            let pathology = null;
+
+            // PRIMARY SAMPLER (simulated failure on micro-MPD)
+            // In real system: meshesByLine.get(lineIndex) returns undefined
+            // because micro-MPD meshes lack userData.lineNum
+            const hasMeshAnnotations = false; // Always false for micro-MPDs!
+
+            if (hasMeshAnnotations) {
+                primaryStuds = data.morphism.studs; // Would work in full scene
+            } else {
+                // PRIMARY SAMPLER FAILS - log the pathology
+                pathology = {
+                    reason: 'userData.lineNum missing',
+                    primaryStudCount: 0,
+                    meshesByLineEmpty: true
+                };
+            }
+
+            // FALLBACK SAMPLER (what actually produces studs)
+            // Simulates: traverse meshes, bucket vertices into gridMap
+            fallbackStuds = data.morphism.studs.map(s => ({
+                ...s,
+                source: 'fallback-sampler',
+                minVotes: 6, // Simulated threshold
+                gridColumn: `${s.gridX},${s.gridZ}`
+            }));
+
+            const tLoad = performance.now() - tStart;
+
+            // Simulate computing nodesForThisLine (what Red Bull does internally)
+            const nodesForThisLine = fallbackStuds.map(s => ({
+                kind: 'stud',
+                x: s.x,
+                y: s.y,
+                z: s.z,
+                gridX: s.gridX,
+                gridZ: s.gridZ,
+                layer: s.layer,
+                lineNum: lineId, // Critical binding!
+                partId: data.entity.name,
+                local: {
+                    x: s.localX,
+                    y: s.localY,
+                    z: s.localZ
+                },
+                source: 'fallback-sampler',
+                tLoad: tLoad.toFixed(1) + 'ms'
+            }));
+
+            // Add to internal buffer (simulating STATE.lines[idx] = nodesForThisLine)
+            redBullState.sampleBuffer[lineId] = {
+                lineIndex: lineId,
+                nodes: nodesForThisLine,
+                sampledAt: performance.now(),
+                pathology: pathology,
+                primaryStudCount: primaryStuds.length,
+                fallbackStudCount: fallbackStuds.length,
+                tLoad: tLoad
+            };
+
+            // Update UI
+            document.getElementById('rbCurrentLine').textContent = `#${lineId}`;
+            document.getElementById('rbBufferSize').textContent = Object.keys(redBullState.sampleBuffer).length;
+
+            // Visual feedback with pathology indicator
+            const item = document.querySelector(`#list-morphism .item[data-id="${lineId}"]`);
+            if (item) {
+                if (pathology) {
+                    // Flash orange for fallback path
+                    item.style.borderColor = 'var(--accent-orange)';
+                    item.style.boxShadow = '0 0 12px rgba(245, 158, 11, 0.4)';
+                } else {
+                    // Would be green for primary path (never happens)
+                    item.style.borderColor = 'var(--accent-green)';
+                }
+                setTimeout(() => {
+                    item.style.borderColor = '';
+                    item.style.boxShadow = '';
+                }, 150);
+            }
+
+            redBullState.currentSampleLine++;
+        }
+
+        function redBullEmitToBus() {
+            if (!redBullState.active) return;
+
+            // Emit buffered samples to bus (simulating wagFrankPost)
+            Object.values(redBullState.sampleBuffer).forEach(sample => {
+                if (!sample.emitted) {
+                    wagFrankPost({
+                        type: 'redbull-line',
+                        mpdId: 'monkey-data-center.mpd',
+                        lineIndex: sample.lineIndex,
+                        t: performance.now(),
+                        source: 'sampled-red-bull',
+                        nodes: sample.nodes
+                    });
+
+                    sample.emitted = true;
+                    redBullState.totalEmitted++;
+                }
+            });
+
+            document.getElementById('rbBusCount').textContent = redBullState.totalEmitted;
+        }
+
+        // Simulates posting to wag-frank BroadcastChannel
+        function wagFrankPost(message) {
+            // Log the bus message
+            redBullState.busLog.push(message);
+
+            // Update log display (show last 5 messages)
+            const logEl = document.getElementById('rbBusLog');
+            const recent = redBullState.busLog.slice(-5);
+            logEl.innerHTML = recent.map(msg => {
+                const nodeCount = msg.nodes ? msg.nodes.length : 0;
+                return `<div style="color: #ef4444; margin-bottom: 2px;">
+                [${(msg.t / 1000).toFixed(2)}s] Line ${msg.lineIndex}: ${nodeCount} studs → bus
+            </div>`;
+            }).join('');
+            logEl.scrollTop = logEl.scrollHeight;
+
+            // Trigger neural flow animation
+            if (state.neuralFlow) {
+                emitNeuralEvent(message.lineIndex, 'redbull');
+            }
+
+            // Add to timeline if active
+            if (state.showTimeline) {
+                if (!neuralState.timeline[message.lineIndex]) {
+                    neuralState.timeline[message.lineIndex] = [];
+                }
+                neuralState.timeline[message.lineIndex].push({
+                    t: message.t,
+                    source: message.source,
+                    nodes: message.nodes,
+                    lineIndex: message.lineIndex
+                });
+                updateTimelineLane(message.lineIndex);
+            }
+
+            // In real system, this would be: wagFrankBus.postMessage(message)
+            console.log('[WAG-FRANK BUS]', message);
+        }
+
+        function redBullStop() {
+            redBullState.active = false;
+            document.getElementById('rbState').textContent = 'Stopped';
+
+            if (redBullState.sampleInterval) {
+                clearInterval(redBullState.sampleInterval);
+            }
+            if (redBullState.emitInterval) {
+                clearInterval(redBullState.emitInterval);
+            }
+        }
+
+        window.redBullClearLog = function () {
+            redBullState.busLog = [];
+            document.getElementById('rbBusLog').innerHTML = '<span style="color:#666;">Log cleared...</span>';
+            document.getElementById('rbBusCount').textContent = '0';
+            redBullState.totalEmitted = 0;
+        };
+
+        document.getElementById('redBullBtn').addEventListener('click', () => {
+            const isActive = document.getElementById('redBullBtn').classList.toggle('active');
+
+            if (isActive) {
+                redBullStart();
+            } else {
+                redBullStop();
+                setTimeout(() => {
+                    document.getElementById('redBullStatus').classList.remove('active');
+                }, 500);
+            }
+        });
+
+        // === INIT ===
+        createDOM();
+        setupInteractivity();
+
+        window.addEventListener('resize', redrawAll);
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1371 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>LDraw MPD Reference</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'SF Mono', 'Monaco', 'Inconsolata', 'Courier New', monospace;
+            background: #000;
+            color: #d4d4d4;
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            font-size: 13px;
+        }
+
+        .header {
+            background: #0a0a0a;
+            border-bottom: 1px solid #333;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .title {
+            font-size: 12px;
+            font-weight: 600;
+            color: #888;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+        }
+
+        .nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .btn {
+            width: 28px;
+            height: 28px;
+            border-radius: 3px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            color: #666;
+            font-size: 11px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.1s;
+        }
+
+        .btn.active {
+            background: #2a2a2a;
+            border-color: #4a4a4a;
+            color: #ddd;
+        }
+
+        .content {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+            background: #0a0a0a;
+        }
+
+        .page {
+            display: none;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .page.active {
+            display: block;
+        }
+
+        .section {
+            background: #0d0d0d;
+            border: 1px solid #222;
+            border-radius: 4px;
+            margin-bottom: 16px;
+            overflow: hidden;
+        }
+
+        .section-header {
+            background: #111;
+            padding: 10px 16px;
+            border-bottom: 1px solid #222;
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .section-body {
+            padding: 16px;
+        }
+
+        .code-block {
+            background: #000;
+            border: 1px solid #1a1a1a;
+            border-radius: 3px;
+            padding: 12px;
+            font-family: 'SF Mono', monospace;
+            font-size: 12px;
+            line-height: 1.8;
+            overflow-x: auto;
+            margin: 12px 0;
+        }
+
+        .code-line {
+            display: flex;
+            gap: 12px;
+            padding: 2px 0;
+            align-items: baseline;
+        }
+
+        .line-num {
+            color: #3a3a3a;
+            min-width: 28px;
+            text-align: right;
+            user-select: none;
+            font-size: 11px;
+        }
+
+        .syntax {
+            flex: 1;
+            font-family: 'SF Mono', monospace;
+        }
+
+        .s-cmd {
+            color: #569cd6;
+        }
+
+        .s-color {
+            color: #ce9178;
+        }
+
+        .s-num {
+            color: #b5cea8;
+        }
+
+        .s-file {
+            color: #4ec9b0;
+        }
+
+        .s-comment {
+            color: #6a9955;
+        }
+
+        .s-meta {
+            color: #c586c0;
+        }
+
+        .spec-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 12px;
+            margin: 12px 0;
+        }
+
+        .spec-table th {
+            background: #111;
+            color: #888;
+            font-weight: 600;
+            text-align: left;
+            padding: 8px 12px;
+            border-bottom: 1px solid #222;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .spec-table td {
+            padding: 8px 12px;
+            border-bottom: 1px solid #1a1a1a;
+            vertical-align: top;
+        }
+
+        .spec-table td:first-child {
+            font-family: 'SF Mono', monospace;
+            color: #4ec9b0;
+            white-space: nowrap;
+            font-weight: 600;
+        }
+
+        .spec-table tr:hover {
+            background: #0f0f0f;
+        }
+
+        .matrix-grid {
+            display: inline-grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 4px;
+            padding: 8px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 3px;
+            font-family: 'SF Mono', monospace;
+            margin: 8px 0;
+        }
+
+        .matrix-cell {
+            padding: 6px 10px;
+            text-align: center;
+            background: #111;
+            border: 1px solid #1a1a1a;
+            border-radius: 2px;
+            font-size: 11px;
+            color: #b5cea8;
+        }
+
+        .axis-demo {
+            display: flex;
+            gap: 16px;
+            margin: 16px 0;
+            flex-wrap: wrap;
+        }
+
+        .axis-item {
+            flex: 1;
+            min-width: 200px;
+            background: #0a0a0a;
+            border: 1px solid #222;
+            border-radius: 3px;
+            padding: 12px;
+        }
+
+        .axis-label {
+            font-size: 11px;
+            font-weight: 600;
+            color: #888;
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .axis-value {
+            font-family: 'SF Mono', monospace;
+            font-size: 14px;
+            color: #b5cea8;
+            margin: 4px 0;
+        }
+
+        .note {
+            background: #0f0f0f;
+            border-left: 2px solid #4a4a4a;
+            padding: 10px 12px;
+            margin: 12px 0;
+            font-size: 12px;
+            color: #999;
+            line-height: 1.6;
+        }
+
+        .inline-code {
+            font-family: 'SF Mono', monospace;
+            background: #1a1a1a;
+            padding: 2px 6px;
+            border-radius: 2px;
+            color: #4ec9b0;
+            font-size: 11px;
+        }
+
+        .footer {
+            padding: 8px 16px;
+            background: #0a0a0a;
+            border-top: 1px solid #333;
+            display: flex;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .nav-btn {
+            flex: 1;
+            padding: 8px;
+            background: #1a1a1a;
+            border: 1px solid #333;
+            border-radius: 3px;
+            color: #888;
+            font-size: 11px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .nav-btn:active:not(:disabled) {
+            background: #2a2a2a;
+            border-color: #4a4a4a;
+            color: #ddd;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        .color-ref {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            margin: 2px 0;
+        }
+
+        .color-swatch {
+            width: 16px;
+            height: 16px;
+            border-radius: 2px;
+            border: 1px solid #333;
+        }
+
+        @media (max-width: 768px) {
+            .spec-table {
+                font-size: 11px;
+            }
+
+            .code-block {
+                font-size: 11px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">LDraw MPD Format Reference</div>
+        <div class="nav" id="nav"></div>
+    </div>
+
+    <div class="content" id="content">
+        <!-- PAGE 1: LINE TYPE 1 SPECIFICATION -->
+        <div class="page active" data-step="1">
+            <div class="section">
+                <div class="section-header">Line Type 1: Sub-file Reference</div>
+                <div class="section-body">
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">14</span>
+                                <span class="s-num">0 -24 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3626bp01.dat</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Field</th>
+                                <th>Value</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Line Type</td>
+                                <td><span class="s-cmd">1</span></td>
+                                <td>Sub-file reference command</td>
+                            </tr>
+                            <tr>
+                                <td>Color</td>
+                                <td><span class="s-color">14</span></td>
+                                <td>LDraw color code (0-511). 16 = inherit parent color</td>
+                            </tr>
+                            <tr>
+                                <td>x</td>
+                                <td><span class="s-num">0</span></td>
+                                <td>X position in LDraw units (LDU)</td>
+                            </tr>
+                            <tr>
+                                <td>y</td>
+                                <td><span class="s-num">-24</span></td>
+                                <td>Y position in LDU (negative = up in LDraw coordinates)</td>
+                            </tr>
+                            <tr>
+                                <td>z</td>
+                                <td><span class="s-num">0</span></td>
+                                <td>Z position in LDU</td>
+                            </tr>
+                            <tr>
+                                <td>a b c</td>
+                                <td><span class="s-num">1 0 0</span></td>
+                                <td>First row of 3×3 rotation/scale matrix (X-axis)</td>
+                            </tr>
+                            <tr>
+                                <td>d e f</td>
+                                <td><span class="s-num">0 1 0</span></td>
+                                <td>Second row of 3×3 rotation/scale matrix (Y-axis)</td>
+                            </tr>
+                            <tr>
+                                <td>g h i</td>
+                                <td><span class="s-num">0 0 1</span></td>
+                                <td>Third row of 3×3 rotation/scale matrix (Z-axis)</td>
+                            </tr>
+                            <tr>
+                                <td>filename</td>
+                                <td><span class="s-file">3626bp01.dat</span></td>
+                                <td>Sub-file reference (part number or sub-model)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        Identity matrix (no rotation): <span class="inline-code">1 0 0 0 1 0 0 0 1</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: COORDINATE SYSTEM -->
+        <div class="page" data-step="2">
+            <div class="section">
+                <div class="section-header">LDraw Coordinate System</div>
+                <div class="section-body">
+                    <div class="axis-demo">
+                        <div class="axis-item">
+                            <div class="axis-label">X Axis (Left-Right)</div>
+                            <div class="axis-value">Negative ← → Positive</div>
+                            <div class="note">-160 LDU = 1 stud left from center</div>
+                        </div>
+                        <div class="axis-item">
+                            <div class="axis-label">Y Axis (Vertical)</div>
+                            <div class="axis-value">Negative ↑ ↓ Positive</div>
+                            <div class="note">-24 LDU = 1 plate height up. Note: Y-up in LDraw, Y-down in rendering
+                            </div>
+                        </div>
+                        <div class="axis-item">
+                            <div class="axis-label">Z Axis (Depth)</div>
+                            <div class="axis-value">Negative ← → Positive</div>
+                            <div class="note">-160 LDU = 1 stud back from center</div>
+                        </div>
+                    </div>
+
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num"></span>
+                            <span class="syntax"><span class="s-comment">0 Standard grid spacing example</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">-160 0 -160</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">minifig-01.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">2</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">minifig-02.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">3</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">160 0 160</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">minifig-03.mpd</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Standard spacing: 160 LDU between grid cells (10 studs @ 20 LDU/stud)<br>
+                        Vertical spacing: 24 LDU per plate, 32 LDU per brick height
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: ROTATION MATRIX -->
+        <div class="page" data-step="3">
+            <div class="section">
+                <div class="section-header">Rotation Matrix (3×3)</div>
+                <div class="section-body">
+                    <p style="margin-bottom: 16px; color: #999;">
+                        The 9 numbers define a 3×3 transformation matrix. Each row represents a transformed axis.
+                    </p>
+
+                    <div style="display: flex; gap: 24px; flex-wrap: wrap; align-items: flex-start;">
+                        <div>
+                            <div style="font-size: 11px; color: #888; margin-bottom: 8px;">IDENTITY (0° rotation)</div>
+                            <div class="matrix-grid">
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 11px; color: #888; margin-bottom: 8px;">90° YAW (around Y)</div>
+                            <div class="matrix-grid">
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">-1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 11px; color: #888; margin-bottom: 8px;">180° YAW</div>
+                            <div class="matrix-grid">
+                                <div class="matrix-cell">-1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">-1</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 11px; color: #888; margin-bottom: 8px;">90° PITCH (around X)</div>
+                            <div class="matrix-grid">
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">-1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                            </div>
+                        </div>
+
+                        <div>
+                            <div style="font-size: 11px; color: #888; margin-bottom: 8px;">90° ROLL (around Z)</div>
+                            <div class="matrix-grid">
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">-1</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">0</div>
+                                <div class="matrix-cell">1</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Matrix format: [a b c d e f g h i]<br>
+                        Row 1 (a b c): Transformed X-axis direction<br>
+                        Row 2 (d e f): Transformed Y-axis direction<br>
+                        Row 3 (g h i): Transformed Z-axis direction
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: COLOR CODES -->
+        <div class="page" data-step="4">
+            <div class="section">
+                <div class="section-header">LDraw Color Codes</div>
+                <div class="section-body">
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Code</th>
+                                <th>Name</th>
+                                <th>Sample</th>
+                                <th>RGB Hex</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>Black</td>
+                                <td><span class="color-swatch" style="background: #05131D;"></span></td>
+                                <td>#05131D</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>Blue</td>
+                                <td><span class="color-swatch" style="background: #0055BF;"></span></td>
+                                <td>#0055BF</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>Green</td>
+                                <td><span class="color-swatch" style="background: #237841;"></span></td>
+                                <td>#237841</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>Red</td>
+                                <td><span class="color-swatch" style="background: #C91A09;"></span></td>
+                                <td>#C91A09</td>
+                            </tr>
+                            <tr>
+                                <td>14</td>
+                                <td>Yellow</td>
+                                <td><span class="color-swatch" style="background: #F2CD37;"></span></td>
+                                <td>#F2CD37</td>
+                            </tr>
+                            <tr>
+                                <td>15</td>
+                                <td>White</td>
+                                <td><span class="color-swatch" style="background: #FFFFFF;"></span></td>
+                                <td>#FFFFFF</td>
+                            </tr>
+                            <tr>
+                                <td>16</td>
+                                <td>Main Color</td>
+                                <td><span class="color-swatch" style="background: #666;"></span></td>
+                                <td>Inherit from parent</td>
+                            </tr>
+                            <tr>
+                                <td>24</td>
+                                <td>Edge Color</td>
+                                <td><span class="color-swatch" style="background: #333;"></span></td>
+                                <td>Calculated edge color</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        Full color library: ldraw.org/article/547.html<br>
+                        Color 16 inherits from parent part's color<br>
+                        Color 24 is automatically calculated for edge lines
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 5: META COMMANDS -->
+        <div class="page" data-step="5">
+            <div class="section">
+                <div class="section-header">Line Type 0: Meta Commands</div>
+                <div class="section-body">
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Command</th>
+                                <th>Description</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0 FILE name.mpd</td>
+                                <td>Start of new sub-file in MPD. Required at start of each model.</td>
+                            </tr>
+                            <tr>
+                                <td>0 NOFILE</td>
+                                <td>End of sub-file. Required at end of each model.</td>
+                            </tr>
+                            <tr>
+                                <td>0 Name: Model Name</td>
+                                <td>Optional model name metadata</td>
+                            </tr>
+                            <tr>
+                                <td>0 Author: Name</td>
+                                <td>Optional author metadata</td>
+                            </tr>
+                            <tr>
+                                <td>0 STEP</td>
+                                <td>Building step marker for instructions</td>
+                            </tr>
+                            <tr>
+                                <td>0 Comment text</td>
+                                <td>Comment line (any text after 0)</td>
+                            </tr>
+                            <tr>
+                                <td>0 BFC CERTIFY CCW</td>
+                                <td>Back-face culling certification</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax"><span class="s-meta">0 FILE</span> <span
+                                    class="s-file">wag-courage-scene.mpd</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">2</span>
+                            <span class="syntax"><span class="s-meta">0 Name:</span> <span class="s-comment">WAG-Courage
+                                    Calibration Scene</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">3</span>
+                            <span class="syntax"><span class="s-meta">0 Author:</span> <span class="s-comment">DCE-GYO
+                                    Undaunted Pipeline</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">4</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">5</span>
+                            <span class="syntax"><span class="s-comment">0 BASEPLATE - 16 x 16 at origin</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">6</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">1</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3811.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">7</span>
+                            <span class="syntax"><span class="s-meta">0 STEP</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">8</span>
+                            <span class="syntax"><span class="s-meta">0 NOFILE</span></span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        <strong>CRITICAL:</strong> Comments must start with "0" followed by space. Do NOT use "//"
+                        syntax - it will break MPD parsing.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 6: COMPLETE EXAMPLE -->
+        <div class="page" data-step="6">
+            <div class="section">
+                <div class="section-header">Complete Minifig Example</div>
+                <div class="section-body">
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax"><span class="s-meta">0 FILE</span> <span
+                                    class="s-file">minifig-hero.mpd</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">2</span>
+                            <span class="syntax"><span class="s-meta">0 Name:</span> <span class="s-comment">Hero
+                                    Minifig</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">3</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">4</span>
+                            <span class="syntax"><span class="s-comment">0 Hat (black, Y=-32)</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">5</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">0</span>
+                                <span class="s-num">0 -32 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3624.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">6</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">7</span>
+                            <span class="syntax"><span class="s-comment">0 Head (yellow, Y=-24)</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">8</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">14</span>
+                                <span class="s-num">0 -24 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3626bp01.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">9</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">10</span>
+                            <span class="syntax"><span class="s-comment">0 Torso (red, Y=0)</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">11</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">4</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">973c00.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">12</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">13</span>
+                            <span class="syntax"><span class="s-comment">0 Legs (blue, Y=32)</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">14</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">1</span>
+                                <span class="s-num">0 32 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">970c00.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">15</span>
+                            <span class="syntax"><span class="s-meta">0 NOFILE</span></span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Vertical stacking: Hat (-32) → Head (-24) → Torso (0) → Legs (32)<br>
+                        Standard minifig spacing: 8 LDU between major parts<br>
+                        All parts at X=0, Z=0 (centered on origin)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 7: MULTI-MODEL MPD -->
+        <div class="page" data-step="7">
+            <div class="section">
+                <div class="section-header">Multi-Part Document (MPD) Structure</div>
+                <div class="section-body">
+                    <p style="margin-bottom: 16px; color: #999;">
+                        MPD files contain multiple sub-models. Each begins with <span class="inline-code">0 FILE</span>
+                        and ends with <span class="inline-code">0 NOFILE</span>.
+                    </p>
+
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax"><span class="s-meta">0 FILE</span> <span
+                                    class="s-file">hero.mpd</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">2</span>
+                            <span class="syntax"><span class="s-comment">0 First sub-model</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">3</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">14</span>
+                                <span class="s-num">0 -24 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3626bp01.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">4</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">4</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">973c00.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">5</span>
+                            <span class="syntax"><span class="s-meta">0 NOFILE</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">6</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">7</span>
+                            <span class="syntax"><span class="s-meta">0 FILE</span> <span
+                                    class="s-file">villain.mpd</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">8</span>
+                            <span class="syntax"><span class="s-comment">0 Second sub-model</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">9</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">0</span>
+                                <span class="s-num">0 -24 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">3626bp02.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">10</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">0</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">973c01.dat</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">11</span>
+                            <span class="syntax"><span class="s-meta">0 NOFILE</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">12</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">13</span>
+                            <span class="syntax"><span class="s-meta">0 FILE</span> <span
+                                    class="s-file">scene.mpd</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">14</span>
+                            <span class="syntax"><span class="s-comment">0 Main scene references
+                                    sub-models</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">15</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">-160 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">hero.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">16</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">160 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">villain.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">17</span>
+                            <span class="syntax"><span class="s-meta">0 NOFILE</span></span>
+                        </div>
+                    </div>
+
+                    <div class="note">
+                        Sub-models can reference other sub-models defined earlier in the same MPD.<br>
+                        Main scene typically references all sub-models with positioning and rotation.<br>
+                        Color 16 allows sub-models to inherit color from the parent reference.
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 8: PART LIBRARY -->
+        <div class="page" data-step="8">
+            <div class="section">
+                <div class="section-header">LDraw Part Library Reference</div>
+                <div class="section-body">
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Part Number</th>
+                                <th>Description</th>
+                                <th>Category</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>3626b.dat</td>
+                                <td>Minifig Head (plain)</td>
+                                <td>Minifig</td>
+                            </tr>
+                            <tr>
+                                <td>3626bp01.dat</td>
+                                <td>Minifig Head with Standard Grin Pattern</td>
+                                <td>Minifig</td>
+                            </tr>
+                            <tr>
+                                <td>973c00.dat</td>
+                                <td>Minifig Torso without Arms</td>
+                                <td>Minifig</td>
+                            </tr>
+                            <tr>
+                                <td>970c00.dat</td>
+                                <td>Minifig Hips and Legs</td>
+                                <td>Minifig</td>
+                            </tr>
+                            <tr>
+                                <td>3624.dat</td>
+                                <td>Minifig Headgear Hat</td>
+                                <td>Minifig</td>
+                            </tr>
+                            <tr>
+                                <td>3001.dat</td>
+                                <td>Brick 2 x 4</td>
+                                <td>Brick</td>
+                            </tr>
+                            <tr>
+                                <td>3003.dat</td>
+                                <td>Brick 2 x 2</td>
+                                <td>Brick</td>
+                            </tr>
+                            <tr>
+                                <td>3004.dat</td>
+                                <td>Brick 1 x 2</td>
+                                <td>Brick</td>
+                            </tr>
+                            <tr>
+                                <td>3005.dat</td>
+                                <td>Brick 1 x 1</td>
+                                <td>Brick</td>
+                            </tr>
+                            <tr>
+                                <td>3024.dat</td>
+                                <td>Plate 1 x 1</td>
+                                <td>Plate</td>
+                            </tr>
+                            <tr>
+                                <td>3023.dat</td>
+                                <td>Plate 1 x 2</td>
+                                <td>Plate</td>
+                            </tr>
+                            <tr>
+                                <td>3811.dat</td>
+                                <td>Baseplate 16 x 16</td>
+                                <td>Baseplate</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        Part library: ldraw.org/parts/latest/<br>
+                        Part naming: [number][variant].dat (e.g., 3626bp01 = head base 3626, variant bp01)<br>
+                        Sub-parts stored in s/ directory (e.g., s/3626bs01.dat)<br>
+                        Primitives stored in p/ directory for basic shapes
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 9: FRANK GRID SYSTEM -->
+        <div class="page" data-step="9">
+            <div class="section">
+                <div class="section-header">FRANK Grid Coordinate System</div>
+                <div class="section-body">
+                    <p style="margin-bottom: 16px; color: #999;">
+                        FRANK uses a 9×9 grid (A1-I9) with 160 LDU spacing. Grid origin (E5) = (0, 0, 0) in LDraw
+                        coordinates.
+                    </p>
+
+                    <div class="code-block">
+                        <div class="code-line">
+                            <span class="line-num"></span>
+                            <span class="syntax"><span class="s-comment">0 FRANK_CELL
+                                    {"cell":"A1","x":-640,"z":-640}</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">1</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">-640 0 -640</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">object-01.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">2</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num"></span>
+                            <span class="syntax"><span class="s-comment">0 FRANK_CELL
+                                    {"cell":"E5","x":0,"z":0}</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">3</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">0 0 0</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">object-02.mpd</span>
+                            </span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">4</span>
+                            <span class="syntax"><span class="s-comment">0</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num"></span>
+                            <span class="syntax"><span class="s-comment">0 FRANK_CELL
+                                    {"cell":"I9","x":640,"z":640}</span></span>
+                        </div>
+                        <div class="code-line">
+                            <span class="line-num">5</span>
+                            <span class="syntax">
+                                <span class="s-cmd">1</span>
+                                <span class="s-color">16</span>
+                                <span class="s-num">640 0 640</span>
+                                <span class="s-num">1 0 0 0 1 0 0 0 1</span>
+                                <span class="s-file">object-03.mpd</span>
+                            </span>
+                        </div>
+                    </div>
+
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Grid Cell</th>
+                                <th>X (LDU)</th>
+                                <th>Z (LDU)</th>
+                                <th>Notes</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>A1</td>
+                                <td>-640</td>
+                                <td>-640</td>
+                                <td>Top-left corner</td>
+                            </tr>
+                            <tr>
+                                <td>E1</td>
+                                <td>0</td>
+                                <td>-640</td>
+                                <td>Top center</td>
+                            </tr>
+                            <tr>
+                                <td>A5</td>
+                                <td>-640</td>
+                                <td>0</td>
+                                <td>Middle left</td>
+                            </tr>
+                            <tr>
+                                <td>E5</td>
+                                <td>0</td>
+                                <td>0</td>
+                                <td>Center origin</td>
+                            </tr>
+                            <tr>
+                                <td>I9</td>
+                                <td>640</td>
+                                <td>640</td>
+                                <td>Bottom-right corner</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        Grid formula: X = (col - 5) × 160, Z = (row - 5) × 160<br>
+                        Columns: A=1, B=2, C=3, D=4, E=5, F=6, G=7, H=8, I=9<br>
+                        Y-axis is always 0 at ground level (adjust per object height)
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 10: TECHNICAL SPECIFICATIONS -->
+        <div class="page" data-step="10">
+            <div class="section">
+                <div class="section-header">LDraw Technical Specifications</div>
+                <div class="section-body">
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Specification</th>
+                                <th>Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>Base Unit</td>
+                                <td>LDU (LDraw Unit)</td>
+                            </tr>
+                            <tr>
+                                <td>1 Stud Width</td>
+                                <td>20 LDU</td>
+                            </tr>
+                            <tr>
+                                <td>1 Plate Height</td>
+                                <td>8 LDU</td>
+                            </tr>
+                            <tr>
+                                <td>1 Brick Height</td>
+                                <td>24 LDU (3 plates)</td>
+                            </tr>
+                            <tr>
+                                <td>Standard Grid Spacing</td>
+                                <td>160 LDU (8 studs)</td>
+                            </tr>
+                            <tr>
+                                <td>Coordinate System</td>
+                                <td>Right-handed (X right, Y up, Z forward)</td>
+                            </tr>
+                            <tr>
+                                <td>File Encoding</td>
+                                <td>UTF-8 or ASCII text</td>
+                            </tr>
+                            <tr>
+                                <td>Line Endings</td>
+                                <td>LF or CRLF</td>
+                            </tr>
+                            <tr>
+                                <td>Number Format</td>
+                                <td>Decimal (integer or float)</td>
+                            </tr>
+                            <tr>
+                                <td>Matrix Determinant</td>
+                                <td>Should be ±1 (no skew/scale for standard parts)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        LDraw specification: ldraw.org/article/218.html<br>
+                        File format specification: ldraw.org/article/398.html<br>
+                        Official part library: ldraw.org/parts/official/
+                    </div>
+                </div>
+            </div>
+
+            <div class="section">
+                <div class="section-header">Line Type Reference</div>
+                <div class="section-body">
+                    <table class="spec-table">
+                        <thead>
+                            <tr>
+                                <th>Type</th>
+                                <th>Format</th>
+                                <th>Usage</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>0</td>
+                                <td>0 [META|comment]</td>
+                                <td>Comments and meta-commands</td>
+                            </tr>
+                            <tr>
+                                <td>1</td>
+                                <td>1 c x y z a b c d e f g h i file</td>
+                                <td>Sub-file/part reference (most common)</td>
+                            </tr>
+                            <tr>
+                                <td>2</td>
+                                <td>2 c x1 y1 z1 x2 y2 z2</td>
+                                <td>Line segment (edge)</td>
+                            </tr>
+                            <tr>
+                                <td>3</td>
+                                <td>3 c x1 y1 z1 x2 y2 z2 x3 y3 z3</td>
+                                <td>Triangle (face)</td>
+                            </tr>
+                            <tr>
+                                <td>4</td>
+                                <td>4 c x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4</td>
+                                <td>Quadrilateral (face)</td>
+                            </tr>
+                            <tr>
+                                <td>5</td>
+                                <td>5 c x1 y1 z1 x2 y2 z2 x3 y3 z3 x4 y4 z4</td>
+                                <td>Optional line (conditional edge)</td>
+                            </tr>
+                        </tbody>
+                    </table>
+
+                    <div class="note">
+                        For MPD scene files, only line types 0 and 1 are typically used.<br>
+                        Line types 2-5 appear in primitive .dat part files.<br>
+                        c = color code, x/y/z = coordinates, a-i = matrix values
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="nav-btn" id="prev" onclick="changeStep(-1)">Prev</button>
+        <button class="nav-btn" id="next" onclick="changeStep(1)">Next</button>
+    </div>
+
+    <script>
+        let step = 1;
+        const total = 10;
+
+        function init() {
+            const nav = document.getElementById('nav');
+            for (let i = 1; i <= total; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'btn' + (i === 1 ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => goTo(i);
+                nav.appendChild(btn);
+            }
+        }
+
+        function goTo(n) {
+            step = n;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-step="${n}"]`).classList.add('active');
+
+            document.querySelectorAll('.btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === n);
+            });
+
+            document.getElementById('prev').disabled = n === 1;
+            document.getElementById('next').disabled = n === total;
+
+            document.getElementById('content').scrollTop = 0;
+        }
+
+        function changeStep(d) {
+            const n = step + d;
+            if (n >= 1 && n <= total) goTo(n);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') changeStep(-1);
+            if (e.key === 'ArrowRight') changeStep(1);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

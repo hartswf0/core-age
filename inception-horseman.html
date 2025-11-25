@@ -1,0 +1,888 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>INCEPTION // UNIVERSAL</title>
+    <style>
+        :root {
+            /* Match WAG-FRANK green theme */
+            --bg: #03180c;
+            --panel: #052010;
+            --panel-dark: #03140d;
+            --border: #0c3a23;
+            --border-light: #1b6e3e;
+            --text: #aef3c1;
+            --text-muted: #5ea275;
+            --dim: #3d5a45;
+
+            /* SEMANTIC COLORS - green palette */
+            --func: #4ade80;
+            /* Green for functions */
+            --var: #22d3ee;
+            /* Cyan for data */
+            --ctrl: #fbbf24;
+            /* Amber for control (keep) */
+            --tag: #86efac;
+            /* Light green for tags */
+
+            --hot: #aef3c1;
+            --link: #4ade80;
+            --accent: #4ade80;
+
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            /* Strict Full Height */
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            /* Prevent Body Scroll */
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 48px;
+            flex: 0 0 auto;
+            /* Fixed Height */
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            font-size: 11px;
+            z-index: 100;
+        }
+
+        .brand {
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            color: var(--text);
+        }
+
+        .brand span {
+            color: var(--link);
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+        }
+
+        button.btn {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            font-family: var(--font);
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button.btn:hover {
+            border-color: var(--link);
+            color: #fff;
+        }
+
+        button.btn.primary {
+            background: var(--link);
+            color: #000;
+            border-color: var(--link);
+            font-weight: bold;
+        }
+
+        /* --- MAIN LAYOUT --- */
+        main {
+            flex: 1;
+            /* Take remaining space */
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            /* Crucial for nested scrolling */
+            position: relative;
+        }
+
+        /* --- TOP: FIXED GRID --- */
+        .grid-section {
+            flex: 0 0 45vh;
+            /* FIXED HEIGHT - NEVER SCROLLS */
+            background: #050505;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+
+        .grid-container {
+            width: min(40vh, 90vw);
+            height: min(40vh, 90vw);
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .block {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.1s, transform 0.1s;
+            overflow: hidden;
+        }
+
+        .block:hover {
+            z-index: 100;
+            transform: scale(1.2) translateZ(10px);
+            border-color: #fff;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .block.active {
+            box-shadow: 0 0 0 2px #fff;
+            z-index: 50;
+            animation: pulse 1.5s infinite;
+        }
+
+        /* Semantic Styling - green theme */
+        .block[data-type="function"] {
+            border-top: 2px solid var(--func);
+            background: rgba(74, 222, 128, 0.08);
+        }
+
+        .block[data-type="variable"] {
+            border-top: 2px solid var(--var);
+            background: rgba(34, 211, 238, 0.08);
+        }
+
+        .block[data-type="control"] {
+            border-top: 2px solid var(--ctrl);
+            background: rgba(251, 191, 36, 0.08);
+        }
+
+        .block[data-type="tag"] {
+            border-top: 2px solid var(--tag);
+            background: rgba(134, 239, 172, 0.08);
+        }
+
+        .block-icon {
+            font-size: 10px;
+            margin-bottom: 2px;
+            opacity: 0.8;
+        }
+
+        .block-label {
+            font-size: 6px;
+            opacity: 0.6;
+            max-width: 100%;
+            overflow: hidden;
+            white-space: nowrap;
+        }
+
+        /* Wires */
+        .wire-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+
+        path.wire {
+            fill: none;
+            stroke: var(--dim);
+            stroke-width: 1;
+            opacity: 0.2;
+            transition: stroke 0.1s;
+        }
+
+        path.wire.active {
+            stroke: var(--link);
+            stroke-width: 2;
+            opacity: 1;
+            filter: drop-shadow(0 0 4px var(--link));
+            stroke-dasharray: 8;
+            animation: flow 0.5s linear infinite;
+        }
+
+        @keyframes flow {
+            from {
+                stroke-dashoffset: 16;
+            }
+
+            to {
+                stroke-dashoffset: 0;
+            }
+        }
+
+        @keyframes pulse {
+            0% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.7);
+            }
+
+            70% {
+                box-shadow: 0 0 0 10px rgba(255, 255, 255, 0);
+            }
+
+            100% {
+                box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+            }
+        }
+
+        /* --- BOTTOM: SCROLLING EDITOR --- */
+        .editor-wrapper {
+            flex: 1;
+            /* Takes remaining height */
+            display: flex;
+            position: relative;
+            overflow: hidden;
+            /* Prevents outer scroll */
+            background: var(--bg);
+        }
+
+        .code-scroller {
+            flex: 1;
+            overflow-y: auto;
+            /* SCROLL HAPPENS HERE */
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .line {
+            display: flex;
+            font-size: 11px;
+            line-height: 18px;
+            padding: 0 10px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            white-space: pre;
+            color: var(--dim);
+            transition: color 0.1s;
+        }
+
+        .line:hover {
+            background: #111;
+            color: var(--text);
+        }
+
+        .line.active {
+            background: rgba(255, 255, 255, 0.05);
+            border-left-color: #fff;
+            color: #fff;
+        }
+
+        .ln {
+            width: 40px;
+            text-align: right;
+            margin-right: 15px;
+            opacity: 0.3;
+            user-select: none;
+        }
+
+        /* Syntax Highlighting */
+        .kwd {
+            color: var(--func);
+        }
+
+        .def {
+            color: #fff;
+            font-weight: bold;
+        }
+
+        .var {
+            color: var(--var);
+        }
+
+        .ctl {
+            color: var(--ctrl);
+        }
+
+        .tag {
+            color: var(--tag);
+            font-weight: bold;
+        }
+
+        .str {
+            color: #fcd34d;
+        }
+
+        .com {
+            color: #3f3f46;
+            font-style: italic;
+        }
+
+        /* Minimap Rail */
+        .minimap-rail {
+            width: 60px;
+            border-left: 1px solid var(--border);
+            background: #0c0c0c;
+            position: relative;
+            z-index: 20;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            left: 0;
+            right: 0;
+            top: 0;
+            height: 0;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            pointer-events: none;
+        }
+
+        /* --- INGEST MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 200;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .modal-overlay.open {
+            opacity: 1;
+            pointer-events: all;
+        }
+
+        .modal {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            width: 500px;
+            padding: 20px;
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            box-shadow: 0 20px 50px #000;
+        }
+
+        .modal h2 {
+            margin: 0;
+            color: var(--text);
+            font-size: 14px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .input-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .input-group label {
+            font-size: 10px;
+            color: var(--dim);
+            font-weight: bold;
+        }
+
+        textarea.code-paste {
+            background: #000;
+            border: 1px solid var(--border);
+            color: var(--text);
+            font-family: var(--font);
+            font-size: 10px;
+            height: 150px;
+            padding: 10px;
+            resize: vertical;
+        }
+
+        .modal-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-top: 10px;
+        }
+
+        input[type="file"] {
+            font-size: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <div class="brand">INCEPTION <span>//</span> UNIVERSAL</div>
+        <div class="controls">
+            <button class="btn" onclick="toggleModal()">📥 INGEST SOURCE</button>
+            <button class="btn primary" onclick="resetView()">RESET</button>
+        </div>
+    </header>
+
+    <main>
+        <!-- FIXED TOP -->
+        <div class="grid-section">
+            <div class="grid-container">
+                <div class="grid" id="grid"></div>
+                <svg class="wire-layer" id="wires"></svg>
+            </div>
+        </div>
+
+        <!-- SCROLLING BOTTOM -->
+        <div class="editor-wrapper">
+            <div class="code-scroller" id="scroller">
+                <div id="code-content"></div>
+            </div>
+            <div class="minimap-rail">
+                <canvas id="minimap"></canvas>
+                <div class="minimap-viewport" id="mm-view"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- INGEST MODAL -->
+    <div class="modal-overlay" id="modal">
+        <div class="modal">
+            <h2>Ingest Source Code</h2>
+
+            <div class="input-group">
+                <label>PASTE CODE</label>
+                <textarea class="code-paste" id="paste-area" placeholder="Paste HTML, JS, or CSS here..."></textarea>
+            </div>
+
+            <div class="input-group">
+                <label>OR UPLOAD FILE</label>
+                <input type="file" id="file-input" accept=".html,.js,.css,.txt">
+            </div>
+
+            <div class="input-group">
+                <label>OR FETCH URL (Requires CORS)</label>
+                <input type="text" id="url-input" placeholder="https://example.com"
+                    style="background:#000; border:1px solid #333; color:#ccc; padding:8px;">
+            </div>
+
+            <div class="modal-actions">
+                <button class="btn" onclick="toggleModal()">CANCEL</button>
+                <button class="btn primary" onclick="ingest()">LOAD DATA</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // ----------------------------------------------------
+        // 1. STATE & INIT
+        // ----------------------------------------------------
+
+        const DEFAULT_CODE = document.documentElement.outerHTML; // Fallback to self
+        let lines = DEFAULT_CODE.split('\n');
+
+        // Data Structures
+        let lineData = [];
+        let mapData = new Array(81).fill(null);
+        let definitions = {};
+        let connections = [];
+
+        // DOM
+        const gridEl = document.getElementById('grid');
+        const wiresEl = document.getElementById('wires');
+        const codeEl = document.getElementById('code-content');
+        const scroller = document.getElementById('scroller');
+        const canvas = document.getElementById('minimap');
+        const viewportBox = document.getElementById('mm-view');
+        const modal = document.getElementById('modal');
+
+        // ----------------------------------------------------
+        // 2. INGESTION LOGIC
+        // ----------------------------------------------------
+
+        function toggleModal() {
+            modal.classList.toggle('open');
+        }
+
+        function ingest() {
+            const paste = document.getElementById('paste-area').value;
+            const fileInput = document.getElementById('file-input');
+            const urlInput = document.getElementById('url-input').value;
+
+            if (paste.trim().length > 0) {
+                loadSource(paste);
+            } else if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = (e) => loadSource(e.target.result);
+                reader.readAsText(file);
+            } else if (urlInput.trim().length > 0) {
+                fetch(urlInput)
+                    .then(r => r.text())
+                    .then(text => loadSource(text))
+                    .catch(e => alert("Failed to fetch URL (CORS restriction?): " + e));
+            }
+
+            toggleModal();
+        }
+
+        function loadSource(newCode) {
+            lines = newCode.split('\n');
+            parse();
+            render();
+            scroller.scrollTop = 0;
+        }
+
+        function resetView() {
+            lines = DEFAULT_CODE.split('\n');
+            parse();
+            render();
+        }
+
+        // Auto-load wag-frank-tetrad-inception on startup
+        async function autoLoadWagFrank() {
+            try {
+                const response = await fetch('/wag-frank-tetrad-inception.html');
+                const text = await response.text();
+                loadSource(text);
+                console.log('✓ Loaded wag-frank-tetrad-inception.html');
+            } catch (e) {
+                console.log('Could not load wag-frank, using self:', e);
+                // Fallback to self-analysis
+                parse();
+                render();
+            }
+        }
+
+        // ----------------------------------------------------
+        // 3. POLYGLOT PARSER (JS + HTML)
+        // ----------------------------------------------------
+
+        function parse() {
+            // Reset
+            lineData = [];
+            mapData = new Array(81).fill(null);
+            definitions = {};
+            connections = [];
+
+            const linesPerCell = Math.ceil(lines.length / 81);
+
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                let type = null;
+                let name = null;
+
+                // --- JS PARSING ---
+                const fnMatch = trim.match(/(?:function|class)\s+(\w+)|(\w+)\s*\(/);
+                if (fnMatch && !trim.includes('new ') && !trim.includes('=')) {
+                    type = 'function';
+                    name = fnMatch[1] || fnMatch[2];
+                }
+
+                const varMatch = trim.match(/(?:const|let|var)\s+(\w+)/);
+                if (varMatch && !type) {
+                    type = 'variable';
+                    name = varMatch[1];
+                }
+
+                // --- HTML PARSING ---
+                // Catch opening tags <div id="foo">
+                const tagMatch = trim.match(/^<([a-zA-Z0-9-]+)(.*)>/);
+                if (tagMatch) {
+                    type = 'tag';
+                    name = tagMatch[1].toUpperCase();
+                    // Try to find ID or Class for better naming
+                    const idMatch = trim.match(/id=["']([^"']+)["']/);
+                    if (idMatch) name += `#${idMatch[1]}`;
+                }
+
+                // Control Flow
+                if (!type && trim.match(/^(if|else|for|while|return|switch)/)) {
+                    type = 'control';
+                    name = trim.split(/[ (]/)[0];
+                }
+
+                // --- MAPPING ---
+                if (type) {
+                    const cellIdx = Math.floor(i / linesPerCell);
+                    // Priority: Function > Tag > Control > Var
+                    let priority = 0;
+                    if (type === 'function') priority = 4;
+                    else if (type === 'tag') priority = 3;
+                    else if (type === 'control') priority = 2;
+                    else priority = 1;
+
+                    if (!mapData[cellIdx] || mapData[cellIdx].priority < priority) {
+                        let icon = '·';
+                        if (type === 'function') icon = 'ƒ';
+                        if (type === 'variable') icon = '📦';
+                        if (type === 'control') icon = '◇';
+                        if (type === 'tag') icon = 'DATA';
+
+                        mapData[cellIdx] = { type, name, lineIndex: i, icon, priority };
+                    }
+
+                    if ((type === 'function' || type === 'tag') && name) {
+                        definitions[name] = cellIdx;
+                    }
+                }
+
+                lineData.push({ text: line, type, index: i });
+            });
+
+            // Wiring Pass (Calls)
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                const fromCell = Math.floor(i / linesPerCell);
+
+                // JS Calls
+                const matches = trim.matchAll(/(\w+)\s*\(/g);
+                for (const m of matches) {
+                    const target = m[1];
+                    if (definitions[target] !== undefined && definitions[target] !== fromCell) {
+                        connections.push({ from: fromCell, to: definitions[target] });
+                    }
+                }
+            });
+        }
+
+        // ----------------------------------------------------
+        // 4. RENDERERS
+        // ----------------------------------------------------
+
+        function render() {
+            // Grid
+            gridEl.innerHTML = '';
+            const linesPerCell = Math.ceil(lines.length / 81);
+
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'block';
+                cell.dataset.index = i;
+
+                const data = mapData[i];
+                if (data) {
+                    cell.setAttribute('data-type', data.type);
+                    cell.innerHTML = `<div class="block-icon">${data.icon}</div><div class="block-label">${data.name}</div>`;
+                    cell.title = `${data.type}: ${data.name}`;
+                } else {
+                    cell.style.opacity = '0.1';
+                    cell.innerHTML = '·';
+                }
+
+                cell.onmouseenter = () => highlightBlock(i);
+                cell.onclick = () => scrollToLine(i * linesPerCell);
+                gridEl.appendChild(cell);
+            }
+
+            // Code
+            codeEl.innerHTML = '';
+            lineData.forEach(l => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.id = `L${l.index}`;
+
+                // Basic Syntax Coloring
+                let html = l.text
+                    .replace(/</g, '&lt;')
+                    .replace(/>/g, '&gt;')
+                    .replace(/(class|function|import|const|let|var|return|if|else)/g, '<span class="kwd">$1</span>')
+                    .replace(/(&lt;\/?[a-zA-Z0-9-]+)/g, '<span class="tag">$1</span>'); // HTML tags
+
+                // Highlight mapped names
+                const mapItem = mapData.find(m => m && m.lineIndex === l.index);
+                if (mapItem) html = html.replace(mapItem.name, `<span class="def">${mapItem.name}</span>`);
+
+                div.innerHTML = `<div class="ln">${l.index}</div>${html}`;
+                div.onmouseenter = () => {
+                    const cellIdx = Math.floor(l.index / Math.ceil(lines.length / 81));
+                    highlightBlock(cellIdx);
+                };
+                codeEl.appendChild(div);
+            });
+
+            renderWires();
+            renderMinimap();
+        }
+
+        function renderWires() {
+            wiresEl.innerHTML = '';
+            const rect = gridEl.getBoundingClientRect();
+            const cellW = rect.width / 9;
+            const cellH = rect.height / 9;
+            const unique = [...new Set(connections.map(JSON.stringify))].map(JSON.parse);
+
+            unique.forEach(conn => {
+                const x1 = (conn.from % 9) * cellW + (cellW / 2);
+                const y1 = Math.floor(conn.from / 9) * cellH + (cellH / 2);
+                const x2 = (conn.to % 9) * cellW + (cellW / 2);
+                const y2 = Math.floor(conn.to / 9) * cellH + (cellH / 2);
+
+                const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+                const cx = (x1 + x2) / 2;
+                const cy = Math.min(y1, y2) - 40;
+                const d = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+
+                path.setAttribute("d", d);
+                path.setAttribute("class", "wire");
+                path.dataset.from = conn.from;
+                path.dataset.to = conn.to;
+                wiresEl.appendChild(path);
+            });
+        }
+
+        function renderMinimap() {
+            const ctx = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = rect.width * dpr;
+            canvas.height = rect.height * dpr;
+            ctx.scale(dpr, dpr);
+
+            const lh = rect.height / lines.length;
+
+            lines.forEach((line, i) => {
+                if (!line.trim()) return;
+                const indent = line.search(/\S|$/);
+                const len = Math.min(rect.width - (indent * 2), line.trim().length * 3);
+
+                let color = '#3d5a45';
+                const meta = lineData[i];
+                if (meta.type === 'function') color = '#4ade80';
+                else if (meta.type === 'variable') color = '#22d3ee';
+                else if (meta.type === 'tag') color = '#86efac';
+
+                ctx.fillStyle = color;
+                ctx.fillRect(indent * 4, i * lh, len, Math.max(1, lh));
+            });
+
+            canvas.onclick = (e) => {
+                const pct = e.offsetY / rect.height;
+                scrollToLine(Math.floor(pct * lines.length));
+            };
+        }
+
+        // ----------------------------------------------------
+        // 5. INTERACTION
+        // ----------------------------------------------------
+
+        function highlightBlock(cellIdx) {
+            const linesPerCell = Math.ceil(lines.length / 81);
+            const start = cellIdx * linesPerCell;
+            const end = start + linesPerCell;
+
+            // Reset
+            document.querySelectorAll('.block.active').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.line.active').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.wire.active').forEach(w => w.classList.remove('active'));
+
+            // Active Block
+            if (gridEl.children[cellIdx]) gridEl.children[cellIdx].classList.add('active');
+
+            // Active Lines
+            for (let i = start; i < end && i < lines.length; i++) {
+                const el = document.getElementById(`L${i}`);
+                if (el) el.classList.add('active');
+            }
+
+            // Active Wires
+            document.querySelectorAll('.wire').forEach(w => {
+                if (w.dataset.from == cellIdx || w.dataset.to == cellIdx) {
+                    w.classList.add('active');
+                    const target = w.dataset.from == cellIdx ? w.dataset.to : w.dataset.from;
+                    gridEl.children[target]?.classList.add('active');
+                }
+            });
+        }
+
+        function scrollToLine(lineIdx) {
+            const el = document.getElementById(`L${lineIdx}`);
+            if (el) {
+                el.scrollIntoView({ behavior: 'auto', block: 'center' });
+                highlightBlock(Math.floor(lineIdx / Math.ceil(lines.length / 81)));
+            }
+        }
+
+        // Scroll Sync
+        scroller.addEventListener('scroll', () => {
+            const pct = scroller.scrollTop / (scroller.scrollHeight - scroller.clientHeight);
+            const mmHeight = canvas.getBoundingClientRect().height;
+            const viewHeight = (scroller.clientHeight / scroller.scrollHeight) * mmHeight;
+            viewportBox.style.height = `${viewHeight}px`;
+            viewportBox.style.top = `${pct * (mmHeight - viewHeight)}px`;
+        });
+
+        // Boot - Auto-load WAG-FRANK (Default)
+        // But also listen for harness instructions
+        autoLoadWagFrank();
+
+        // Listen for messages from Harness
+        window.addEventListener('message', (event) => {
+            const msg = event.data;
+
+            if (msg.type === 'LOAD_URL') {
+                const url = msg.data.url;
+                console.log('Horseman received LOAD_URL:', url);
+
+                fetch(url)
+                    .then(r => r.text())
+                    .then(text => {
+                        console.log(`✓ Ingested ${url} (${text.length} bytes)`);
+                        loadSource(text);
+                    })
+                    .catch(e => console.error('Failed to load URL:', e));
+            } else if (msg.type === 'GRID_CLICK') {
+                const { x, y } = msg.data;
+                // Map 9x9 grid coordinates to linear index (0-80)
+                const index = (y * 9) + x;
+                console.log(`Horseman received GRID_CLICK: ${x},${y} -> Index ${index}`);
+
+                if (index >= 0 && index < 81) {
+                    // Debounce the expensive DOM updates
+                    if (window.gridClickTimeout) clearTimeout(window.gridClickTimeout);
+                    window.gridClickTimeout = setTimeout(() => {
+                        highlightBlock(index);
+                        // Also scroll to the code
+                        const linesPerCell = Math.ceil(lines.length / 81);
+                        scrollToLine(index * linesPerCell);
+                    }, 50); // 50ms debounce
+                }
+            } else if (msg.type === 'MESSAGE_ADDED') {
+                // Visual feedback for messages (e.g., flash the grid border)
+                const grid = document.getElementById('grid');
+                grid.style.borderColor = '#00ff9d';
+                setTimeout(() => grid.style.borderColor = '', 300);
+            }
+        });
+
+    </script>
+</body>
+
+</html>
+```

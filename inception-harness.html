@@ -1,0 +1,427 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>INCEPTION HARNESS // Live Synchronized Visualization</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --secondary: #0088ff;
+            --text: #ccc;
+            --text-dim: #666;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 48px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+            font-size: 10px;
+            z-index: 100;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            font-size: 12px;
+        }
+
+        .sync-status {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-left: auto;
+            font-size: 9px;
+        }
+
+        .sync-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--text-dim);
+        }
+
+        .sync-indicator.active {
+            background: var(--accent);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        /* Split View */
+        .split-container {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: var(--border);
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .panel-header {
+            height: 36px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            justify-content: space-between;
+        }
+
+        .panel-header.wag {
+            color: var(--secondary);
+        }
+
+        .panel-header.horseman {
+            color: var(--accent);
+        }
+
+        .panel-content {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: var(--bg);
+        }
+
+        /* Tool Select */
+        .tool-select {
+            background: var(--panel);
+            color: var(--secondary);
+            border: 1px solid var(--border);
+            padding: 4px 8px;
+            font-family: inherit;
+            font-size: 9px;
+            font-weight: bold;
+            border-radius: 3px;
+            outline: none;
+            cursor: pointer;
+            margin-right: 8px;
+        }
+
+        .tool-select:hover {
+            border-color: var(--secondary);
+        }
+
+        /* Controls in panel headers */
+        .panel-controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+
+        .panel-btn {
+            padding: 4px 8px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text-dim);
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 8px;
+            font-weight: bold;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .panel-btn:hover {
+            background: var(--border);
+            color: var(--text);
+        }
+
+        .panel-btn.active {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">⚡ INCEPTION HARNESS</div>
+        <div>WAG-FRANK ↔ INCEPTION-HORSEMAN</div>
+        <div class="sync-status">
+            <div class="sync-indicator" id="sync-indicator"></div>
+            <span id="sync-text">READY</span>
+        </div>
+    </header>
+
+    <div class="split-container">
+        <!-- Left: WAG-FRANK -->
+        <div class="panel">
+            <div class="panel-header wag">
+                <div style="display:flex; align-items:center; gap:8px;">
+                    <span>🎛️</span>
+                    <select class="tool-select" id="tool-select" onchange="switchTool(this.value)">
+                        <option value="/wag-frank-tetrad-inception.html">INCEPTION (Default)</option>
+                        <option value="/wag-frank-studio.html">STUDIO</option>
+                        <option value="/wag-frank-olog.html">OLOG</option>
+                        <option value="/wag-frank-terminal.html">TERMINAL</option>
+                        <option value="/wag-frank-unified.html">UNIFIED</option>
+                    </select>
+                </div>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="refreshWagFrank()">🔄</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <iframe id="wag-iframe" src="/wag-frank-tetrad-inception.html"
+                    sandbox="allow-same-origin allow-scripts allow-forms allow-modals">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Right: INCEPTION-HORSEMAN -->
+        <div class="panel">
+            <div class="panel-header horseman">
+                <span>🐎 INCEPTION-HORSEMAN (LIVE MAP)</span>
+                <div class="panel-controls">
+                    <button class="panel-btn" onclick="refreshHorseman()">🔄</button>
+                    <button class="panel-btn active" id="sync-btn" onclick="toggleSync()">SYNC ON</button>
+                </div>
+            </div>
+            <div class="panel-content">
+                <iframe id="horseman-iframe" src="/inception-horseman.html" sandbox="allow-same-origin allow-scripts">
+                </iframe>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const wagIframe = document.getElementById('wag-iframe');
+        const horsemanIframe = document.getElementById('horseman-iframe');
+        const syncIndicator = document.getElementById('sync-indicator');
+        const syncText = document.getElementById('sync-text');
+        const syncBtn = document.getElementById('sync-btn');
+
+        let syncEnabled = true;
+        let lastUpdate = Date.now();
+
+        // Sync status
+        function setSyncStatus(status, text) {
+            if (status === 'active') {
+                syncIndicator.classList.add('active');
+                syncText.textContent = text || 'SYNCING';
+            } else {
+                syncIndicator.classList.remove('active');
+                syncText.textContent = text || 'READY';
+            }
+        }
+
+        // Toggle sync
+        function toggleSync() {
+            syncEnabled = !syncEnabled;
+            syncBtn.classList.toggle('active', syncEnabled);
+            syncBtn.textContent = syncEnabled ? 'SYNC ON' : 'SYNC OFF';
+            setSyncStatus(syncEnabled ? 'ready' : 'inactive', syncEnabled ? 'READY' : 'SYNC OFF');
+        }
+
+        // Switch Tool
+        function switchTool(url) {
+            wagIframe.src = url;
+            setSyncStatus('active', 'LOADING TOOL...');
+            console.log(`Switching tool to: ${url}`);
+
+            // Notify Horseman to ingest this new URL
+            notifyHorseman('LOAD_URL', { url: url });
+        }
+
+        // Refresh iframes
+        function refreshWagFrank() {
+            wagIframe.src = wagIframe.src;
+            setSyncStatus('active', 'RELOADING TOOL');
+            setTimeout(() => setSyncStatus('ready', 'READY'), 2000);
+
+            // Re-send current URL to horseman to ensure sync
+            const currentUrl = document.getElementById('tool-select').value;
+            notifyHorseman('LOAD_URL', { url: currentUrl });
+        }
+
+        function refreshHorseman() {
+            horsemanIframe.src = horsemanIframe.src;
+            setSyncStatus('active', 'RELOADING HORSEMAN');
+            setTimeout(() => setSyncStatus('ready', 'READY'), 2000);
+        }
+
+        // Monitor activity in WAG-FRANK iframe
+        // We'll listen for any clicks/scrolls and trigger horseman updates
+        function setupWagFrankMonitoring() {
+            try {
+                const wagDoc = wagIframe.contentDocument || wagIframe.contentWindow.document;
+
+                // Listen for clicks
+                wagDoc.addEventListener('click', (e) => {
+                    if (!syncEnabled) return;
+
+                    setSyncStatus('active', 'SYNC: CLICK');
+                    console.log('WAG-FRANK clicked:', e.target);
+
+                    // Signal horseman to update
+                    setTimeout(() => {
+                        notifyHorseman('click', { x: e.clientX, y: e.clientY });
+                        setTimeout(() => setSyncStatus('ready', 'READY'), 500);
+                    }, 100);
+                });
+
+                // Listen for scrolls
+                let scrollTimeout;
+                wagDoc.addEventListener('scroll', (e) => {
+                    if (!syncEnabled) return;
+
+                    clearTimeout(scrollTimeout);
+                    setSyncStatus('active', 'SYNC: SCROLL');
+
+                    scrollTimeout = setTimeout(() => {
+                        console.log('WAG-FRANK scrolled');
+                        notifyHorseman('scroll', { scrollY: wagDoc.documentElement.scrollTop });
+                        setTimeout(() => setSyncStatus('ready', 'READY'), 300);
+                    }, 200);
+                }, true);
+
+                // Listen for channel changes (if wag-frank has channels)
+                const checkForChannelChanges = () => {
+                    try {
+                        const wagWindow = wagIframe.contentWindow;
+                        if (wagWindow && wagWindow.channels) {
+                            // wag-frank has channels array
+                            const channelCount = wagWindow.channels ? wagWindow.channels.length : 0;
+                            if (channelCount > 0 && syncEnabled) {
+                                setSyncStatus('active', `CHANNELS: ${channelCount}`);
+                                setTimeout(() => setSyncStatus('ready', 'READY'), 1000);
+                            }
+                        }
+                    } catch (e) {
+                        // CORS or not ready yet
+                    }
+                };
+
+                setInterval(checkForChannelChanges, 2000);
+
+                console.log('✓ WAG-FRANK monitoring active');
+                setSyncStatus('ready', 'MONITORING');
+
+            } catch (e) {
+                console.log('Cannot access WAG-FRANK iframe (CORS):', e);
+                setSyncStatus('ready', 'READY (NO CORS)');
+            }
+        }
+
+        // Notify horseman iframe of updates
+        function notifyHorseman(type, data) {
+            try {
+                horsemanIframe.contentWindow.postMessage({
+                    type: type === 'LOAD_URL' ? 'LOAD_URL' : 'WAG_FRANK_EVENT',
+                    event: type !== 'LOAD_URL' ? type : undefined,
+                    data: data,
+                    timestamp: Date.now()
+                }, '*');
+            } catch (e) {
+                console.log('Could not notify horseman:', e);
+            }
+        }
+
+        // Wait for iframes to load
+        wagIframe.addEventListener('load', () => {
+            console.log('WAG-FRANK loaded');
+            setupWagFrankMonitoring();
+        });
+
+        horsemanIframe.addEventListener('load', () => {
+            console.log('INCEPTION-HORSEMAN loaded');
+            setSyncStatus('ready', 'READY');
+
+            // Send initial URL
+            const initialUrl = document.getElementById('tool-select').value;
+            setTimeout(() => notifyHorseman('LOAD_URL', { url: initialUrl }), 1000);
+        });
+
+        // Throttling for WAG events
+        let lastWagEventTime = 0;
+        const WAG_EVENT_THROTTLE_MS = 100; // Limit to ~10fps
+
+        // Listen for messages from either iframe
+        window.addEventListener('message', (event) => {
+            if (event.data.type === 'HORSEMAN_READY') {
+                console.log('HORSEMAN is ready for sync');
+                setSyncStatus('ready', 'HORSEMAN READY');
+            } else if (event.data.type === 'WAG_FRANK_READY') {
+                console.log('WAG-FRANK is ready');
+                setSyncStatus('ready', 'WAG-FRANK READY');
+            } else if (event.data.type === 'WAG_EVENT') {
+                const now = Date.now();
+                // Always forward critical events like 'LOAD_URL', throttle others like 'GRID_CLICK' or 'SCROLL'
+                if (event.data.payload.event === 'LOAD_URL' || now - lastWagEventTime > WAG_EVENT_THROTTLE_MS) {
+                    // Forward WAG events to Horseman
+                    // console.log('Forwarding WAG_EVENT to Horseman:', event.data.payload);
+                    setSyncStatus('active', `SYNC: ${event.data.payload.event}`);
+                    notifyHorseman(event.data.payload.event, event.data.payload);
+                    setTimeout(() => setSyncStatus('ready', 'READY'), 500);
+                    lastWagEventTime = now;
+                }
+            }
+        });
+
+        // Periodic sync pulse (every 5 seconds when enabled)
+        setInterval(() => {
+            if (syncEnabled && Date.now() - lastUpdate > 5000) {
+                // Gentle pulse to show we're alive
+                syncIndicator.classList.add('active');
+                setTimeout(() => syncIndicator.classList.remove('active'), 300);
+            }
+        }, 5000);
+
+        // Initial status
+        setSyncStatus('active', 'LOADING...');
+        setTimeout(() => setSyncStatus('ready', 'READY'), 3000);
+    </script>
+</body>
+
+</html>

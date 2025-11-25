@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Experimental Lab</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%2300FF88'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System - LAB VARIANT */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+
+            /* Lab Specific Overrides */
+            --lab-bg: #050508;
+            --lab-panel: #0f0f16;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: var(--lab-bg);
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-green);
+            text-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-green);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(0, 255, 136, 0.4);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #66ffaa;
+            border: 3px solid #00cc66;
+            border-bottom: none;
+        }
+
+        /* Main content area */
+        .library-container {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+        }
+
+        .library-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+        }
+
+        /* Library Card (Brick Style) */
+        .library-card {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 3px solid #333;
+            border-radius: 16px;
+            padding: 24px;
+            position: relative;
+            box-shadow: var(--shadow);
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            text-decoration: none;
+            color: inherit;
+            height: 100%;
+        }
+
+        .library-card:hover {
+            transform: translateY(-8px);
+            border-color: var(--card-color);
+            box-shadow: 0 8px 24px var(--card-glow);
+        }
+
+        .card-icon {
+            font-size: 48px;
+            margin-bottom: 8px;
+        }
+
+        .card-title {
+            font-size: 20px;
+            font-weight: bold;
+            color: var(--card-color);
+            letter-spacing: 1px;
+        }
+
+        .card-desc {
+            font-size: 14px;
+            line-height: 1.5;
+            color: #888;
+            flex-grow: 1;
+        }
+
+        .card-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid #333;
+        }
+
+        .card-tag {
+            font-size: 10px;
+            font-weight: bold;
+            padding: 4px 8px;
+            border-radius: 4px;
+            background: #222;
+            color: #aaa;
+            text-transform: uppercase;
+        }
+
+        .card-arrow {
+            color: var(--card-color);
+            font-weight: bold;
+            font-size: 18px;
+        }
+
+        /* Stud decoration */
+        .stud-decoration {
+            position: absolute;
+            top: -10px;
+            left: 20px;
+            width: 40px;
+            height: 12px;
+            background: #333;
+            border-radius: 4px 4px 0 0;
+            border: 2px solid #444;
+            border-bottom: none;
+        }
+
+        .library-card:hover .stud-decoration {
+            background: var(--card-color);
+            border-color: var(--card-color);
+        }
+
+        /* Navigation Link */
+        .nav-link-container {
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: flex-start;
+        }
+
+        .nav-link-btn {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 12px 20px;
+            background: #111;
+            border: 2px solid #333;
+            border-radius: 8px;
+            color: #888;
+            text-decoration: none;
+            font-weight: bold;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .nav-link-btn:hover {
+            border-color: var(--lego-yellow);
+            color: var(--lego-yellow);
+            background: #1a1a1a;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header-brick">
+        <div class="header-title">🧪 EXPERIMENTAL LAB</div>
+        <div class="step-counter">LAB</div>
+    </div>
+
+    <div class="library-container">
+
+        <div class="nav-link-container">
+            <a href="knowledge-hub.html" class="nav-link-btn">
+                <span>←</span> BACK TO LIBRARY
+            </a>
+        </div>
+
+        <div class="library-grid">
+
+            <!-- CARD 1: TEMPORAL MESH LAB -->
+            <a href="temporal-mesh-lab.html" class="library-card"
+                style="--card-color: var(--lego-cyan); --card-glow: rgba(78, 205, 196, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">⏱️</div>
+                <div class="card-title">TEMPORAL LAB</div>
+                <div class="card-desc">
+                    An interactive laboratory for visualizing mesh births and debugging the "Red Bull" loading sequence.
+                    Essential for understanding temporal pathologies.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tool / Lab</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 2: PATHOLOGY STUDIO -->
+            <a href="skeleton-pathology-studio.html" class="library-card"
+                style="--card-color: var(--lego-purple); --card-glow: rgba(157, 78, 221, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">🔬</div>
+                <div class="card-title">PATHOLOGY STUDIO</div>
+                <div class="card-desc">
+                    A diagnostic workbench for analyzing broken GOLD files, fixing MPD data, and verifying skeleton
+                    integrity.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tool / Lab</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+            <!-- CARD 3: MPD LINE GRID VIEWER (Added for completeness as it's a tool) -->
+            <a href="mpd-line-grid-viewer.html" class="library-card"
+                style="--card-color: var(--lego-orange); --card-glow: rgba(255, 107, 53, 0.4);">
+                <div class="stud-decoration"></div>
+                <div class="card-icon">📏</div>
+                <div class="card-title">GRID VIEWER</div>
+                <div class="card-desc">
+                    A utility for visualizing MPD lines on the LDU grid. Useful for verifying spatial alignment and
+                    line-based parsing.
+                </div>
+                <div class="card-footer">
+                    <span class="card-tag">Tool / Viewer</span>
+                    <span class="card-arrow">OPEN →</span>
+                </div>
+            </a>
+
+        </div>
+    </div>
+</body>
+
+</html>

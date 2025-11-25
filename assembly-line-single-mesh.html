@@ -1,0 +1,609 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Assembly Line - Single Mesh Progressive Reveal</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: #050508;
+            color: #e2e8f0;
+            overflow: hidden;
+        }
+
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+
+        #viewer-panel {
+            flex: 2;
+            position: relative;
+            background: #0a0a0f;
+        }
+
+        #timeline-panel {
+            flex: 1;
+            background: #0f0f16;
+            border-left: 1px solid #1e293b;
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        #viewer {
+            width: 100%;
+            height: 100%;
+        }
+
+        .overlay-info {
+            position: absolute;
+            top: 16px;
+            left: 16px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #06b6d4;
+            font-size: 12px;
+            z-index: 10;
+        }
+
+        .overlay-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 4px;
+            gap: 16px;
+        }
+
+        .overlay-label {
+            color: #64748b;
+        }
+
+        .overlay-value {
+            color: #06b6d4;
+            font-weight: bold;
+        }
+
+        .assembly-controls {
+            position: absolute;
+            bottom: 16px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+            background: rgba(15, 23, 42, 0.9);
+            padding: 12px 16px;
+            border-radius: 8px;
+            border: 1px solid #8b5cf6;
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border: 1px solid #06b6d4;
+            background: transparent;
+            color: #06b6d4;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .btn:hover {
+            background: rgba(6, 182, 212, 0.1);
+            box-shadow: 0 0 12px rgba(6, 182, 212, 0.3);
+        }
+
+        .btn.active {
+            background: #8b5cf6;
+            border-color: #8b5cf6;
+            color: #fff;
+        }
+
+        .timeline-item {
+            padding: 12px;
+            background: rgba(30, 41, 59, 0.5);
+            border-left: 3px solid #334155;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .timeline-item:hover {
+            border-left-color: #06b6d4;
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .timeline-item.built {
+            border-left-color: #10b981;
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .timeline-item.building {
+            border-left-color: #f59e0b;
+            background: rgba(245, 158, 11, 0.2);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.7;
+            }
+        }
+
+        .timeline-line-num {
+            font-size: 10px;
+            color: #64748b;
+            margin-bottom: 4px;
+        }
+
+        .timeline-part-name {
+            font-size: 12px;
+            color: #e2e8f0;
+            font-weight: bold;
+            margin-bottom: 4px;
+        }
+
+        .timeline-stud-count {
+            font-size: 10px;
+            color: #f59e0b;
+        }
+
+        h2 {
+            font-size: 14px;
+            margin-bottom: 16px;
+            color: #06b6d4;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .load-section {
+            margin-bottom: 24px;
+        }
+
+        .file-input-wrapper {
+            display: flex;
+            gap: 8px;
+        }
+
+        input[type="file"] {
+            flex: 1;
+            padding: 8px;
+            background: rgba(30, 41, 59, 0.5);
+            border: 1px solid #334155;
+            border-radius: 4px;
+            color: #e2e8f0;
+            font-size: 12px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="container">
+        <div id="viewer-panel">
+            <canvas id="viewer"></canvas>
+
+            <div class="overlay-info">
+                <div class="overlay-row">
+                    <span class="overlay-label">Current Line:</span>
+                    <span class="overlay-value" id="currentLine">—</span>
+                </div>
+                <div class="overlay-row">
+                    <span class="overlay-label">Studs Visible:</span>
+                    <span class="overlay-value" id="studsVisible">0</span>
+                </div>
+                <div class="overlay-row">
+                    <span class="overlay-label">Progress:</span>
+                    <span class="overlay-value" id="progress">0%</span>
+                </div>
+            </div>
+
+            <div class="assembly-controls">
+                <button class="btn" onclick="assemblyPlay()">▶️ Play</button>
+                <button class="btn" onclick="assemblyPause()">⏸️ Pause</button>
+                <button class="btn" onclick="assemblyStep()">⏭️ Step</button>
+                <button class="btn" onclick="assemblyReset()">🔄 Reset</button>
+                <input type="range" id="speedSlider" min="100" max="2000" value="800" step="100" style="width: 150px;"
+                    oninput="updateSpeed(this.value)">
+                <span class="overlay-value" id="speedDisplay">800ms</span>
+            </div>
+        </div>
+
+        <div id="timeline-panel">
+            <div class="load-section">
+                <h2>📁 Load GOLD Data</h2>
+                <div class="file-input-wrapper">
+                    <input type="file" id="goldInput" accept=".json" onchange="loadGoldFile(event)">
+                    <button class="btn" onclick="document.getElementById('goldInput').click()">Browse</button>
+                </div>
+            </div>
+
+            <h2>🏭 Assembly Timeline</h2>
+            <div id="timelineItems"></div>
+        </div>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script>
+        // === STATE ===
+        const STATE = {
+            goldData: null,
+            mpdLines: [],
+            partLines: [], // Lines with type 1 (parts)
+            studSkeleton: [],
+            currentLineIndex: 0,
+            assemblyActive: false,
+            assemblyPaused: false,
+            speed: 800,
+            builtLines: new Set(),
+
+            // Three.js
+            scene: null,
+            camera: null,
+            renderer: null,
+            studMarkers: [],
+            highlightMaterial: null
+        };
+
+        // === THREE.JS SETUP ===
+        function initThreeJS() {
+            const canvas = document.getElementById('viewer');
+            const width = canvas.parentElement.clientWidth;
+            const height = canvas.parentElement.clientHeight;
+
+            STATE.scene = new THREE.Scene();
+            STATE.scene.background = new THREE.Color(0x0a0a0f);
+
+            STATE.camera = new THREE.PerspectiveCamera(45, width / height, 0.1, 10000);
+            STATE.camera.position.set(200, 200, 200);
+            STATE.camera.lookAt(0, 0, 0);
+
+            STATE.renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            STATE.renderer.setSize(width, height);
+
+            // Lights
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.6);
+            STATE.scene.add(ambientLight);
+
+            const dirLight = new THREE.DirectionalLight(0xffffff, 0.8);
+            dirLight.position.set(100, 200, 100);
+            STATE.scene.add(dirLight);
+
+            // Grid
+            const gridHelper = new THREE.GridHelper(400, 20, 0x334155, 0x1e293b);
+            STATE.scene.add(gridHelper);
+
+            // Orbit controls (basic)
+            let isDragging = false;
+            let previousMousePosition = { x: 0, y: 0 };
+
+            canvas.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                previousMousePosition = { x: e.clientX, y: e.clientY };
+            });
+
+            canvas.addEventListener('mousemove', (e) => {
+                if (isDragging) {
+                    const deltaX = e.clientX - previousMousePosition.x;
+                    const deltaY = e.clientY - previousMousePosition.y;
+
+                    const rotationSpeed = 0.005;
+                    STATE.camera.position.applyAxisAngle(new THREE.Vector3(0, 1, 0), -deltaX * rotationSpeed);
+                    STATE.camera.lookAt(0, 0, 0);
+
+                    previousMousePosition = { x: e.clientX, y: e.clientY };
+                }
+            });
+
+            canvas.addEventListener('mouseup', () => isDragging = false);
+            canvas.addEventListener('wheel', (e) => {
+                e.preventDefault();
+                const zoomSpeed = 0.1;
+                STATE.camera.position.multiplyScalar(e.deltaY > 0 ? 1.1 : 0.9);
+            });
+
+            animate();
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            STATE.renderer.render(STATE.scene, STATE.camera);
+        }
+
+        // === GOLD LOADING ===
+        function loadGoldFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                try {
+                    const gold = JSON.parse(e.target.result);
+                    processGoldData(gold);
+                } catch (err) {
+                    alert('Error loading GOLD: ' + err.message);
+                }
+            };
+            reader.readAsText(file);
+        }
+
+        function processGoldData(gold) {
+            STATE.goldData = gold;
+            STATE.mpdLines = (gold.mpd_content || '').split('\n');
+            STATE.studSkeleton = gold.stud_skeleton || gold.stud_skeleton_v2?.nodes || [];
+
+            // Find part lines (type 1)
+            STATE.partLines = [];
+            STATE.mpdLines.forEach((line, idx) => {
+                const trimmed = line.trim();
+                if (trimmed.startsWith('1 ')) {
+                    const tokens = trimmed.split(/\s+/);
+                    const partId = tokens[tokens.length - 1];
+                    STATE.partLines.push({
+                        lineNum: idx,
+                        text: line,
+                        partId: partId,
+                        studs: STATE.studSkeleton.filter(s => s.lineNum === idx)
+                    });
+                }
+            });
+
+            console.log(`✅ Loaded GOLD: ${STATE.partLines.length} parts, ${STATE.studSkeleton.length} studs`);
+
+            renderTimeline();
+            createStudOverlays();
+        }
+
+        // === TIMELINE RENDERING ===
+        function renderTimeline() {
+            const container = document.getElementById('timelineItems');
+            container.innerHTML = '';
+
+            STATE.partLines.forEach((part, index) => {
+                const item = document.createElement('div');
+                item.className = 'timeline-item';
+                item.dataset.index = index;
+
+                item.innerHTML = `
+                    <div class="timeline-line-num">Line ${part.lineNum}</div>
+                    <div class="timeline-part-name">${part.partId}</div>
+                    <div class="timeline-stud-count">${part.studs.length} studs</div>
+                `;
+
+                item.onclick = () => jumpToLine(index);
+                container.appendChild(item);
+            });
+        }
+
+        // === STUD OVERLAY CREATION ===
+        function createStudOverlays() {
+            // Clear existing
+            STATE.studMarkers.forEach(marker => STATE.scene.remove(marker));
+            STATE.studMarkers = [];
+
+            const geometry = new THREE.SphereGeometry(4, 8, 8);
+
+            STATE.studSkeleton.forEach(stud => {
+                const material = new THREE.MeshBasicMaterial({
+                    color: 0x06b6d4,
+                    transparent: true,
+                    opacity: 0,  // Start hidden
+                    depthTest: false
+                });
+
+                const marker = new THREE.Mesh(geometry, material);
+                marker.position.set(stud.x, stud.y, stud.z);
+                marker.userData.lineNum = stud.lineNum;
+                marker.userData.stud = stud;
+
+                STATE.scene.add(marker);
+                STATE.studMarkers.push(marker);
+            });
+
+            console.log(`Created ${STATE.studMarkers.length} stud overlays`);
+        }
+
+        // === ASSEMBLY LINE ANIMATION ===
+        function assemblyPlay() {
+            if (!STATE.partLines.length) {
+                alert('Load a GOLD file first!');
+                return;
+            }
+
+            STATE.assemblyActive = true;
+            STATE.assemblyPaused = false;
+            processNextLine();
+        }
+
+        function assemblyPause() {
+            STATE.assemblyPaused = true;
+        }
+
+        function assemblyStep() {
+            if (!STATE.partLines.length) return;
+
+            STATE.assemblyActive = true;
+            STATE.assemblyPaused = true;
+
+            if (STATE.currentLineIndex < STATE.partLines.length) {
+                revealLine(STATE.currentLineIndex);
+                STATE.currentLineIndex++;
+            }
+        }
+
+        function assemblyReset() {
+            STATE.assemblyActive = false;
+            STATE.assemblyPaused = false;
+            STATE.currentLineIndex = 0;
+            STATE.builtLines.clear();
+
+            // Hide all studs
+            STATE.studMarkers.forEach(marker => {
+                marker.material.opacity = 0;
+            });
+
+            // Reset timeline items
+            document.querySelectorAll('.timeline-item').forEach(item => {
+                item.classList.remove('built', 'building');
+            });
+
+            updateOverlay();
+        }
+
+        function processNextLine() {
+            if (!STATE.assemblyActive || STATE.assemblyPaused) return;
+
+            if (STATE.currentLineIndex >= STATE.partLines.length) {
+                STATE.assemblyActive = false;
+                console.log('✅ Assembly complete!');
+                return;
+            }
+
+            revealLine(STATE.currentLineIndex);
+            STATE.currentLineIndex++;
+
+            setTimeout(() => processNextLine(), STATE.speed);
+        }
+
+        function revealLine(index) {
+            const part = STATE.partLines[index];
+            if (!part) return;
+
+            console.log(`[ASSEMBLY] Revealing line ${part.lineNum}: ${part.partId} (${part.studs.length} studs)`);
+
+            // Mark line as built
+            STATE.builtLines.add(part.lineNum);
+
+            // Update timeline
+            const timelineItems = document.querySelectorAll('.timeline-item');
+            if (timelineItems[index]) {
+                timelineItems[index].classList.remove('building');
+                timelineItems[index].classList.add('building');
+
+                setTimeout(() => {
+                    timelineItems[index].classList.remove('building');
+                    timelineItems[index].classList.add('built');
+                }, STATE.speed * 0.8);
+
+                timelineItems[index].scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+            }
+
+            // Reveal studs for this line with animation
+            const lineStuds = STATE.studMarkers.filter(m => m.userData.lineNum === part.lineNum);
+            lineStuds.forEach((marker, i) => {
+                setTimeout(() => {
+                    marker.material.opacity = 0.8;
+                    marker.material.color.setHex(0x10b981); // Green when revealed
+
+                    // Pop animation
+                    const originalScale = marker.scale.clone();
+                    marker.scale.set(0.1, 0.1, 0.1);
+                    animateScale(marker, originalScale, 300);
+                }, i * 30); // Stagger stud reveals
+            });
+
+            updateOverlay();
+        }
+
+        function animateScale(object, targetScale, duration) {
+            const startScale = object.scale.clone();
+            const startTime = performance.now();
+
+            function update() {
+                const elapsed = performance.now() - startTime;
+                const progress = Math.min(elapsed / duration, 1);
+
+                // Easing: overshoot and settle
+                const eased = progress < 0.5
+                    ? 2 * progress * progress
+                    : 1 - Math.pow(-2 * progress + 2, 2) / 2;
+
+                object.scale.lerpVectors(startScale, targetScale, eased);
+
+                if (progress < 1) {
+                    requestAnimationFrame(update);
+                }
+            }
+
+            update();
+        }
+
+        function jumpToLine(index) {
+            STATE.currentLineIndex = index;
+            STATE.builtLines.clear();
+
+            // Reveal all lines up to this one
+            for (let i = 0; i <= index; i++) {
+                const part = STATE.partLines[i];
+                STATE.builtLines.add(part.lineNum);
+
+                const lineStuds = STATE.studMarkers.filter(m => m.userData.lineNum === part.lineNum);
+                lineStuds.forEach(marker => {
+                    marker.material.opacity = 0.8;
+                    marker.material.color.setHex(0x10b981);
+                });
+
+                const timelineItem = document.querySelectorAll('.timeline-item')[i];
+                if (timelineItem) {
+                    timelineItem.classList.add('built');
+                }
+            }
+
+            // Hide later lines
+            for (let i = index + 1; i < STATE.partLines.length; i++) {
+                const part = STATE.partLines[i];
+                const lineStuds = STATE.studMarkers.filter(m => m.userData.lineNum === part.lineNum);
+                lineStuds.forEach(marker => {
+                    marker.material.opacity = 0;
+                });
+
+                const timelineItem = document.querySelectorAll('.timeline-item')[i];
+                if (timelineItem) {
+                    timelineItem.classList.remove('built');
+                }
+            }
+
+            updateOverlay();
+        }
+
+        function updateOverlay() {
+            document.getElementById('currentLine').textContent =
+                STATE.currentLineIndex < STATE.partLines.length
+                    ? `#${STATE.partLines[STATE.currentLineIndex].lineNum}`
+                    : 'Complete';
+
+            const visibleStuds = STATE.studMarkers.filter(m => m.material.opacity > 0).length;
+            document.getElementById('studsVisible').textContent = visibleStuds;
+
+            const progress = STATE.partLines.length > 0
+                ? Math.round((STATE.currentLineIndex / STATE.partLines.length) * 100)
+                : 0;
+            document.getElementById('progress').textContent = `${progress}%`;
+        }
+
+        function updateSpeed(value) {
+            STATE.speed = parseInt(value);
+            document.getElementById('speedDisplay').textContent = `${value}ms`;
+        }
+
+        // === INIT ===
+        initThreeJS();
+        console.log('🏭 Assembly Line Viewer Ready');
+        console.log('📁 Load a GOLD file to begin');
+    </script>
+</body>
+
+</html>

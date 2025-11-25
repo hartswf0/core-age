@@ -1,0 +1,1269 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Swiss/Frank/Grace - LEGO Quickstart</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-yellow);
+            text-shadow: 0 0 10px var(--lego-yellow-glow);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-yellow);
+            color: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px var(--lego-yellow-glow);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #FFA500;
+            border: 3px solid #CC8400;
+            border-bottom: none;
+        }
+
+        /* Main instruction area */
+        .instruction-page {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: none;
+        }
+
+        .instruction-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* LEGO instruction step box */
+        .step-brick {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 4px solid #333;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .step-number-brick {
+            position: absolute;
+            top: -20px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-yellow);
+            color: #000;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px var(--lego-yellow-glow);
+            border: 4px solid #000;
+        }
+
+        .step-number-brick::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 16px;
+            border-radius: 8px 8px 0 0;
+            background: #FFA500;
+            border: 3px solid #000;
+            border-bottom: none;
+        }
+
+        .step-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .step-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-panel {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-yellow);
+            letter-spacing: 1px;
+        }
+
+        .step-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* UI Mockups */
+        .ui-mockup {
+            width: 100%;
+            background: #0a0a0a;
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ui-header {
+            background: #1a1a1a;
+            padding: 12px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ui-dots {
+            display: flex;
+            gap: 8px;
+        }
+
+        .ui-dot {
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #333;
+            border: 2px solid #555;
+        }
+
+        .ui-dot.active {
+            background: var(--lego-yellow);
+            border-color: var(--lego-yellow);
+            box-shadow: 0 0 8px var(--lego-yellow-glow);
+        }
+
+        .ui-title {
+            color: var(--lego-yellow);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ui-body {
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        /* Minifig preview */
+        .minifig-preview {
+            width: 120px;
+            height: 180px;
+            margin: 0 auto;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            filter: drop-shadow(0 0 10px var(--lego-yellow-glow));
+        }
+
+        .minifig-head {
+            width: 48px;
+            height: 48px;
+            background: var(--lego-yellow);
+            border-radius: 50%;
+            border: 4px solid #FFA500;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+        }
+
+        .minifig-body {
+            width: 60px;
+            height: 72px;
+            background: var(--lego-red);
+            border-radius: 6px;
+            border: 4px solid #CC0000;
+            margin-bottom: 4px;
+        }
+
+        .minifig-legs {
+            width: 60px;
+            height: 48px;
+            background: var(--lego-blue);
+            border-radius: 0 0 6px 6px;
+            border: 4px solid #0000CC;
+            border-top: none;
+        }
+
+        /* Grid visualization */
+        .grid-mockup {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 3px;
+            max-width: 320px;
+            margin: 20px auto;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            background: #0a0a0a;
+            border: 2px solid #222;
+            border-radius: 4px;
+            position: relative;
+        }
+
+        .grid-cell.filled {
+            background: radial-gradient(circle at center, var(--lego-yellow), #0a0a0a);
+            border-color: var(--lego-yellow);
+            box-shadow: 0 0 8px var(--lego-yellow-glow);
+        }
+
+        .grid-cell.filled::after {
+            content: '🧱';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 16px;
+        }
+
+        /* Code display blocks */
+        .code-brick {
+            background: #000;
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #0f0;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #000;
+            padding: 0 8px;
+            color: var(--lego-yellow);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        .code-highlight {
+            color: var(--lego-yellow);
+            font-weight: bold;
+        }
+
+        .code-copy-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: var(--lego-yellow);
+            color: #000;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 8px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        /* AI Remix Section */
+        .ai-remix-brick {
+            background: linear-gradient(135deg, rgba(157, 78, 221, 0.1) 0%, rgba(78, 205, 196, 0.1) 100%);
+            border: 3px solid var(--lego-purple);
+            border-radius: 12px;
+            padding: 24px;
+            margin: 20px 0;
+        }
+
+        .ai-remix-title {
+            font-size: 18px;
+            font-weight: bold;
+            color: var(--lego-purple);
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .ai-remix-text {
+            font-size: 12px;
+            line-height: 1.6;
+            color: #ccc;
+            margin-bottom: 16px;
+        }
+
+        /* LEGOS Blocks Visual */
+        .legos-blocks {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 8px;
+            margin: 16px 0;
+        }
+
+        .legos-block {
+            background: rgba(255, 215, 0, 0.1);
+            border: 2px solid var(--lego-yellow);
+            border-radius: 6px;
+            padding: 12px;
+            text-align: center;
+            font-size: 10px;
+        }
+
+        .legos-block-title {
+            font-weight: bold;
+            color: var(--lego-yellow);
+            margin-bottom: 4px;
+        }
+
+        .legos-block.example {
+            background: rgba(78, 205, 196, 0.1);
+            border-color: var(--lego-cyan);
+        }
+
+        .legos-block.example .legos-block-title {
+            color: var(--lego-cyan);
+        }
+
+        /* Capture controls */
+        .capture-controls {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            margin-top: 16px;
+        }
+
+        .capture-btn {
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 2px solid var(--lego-purple);
+            border-radius: 6px;
+            color: var(--lego-purple);
+            font-size: 10px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .capture-btn:hover {
+            background: var(--lego-purple);
+            color: #000;
+            transform: translateY(-2px);
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        .nav-brick {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 3px solid var(--lego-yellow);
+            border-radius: 8px;
+            color: var(--lego-yellow);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-brick:hover {
+            background: var(--lego-yellow);
+            color: #000;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px var(--lego-yellow-glow);
+        }
+
+        .nav-brick:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+
+        .progress-stud {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: #333;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .progress-stud.active {
+            background: var(--lego-yellow);
+            border-color: var(--lego-yellow);
+            box-shadow: 0 0 8px var(--lego-yellow-glow);
+        }
+
+        /* Context arrows and callouts */
+        .context-arrow {
+            position: absolute;
+            font-size: 24px;
+            color: var(--lego-yellow);
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .callout-box {
+            position: absolute;
+            background: #000;
+            border: 2px solid var(--lego-yellow);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: var(--lego-yellow);
+            font-weight: bold;
+            box-shadow: 0 0 10px var(--lego-yellow-glow);
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <!-- STEP 1: Overview -->
+    <div class="instruction-page active" data-step="1">
+        <div class="header-brick">
+            <div class="header-title">🧱 LEGO STORY FACTORY</div>
+            <div class="step-counter">1</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="flow-arrow" style="top: 20px; left: 20px;">⬇️ CLICK DOTS</div>
+                        <div class="ui-mockup" style="max-width: 400px;">
+                            <div class="ui-header">
+                                <div class="ui-dots">
+                                    <div class="ui-dot active"></div>
+                                    <div class="ui-dot"></div>
+                                    <div class="ui-dot"></div>
+                                </div>
+                                <div class="ui-title">SWISS DESIGNATOR</div>
+                            </div>
+                            <div class="ui-body" style="text-align: center; color: #888;">
+                                <div style="font-size: 48px; margin-bottom: 16px;">🧱</div>
+                                <div style="font-size: 14px; color: var(--lego-yellow); margin-bottom: 8px;">
+                                    Pick a Builder → Build Parts → Send to Frank
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="callout-box" style="bottom: 20px; right: 20px;">
+                            🎯 Each dot = LEGO Tool
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">The Three Tools Work Like LEGO Bricks</div>
+                        <div class="step-desc">
+                            <strong style="color: var(--lego-yellow);">SWISS</strong> picks the parts<br>
+                            <strong style="color: var(--lego-cyan);">FRANK</strong> snaps them to a grid<br>
+                            <strong style="color: var(--lego-purple);">GRACE</strong> shows the 3D build & lets you
+                            capture<br><br>
+                            They talk automatically through the "wag-frank" BroadcastChannel bus.
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">🔌 The Magic Bus</div>
+                            <span class="code-highlight">const wagFrankBus = new
+                                BroadcastChannel('wag-frank');</span><br>
+                            <span class="code-highlight">wagFrankBus.postMessage</span>({ kind: 'minifig-mpd', payload:
+                            {...} });
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: Build in Swiss -->
+    <div class="instruction-page" data-step="2">
+        <div class="header-brick">
+            <div class="header-title">🎯 BUILD IN SWISS</div>
+            <div class="step-counter">2</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="context-arrow" style="top: 20px; left: 50%; transform: translateX(-50%);">⬇️ CLICK
+                            YELLOW DOT</div>
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-dots">
+                                    <div class="ui-dot"></div>
+                                    <div class="ui-dot active" style="box-shadow: 0 0 15px var(--lego-yellow-glow);">
+                                    </div>
+                                    <div class="ui-dot"></div>
+                                </div>
+                                <div class="ui-title" style="color: var(--lego-yellow);">MINIFIGURATOR</div>
+                            </div>
+                            <div class="ui-body">
+                                <div class="minifig-preview">
+                                    <div class="minifig-head">😊</div>
+                                    <div class="minifig-body"></div>
+                                    <div class="minifig-legs"></div>
+                                </div>
+                                <div style="text-align: center; margin-top: 20px;">
+                                    <div
+                                        style="background: var(--lego-yellow); color: #000; padding: 12px 24px; border-radius: 6px; font-weight: bold; display: inline-block; box-shadow: 0 0 10px var(--lego-yellow-glow);">
+                                        ⬇️ SAVE MPD
+                                    </div>
+                                    <div class="callout-box"
+                                        style="position: relative; margin-top: 16px; display: inline-block;">
+                                        💾 This sends to Frank automatically!
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Create Your First Minifig</div>
+                        <div class="step-desc">
+                            <strong>WHERE:</strong> Swiss tab → Click yellow dot<br>
+                            <strong>WHAT TO DO:</strong><br>
+                            1. Pick hat, head, torso, legs from lists<br>
+                            2. Click <strong style="color: var(--lego-yellow);">SAVE MPD</strong><br><br>
+                            <strong>WHAT HAPPENS:</strong><br>
+                            Your minifig is sent to Frank via the bus. You'll see a confirmation message.
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">📤 Message Sent to Frank</div>
+                            <button class="code-copy-btn" onclick="copyCode(this)">COPY</button>
+                            wagFrankBus.postMessage({<br>
+                            &nbsp;&nbsp;kind: <span class="code-highlight">'minifig-mpd'</span>,<br>
+                            &nbsp;&nbsp;payload: {<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;name: "MyMinifig",<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;mpd: [<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"0 FILE minifig.mpd",<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;"1 16 0 0 0 1 0 0 0 1 0 0 0 1 3626bp01.dat"<br>
+                            &nbsp;&nbsp;&nbsp;&nbsp;]<br>
+                            &nbsp;&nbsp;}<br>
+                            });
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Arrange in Frank -->
+    <div class="instruction-page" data-step="3">
+        <div class="header-brick">
+            <div class="header-title">🎬 ARRANGE IN FRANK</div>
+            <div class="step-counter">3</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div style="display: flex; gap: 8px; margin-bottom: 16px; align-items: center;">
+                            <div class="ui-mockup" style="flex: 1; max-width: 200px;">
+                                <div class="ui-header">
+                                    <div class="ui-title" style="font-size: 10px;">INBOX</div>
+                                </div>
+                                <div class="ui-body style=" padding: 12px; min-height: 120px;"">
+                                    <div
+                                        style="background: rgba(78,205,196,0.2); border: 2px solid var(--lego-cyan); border-radius: 4px; padding: 8px; margin-bottom: 8px; font-size: 10px;">
+                                        🧱 minifig-1.mpd<br>
+                                        <small style="color:#666;">Click to select →</small>
+                                    </div>
+                                    <div
+                                        style="background: rgba(255,107,53,0.2); border: 2px solid var(--lego-orange); border-radius: 4px; padding: 8px; font-size: 10px;">
+                                        🚗 vehicle-1.mpd<br>
+                                        <small style="color:#666;">Click to select →</small>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="flow-arrow" style="font-size: 32px;">→</div>
+
+                            <div class="ui-mockup" style="flex: 2;">
+                                <div class="ui-header">
+                                    <div class="ui-title" style="color: var(--lego-cyan); font-size: 12px;">9×9 GRID
+                                    </div>
+                                </div>
+                                <div class="ui-body">
+                                    <div class="grid-mockup">
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell filled"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell filled"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                        <div class="grid-cell"></div>
+                                    </div>
+                                    <div style="text-align: center; margin-top: 12px;">
+                                        <div
+                                            style="background: var(--lego-cyan); color: #000; padding: 8px 16px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                                            CLICK TO ASSIGN
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="callout-box" style="position: absolute; bottom: 20px; right: 20px;">
+                            🎯 Click inbox item → Click grid cell → Click button
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Snap Parts to Grid</div>
+                        <div class="step-desc">
+                            <strong>WHERE:</strong> Frank tab (green dot)<br>
+                            <strong>WHAT TO DO:</strong><br>
+                            1. Click minifig in <strong style="color: var(--lego-cyan);">INBOX</strong><br>
+                            2. Click any <strong style="color: var(--lego-cyan);">grid cell</strong> (D4, F6)<br>
+                            3. Click <strong style="color: var(--lego-cyan);">ASSIGN TO CELL</strong><br><br>
+                            <strong>WHAT HAPPENS:</strong><br>
+                            Cell turns gold. Your minifig is positioned at that coordinate (160 studs apart).
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">📐 Grid Coordinate System</div>
+                            <button class="code-copy-btn" onclick="copyCode(this)">COPY</button>
+                            <span class="code-highlight">A1</span> = (-640, 0, -640)<br>
+                            <span class="code-highlight">E5</span> = (0, 0, 0)<br>
+                            <span class="code-highlight">I9</span> = (640, 0, 640)<br>
+                            Each cell = <span class="code-highlight">160 studs</span> apart
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 4: AI Remix Challenge -->
+    <div class="instruction-page" data-step="4">
+        <div class="header-brick">
+            <div class="header-title">🤖 AI REMIX CHALLENGE</div>
+            <div class="step-counter">4</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div style="display: flex; flex-direction: column; gap: 16px; width: 100%;">
+                            <!-- Grace Code Editor -->
+                            <div class="ui-mockup">
+                                <div class="ui-header">
+                                    <div class="ui-title" style="color: var(--lego-purple);">GRACE - MPD EDITOR</div>
+                                    <div style="font-size: 10px; color: #888;">Double-click to select all</div>
+                                </div>
+                                <div class="ui-body style=" padding: 16px;"">
+                                    <div class="code-brick" style="margin: 0; border-color: var(--lego-purple);">
+                                        <div class="code-label" style="color: var(--lego-purple);">📄
+                                            wag-frank-scene.mpd</div>
+                                        <button class="code-copy-btn" onclick="copyCode(this)">COPY CODE</button>
+                                        <div style="max-height: 120px; overflow-y: auto;">
+                                            0 FILE wag-frank-scene.mpd<br>
+                                            0 Name: WAG FRANK SCENE<br>
+                                            0 Author: YourName<br>
+                                            <span class="code-highlight">0 // Cell D4 - Minifig</span><br>
+                                            1 16 160 -84 0 1 0 0 0 1 0 0 0 1 3626bp01.dat<br>
+                                            1 16 160 -84 0 1 0 0 0 1 0 0 0 1 973p8c01.dat<br>
+                                            <span class="code-highlight">0 // Cell F6 - Vehicle</span><br>
+                                            1 16 0 -84 320 1 0 0 0 1 0 0 0 1 3001.dat<br>
+                                            1 16 0 -84 320 1 0 0 0 1 0 0 0 1 3002.dat
+                                        </div>
+                                    </div>
+                                    <div class="callout-box"
+                                        style="position: relative; margin-top: 8px; display: inline-block;">
+                                        ✂️ COPY THIS → PASTE INTO AI → GET NEW CODE → PASTE BACK HERE
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- AI Interaction Mockup -->
+                            <div class="ai-remix-brick">
+                                <div class="ai-remix-title">
+                                    <span>🤖</span>
+                                    CLAUDE AI REMIX
+                                </div>
+                                <div class="ai-remix-text">
+                                    <strong>PROMPT:</strong> "Rearrange these minifigs into a circle" or "Add 3 more
+                                    cars" or "Make a battle scene"
+                                </div>
+                                <div class="ui-mockup" style="border-color: var(--lego-purple);">
+                                    <div class="ui-body style=" padding: 12px;"">
+                                        <div style="color: #ccc; font-size: 10px; line-height: 1.5;">
+                                            AI: Here's your scene with minifigs in a circle...<br>
+                                            <span class="code-highlight" style="color: var(--lego-cyan);">[New MPD code
+                                                appears]</span><br>
+                                            <div style="text-align: center; margin-top: 8px;">
+                                                <div
+                                                    style="background: var(--lego-purple); color: #000; padding: 6px 12px; border-radius: 4px; font-weight: bold; display: inline-block;">
+                                                    COPY AI OUTPUT
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div class="callout-box" style="position: absolute; bottom: 20px; right: 20px;">
+                            🔄 This loop: Grace → AI → Grace
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Remix with AI (Challenge #2)</div>
+                        <div class="step-desc">
+                            <strong>WHERE:</strong> Grace tab, scroll to bottom<br>
+                            <strong>WHAT TO DO:</strong><br>
+                            1. <strong style="color: var(--lego-purple);">COPY</strong> the MPD code<br>
+                            2. <strong style="color: var(--lego-purple);">PASTE</strong> into Claude/ChatGPT<br>
+                            3. Ask: "Add 5 more minifigs in a circle"<br>
+                            4. <strong style="color: var(--lego-purple);">COPY AI's output</strong><br>
+                            5. <strong style="color: var(--lego-purple);">PASTE BACK</strong> into Grace<br><br>
+                            <strong>WHAT HAPPENS:</strong><br>
+                            Grace reloads the AI-modified scene instantly!
+                        </div>
+                        <div class="code-brick" style="border-color: var(--lego-purple);">
+                            <div class="code-label">💡 AI PROMPT EXAMPLES</div>
+                            <button class="code-copy-btn" onclick="copyCode(this)">COPY</button>
+                            • "Rearrange minifigs for a chase scene"<br>
+                            • "Add 3 vehicles at random positions"<br>
+                            • "Scale everything by 2x"<br>
+                            • "Make a circle of 8 minifigs"
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(5)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 5: View & Capture in Grace -->
+    <div class="instruction-page" data-step="5">
+        <div class="header-brick">
+            <div class="header-title">👁️ VIEW & CAPTURE IN GRACE</div>
+            <div class="step-counter">5</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <!-- 3D Viewport -->
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title" style="color: var(--lego-purple);">GRACE 3D VIEWER</div>
+                                <div style="font-size: 10px; color: #888;">← Drag to orbit →</div>
+                            </div>
+                            <div class="ui-body style=" text-align: center; color: #888; position: relative; min-height:
+                                250px;">
+                                <div
+                                    style="display: flex; justify-content: center; align-items: center; height: 200px; position: relative;">
+                                    <div class="minifig-preview" style="position: absolute; left: 30%; top: 30%;">
+                                        <div class="minifig-head">😊</div>
+                                        <div class="minifig-body"></div>
+                                        <div class="minifig-legs"></div>
+                                    </div>
+                                    <div class="minifig-preview" style="position: absolute; right: 30%; top: 40%;">
+                                        <div class="minifig-head">😎</div>
+                                        <div class="minifig-body"
+                                            style="background: var(--lego-green); border-color: #00CC6A;"></div>
+                                        <div class="minifig-legs"
+                                            style="background: var(--lego-purple); border-color: #7A3EB4;"></div>
+                                    </div>
+                                    <div class="minifig-preview" style="position: absolute; left: 50%; bottom: 20%;">
+                                        <div class="minifig-head">🤠</div>
+                                        <div class="minifig-body"
+                                            style="background: var(--lego-orange); border-color: #CC552A;"></div>
+                                        <div class="minifig-legs"
+                                            style="background: var(--lego-red); border-color: #CC0000;"></div>
+                                    </div>
+                                </div>
+
+                                <!-- Capture Controls -->
+                                <div class="capture-controls">
+                                    <button class="capture-btn" onclick="alert('📸 Screenshot saved!')">
+                                        📸 CAPTURE IMAGE
+                                    </button>
+                                    <button class="capture-btn" onclick="alert('📦 GLB file downloading!')"
+                                        style="border-color: var(--lego-cyan); color: var(--lego-cyan);">
+                                        📦 EXPORT GLB
+                                    </button>
+                                </div>
+
+                                <div style="margin-top: 16px; color: var(--lego-purple); font-size: 11px;">
+                                    🔄 Scene auto-reloads when Frank sends updates
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">See & Capture Your 3D Scene</div>
+                        <div class="step-desc">
+                            <strong>WHERE:</strong> Grace tab (purple dot)<br>
+                            <strong>WHAT TO DO:</strong><br>
+                            1. In Frank, click <strong style="color: var(--lego-purple);">BUILD SCENE IN
+                                GRACE</strong><br>
+                            2. Switch to Grace tab<br>
+                            3. <strong style="color: var(--lego-purple);">Click and drag</strong> to orbit<br>
+                            4. <strong style="color: var(--lego-purple);">Scroll</strong> to zoom<br>
+                            5. Click <strong style="color: var(--lego-purple);">CAPTURE IMAGE</strong> for PNG<br>
+                            6. Click <strong style="color: var(--lego-cyan);">EXPORT GLB</strong> for 3D model<br><br>
+                            <strong>WHAT HAPPENS:</strong><br>
+                            Grace renders the MPD file as 3D LEGO bricks. Captures save to your Downloads folder.
+                        </div>
+                        <div class="code-brick">
+                            <div class="code-label">🎯 FINAL SCENE FILE</div>
+                            <button class="code-copy-btn" onclick="copyCode(this)">COPY MPD</button>
+                            <span class="code-highlight">0 FILE wag-frank-scene.mpd</span><br>
+                            <span class="code-highlight">1 16 160 -84 0</span> 1 0 0 0 1 0 0 0 1 3626bp01.dat<br>
+                            <span class="code-highlight">1 16 -160 -84 320</span> 1 0 0 0 1 0 0 0 1 973p8c01.dat
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(4)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(6)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 6: What's Next & LEGOS Challenge -->
+    <div class="instruction-page" data-step="6">
+        <div class="header-brick">
+            <div class="header-title">🎉 YOU BUILT A 3D SCENE!</div>
+            <div class="step-counter">✓</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <!-- LEGOS Framework Visual -->
+                        <div
+                            style="margin-bottom: 24px; padding: 16px; background: rgba(255,215,0,0.05); border-radius: 8px;">
+                            <div
+                                style="color: var(--lego-yellow); font-weight: bold; font-size: 14px; margin-bottom: 12px; text-align: center;">
+                                🎯 LEGOS STORY FRAMEWORK
+                            </div>
+                            <div class="legos-blocks">
+                                <div class="legos-block">
+                                    <div class="legos-block-title">L</div>
+                                    <div>Location</div>
+                                    <div style="font-size: 8px; color: #888;">Where</div>
+                                </div>
+                                <div class="legos-block">
+                                    <div class="legos-block-title">E</div>
+                                    <div>Entity</div>
+                                    <div style="font-size: 8px; color: #888;">Who</div>
+                                </div>
+                                <div class="legos-block">
+                                    <div class="legos-block-title">G</div>
+                                    <div>Goal</div>
+                                    <div style="font-size: 8px; color: #888;">Wants</div>
+                                </div>
+                                <div class="legos-block">
+                                    <div class="legos-block-title">O</div>
+                                    <div>Obstacle</div>
+                                    <div style="font-size: 8px; color: #888;">Blocks</div>
+                                </div>
+                                <div class="legos-block">
+                                    <div class="legos-block-title">S</div>
+                                    <div>Shift</div>
+                                    <div style="font-size: 8px; color: #888;">Changes</div>
+                                </div>
+                                <div class="legos-block">
+                                    <div class="legos-block-title">S</div>
+                                    <div>Solution</div>
+                                    <div style="font-size: 8px; color: #888;">Resolves</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Challenge Grid -->
+                        <div style="display: grid; grid-template-columns: repeat(2, 1fr); gap: 20px; width: 100%;">
+                            <div
+                                style="background: rgba(0,255,136,0.1); border: 3px solid var(--lego-green); border-radius: 8px; padding: 24px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">🏗️</div>
+                                <div style="color: var(--lego-green); font-weight: bold; margin-bottom: 8px;">BUILD
+                                    WORLDS</div>
+                                <div style="font-size: 11px; color: #888;">Locations & Scenes</div>
+                            </div>
+                            <div
+                                style="background: rgba(255,69,0,0.1); border: 3px solid var(--lego-red); border-radius: 8px; padding: 24px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">🚗</div>
+                                <div style="color: var(--lego-red); font-weight: bold; margin-bottom: 8px;">ADD VEHICLES
+                                </div>
+                                <div style="font-size: 11px; color: #888;">Cars, planes, ships</div>
+                            </div>
+                            <div
+                                style="background: rgba(78,205,196,0.1); border: 3px solid var(--lego-cyan); border-radius: 8px; padding: 24px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">🤖</div>
+                                <div style="color: var(--lego-cyan); font-weight: bold; margin-bottom: 8px;">AI REMIX
+                                </div>
+                                <div style="font-size: 11px; color: #888;">Code → AI → Scene</div>
+                            </div>
+                            <div
+                                style="background: rgba(168,85,247,0.1); border: 3px solid var(--lego-purple); border-radius: 8px; padding: 24px; text-align: center;">
+                                <div style="font-size: 40px; margin-bottom: 12px;">📸</div>
+                                <div style="color: var(--lego-purple); font-weight: bold; margin-bottom: 8px;">CAPTURE &
+                                    SHARE</div>
+                                <div style="font-size: 11px; color: #888;">Images & 3D files</div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Your Next Challenges</div>
+                        <div class="step-desc">
+                            You now know: <strong style="color: var(--lego-yellow);">SWISS → FRANK →
+                                GRACE</strong><br><br>
+                            Master these:
+                        </div>
+
+                        <div
+                            style="background: rgba(255,215,0,0.08); border: 2px dashed var(--lego-yellow); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                            <div style="color: var(--lego-yellow); font-weight: bold; margin-bottom: 8px;">🎯 CHALLENGE
+                                1: Build a World</div>
+                            <div style="font-size: 11px; color: #bbb;">
+                                Use SCENEERATOR for a huge baseplate, then LOCATIONATOR for walls/doors. Populate with
+                                minifigs & vehicles.
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: rgba(157,78,221,0.08); border: 2px dashed var(--lego-purple); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                            <div style="color: var(--lego-purple); font-weight: bold; margin-bottom: 8px;">🤖 CHALLENGE
+                                2: AI Director</div>
+                            <div style="font-size: 11px; color: #bbb;">
+                                Copy MPD from Grace → "Claude, make a chase scene" → Paste AI's code back → Watch the
+                                magic!
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: rgba(239,71,111,0.08); border: 2px dashed var(--lego-pink); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                            <div style="color: var(--lego-pink); font-weight: bold; margin-bottom: 8px;">🎬 CHALLENGE 3:
+                                Tell a LEGOS Story</div>
+                            <div style="font-size: 11px; color: #bbb;">
+                                <strong>Hero at D4</strong>, <strong>Villain at F6</strong>, <strong>Car at B2</strong>,
+                                <strong>Explosion at center</strong>.<br>
+                                Use the LEGOS framework: Location (grid), Entities (minifigs), Goal (chase), Obstacle
+                                (distance), Shift (explosion), Solution (escape).
+                            </div>
+                        </div>
+
+                        <div
+                            style="background: rgba(78,205,196,0.08); border: 2px dashed var(--lego-cyan); padding: 16px; border-radius: 8px; margin: 16px 0;">
+                            <div style="color: var(--lego-cyan); font-weight: bold; margin-bottom: 8px;">📸 CHALLENGE 4:
+                                Capture & Share</div>
+                            <div style="font-size: 11px; color: #bbb;">
+                                Build a scene, take screenshots, export GLB files, share your LEGO story on social media
+                                or with friends!
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(5)">← BACK</button>
+                <button class="nav-brick" onclick="closeQuickstart()">START BUILDING →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress-bar">
+        <div class="progress-stud active" onclick="showStep(1)"></div>
+        <div class="progress-stud" onclick="showStep(2)"></div>
+        <div class="progress-stud" onclick="showStep(3)"></div>
+        <div class="progress-stud" onclick="showStep(4)"></div>
+        <div class="progress-stud" onclick="showStep(5)"></div>
+        <div class="progress-stud" onclick="showStep(6)"></div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function showStep(step) {
+            document.querySelectorAll('.instruction-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            document.querySelectorAll('.progress-stud').forEach((stud, i) => {
+                stud.classList.toggle('active', i + 1 === step);
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep(step) {
+            showStep(step);
+        }
+
+        function prevStep(step) {
+            showStep(step);
+        }
+
+        function closeQuickstart() {
+            // Return to Swiss Designator
+            window.location.href = 'swiss-designator.html';
+        }
+
+        function copyCode(button) {
+            const codeBlock = button.parentElement;
+            const text = codeBlock.innerText.replace('COPY CODE\n', '').replace('COPY\n', '').replace('COPY MPD\n', '');
+            navigator.clipboard.writeText(text).then(() => {
+                button.textContent = 'COPIED!';
+                setTimeout(() => {
+                    button.textContent = 'COPY';
+                }, 1000);
+            });
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStep < 6) {
+                nextStep(currentStep + 1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                prevStep(currentStep - 1);
+            } else if (e.key === 'Escape') {
+                closeQuickstart();
+            }
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,790 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MPD Format Specification</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #1e1e1e;
+            color: #d4d4d4;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .header {
+            background: #252526;
+            border-bottom: 1px solid #3e3e42;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .title {
+            font-size: 13px;
+            color: #cccccc;
+            letter-spacing: 0.5px;
+        }
+
+        .nav {
+            display: flex;
+            gap: 4px;
+        }
+
+        .nav-btn {
+            padding: 4px 12px;
+            background: #3c3c3c;
+            border: 1px solid #454545;
+            color: #cccccc;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 2px;
+        }
+
+        .nav-btn.active {
+            background: #094771;
+            border-color: #007acc;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        .page {
+            display: none;
+            flex: 1;
+        }
+
+        .page.active {
+            display: flex;
+        }
+
+        .split-view {
+            display: flex;
+            width: 100%;
+            height: 100%;
+        }
+
+        .code-panel {
+            flex: 1;
+            background: #1e1e1e;
+            overflow: auto;
+            position: relative;
+            padding: 20px;
+            border-right: 1px solid #3e3e42;
+        }
+
+        .visual-panel {
+            flex: 1;
+            background: #252526;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            position: relative;
+        }
+
+        .code-line {
+            display: flex;
+            padding: 2px 0;
+            position: relative;
+            line-height: 20px;
+            font-size: 14px;
+        }
+
+        .line-num {
+            color: #858585;
+            width: 40px;
+            text-align: right;
+            padding-right: 16px;
+            user-select: none;
+        }
+
+        .line-content {
+            color: #d4d4d4;
+            position: relative;
+            flex: 1;
+        }
+
+        .annotation-box {
+            position: absolute;
+            border: 2px solid;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 6px 10px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+            z-index: 10;
+            pointer-events: none;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.5);
+        }
+
+        .annotation-line {
+            position: absolute;
+            background: currentColor;
+            z-index: 9;
+            pointer-events: none;
+        }
+
+        .highlight {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom: 2px solid;
+            display: inline-block;
+            padding: 0 2px;
+        }
+
+        .h-cmd {
+            border-color: #ff6188;
+            color: #ff6188;
+        }
+
+        .h-color {
+            border-color: #ffd866;
+            color: #ffd866;
+        }
+
+        .h-x {
+            border-color: #ff5370;
+            color: #ff5370;
+        }
+
+        .h-y {
+            border-color: #a9dc76;
+            color: #a9dc76;
+        }
+
+        .h-z {
+            border-color: #78dce8;
+            color: #78dce8;
+        }
+
+        .h-rot {
+            border-color: #ab9df2;
+            color: #ab9df2;
+        }
+
+        .h-file {
+            border-color: #5fb3a1;
+            color: #5fb3a1;
+        }
+
+        .s-keyword {
+            color: #ff6188;
+        }
+
+        .s-number {
+            color: #fc9867;
+        }
+
+        .s-string {
+            color: #ffd866;
+        }
+
+        .s-comment {
+            color: #727072;
+        }
+
+        canvas {
+            border: 1px solid #3e3e42;
+            border-radius: 2px;
+        }
+
+        .vis-label {
+            position: absolute;
+            padding: 6px 12px;
+            background: rgba(0, 0, 0, 0.85);
+            border: 2px solid;
+            border-radius: 3px;
+            font-size: 13px;
+            font-weight: 700;
+            pointer-events: none;
+        }
+
+        .grid-overlay {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+
+        .coord-marker {
+            position: absolute;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 3px solid;
+            transform: translate(-50%, -50%);
+        }
+
+        .axis-indicator {
+            position: absolute;
+            font-size: 24px;
+            font-weight: 700;
+            padding: 8px 16px;
+            background: rgba(0, 0, 0, 0.9);
+            border: 2px solid;
+            border-radius: 3px;
+        }
+
+        .footer {
+            background: #252526;
+            border-top: 1px solid #3e3e42;
+            padding: 8px 16px;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .footer-btn {
+            padding: 6px 16px;
+            background: #3c3c3c;
+            border: 1px solid #454545;
+            color: #cccccc;
+            font-size: 11px;
+            cursor: pointer;
+            border-radius: 2px;
+            font-weight: 600;
+        }
+
+        .footer-btn:disabled {
+            opacity: 0.3;
+            cursor: not-allowed;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <div class="title">MPD_FORMAT_SPECIFICATION.md</div>
+        <div class="nav" id="nav"></div>
+    </div>
+
+    <div class="content" id="content">
+        <!-- PAGE 1: Line Type 1 Anatomy -->
+        <div class="page active" data-step="1">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="highlight h-cmd" data-field="cmd">1</span>
+                            <span class="highlight h-color" data-field="color">14</span>
+                            <span class="highlight h-x" data-field="x">0</span>
+                            <span class="highlight h-y" data-field="y">-24</span>
+                            <span class="highlight h-z" data-field="z">0</span>
+                            <span class="highlight h-rot" data-field="rot1">1 0 0</span>
+                            <span class="highlight h-rot" data-field="rot2">0 1 0</span>
+                            <span class="highlight h-rot" data-field="rot3">0 0 1</span>
+                            <span class="highlight h-file" data-field="file">3626bp01.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <div style="width: 100%; max-width: 600px;">
+                        <div style="background: #1e1e1e; border: 1px solid #3e3e42; border-radius: 4px; padding: 20px;">
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(255,97,136,0.1); border-left: 3px solid #ff6188;">
+                                <div style="color: #ff6188; font-size: 12px; font-weight: 700; margin-bottom: 4px;">LINE
+                                    TYPE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">1 = Sub-file reference command</div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(255,216,102,0.1); border-left: 3px solid #ffd866;">
+                                <div style="color: #ffd866; font-size: 12px; font-weight: 700; margin-bottom: 4px;">
+                                    COLOR CODE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">14 = Yellow (LDraw color index)</div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(255,83,112,0.1); border-left: 3px solid #ff5370;">
+                                <div style="color: #ff5370; font-size: 12px; font-weight: 700; margin-bottom: 4px;">X
+                                    COORDINATE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">0 LDU (left-right axis)</div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(169,220,118,0.1); border-left: 3px solid #a9dc76;">
+                                <div style="color: #a9dc76; font-size: 12px; font-weight: 700; margin-bottom: 4px;">Y
+                                    COORDINATE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">-24 LDU (vertical axis, negative = up)
+                                </div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(120,220,232,0.1); border-left: 3px solid #78dce8;">
+                                <div style="color: #78dce8; font-size: 12px; font-weight: 700; margin-bottom: 4px;">Z
+                                    COORDINATE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">0 LDU (depth axis)</div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(171,157,242,0.1); border-left: 3px solid #ab9df2;">
+                                <div style="color: #ab9df2; font-size: 12px; font-weight: 700; margin-bottom: 4px;">
+                                    ROTATION MATRIX (3×3)</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">1 0 0 | 0 1 0 | 0 0 1 = Identity (no
+                                    rotation)</div>
+                            </div>
+                            <div
+                                style="margin: 12px 0; padding: 12px; background: rgba(95,179,161,0.1); border-left: 3px solid #5fb3a1;">
+                                <div style="color: #5fb3a1; font-size: 12px; font-weight: 700; margin-bottom: 4px;">PART
+                                    FILE</div>
+                                <div style="color: #d4d4d4; font-size: 11px;">3626bp01.dat = Minifig head with pattern
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 2: X Axis with 3D visualization -->
+        <div class="page" data-step="2">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="highlight h-x" style="font-weight: 700; font-size: 16px;">-160</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">2</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="highlight h-x" style="font-weight: 700; font-size: 16px;">0</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">3</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="highlight h-x" style="font-weight: 700; font-size: 16px;">160</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <canvas id="canvas2" width="600" height="400"></canvas>
+                    <div class="axis-indicator" style="top: 20px; left: 20px; color: #ff5370; border-color: #ff5370;">
+                        X AXIS: LEFT ← → RIGHT
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 3: Y Axis -->
+        <div class="page" data-step="3">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-y" style="font-weight: 700; font-size: 16px;">-32</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3624.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">2</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-y" style="font-weight: 700; font-size: 16px;">-24</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3626bp01.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">3</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-y" style="font-weight: 700; font-size: 16px;">0</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">973c00.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">4</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-y" style="font-weight: 700; font-size: 16px;">32</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">970c00.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <canvas id="canvas3" width="600" height="400"></canvas>
+                    <div class="axis-indicator" style="top: 20px; left: 20px; color: #a9dc76; border-color: #a9dc76;">
+                        Y AXIS: DOWN ↓ ↑ UP
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 4: Z Axis -->
+        <div class="page" data-step="4">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-z" style="font-weight: 700; font-size: 16px;">-160</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">2</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-z" style="font-weight: 700; font-size: 16px;">0</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                    <div class="code-line">
+                        <div class="line-num">3</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0</span>
+                            <span class="s-number">0</span>
+                            <span class="highlight h-z" style="font-weight: 700; font-size: 16px;">160</span>
+                            <span class="s-number">1 0 0 0 1 0 0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <canvas id="canvas4" width="600" height="400"></canvas>
+                    <div class="axis-indicator" style="top: 20px; left: 20px; color: #78dce8; border-color: #78dce8;">
+                        Z AXIS: BACK ← → FRONT
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 5: Rotation Matrix Identity -->
+        <div class="page" data-step="5">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0 0 0</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">1 0 0</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">0 1 0</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">0 0 1</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <canvas id="canvas5" width="600" height="400"></canvas>
+                    <div
+                        style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.9); border: 2px solid #ab9df2; border-radius: 4px; padding: 16px;">
+                        <div style="color: #ab9df2; font-size: 12px; font-weight: 700; margin-bottom: 12px;">IDENTITY
+                            MATRIX</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 40px); gap: 4px;">
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                1</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                1</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                1</div>
+                        </div>
+                        <div style="color: #858585; font-size: 10px; margin-top: 8px;">NO ROTATION</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- PAGE 6: Rotation 90° -->
+        <div class="page" data-step="6">
+            <div class="split-view">
+                <div class="code-panel">
+                    <div class="code-line">
+                        <div class="line-num">1</div>
+                        <div class="line-content">
+                            <span class="s-keyword">1</span>
+                            <span class="s-number">14</span>
+                            <span class="s-number">0 0 0</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">0 0 1</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">0 1 0</span>
+                            <span class="highlight h-rot" style="font-weight: 700;">-1 0 0</span>
+                            <span class="s-string">3001.dat</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="visual-panel">
+                    <canvas id="canvas6" width="600" height="400"></canvas>
+                    <div
+                        style="position: absolute; top: 20px; right: 20px; background: rgba(0,0,0,0.9); border: 2px solid #ab9df2; border-radius: 4px; padding: 16px;">
+                        <div style="color: #ab9df2; font-size: 12px; font-weight: 700; margin-bottom: 12px;">90° YAW
+                            (Y-AXIS)</div>
+                        <div style="display: grid; grid-template-columns: repeat(3, 40px); gap: 4px;">
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                1</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                1</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                -1</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                            <div
+                                style="padding: 8px; background: #1e1e1e; border: 1px solid #ab9df2; text-align: center; color: #fc9867; font-weight: 700;">
+                                0</div>
+                        </div>
+                        <div style="color: #858585; font-size: 10px; margin-top: 8px;">ROTATED 90°</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="footer">
+        <button class="footer-btn" id="prev" onclick="changeStep(-1)">◀ PREVIOUS</button>
+        <button class="footer-btn" id="next" onclick="changeStep(1)">NEXT ▶</button>
+    </div>
+
+    <script>
+        let step = 1;
+        const total = 6;
+        const scenes = {};
+
+        function init() {
+            const nav = document.getElementById('nav');
+            for (let i = 1; i <= total; i++) {
+                const btn = document.createElement('button');
+                btn.className = 'nav-btn' + (i === 1 ? ' active' : '');
+                btn.textContent = i;
+                btn.onclick = () => goTo(i);
+                nav.appendChild(btn);
+            }
+
+            initScene(2);
+            initScene(3);
+            initScene(4);
+            initScene(5);
+            initScene(6);
+        }
+
+        function initScene(page) {
+            const canvas = document.getElementById(`canvas${page}`);
+            if (!canvas) return;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x252526);
+
+            const camera = new THREE.PerspectiveCamera(45, canvas.width / canvas.height, 1, 2000);
+            camera.position.set(200, 200, 200);
+            camera.lookAt(0, 0, 0);
+
+            const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
+            renderer.setSize(canvas.width, canvas.height);
+
+            const light1 = new THREE.DirectionalLight(0xffffff, 0.8);
+            light1.position.set(100, 200, 100);
+            scene.add(light1);
+
+            const light2 = new THREE.AmbientLight(0xffffff, 0.4);
+            scene.add(light2);
+
+            // Grid
+            const gridHelper = new THREE.GridHelper(400, 20, 0x3e3e42, 0x2a2a2a);
+            scene.add(gridHelper);
+
+            // Axes
+            const axesHelper = new THREE.AxesHelper(150);
+            scene.add(axesHelper);
+
+            // Create boxes based on page
+            const geometry = new THREE.BoxGeometry(40, 24, 40);
+            const material = new THREE.MeshStandardMaterial({ color: 0xffd866 });
+
+            if (page === 2) {
+                // X axis demonstration
+                const box1 = new THREE.Mesh(geometry, material);
+                box1.position.set(-160, 0, 0);
+                scene.add(box1);
+
+                const box2 = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0xff5370 }));
+                box2.position.set(0, 0, 0);
+                scene.add(box2);
+
+                const box3 = new THREE.Mesh(geometry, material);
+                box3.position.set(160, 0, 0);
+                scene.add(box3);
+            } else if (page === 3) {
+                // Y axis demonstration - stacked minifig
+                const mat1 = new THREE.MeshStandardMaterial({ color: 0x333333 });
+                const mat2 = new THREE.MeshStandardMaterial({ color: 0xffd866 });
+                const mat3 = new THREE.MeshStandardMaterial({ color: 0xff5370 });
+                const mat4 = new THREE.MeshStandardMaterial({ color: 0x78dce8 });
+
+                const hat = new THREE.Mesh(new THREE.BoxGeometry(30, 16, 30), mat1);
+                hat.position.set(0, -32, 0);
+                scene.add(hat);
+
+                const head = new THREE.Mesh(new THREE.BoxGeometry(32, 32, 32), mat2);
+                head.position.set(0, -24, 0);
+                scene.add(head);
+
+                const torso = new THREE.Mesh(new THREE.BoxGeometry(36, 40, 24), mat3);
+                torso.position.set(0, 0, 0);
+                scene.add(torso);
+
+                const legs = new THREE.Mesh(new THREE.BoxGeometry(36, 40, 24), mat4);
+                legs.position.set(0, 32, 0);
+                scene.add(legs);
+            } else if (page === 4) {
+                // Z axis demonstration
+                const box1 = new THREE.Mesh(geometry, material);
+                box1.position.set(0, 0, -160);
+                scene.add(box1);
+
+                const box2 = new THREE.Mesh(geometry, new THREE.MeshStandardMaterial({ color: 0x78dce8 }));
+                box2.position.set(0, 0, 0);
+                scene.add(box2);
+
+                const box3 = new THREE.Mesh(geometry, material);
+                box3.position.set(0, 0, 160);
+                scene.add(box3);
+            } else if (page === 5) {
+                // No rotation
+                const box = new THREE.Mesh(new THREE.BoxGeometry(80, 24, 40), material);
+                box.position.set(0, 0, 0);
+                scene.add(box);
+            } else if (page === 6) {
+                // 90° rotation
+                const box = new THREE.Mesh(new THREE.BoxGeometry(80, 24, 40), new THREE.MeshStandardMaterial({ color: 0xab9df2 }));
+                box.position.set(0, 0, 0);
+                box.rotation.y = Math.PI / 2;
+                scene.add(box);
+            }
+
+            scenes[page] = { scene, camera, renderer };
+
+            function animate() {
+                requestAnimationFrame(animate);
+                if (document.querySelector(`[data-step="${page}"]`).classList.contains('active')) {
+                    renderer.render(scene, camera);
+                }
+            }
+            animate();
+        }
+
+        function goTo(n) {
+            step = n;
+
+            document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+            document.querySelector(`[data-step="${n}"]`).classList.add('active');
+
+            document.querySelectorAll('.nav-btn').forEach((b, i) => {
+                b.classList.toggle('active', i + 1 === n);
+            });
+
+            document.getElementById('prev').disabled = n === 1;
+            document.getElementById('next').disabled = n === total;
+        }
+
+        function changeStep(d) {
+            const n = step + d;
+            if (n >= 1 && n <= total) goTo(n);
+        }
+
+        document.addEventListener('keydown', e => {
+            if (e.key === 'ArrowLeft') changeStep(-1);
+            if (e.key === 'ArrowRight') changeStep(1);
+        });
+
+        init();
+    </script>
+</body>
+
+</html>

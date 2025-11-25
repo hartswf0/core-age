@@ -1,0 +1,626 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>INCEPTION // ULTIMATE_MAPPER</title>
+    <style>
+        :root {
+            /* PALETTE */
+            --bg: #09090b;
+            --panel: #121214;
+            --border: #27272a;
+            --text: #e4e4e7;
+            --dim: #52525b;
+            
+            /* SEMANTIC SYSTEM */
+            --func: #f43f5e;   /* Rose: Action/Logic */
+            --var: #2dd4bf;    /* Teal: State/Data */
+            --ctrl: #fbbf24;   /* Amber: Flow/Decisions */
+            --comment: #3f3f46;
+            
+            --accent: #ffffff; 
+            --selection: rgba(255,255,255,0.1);
+            
+            --font: 'JetBrains Mono', 'Menlo', monospace;
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER --- */
+        header {
+            height: 40px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            justify-content: space-between;
+            font-size: 10px;
+            z-index: 50;
+        }
+
+        .brand { font-weight: 900; letter-spacing: 0.1em; color: var(--text); }
+        .brand span { color: var(--func); }
+
+        .stats { display: flex; gap: 15px; }
+        .stat-item { display: flex; gap: 6px; align-items: center; }
+        .dot { width: 6px; height: 6px; border-radius: 50%; }
+
+        /* --- TOP: FUNCTIONAL GRID --- */
+        .grid-section {
+            height: 45vh;
+            background: #050505;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .grid-container {
+            width: min(40vh, 90vw);
+            height: min(40vh, 90vw);
+            position: relative;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+            width: 100%;
+            height: 100%;
+        }
+
+        .block {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s ease;
+            overflow: hidden;
+        }
+
+        /* Block Hover Effects */
+        .block:hover {
+            z-index: 100;
+            transform: scale(1.2) translateZ(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.8);
+            border-color: #fff;
+        }
+
+        .block.active {
+            box-shadow: 0 0 0 2px #fff;
+            z-index: 50;
+        }
+
+        /* Semantic Styling */
+        .block[data-type="function"] { border-top: 2px solid var(--func); background: rgba(244, 63, 94, 0.05); }
+        .block[data-type="variable"] { border-top: 2px solid var(--var); background: rgba(45, 212, 191, 0.05); }
+        .block[data-type="control"]  { border-top: 2px solid var(--ctrl); background: rgba(251, 191, 36, 0.05); }
+
+        .block-icon { font-size: 10px; margin-bottom: 2px; opacity: 0.8; }
+        .block-label { font-size: 6px; opacity: 0.6; max-width: 100%; overflow: hidden; white-space: nowrap; }
+
+        /* Wires */
+        .wire-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 10;
+        }
+        path.wire {
+            fill: none;
+            stroke: var(--dim);
+            stroke-width: 1;
+            opacity: 0.2;
+        }
+        path.wire.active {
+            stroke: var(--func);
+            stroke-width: 2;
+            opacity: 1;
+            filter: drop-shadow(0 0 4px var(--func));
+        }
+
+        /* --- BOTTOM: EDITOR & MINIMAP --- */
+        .editor-wrapper {
+            flex: 1;
+            display: flex;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Code Stream */
+        .code-scroller {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .line {
+            display: flex;
+            font-size: 11px;
+            line-height: 18px;
+            padding: 0 10px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            white-space: pre;
+            color: var(--dim);
+            transition: color 0.1s;
+        }
+
+        .line:hover { background: #111; color: var(--text); }
+        
+        /* Active Line Sync */
+        .line.active {
+            background: var(--selection);
+            border-left-color: #fff;
+            color: #fff;
+        }
+
+        /* Semantic Syntax Highlighting */
+        .kwd { color: var(--func); } /* function, class */
+        .def { color: #fff; font-weight: bold; } /* Names */
+        .var { color: var(--var); } /* const, let */
+        .ctl { color: var(--ctrl); } /* if, else */
+        .str { color: #fcd34d; }
+        .com { color: #3f3f46; font-style: italic; }
+
+        .ln { 
+            width: 40px; 
+            text-align: right; 
+            margin-right: 15px; 
+            opacity: 0.3; 
+            user-select: none; 
+        }
+
+        /* Minimap Rail */
+        .minimap-rail {
+            width: 60px;
+            border-left: 1px solid var(--border);
+            background: #0c0c0c;
+            position: relative;
+            z-index: 20;
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            cursor: crosshair;
+            display: block;
+        }
+
+        .minimap-viewport {
+            position: absolute;
+            left: 0; 
+            right: 0;
+            top: 0;
+            height: 0; /* Set by JS */
+            background: rgba(255,255,255,0.05);
+            border: 1px solid rgba(255,255,255,0.2);
+            pointer-events: none;
+            transition: top 0.05s;
+        }
+
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="brand">INCEPTION <span>//</span> STUDIO</div>
+        <div class="stats">
+            <div class="stat-item"><div class="dot" style="background:var(--func)"></div><span id="stat-func">0</span></div>
+            <div class="stat-item"><div class="dot" style="background:var(--var)"></div><span id="stat-var">0</span></div>
+            <div class="stat-item"><div class="dot" style="background:var(--ctrl)"></div><span id="stat-ctrl">0</span></div>
+        </div>
+    </header>
+
+    <!-- TOP: SEMANTIC GRID -->
+    <div class="grid-section">
+        <div class="grid-container">
+            <div class="grid" id="grid"></div>
+            <svg class="wire-layer" id="wires"></svg>
+        </div>
+    </div>
+
+    <!-- BOTTOM: CODE + MINIMAP -->
+    <div class="editor-wrapper">
+        <div class="code-scroller" id="scroller">
+            <div id="code-content"></div>
+        </div>
+        <div class="minimap-rail">
+            <canvas id="minimap"></canvas>
+            <div class="minimap-viewport" id="mm-view"></div>
+        </div>
+    </div>
+
+<script>
+    // ----------------------------------------------------
+    // 1. SELF-READING & FALLBACK
+    // ----------------------------------------------------
+    
+    const FALLBACK_CODE = `
+// SYSTEM CORE V9
+class Inception {
+    constructor() {
+        this.grid = [];
+        this.status = "INIT";
+        this.boot();
+    }
+
+    boot() {
+        console.log("System Start");
+        this.loadMemory();
+        this.mountUI();
+    }
+
+    loadMemory() {
+        const heap = new Array(1024).fill(0);
+        this.checkIntegrity(heap);
+    }
+
+    checkIntegrity(data) {
+        if(data.length > 0) return true;
+        return false;
+    }
+
+    mountUI() {
+        const w = window.innerWidth;
+        const h = window.innerHeight;
+        this.render(w, h);
+    }
+
+    render(w, h) {
+        for(let i=0; i<100; i++) {
+            this.drawPixel(i);
+        }
+    }
+
+    drawPixel(i) {
+        const x = i % 10;
+        const y = Math.floor(i / 10);
+        return {x, y};
+    }
+}
+
+const sys = new Inception();
+`;
+
+    // Attempt to read own source
+    let source = document.documentElement.outerHTML;
+    if(source.length < 500) source = FALLBACK_CODE;
+
+    const lines = source.split('\n');
+    
+    // DOM Elements
+    const gridEl = document.getElementById('grid');
+    const wiresEl = document.getElementById('wires');
+    const codeEl = document.getElementById('code-content');
+    const scroller = document.getElementById('scroller');
+    const canvas = document.getElementById('minimap');
+    const viewportBox = document.getElementById('mm-view');
+
+    // ----------------------------------------------------
+    // 2. PARSING ENGINE
+    // ----------------------------------------------------
+    
+    let lineData = []; // Metadata per line
+    let mapData = new Array(81).fill(null); // Grid cell data
+    let definitions = {}; // For wiring
+    let connections = []; // For wiring
+    let stats = { func: 0, var: 0, ctrl: 0 };
+
+    function parse() {
+        const linesPerCell = Math.ceil(lines.length / 81);
+
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            let type = null;
+            let name = null;
+
+            // --- CLASSIFICATION ---
+            
+            // Functions / Classes
+            const fnMatch = trim.match(/(?:function|class)\s+(\w+)|(\w+)\s*\(/);
+            if (fnMatch && !trim.includes('new ') && !trim.includes('=')) {
+                type = 'function';
+                name = fnMatch[1] || fnMatch[2];
+                if(['if','for','while','switch'].includes(name)) {
+                    type = 'control';
+                    name = name.toUpperCase();
+                }
+            }
+
+            // Variables
+            const varMatch = trim.match(/(?:const|let|var)\s+(\w+)/);
+            if (varMatch && !type) {
+                type = 'variable';
+                name = varMatch[1];
+            }
+
+            // Control Keywords
+            if (!type && trim.match(/^(if|else|for|while|return|switch)/)) {
+                type = 'control';
+                name = trim.split(/[ (]/)[0];
+            }
+
+            // --- STORAGE ---
+            
+            if (type) {
+                // Grid Mapping (Highest priority wins for cell)
+                const cellIdx = Math.floor(i / linesPerCell);
+                const priority = type === 'function' ? 3 : type === 'control' ? 2 : 1;
+                
+                if (!mapData[cellIdx] || mapData[cellIdx].priority < priority) {
+                    mapData[cellIdx] = { 
+                        type, 
+                        name, 
+                        lineIndex: i,
+                        icon: type === 'function' ? 'ƒ' : type === 'variable' ? '📦' : '◇',
+                        priority 
+                    };
+                }
+
+                // Wiring Definition
+                if (type === 'function' && name) definitions[name] = cellIdx;
+
+                // Stats
+                if(type === 'function') stats.func++;
+                if(type === 'variable') stats.var++;
+                if(type === 'control') stats.ctrl++;
+            }
+
+            lineData.push({ text: line, type, index: i });
+        });
+
+        // Second pass for wiring (Calls)
+        lines.forEach((line, i) => {
+            const trim = line.trim();
+            const matches = trim.matchAll(/(\w+)\s*\(/g);
+            const fromCell = Math.floor(i / linesPerCell);
+
+            for (const m of matches) {
+                const target = m[1];
+                if (definitions[target] !== undefined && definitions[target] !== fromCell) {
+                    connections.push({ from: fromCell, to: definitions[target] });
+                }
+            }
+        });
+
+        updateStats();
+    }
+
+    function updateStats() {
+        document.getElementById('stat-func').textContent = stats.func;
+        document.getElementById('stat-var').textContent = stats.var;
+        document.getElementById('stat-ctrl').textContent = stats.ctrl;
+    }
+
+    // ----------------------------------------------------
+    // 3. RENDERERS
+    // ----------------------------------------------------
+
+    function render() {
+        renderGrid();
+        renderCode();
+        renderWires();
+        renderMinimap();
+    }
+
+    function renderGrid() {
+        gridEl.innerHTML = '';
+        const linesPerCell = Math.ceil(lines.length / 81);
+
+        for(let i=0; i<81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'block';
+            cell.dataset.index = i;
+
+            const data = mapData[i];
+            if (data) {
+                cell.setAttribute('data-type', data.type);
+                cell.innerHTML = `
+                    <div class="block-icon">${data.icon}</div>
+                    <div class="block-label">${data.name}</div>
+                `;
+            } else {
+                cell.style.opacity = '0.1';
+                cell.innerHTML = '·';
+            }
+
+            // Interaction
+            cell.onmouseenter = () => highlightBlock(i);
+            cell.onclick = () => scrollToLine(i * linesPerCell);
+
+            gridEl.appendChild(cell);
+        }
+    }
+
+    function renderCode() {
+        codeEl.innerHTML = '';
+        lineData.forEach(l => {
+            const div = document.createElement('div');
+            div.className = 'line';
+            div.id = `L${l.index}`;
+            
+            // Syntax Highlighting
+            let html = l.text
+                .replace(/</g, '&lt;')
+                .replace(/(class|function|import|from|export)/g, '<span class="kwd">$1</span>')
+                .replace(/(const|let|var)/g, '<span class="var">$1</span>')
+                .replace(/(if|else|for|while|return|switch)/g, '<span class="ctl">$1</span>')
+                .replace(/(\/\/.*)/g, '<span class="com">$1</span>');
+
+            // Highlight Names if they exist in our map
+            const mapItem = mapData.find(m => m && m.lineIndex === l.index);
+            if(mapItem) {
+                html = html.replace(mapItem.name, `<span class="def">${mapItem.name}</span>`);
+            }
+
+            div.innerHTML = `<div class="ln">${l.index}</div>${html}`;
+            
+            // Mouse Interaction
+            div.onmouseenter = () => highlightLineBlock(l.index);
+            
+            codeEl.appendChild(div);
+        });
+    }
+
+    function renderWires() {
+        wiresEl.innerHTML = '';
+        const rect = gridEl.getBoundingClientRect();
+        const cellW = rect.width / 9;
+        const cellH = rect.height / 9;
+
+        // Unique connections
+        const unique = [...new Set(connections.map(JSON.stringify))].map(JSON.parse);
+
+        unique.forEach(conn => {
+            const x1 = (conn.from % 9) * cellW + (cellW/2);
+            const y1 = Math.floor(conn.from / 9) * cellH + (cellH/2);
+            const x2 = (conn.to % 9) * cellW + (cellW/2);
+            const y2 = Math.floor(conn.to / 9) * cellH + (cellH/2);
+
+            const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+            const cx = (x1 + x2) / 2;
+            const cy = Math.min(y1, y2) - 40; 
+
+            const d = `M ${x1} ${y1} Q ${cx} ${cy} ${x2} ${y2}`;
+            path.setAttribute("d", d);
+            path.setAttribute("class", "wire");
+            path.dataset.from = conn.from;
+            path.dataset.to = conn.to;
+
+            wiresEl.appendChild(path);
+        });
+    }
+
+    function renderMinimap() {
+        const ctx = canvas.getContext('2d');
+        const rect = canvas.getBoundingClientRect();
+        
+        // High DPI scaling
+        const dpr = window.devicePixelRatio || 1;
+        canvas.width = rect.width * dpr;
+        canvas.height = rect.height * dpr;
+        ctx.scale(dpr, dpr);
+
+        const lineHeight = rect.height / lines.length;
+
+        lines.forEach((line, i) => {
+            if(!line.trim()) return;
+            
+            const indent = line.search(/\S|$/);
+            const len = Math.min(rect.width - (indent*2), line.trim().length * 3);
+            
+            // Match Colors to CSS
+            let color = '#52525b'; // Default dim
+            const meta = lineData[i];
+            
+            if (meta.type === 'function') color = '#f43f5e';
+            else if (meta.type === 'variable') color = '#2dd4bf';
+            else if (meta.type === 'control') color = '#fbbf24';
+            else if (line.trim().startsWith('//')) color = '#3f3f46';
+
+            ctx.fillStyle = color;
+            ctx.fillRect(indent * 4, i * lineHeight, len, Math.max(1, lineHeight));
+        });
+
+        // Minimap Click to Scroll
+        canvas.onclick = (e) => {
+            const y = e.offsetY;
+            const pct = y / rect.height;
+            const line = Math.floor(pct * lines.length);
+            scrollToLine(line);
+        };
+    }
+
+    // ----------------------------------------------------
+    // 4. INTERACTION & SYNC
+    // ----------------------------------------------------
+
+    function highlightBlock(cellIdx) {
+        const linesPerCell = Math.ceil(lines.length / 81);
+        const start = cellIdx * linesPerCell;
+        const end = start + linesPerCell;
+
+        resetUI();
+
+        // Active Block
+        if(gridEl.children[cellIdx]) gridEl.children[cellIdx].classList.add('active');
+
+        // Active Lines
+        for(let i=start; i<end && i<lines.length; i++) {
+            const el = document.getElementById(`L${i}`);
+            if(el) el.classList.add('active');
+        }
+
+        // Active Wires
+        document.querySelectorAll('.wire').forEach(w => {
+            if(w.dataset.from == cellIdx || w.dataset.to == cellIdx) {
+                w.classList.add('active');
+                // Light up target block
+                const target = w.dataset.from == cellIdx ? w.dataset.to : w.dataset.from;
+                gridEl.children[target]?.classList.add('active');
+            }
+        });
+    }
+
+    function highlightLineBlock(lineIdx) {
+        const linesPerCell = Math.ceil(lines.length / 81);
+        const cellIdx = Math.floor(lineIdx / linesPerCell);
+        highlightBlock(cellIdx);
+    }
+
+    function scrollToLine(lineIdx) {
+        const el = document.getElementById(`L${lineIdx}`);
+        if(el) {
+            el.scrollIntoView({behavior: 'auto', block: 'center'}); // Auto for snappy feel
+            highlightLineBlock(lineIdx);
+        }
+    }
+
+    function resetUI() {
+        document.querySelectorAll('.block.active').forEach(b => b.classList.remove('active'));
+        document.querySelectorAll('.line.active').forEach(l => l.classList.remove('active'));
+        document.querySelectorAll('.wire.active').forEach(w => w.classList.remove('active'));
+    }
+
+    // 5. SCROLL SYNC (Viewport Box)
+    scroller.addEventListener('scroll', () => {
+        const pct = scroller.scrollTop / (scroller.scrollHeight - scroller.clientHeight);
+        const mmHeight = canvas.getBoundingClientRect().height;
+        const viewHeight = (scroller.clientHeight / scroller.scrollHeight) * mmHeight;
+        
+        viewportBox.style.height = `${viewHeight}px`;
+        viewportBox.style.top = `${pct * (mmHeight - viewHeight)}px`;
+    });
+
+    // BOOT
+    parse();
+    render();
+    
+    // Initial Viewport Set
+    scroller.dispatchEvent(new Event('scroll'));
+
+</script>
+</body>
+</html>

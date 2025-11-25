@@ -1,0 +1,623 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Disentangling Strategy: The Best Path</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%234444FF'/%3E%3C/svg%3E">
+    <style>
+        /* LEGO Instruction Manual Design System */
+        :root {
+            --lego-yellow: #FFD700;
+            --lego-yellow-glow: rgba(255, 215, 0, 0.4);
+            --lego-red: #FF4444;
+            --lego-blue: #4444FF;
+            --lego-green: #00FF88;
+            --lego-purple: #9D4EDD;
+            --lego-cyan: #4ECDC4;
+            --lego-orange: #FF6B35;
+            --lego-pink: #EF476F;
+            --border: 3px solid #333;
+            --shadow: 0 4px 12px rgba(0, 0, 0, 0.6);
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #ddd;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* LEGO brick header */
+        .header-brick {
+            background: linear-gradient(180deg, #1a1a1a 0%, #0a0a0a 100%);
+            border-bottom: var(--border);
+            padding: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: var(--shadow);
+        }
+
+        .header-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-blue);
+            text-shadow: 0 0 10px rgba(68, 68, 255, 0.4);
+            letter-spacing: 2px;
+        }
+
+        .step-counter {
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-blue);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 28px;
+            font-weight: bold;
+            box-shadow: 0 0 20px rgba(68, 68, 255, 0.4);
+            position: relative;
+        }
+
+        .step-counter::before {
+            content: '';
+            position: absolute;
+            top: -10px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 30px;
+            height: 14px;
+            border-radius: 8px 8px 0 0;
+            background: #6666ff;
+            border: 3px solid #0000cc;
+            border-bottom: none;
+        }
+
+        /* Main instruction area */
+        .instruction-page {
+            flex: 1;
+            padding: 40px 20px;
+            max-width: 1400px;
+            margin: 0 auto;
+            width: 100%;
+            display: none;
+        }
+
+        .instruction-page.active {
+            display: block;
+            animation: fadeIn 0.4s ease;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* LEGO instruction step box */
+        .step-brick {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            border: 4px solid #333;
+            border-radius: 16px;
+            padding: 40px;
+            margin-bottom: 40px;
+            position: relative;
+            box-shadow: var(--shadow);
+        }
+
+        .step-number-brick {
+            position: absolute;
+            top: -20px;
+            left: 40px;
+            width: 60px;
+            height: 60px;
+            border-radius: 12px;
+            background: var(--lego-blue);
+            color: #fff;
+            font-size: 32px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(68, 68, 255, 0.4);
+            border: 4px solid #000;
+        }
+
+        .step-number-brick::before {
+            content: '';
+            position: absolute;
+            top: -12px;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 32px;
+            height: 16px;
+            border-radius: 8px 8px 0 0;
+            background: #6666ff;
+            border: 3px solid #000;
+            border-bottom: none;
+        }
+
+        .step-content {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            align-items: center;
+        }
+
+        @media (max-width: 900px) {
+            .step-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .visual-panel {
+            background: #000;
+            border: 3px solid #333;
+            border-radius: 12px;
+            padding: 24px;
+            min-height: 400px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        .text-panel {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .step-title {
+            font-size: 24px;
+            font-weight: bold;
+            color: var(--lego-blue);
+            letter-spacing: 1px;
+        }
+
+        .step-desc {
+            font-size: 16px;
+            line-height: 1.6;
+            color: #ccc;
+        }
+
+        /* UI Mockups */
+        .ui-mockup {
+            width: 100%;
+            background: #0a0a0a;
+            border: 3px solid var(--lego-blue);
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: var(--shadow);
+        }
+
+        .ui-header {
+            background: #1a1a1a;
+            padding: 12px;
+            border-bottom: 2px solid #333;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .ui-title {
+            color: var(--lego-blue);
+            font-weight: bold;
+            font-size: 12px;
+        }
+
+        .ui-body {
+            padding: 24px;
+            min-height: 200px;
+        }
+
+        /* Code display blocks */
+        .code-brick {
+            background: #000;
+            border: 3px solid var(--lego-blue);
+            border-radius: 8px;
+            padding: 16px;
+            font-family: 'Courier New', monospace;
+            font-size: 11px;
+            color: #0f0;
+            margin: 16px 0;
+            position: relative;
+            overflow-x: auto;
+        }
+
+        .code-label {
+            position: absolute;
+            top: -10px;
+            left: 12px;
+            background: #000;
+            padding: 0 8px;
+            color: var(--lego-blue);
+            font-size: 9px;
+            font-weight: bold;
+            letter-spacing: 1px;
+        }
+
+        /* Navigation buttons */
+        .nav-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 40px;
+            gap: 20px;
+        }
+
+        .nav-brick {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #2a2a2a 0%, #1a1a1a 100%);
+            border: 3px solid var(--lego-blue);
+            border-radius: 8px;
+            color: var(--lego-blue);
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.2s;
+            box-shadow: var(--shadow);
+        }
+
+        .nav-brick:hover {
+            background: var(--lego-blue);
+            color: #fff;
+            transform: translateY(-4px);
+            box-shadow: 0 6px 16px rgba(68, 68, 255, 0.4);
+        }
+
+        /* Progress indicator */
+        .progress-bar {
+            position: fixed;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.9);
+            padding: 12px;
+            border-radius: 8px;
+            border: 2px solid #333;
+        }
+
+        .progress-stud {
+            width: 16px;
+            height: 16px;
+            border-radius: 4px;
+            background: #333;
+            border: 2px solid #555;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .progress-stud.active {
+            background: var(--lego-blue);
+            border-color: var(--lego-blue);
+            box-shadow: 0 0 8px rgba(68, 68, 255, 0.4);
+        }
+
+        /* Callout box */
+        .callout-box {
+            position: absolute;
+            background: #000;
+            border: 2px solid var(--lego-blue);
+            border-radius: 6px;
+            padding: 8px 12px;
+            font-size: 10px;
+            color: var(--lego-blue);
+            font-weight: bold;
+            box-shadow: 0 0 10px rgba(68, 68, 255, 0.4);
+        }
+
+        /* Strategy Grid */
+        .strategy-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            width: 100%;
+            padding: 10px;
+        }
+
+        .strategy-card {
+            background: #111;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .strategy-title {
+            color: var(--lego-yellow);
+            font-weight: bold;
+            font-size: 14px;
+        }
+
+        .strategy-desc {
+            font-size: 11px;
+            color: #888;
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <!-- STEP 1: The Golden Rule -->
+    <div class="instruction-page active" data-step="1">
+        <div class="header-brick">
+            <div class="header-title">1. THE GOLDEN RULE</div>
+            <div class="step-counter">1</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title">COMMUNITY WISDOM</div>
+                            </div>
+                            <div class="ui-body"
+                                style="background: #111; font-family: monospace; padding: 20px; display: flex; flex-direction: column; gap: 20px; align-items: center; justify-content: center;">
+                                <div style="font-size: 48px;">🧩</div>
+                                <div style="text-align: center; color: #fff; font-weight: bold;">"Don't merge everything
+                                    in the first place."</div>
+                                <div style="text-align: center; color: #888; font-size: 12px;">— Stack Overflow
+                                    Consensus</div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="bottom: 20px; right: 20px;">
+                            🏆 Best Practice
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Segment by Loading Sub-Objects</div>
+                        <div class="step-desc">
+                            Most experts recommend avoiding the problem entirely.<br><br>
+                            <strong>The Principle:</strong><br>
+                            If you start with a single mesh and want to "segment," the only reliable way is by making
+                            "sub-meshes" or loading the model in an editor (like Blender) and exporting parts
+                            individually.<br><br>
+                            <strong>In Practice:</strong><br>
+                            This validates our <strong>Architecture B</strong> approach. We are essentially "loading
+                            sub-objects" programmatically at runtime.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <div></div>
+                <button class="nav-brick" onclick="nextStep(2)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 2: Color as Organs -->
+    <div class="instruction-page" data-step="2">
+        <div class="header-brick">
+            <div class="header-title">2. COLORS AS ORGANS</div>
+            <div class="step-counter">2</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title">MATERIAL GROUPING</div>
+                            </div>
+                            <div class="ui-body"
+                                style="background: #111; padding: 20px; display: flex; justify-content: center; gap: 10px;">
+                                <div style="width: 40px; height: 40px; background: red; border: 2px solid #fff;"></div>
+                                <div style="width: 40px; height: 40px; background: blue; border: 2px solid #fff;"></div>
+                                <div style="width: 40px; height: 40px; background: yellow; border: 2px solid #fff;">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="top: 50%; left: -10px;">
+                            🎨 geometry.groups
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Using Materials and Groups</div>
+                        <div class="step-desc">
+                            <strong>Where it works:</strong><br>
+                            If your model's parts use distinct colors/materials, Three.js'
+                            <code>BufferGeometry.groups</code> property lets you highlight or operate on sub-regions
+                            grouped by material.<br><br>
+                            <strong>Example Pattern:</strong><br>
+                            • Traverse <code>geometry.groups</code> to isolate or render only part of your mesh.<br>
+                            • Good for "color segmentation," as discussed in Three.js docs.<br><br>
+                            This relates to our "Temporal Dye" theory—using color to force segmentation.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(1)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(3)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 3: Algorithmic Surgery -->
+    <div class="instruction-page" data-step="3">
+        <div class="header-brick">
+            <div class="header-title">3. ALGORITHMIC SURGERY</div>
+            <div class="step-counter">3</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="ui-mockup">
+                            <div class="ui-header">
+                                <div class="ui-title">MESH MANIPULATION</div>
+                            </div>
+                            <div class="ui-body" style="background: #050505; font-family: monospace; padding: 20px;">
+                                <div style="color: var(--lego-green);">>> Analyzing Normals...</div>
+                                <div style="color: var(--lego-green);">>> Clustering Vertices...</div>
+                                <div style="color: var(--lego-orange);">>> Boundary Detected.</div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="bottom: 20px; left: 20px;">
+                            🤖 Heuristics
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">When All Else Fails</div>
+                        <div class="step-desc">
+                            If you have only the merged vertices, clustering or spatial algorithms can "guess"
+                            parts:<br><br>
+                            • <strong>Spatial clustering:</strong> DBSCAN or k-means by vertex positions.<br>
+                            • <strong>Normal analysis:</strong> Find boundaries where triangle normals diverge
+                            sharply.<br><br>
+                            <strong>Prototype Example:</strong><br>
+                            Using MeshLine or LineSegments overlays to visualize or interactively "brush" regions that
+                            look like individual parts.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(2)">← BACK</button>
+                <button class="nav-brick" onclick="nextStep(4)">NEXT →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- STEP 4: The Strategy Matrix -->
+    <div class="instruction-page" data-step="4">
+        <div class="header-brick">
+            <div class="header-title">4. THE STRATEGY MATRIX</div>
+            <div class="step-counter">4</div>
+        </div>
+
+        <div class="content">
+            <div class="step-brick">
+                <div class="step-number-brick"></div>
+                <div class="step-content">
+                    <div class="visual-panel">
+                        <div class="strategy-grid">
+                            <div class="strategy-card">
+                                <div class="strategy-title">🎨 COLOR</div>
+                                <div class="strategy-desc">Find or use color/material groups. Easiest if distinct
+                                    materials exist.</div>
+                            </div>
+                            <div class="strategy-card">
+                                <div class="strategy-title">🧩 CLUSTER</div>
+                                <div class="strategy-desc">Analyze spatial or topology for likely boundaries (Normals,
+                                    Distance).</div>
+                            </div>
+                            <div class="strategy-card">
+                                <div class="strategy-title">🖱️ CLICK</div>
+                                <div class="strategy-desc">Use raycasting for manual interactive partitioning ("Inspect
+                                    and Select").</div>
+                            </div>
+                            <div class="strategy-card">
+                                <div class="strategy-title">📤 EXPORT</div>
+                                <div class="strategy-desc">Split externally in Blender if truly complex. The "Nuclear
+                                    Option".</div>
+                            </div>
+                        </div>
+                        <div class="callout-box" style="bottom: -10px; right: 20px;">
+                            🚀 Your Path: Architecture B
+                        </div>
+                    </div>
+                    <div class="text-panel">
+                        <div class="step-title">Mini-Review: How to Approach?</div>
+                        <div class="step-desc">
+                            <strong>Quick Mnemonic:</strong><br>
+                            • <strong>Color:</strong> Use geometry groups.<br>
+                            • <strong>Cluster:</strong> Use algorithms.<br>
+                            • <strong>Click:</strong> Use manual selection.<br>
+                            • <strong>Export:</strong> Use external tools.<br><br>
+                            <strong>Conclusion:</strong><br>
+                            Since we have the source MPD, we don't need to guess. We chose the <strong>"Loading
+                                Sub-Objects"</strong> strategy (Architecture B), which is the most robust path for CAD
+                            data.
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="nav-buttons">
+                <button class="nav-brick" onclick="prevStep(3)">← BACK</button>
+                <button class="nav-brick" onclick="window.close()">START DISENTANGLING →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Progress indicator -->
+    <div class="progress-bar">
+        <div class="progress-stud active" onclick="showStep(1)"></div>
+        <div class="progress-stud" onclick="showStep(2)"></div>
+        <div class="progress-stud" onclick="showStep(3)"></div>
+        <div class="progress-stud" onclick="showStep(4)"></div>
+    </div>
+
+    <script>
+        let currentStep = 1;
+
+        function showStep(step) {
+            document.querySelectorAll('.instruction-page').forEach(page => {
+                page.classList.remove('active');
+            });
+            document.querySelector(`[data-step="${step}"]`).classList.add('active');
+
+            document.querySelectorAll('.progress-stud').forEach((stud, i) => {
+                stud.classList.toggle('active', i + 1 === step);
+            });
+
+            currentStep = step;
+        }
+
+        function nextStep(step) {
+            showStep(step);
+        }
+
+        function prevStep(step) {
+            showStep(step);
+        }
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' && currentStep < 4) {
+                nextStep(currentStep + 1);
+            } else if (e.key === 'ArrowLeft' && currentStep > 1) {
+                prevStep(currentStep - 1);
+            }
+        });
+    </script>
+</body>
+
+</html>

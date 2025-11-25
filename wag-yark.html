@@ -1,0 +1,744 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG Architect Table v5.1</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>📐</text></svg>">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            /* Blueprint Palette */
+            --bg: #15171a;
+            /* Slate */
+            --panel: #1e2126;
+            --text: #8b9bb4;
+            --code-text: #aab2c0;
+            --accent: #d4af37;
+            /* Gold */
+            --grid-line: #2a3038;
+            --border: #333942;
+
+            /* Semantic Colors for Code */
+            --val-x: #ff6666;
+            --val-y: #66ffaa;
+            --val-z: #6688ff;
+            --val-meta: #666;
+            --val-file: #d4af37;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Roboto Mono', 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* --- LAYOUT --- */
+        #manifest-container {
+            width: 40%;
+            max-width: 500px;
+            min-width: 320px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        #viewport {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #22262e 0%, #0e1012 100%);
+            overflow: hidden;
+            cursor: crosshair;
+        }
+
+        /* --- EDITOR (The Log) --- */
+        .toolbar {
+            padding: 10px 14px;
+            border-bottom: 1px solid var(--border);
+            background: #16181c;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: 700;
+            letter-spacing: 1px;
+            font-size: 12px;
+        }
+
+        #manifest-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        /* Code Line Styling */
+        .code-line {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #252930;
+            padding: 4px 0;
+            transition: background 0.1s;
+            white-space: nowrap;
+        }
+
+        .code-line:hover {
+            background: #252830;
+        }
+
+        .code-line.selected {
+            background: rgba(212, 175, 55, 0.08);
+            border-left: 3px solid var(--accent);
+        }
+
+        .gutter {
+            width: 30px;
+            text-align: right;
+            padding-right: 8px;
+            color: #444;
+            user-select: none;
+            flex-shrink: 0;
+        }
+
+        .code-content {
+            flex: 1;
+            overflow-x: auto;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding-right: 10px;
+            scrollbar-width: none;
+        }
+
+        .code-content::-webkit-scrollbar {
+            display: none;
+        }
+
+        /* Interactive Dials inside Code */
+        .dial {
+            cursor: ns-resize;
+            border-bottom: 1px dotted rgba(255, 255, 255, 0.1);
+            transition: color 0.2s, background 0.2s;
+            padding: 0 2px;
+        }
+
+        .dial:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-bottom-style: solid;
+            color: #fff;
+        }
+
+        .dial.dragging {
+            background: var(--accent);
+            color: #000 !important;
+            border-radius: 2px;
+        }
+
+        /* Syntax Colors */
+        .c-type {
+            color: #888;
+        }
+
+        .c-col {
+            color: #ddd;
+            font-weight: bold;
+        }
+
+        .c-x {
+            color: var(--val-x);
+        }
+
+        .c-y {
+            color: var(--val-y);
+        }
+
+        .c-z {
+            color: var(--val-z);
+        }
+
+        .c-mat {
+            color: #667;
+        }
+
+        .c-file {
+            color: var(--val-file);
+            font-style: italic;
+        }
+
+        .c-comment {
+            color: #445;
+            font-style: italic;
+        }
+
+        /* Header Lines */
+        .code-line.header {
+            cursor: pointer;
+            background: #131518;
+        }
+
+        .code-line.header:hover {
+            color: var(--accent);
+        }
+
+        /* --- HUD & BUTTONS --- */
+        #hud-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .ruler-tag {
+            position: absolute;
+            font-size: 9px;
+            color: #556677;
+            transform: translate(-50%, -50%);
+            font-family: sans-serif;
+            pointer-events: none;
+            opacity: 0.8;
+        }
+
+        .btn-action {
+            background: transparent;
+            border: 1px solid #444;
+            color: #888;
+            padding: 4px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 2px;
+            transition: all 0.2s;
+        }
+
+        .btn-action:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        /* RAW EDITOR */
+        #raw-modal {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.95);
+            z-index: 100;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #111;
+            color: #ccc;
+            border: 1px solid #444;
+            padding: 10px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- SIDE MANIFEST (The Editor) -->
+    <div id="manifest-container">
+        <div class="toolbar">
+            <div class="brand">WAG ARCHITECT v5.1</div>
+            <div style="display:flex; gap:5px">
+                <button class="btn-action" onclick="toggleRaw()">RAW</button>
+                <button class="btn-action" onclick="exportCode()">COPY</button>
+                <button class="btn-action" onclick="takeScreenshot()" title="Screenshot">📷</button>
+            </div>
+        </div>
+        <div id="manifest-scroll"></div>
+    </div>
+
+    <!-- 3D WORKSPACE -->
+    <div id="viewport">
+        <div id="hud-layer"></div>
+    </div>
+
+    <!-- RAW EDITOR OVERLAY -->
+    <div id="raw-modal">
+        <h3 style="color:var(--accent); margin:0 0 10px 0">BLUEPRINT SOURCE</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div style="display:flex; gap:10px">
+            <button class="btn-action" onclick="loadRaw()"
+                style="flex:1; border-color:var(--accent); color:var(--accent)">UPDATE MODEL</button>
+            <button class="btn-action" onclick="toggleRaw()" style="flex:1">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. STATE & DATA --- */
+        const DEFAULT_MPD = `0 FILE wag_architect_v5.mpd
+0 // FOUNDATION
+1 15 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // STRUCTURAL COLUMN
+1 4 -40 -24 -20 1 0 0 0 1 0 0 0 1 3001.dat
+1 2 -40 -48 -20 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 -40 -72 -20 1 0 0 0 1 0 0 0 1 3001.dat
+0 // CANTILEVER
+1 14 0 -24 20 0.707 0 -0.707 0 1 0 0.707 0 0.707 3001.dat`;
+
+        let state = { lines: [], audioReady: false };
+
+        /* --- 2. AUDIO (Restored & Fixed) --- */
+        let click, thud;
+        async function initAudio() {
+            if (state.audioReady) return;
+            await Tone.start();
+
+            // Mechanical Click (Ratchet)
+            click = new Tone.MembraneSynth({
+                pitchDecay: 0.01, octaves: 0.5, oscillator: { type: "sine" },
+                envelope: { attack: 0.001, decay: 0.05, sustain: 0 }
+            }).toDestination();
+            click.volume.value = -18;
+
+            // Collision Thud
+            thud = new Tone.MembraneSynth().toDestination();
+            thud.volume.value = -10;
+
+            state.audioReady = true;
+        }
+
+        // Safe wrappers
+        function sfxTick() { if (state.audioReady && click) click.triggerAttackRelease("C1", "32n"); }
+        function sfxSelect() { if (state.audioReady && click) click.triggerAttackRelease("G2", "32n"); }
+        function sfxSnap() { if (state.audioReady && click) click.triggerAttackRelease("E2", "32n"); }
+        // ^ This was missing in V5 causing the crash!
+
+        /* --- 3. PARSER & COMPILER --- */
+        function parse(text) {
+            state.lines = text.split('\n').map((raw, i) => {
+                raw = raw.trim();
+                if (!raw) return { id: i, type: -1, raw: "" };
+                const p = raw.split(/\s+/);
+                const type = parseInt(p[0]);
+
+                if (type === 1 && p.length >= 14) {
+                    return {
+                        id: i, type: 1, isPart: true,
+                        color: parseInt(p[1]),
+                        x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
+                        matrix: p.slice(5, 14).map(parseFloat),
+                        file: p.slice(14).join(' '),
+                        raw: raw, selected: false
+                    };
+                } else if (type === 0) {
+                    return { id: i, type: 0, isHeader: true, raw: raw, selected: false };
+                }
+                return { id: i, type: type, isPart: false, raw: raw };
+            });
+        }
+
+        function compile(line) {
+            if (line.isPart) {
+                const m = line.matrix.map(n => Math.round(n * 1000) / 1000);
+                line.raw = `1 ${line.color} ${Math.round(line.x)} ${Math.round(line.y)} ${Math.round(line.z)} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        /* --- 4. THREE.JS ARCHITECT VIEW --- */
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.Fog(0x15171a, 200, 600);
+
+        const camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+        document.getElementById('viewport').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(160, 180, 160);
+        camera.lookAt(0, 0, 0);
+
+        // --- ENVIRONMENT (Corner Studio) ---
+        const tableGroup = new THREE.Group();
+        scene.add(tableGroup);
+
+        // Seamless Grids
+        const gridFloor = new THREE.GridHelper(200, 20, 0x444444, 0x222222);
+        tableGroup.add(gridFloor);
+
+        const gridBack = new THREE.GridHelper(200, 20, 0x334455, 0x151920);
+        gridBack.rotation.x = Math.PI / 2; gridBack.position.set(0, 100, -100);
+        tableGroup.add(gridBack);
+
+        const gridLeft = new THREE.GridHelper(200, 20, 0x334455, 0x151920);
+        gridLeft.rotation.z = Math.PI / 2; gridLeft.position.set(-100, 100, 0);
+        tableGroup.add(gridLeft);
+
+        // Rulers
+        function updateRulers() {
+            // Simple 3D to Screen projection for ruler tags
+            document.querySelectorAll('.ruler-tag').forEach(tag => tag.remove()); // Clear old
+            const container = document.getElementById('hud-layer');
+
+            const createMark = (txt, x, y, z) => {
+                const d = document.createElement('div');
+                d.className = 'ruler-tag'; d.innerText = txt;
+                d.userData = { x, y, z }; // Store for loop
+                container.appendChild(d);
+            };
+
+            for (let i = -100; i <= 100; i += 20) {
+                if (i !== 0) createMark(i, i, 0, 100); // Front Edge
+                if (i !== 0) createMark(i, -100, 0, i); // Left Edge
+            }
+        }
+        // Call once to init (logic moved to animate for pos update)
+
+        // --- MODEL ROOT ---
+        const modelRoot = new THREE.Group();
+        modelRoot.scale.set(1, -1, 1); // Flip Y for LDraw
+        scene.add(modelRoot);
+
+        // --- HELPERS ---
+        const rayMat = new THREE.LineDashedMaterial({ color: 0xffffff, dashSize: 2, gapSize: 2, opacity: 0.3, transparent: true });
+        const rayGeo = new THREE.BufferGeometry();
+        const cornerRays = new THREE.LineSegments(rayGeo, rayMat);
+        scene.add(cornerRays);
+
+        // --- RENDERER ---
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+        const lColors = { 0: 0x111, 1: 0x0055BF, 2: 0x257A24, 4: 0xC91A09, 14: 0xFFD700, 15: 0xDDDDDD, 71: 0x999 };
+
+        function update3D() {
+            const toRemove = [];
+            modelRoot.traverse(c => { if (c.isMesh) toRemove.push(c); });
+            toRemove.forEach(c => modelRoot.remove(c));
+
+            state.lines.forEach(line => {
+                if (line.isPart) {
+                    const m = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({
+                        color: lColors[line.color] || 0x888, roughness: 0.6, metalness: 0.1
+                    }));
+
+                    let s = [20, 24, 20];
+                    if (line.file.includes('3811')) s = [320, 4, 320];
+                    m.scale.set(s[0], s[1], s[2]);
+                    m.position.set(line.x, line.y, line.z);
+
+                    const mat = new THREE.Matrix4();
+                    mat.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], 0,
+                        line.matrix[3], line.matrix[4], line.matrix[5], 0,
+                        line.matrix[6], line.matrix[7], line.matrix[8], 0,
+                        0, 0, 0, 1
+                    );
+                    m.rotation.setFromRotationMatrix(mat);
+
+                    if (line.selected) {
+                        m.material.emissive.setHex(0x443300);
+                        m.add(new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineBasicMaterial({ color: 0xffd700 })));
+                    }
+                    modelRoot.add(m);
+                }
+            });
+            updateCornerRays();
+        }
+
+        function updateCornerRays() {
+            const points = [];
+            const active = state.lines.find(l => l.selected && l.isPart);
+
+            if (active) {
+                let w = 10, h = 12, d = 10;
+                if (active.file.includes('3811')) { w = 160; h = 2; d = 160; }
+
+                const corners = [
+                    new THREE.Vector3(-w, -h, -d), new THREE.Vector3(w, -h, -d),
+                    new THREE.Vector3(-w, h, -d), new THREE.Vector3(w, h, -d),
+                    new THREE.Vector3(-w, -h, d), new THREE.Vector3(w, -h, d),
+                    new THREE.Vector3(-w, h, d), new THREE.Vector3(w, h, d)
+                ];
+
+                const mat = new THREE.Matrix4();
+                mat.set(
+                    active.matrix[0], active.matrix[1], active.matrix[2], 0,
+                    active.matrix[3], active.matrix[4], active.matrix[5], 0,
+                    active.matrix[6], active.matrix[7], active.matrix[8], 0,
+                    0, 0, 0, 1
+                );
+
+                corners.forEach(v => {
+                    v.applyMatrix4(mat);
+                    v.x += active.x;
+                    v.y = -(v.y + active.y); // Flip visual Y
+                    v.z += active.z;
+
+                    points.push(v.x, v.y, v.z, v.x, 0, v.z); // Floor
+                    if (v.z > -100) points.push(v.x, v.y, v.z, v.x, v.y, -100); // Back
+                    if (v.x > -100) points.push(v.x, v.y, v.z, -100, v.y, v.z); // Left
+                });
+            }
+            cornerRays.geometry.setAttribute('position', new THREE.Float32BufferAttribute(points, 3));
+            cornerRays.computeLineDistances();
+        }
+
+        /* --- 5. MANIFEST EDITOR (Restored Full Lines) --- */
+        function renderManifest() {
+            const c = document.getElementById('manifest-scroll');
+            c.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+
+                if (line.isHeader) {
+                    row.className = 'code-line header';
+                    row.innerText = line.raw;
+                    row.onclick = () => selectSection(line.id);
+                    c.appendChild(row);
+                    return;
+                }
+
+                row.className = `code-line ${line.selected ? 'selected' : ''}`;
+
+                // Gutter
+                const gut = document.createElement('div');
+                gut.className = 'gutter'; gut.innerText = line.id;
+                row.appendChild(gut);
+
+                // Content Area
+                const content = document.createElement('div');
+                content.className = 'code-content';
+
+                if (line.isPart) {
+                    // "1" (Type)
+                    const t1 = document.createElement('span');
+                    t1.className = 'c-type'; t1.innerText = '1';
+                    content.appendChild(t1);
+
+                    // Color
+                    content.appendChild(createDial(line, 'color', 1, 'c-col'));
+
+                    // XYZ
+                    content.appendChild(createDial(line, 'x', 20, 'c-x'));
+                    content.appendChild(createDial(line, 'y', 8, 'c-y'));
+                    content.appendChild(createDial(line, 'z', 20, 'c-z'));
+
+                    // Matrix (Simplified display, click to toggle raw? No, just dials)
+                    for (let i = 0; i < 9; i++) {
+                        // Creating inline matrix dials
+                        content.appendChild(createMatrixDial(line, i));
+                    }
+
+                    // Filename
+                    const f = document.createElement('span');
+                    f.className = 'c-file'; f.innerText = line.file;
+                    content.appendChild(f);
+
+                    // Click to select line
+                    row.onclick = (e) => {
+                        if (e.target.classList.contains('dial')) return; // Don't select if dial dragging
+                        toggleSelect(line);
+                    };
+
+                } else {
+                    // Plain text
+                    const txt = document.createElement('span');
+                    txt.className = 'c-comment'; txt.innerText = line.raw;
+                    content.appendChild(txt);
+                }
+
+                row.appendChild(content);
+                c.appendChild(row);
+            });
+        }
+
+        /* --- 6. DIALS (Fixed Release Logic) --- */
+        function createDial(obj, key, step, cls) {
+            const el = document.createElement('span');
+            el.className = `dial ${cls}`;
+            el.innerText = Math.round(obj[key]);
+
+            let startY = 0; let startVal = 0;
+
+            const start = (y) => { initAudio(); startY = y; startVal = obj[key]; el.classList.add('dragging'); }
+
+            const move = (y) => {
+                const delta = startY - y;
+                const inc = Math.round(delta / 10) * step;
+                const newVal = startVal + inc;
+
+                if (newVal !== obj[key]) {
+                    const diff = newVal - obj[key];
+                    obj[key] = newVal;
+
+                    // Symbiote Logic
+                    if (obj.selected) {
+                        state.lines.forEach(l => {
+                            if (l.isPart && l.selected && l !== obj) l[key] += diff;
+                        });
+                    }
+
+                    el.innerText = newVal;
+                    compile(obj);
+                    update3D();
+                    if (Math.abs(diff) >= step) sfxTick();
+                }
+            }
+
+            // FIXED: Robust End Handler
+            const end = () => {
+                el.classList.remove('dragging');
+                sfxSnap();
+                renderManifest(); // Re-render to update Symbiote partners
+                window.removeEventListener('mousemove', onMM);
+                window.removeEventListener('mouseup', onMU);
+            };
+
+            // Mouse Handlers Ref
+            let onMM, onMU;
+
+            // Touch
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY); }, { passive: false });
+            el.addEventListener('touchend', end);
+
+            // Mouse
+            el.addEventListener('mousedown', e => {
+                e.stopPropagation();
+                start(e.clientY);
+                onMM = ev => move(ev.clientY);
+                onMU = () => end();
+                window.addEventListener('mousemove', onMM);
+                window.addEventListener('mouseup', onMU);
+            });
+
+            return el;
+        }
+
+        function createMatrixDial(obj, i) {
+            const el = document.createElement('span');
+            el.className = 'dial c-mat';
+            el.innerText = Math.round(obj.matrix[i] * 10) / 10;
+            // Simplified matrix handler (no symbiosis)
+            let startY = 0;
+            const h = (y) => {
+                const d = (startY - y) / 50;
+                const v = Math.round((obj.matrix[i] + d) * 10) / 10;
+                if (v !== obj.matrix[i]) { obj.matrix[i] = v; el.innerText = v; compile(obj); update3D(); }
+            }
+            el.addEventListener('touchstart', e => { startY = e.touches[0].clientY }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); h(e.touches[0].clientY) }, { passive: false });
+            return el;
+        }
+
+        /* --- UTILS --- */
+        function toggleSelect(line) {
+            initAudio();
+            line.selected = !line.selected;
+            sfxSelect(); renderManifest(); update3D();
+        }
+
+        function selectSection(id) {
+            initAudio();
+            let i = id + 1;
+            while (i < state.lines.length && state.lines[i].type !== 0) {
+                if (state.lines[i].isPart) state.lines[i].selected = true;
+                i++;
+            }
+            sfxSnap(); renderManifest(); update3D();
+        }
+
+        function toggleRaw() {
+            const m = document.getElementById('raw-modal');
+            const t = document.getElementById('raw-text');
+            if (m.style.display === 'flex') m.style.display = 'none';
+            else { t.value = state.lines.map(l => l.raw).join('\n'); m.style.display = 'flex'; }
+        }
+        function loadRaw() {
+            parse(document.getElementById('raw-text').value);
+            renderManifest(); update3D(); toggleRaw();
+        }
+        function exportCode() {
+            const txt = state.lines.map(l => l.raw).join('\n');
+            navigator.clipboard.writeText(txt).then(() => alert('Copied!'));
+        }
+
+        function takeScreenshot() {
+            renderManifest();
+            update3D();
+            renderer.render(scene, camera);
+            const dataURL = renderer.domElement.toDataURL('image/png');
+            const link = document.createElement('a');
+            link.download = 'wag-architect-shot.png';
+            link.href = dataURL;
+            link.click();
+            sfxSnap();
+        }
+
+        /* --- INIT --- */
+        window.addEventListener('resize', () => {
+            camera.aspect = document.getElementById('viewport').clientWidth / document.getElementById('viewport').clientHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(document.getElementById('viewport').clientWidth, document.getElementById('viewport').clientHeight);
+        });
+
+        updateRulers(); // Run once
+        parse(DEFAULT_MPD);
+        renderManifest();
+        update3D();
+
+        function updateRulers() {
+            updateRulerLabels();
+        }
+
+        function updateRulerLabels() {
+            // Clear previous
+            document.getElementById('hud-layer').innerHTML = '';
+            const add = (t, x, y, z) => {
+                const d = document.createElement('div');
+                d.className = 'ruler-tag'; d.innerText = t; d.userData = { x, y, z };
+                document.getElementById('hud-layer').appendChild(d);
+            }
+            for (let i = -100; i <= 100; i += 20) {
+                if (i !== 0) {
+                    add(i, i, 0, 100); // Front Edge X
+                    add(i, -100, 0, i); // Left Edge Z
+                }
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Update Ruler positions
+            document.querySelectorAll('.ruler-tag').forEach(tag => {
+                const p = tag.userData;
+                const v = new THREE.Vector3(p.x, p.y, p.z);
+                v.project(camera);
+                if (v.z > 1) { tag.style.display = 'none'; return; }
+                const w = renderer.domElement.clientWidth;
+                const h = renderer.domElement.clientHeight;
+                tag.style.display = 'block';
+                tag.style.left = `${(v.x * .5 + .5) * w}px`;
+                tag.style.top = `${(-(v.y * .5) + .5) * h}px`;
+            });
+
+            renderer.render(scene, camera);
+        }
+        animate();
+
+</script></body></html>

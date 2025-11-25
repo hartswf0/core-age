@@ -1,0 +1,634 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LEGO-CODE // Visual Function Builder</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --secondary: #0088ff;
+            --text: #ccc;
+            --text-dim: #666;
+            --font: 'JetBrains Mono', 'Courier New', monospace;
+
+            /* Block colors */
+            --block-function: #ff6b35;
+            --block-control: #f7931e;
+            --block-variable: #4ecdc4;
+            --block-call: #00ff9d;
+            --block-return: #c44569;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Block Palette (Left Sidebar) */
+        .palette {
+            width: 200px;
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+            overflow-y: auto;
+        }
+
+        .palette-header {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 12px;
+            letter-spacing: 0.1em;
+            margin-bottom: 8px;
+        }
+
+        .block-template {
+            padding: 12px;
+            border-radius: 4px;
+            cursor: grab;
+            font-size: 11px;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+        }
+
+        .block-template:hover {
+            transform: scale(1.05);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .block-template:active {
+            cursor: grabbing;
+        }
+
+        .block-template.function {
+            background: var(--block-function);
+            color: #000;
+        }
+
+        .block-template.if {
+            background: var(--block-control);
+            color: #000;
+        }
+
+        .block-template.for {
+            background: var(--block-control);
+            color: #000;
+        }
+
+        .block-template.variable {
+            background: var(--block-variable);
+            color: #000;
+        }
+
+        .block-template.call {
+            background: var(--block-call);
+            color: #000;
+        }
+
+        .block-template.return {
+            background: var(--block-return);
+            color: #fff;
+        }
+
+        /* Main Area */
+        .main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        header {
+            height: 48px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 16px;
+            background: #000;
+            font-size: 11px;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .run-btn {
+            margin-left: auto;
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font);
+            font-weight: bold;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .run-btn:hover {
+            background: #00ffaa;
+        }
+
+        .run-btn:active {
+            transform: scale(0.95);
+        }
+
+        .clear-btn {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: var(--font);
+            font-size: 11px;
+        }
+
+        .clear-btn:hover {
+            background: #1a1a1a;
+        }
+
+        /* Grid Construction Area */
+        .workspace {
+            flex: 1;
+            display: flex;
+            gap: 1px;
+        }
+
+        .grid-container {
+            flex: 1;
+            background: #0c0c0c;
+            padding: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: auto;
+        }
+
+        .construction-grid {
+            display: grid;
+            grid-template-columns: repeat(9, 80px);
+            grid-template-rows: repeat(9, 80px);
+            gap: 2px;
+        }
+
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.1s;
+        }
+
+        .grid-cell.drop-target {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: var(--accent);
+        }
+
+        .grid-cell.occupied {
+            cursor: pointer;
+        }
+
+        /* Placed Blocks */
+        .placed-block {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 4px;
+            cursor: move;
+            position: relative;
+        }
+
+        .placed-block .block-label {
+            text-align: center;
+            line-height: 1.2;
+        }
+
+        .placed-block .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 14px;
+            height: 14px;
+            background: rgba(0, 0, 0, 0.5);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .placed-block:hover .remove-btn {
+            display: flex;
+        }
+
+        /* Code Output Panel (Right) */
+        .code-panel {
+            width: 350px;
+            background: #050505;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .code-header {
+            padding: 12px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .code-display {
+            flex: 1;
+            padding: 16px;
+            font-size: 11px;
+            line-height: 1.6;
+            overflow-y: auto;
+            font-family: var(--font);
+        }
+
+        .code-display pre {
+            color: var(--text);
+        }
+
+        .keyword {
+            color: #ff9f56;
+            font-weight: 700;
+        }
+
+        .string {
+            color: #4ade80;
+        }
+
+        .number {
+            color: #60a5fa;
+        }
+
+        .comment {
+            color: var(--text-dim);
+            font-style: italic;
+        }
+
+        /* Output Panel (Bottom of code panel) */
+        .output-panel {
+            height: 200px;
+            background: #000;
+            border-top: 1px solid var(--border);
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 10px;
+        }
+
+        .output-header {
+            color: var(--secondary);
+            font-weight: bold;
+            margin-bottom: 8px;
+        }
+
+        .output-line {
+            color: var(--text-dim);
+            margin: 2px 0;
+        }
+
+        .output-line.error {
+            color: #ff6b6b;
+        }
+
+        /* Drag preview */
+        .drag-preview {
+            position: fixed;
+            pointer-events: none;
+            opacity: 0.8;
+            z-index: 1000;
+            padding: 12px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Block Palette -->
+    <div class="palette">
+        <div class="palette-header">📦 CODE BLOCKS</div>
+
+        <div class="block-template function" draggable="true" data-type="function">
+            ƒ FUNCTION
+        </div>
+
+        <div class="block-template if" draggable="true" data-type="if">
+            IF condition
+        </div>
+
+        <div class="block-template for" draggable="true" data-type="for">
+            FOR loop
+        </div>
+
+        <div class="block-template variable" draggable="true" data-type="variable">
+            VAR x = 0
+        </div>
+
+        <div class="block-template call" draggable="true" data-type="call">
+            → call()
+        </div>
+
+        <div class="block-template return" draggable="true" data-type="return">
+            ← RETURN
+        </div>
+    </div>
+
+    <!-- Main Area -->
+    <div class="main">
+        <header>
+            <div class="brand">LEGO-CODE // Visual Builder</div>
+            <button class="clear-btn" onclick="clearGrid()">CLEAR</button>
+            <button class="run-btn" onclick="runCode()">▶ RUN</button>
+        </header>
+
+        <div class="workspace">
+            <!-- Construction Grid -->
+            <div class="grid-container">
+                <div class="construction-grid" id="grid">
+                    <!-- 9x9 cells generated by JS -->
+                </div>
+            </div>
+
+            <!-- Code Output -->
+            <div class="code-panel">
+                <div class="code-header">GENERATED CODE</div>
+                <div class="code-display" id="code-output">
+                    <pre><span class="comment">// Build your code by dragging blocks onto the grid</span></pre>
+                </div>
+
+                <div class="output-panel">
+                    <div class="output-header">► OUTPUT</div>
+                    <div id="output-lines">
+                        <div class="output-line">Ready to execute...</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // State
+        const gridState = new Map(); // Map of cell index -> block data
+        let draggedType = null;
+        let draggedElement = null;
+
+        // Initialize grid
+        const gridEl = document.getElementById('grid');
+        for (let i = 0; i < 81; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.index = i;
+
+            // Drop handlers
+            cell.addEventListener('dragover', onCellDragOver);
+            cell.addEventListener('drop', onCellDrop);
+            cell.addEventListener('dragleave', onCellDragLeave);
+
+            gridEl.appendChild(cell);
+        }
+
+        // Palette drag handlers
+        document.querySelectorAll('.block-template').forEach(block => {
+            block.addEventListener('dragstart', onBlockDragStart);
+            block.addEventListener('dragend', onBlockDragEnd);
+        });
+
+        function onBlockDragStart(e) {
+            draggedType = e.target.dataset.type;
+            draggedElement = e.target;
+            e.target.style.opacity = '0.5';
+
+            // Set drag data
+            e.dataTransfer.effectAllowed = 'copy';
+            e.dataTransfer.setData('text/plain', draggedType);
+        }
+
+        function onBlockDragEnd(e) {
+            e.target.style.opacity = '1';
+            draggedType = null;
+            draggedElement = null;
+        }
+
+        function onCellDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('drop-target');
+        }
+
+        function onCellDragLeave(e) {
+            e.currentTarget.classList.remove('drop-target');
+        }
+
+        function onCellDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drop-target');
+
+            const cellIndex = parseInt(e.currentTarget.dataset.index);
+            const type = e.dataTransfer.getData('text/plain');
+
+            // Don't place if cell is occupied
+            if (gridState.has(cellIndex)) return;
+
+            // Place block
+            placeBlock(cellIndex, type);
+
+            // Update code
+            generateCode();
+        }
+
+        function placeBlock(index, type) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+
+            // Create block element
+            const block = document.createElement('div');
+            block.className = 'placed-block';
+
+            // Set color based on type
+            const colors = {
+                'function': 'var(--block-function)',
+                'if': 'var(--block-control)',
+                'for': 'var(--block-control)',
+                'variable': 'var(--block-variable)',
+                'call': 'var(--block-call)',
+                'return': 'var(--block-return)'
+            };
+            block.style.background = colors[type] || '#555';
+            block.style.color = type === 'return' ? '#fff' : '#000';
+
+            // Get block label
+            const labels = {
+                'function': 'ƒ FUNC',
+                'if': 'IF',
+                'for': 'FOR',
+                'variable': 'VAR',
+                'call': 'CALL',
+                'return': 'RTN'
+            };
+
+            block.innerHTML = `
+                <div class="block-label">${labels[type]}</div>
+                <div class="remove-btn" onclick="removeBlock(${index})">×</div>
+            `;
+
+            cell.appendChild(block);
+            cell.classList.add('occupied');
+
+            // Store in state
+            gridState.set(index, { type, index });
+        }
+
+        function removeBlock(index) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+            cell.innerHTML = '';
+            cell.classList.remove('occupied');
+            gridState.delete(index);
+            generateCode();
+        }
+
+        function clearGrid() {
+            gridState.clear();
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove('occupied');
+            });
+            generateCode();
+        }
+
+        function generateCode() {
+            const codeOutput = document.getElementById('code-output');
+
+            if (gridState.size === 0) {
+                codeOutput.innerHTML = '<pre><span class="comment">// Build your code by dragging blocks onto the grid</span></pre>';
+                return;
+            }
+
+            // Sort blocks by index (top-to-bottom, left-to-right)
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            // Generate code
+            let code = [];
+            let indent = 0;
+
+            blocks.forEach(block => {
+                switch (block.type) {
+                    case 'function':
+                        code.push('  '.repeat(indent) + '<span class="keyword">function</span> myFunction() {');
+                        indent++;
+                        break;
+                    case 'if':
+                        code.push('  '.repeat(indent) + '<span class="keyword">if</span> (condition) {');
+                        indent++;
+                        break;
+                    case 'for':
+                        code.push('  '.repeat(indent) + '<span class="keyword">for</span> (<span class="keyword">let</span> i = <span class="number">0</span>; i &lt; <span class="number">10</span>; i++) {');
+                        indent++;
+                        break;
+                    case 'variable':
+                        code.push('  '.repeat(indent) + '<span class="keyword">let</span> x = <span class="number">0</span>;');
+                        break;
+                    case 'call':
+                        code.push('  '.repeat(indent) + 'doSomething();');
+                        break;
+                    case 'return':
+                        code.push('  '.repeat(indent) + '<span class="keyword">return</span> x;');
+                        if (indent > 0) {
+                            indent--;
+                            code.push('  '.repeat(indent) + '}');
+                        }
+                        break;
+                }
+            });
+
+            // Close remaining blocks
+            while (indent > 0) {
+                indent--;
+                code.push('  '.repeat(indent) + '}');
+            }
+
+            codeOutput.innerHTML = '<pre>' + code.join('\n') + '</pre>';
+        }
+
+        function runCode() {
+            const outputEl = document.getElementById('output-lines');
+            outputEl.innerHTML = '';
+
+            // Add timestamp
+            const timestamp = new Date().toLocaleTimeString();
+            outputEl.innerHTML += `<div class="output-line">► Executing at ${timestamp}</div>`;
+
+            if (gridState.size === 0) {
+                outputEl.innerHTML += '<div class="output-line error">No code to execute!</div>';
+                return;
+            }
+
+            // Simulate execution
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            outputEl.innerHTML += `<div class="output-line">Running ${blocks.length} blocks...</div>`;
+
+            blocks.forEach((block, idx) => {
+                setTimeout(() => {
+                    const labels = {
+                        'function': '  → Function defined',
+                        'if': '  → If condition checked',
+                        'for': '  → Loop started (10 iterations)',
+                        'variable': '  → Variable declared: x = 0',
+                        'call': '  → Function called: doSomething()',
+                        'return': '  → Returned: x'
+                    };
+
+                    outputEl.innerHTML += `<div class="output-line">${labels[block.type]}</div>`;
+                    outputEl.scrollTop = outputEl.scrollHeight;
+                }, idx * 200);
+            });
+
+            setTimeout(() => {
+                outputEl.innerHTML += '<div class="output-line" style="color: var(--accent);">✓ Execution complete</div>';
+                outputEl.scrollTop = outputEl.scrollHeight;
+            }, blocks.length * 200 + 100);
+        }
+
+        // Initialize
+        generateCode();
+    </script>
+</body>
+
+</html>

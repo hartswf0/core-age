@@ -1,0 +1,1109 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>HYPER_GRID // DOM_NAVIGATOR</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --border-active: #555;
+            --accent: #00ff9d;
+            /* Sharp Cyber Green */
+            --secondary: #0088ff;
+            /* Data Blue */
+            --text: #ccc;
+            --text-dim: #666;
+            --font: 'JetBrains Mono', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* --- HEADER: Z-AXIS CONTROLS --- */
+        header {
+            height: 48px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            background: #000;
+            gap: 16px;
+            flex-shrink: 0;
+            font-size: 11px;
+            letter-spacing: 0.05em;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .divider {
+            width: 1px;
+            height: 16px;
+            background: var(--border);
+        }
+
+        .breadcrumbs {
+            flex: 1;
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .crumb {
+            color: var(--text-dim);
+            cursor: pointer;
+            white-space: nowrap;
+        }
+
+        .crumb:hover {
+            color: var(--text);
+            text-decoration: underline;
+        }
+
+        .crumb.active {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .depth-meter {
+            color: var(--secondary);
+        }
+
+        /* --- SPLIT VIEW --- */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        /* --- TOP: THE SPATIAL GRID --- */
+        .grid-viewport {
+            flex: 1;
+            /* Takes available space */
+            background: #0c0c0c;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .grid-layer {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: min(60vh, 90vw);
+            /* Keep it square and contained */
+            height: min(60vh, 90vw);
+            gap: 1px;
+            /* Sharp grid lines */
+            transition: transform 0.3s cubic-bezier(0.23, 1, 0.32, 1), opacity 0.3s;
+        }
+
+        /* Animation States */
+        .grid-layer.dive-in {
+            transform: scale(2);
+            opacity: 0;
+        }
+
+        .grid-layer.dive-out {
+            transform: scale(0.5);
+            opacity: 0;
+        }
+
+        .cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            padding: 4px;
+            transition: all 0.1s;
+            overflow: hidden;
+        }
+
+        /* Empty Cell Styling */
+        .cell.empty {
+            background: repeating-linear-gradient(45deg,
+                    #0d0d0d,
+                    #0d0d0d 2px,
+                    #111 2px,
+                    #111 4px);
+            border-color: #1a1a1a;
+            cursor: default;
+        }
+
+        .cell:hover:not(.empty) {
+            border-color: var(--accent);
+            background: #1a1a1a;
+            z-index: 10;
+            box-shadow: 0 0 0 1px var(--accent);
+            /* Sharp outline */
+        }
+
+        /* Cell Content Typography */
+        .cell-header {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--text-dim);
+            margin-bottom: 2px;
+        }
+
+        .cell:hover .cell-header {
+            color: var(--text);
+        }
+
+        .cell-tag {
+            color: var(--secondary);
+            text-transform: uppercase;
+        }
+
+        .cell-idx {
+            opacity: 0.5;
+        }
+
+        .cell-body {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            opacity: 0.7;
+        }
+
+        /* "Code Shape" Visualization */
+        .code-line {
+            height: 2px;
+            background: #333;
+            width: 100%;
+        }
+
+        .code-line.short {
+            width: 40%;
+        }
+
+        .code-line.med {
+            width: 70%;
+        }
+
+        .code-line.attr {
+            background: #444;
+        }
+
+        .cell:hover .code-line {
+            background: #555;
+        }
+
+        .cell:hover .code-line.attr {
+            background: var(--accent);
+            opacity: 0.5;
+        }
+
+        .cell-footer {
+            margin-top: auto;
+            font-size: 8px;
+            color: var(--text-dim);
+            text-align: right;
+        }
+
+        /* --- BOTTOM: SOURCE STREAM --- */
+        .source-panel {
+            height: 300px;
+            /* Fixed height for source view */
+            background: #050505;
+            overflow-y: auto;
+            font-size: 11px;
+            border-top: 1px solid var(--border);
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .source-header {
+            padding: 8px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            color: var(--text-dim);
+            display: flex;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+        }
+
+        .source-line {
+            display: flex;
+            padding: 2px 16px;
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            color: #777;
+        }
+
+        .source-line:hover,
+        .source-line.active {
+            background: #111;
+            color: #eee;
+            border-left-color: var(--accent);
+        }
+
+        .ln {
+            min-width: 30px;
+            color: #444;
+            user-select: none;
+            text-align: right;
+            margin-right: 12px;
+        }
+
+        .code {
+            white-space: pre;
+            font-family: var(--font);
+        }
+
+        .tag {
+            color: var(--secondary);
+        }
+
+        .attr {
+            color: #a6e22e;
+        }
+
+        .val {
+            color: #e6db74;
+        }
+
+        /* --- REALITY HIGHLIGHTER (The overlay on the actual page) --- */
+        #highlighter {
+            position: fixed;
+            border: 1px solid var(--accent);
+            background: rgba(0, 255, 157, 0.1);
+            pointer-events: none;
+            z-index: 9999;
+            display: none;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+        }
+
+        #highlighter::before {
+            content: attr(data-tag);
+            position: absolute;
+            bottom: 100%;
+            left: -1px;
+            background: var(--accent);
+            color: #000;
+            font-size: 9px;
+            padding: 1px 4px;
+            font-weight: bold;
+        }
+
+        /* --- DUMMY SYSTEM TO EXPLORE --- */
+        #system-root {
+            position: absolute;
+            width: 1px;
+            height: 1px;
+            opacity: 0;
+            overflow: hidden;
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- MOCK OS STRUCTURE FOR EXPLORATION -->
+    <div id="system-root">
+        <div id="kernel" class="process">
+            <header class="boot-sequence">
+                <meta name="version" content="v9.0">
+                <script>init_core();</script>
+            </header>
+            <main class="memory-heap">
+                <section class="stack-frame">
+                    <div class="var">int x = 0</div>
+                    <div class="var">string user = "admin"</div>
+                </section>
+                <section class="gpu-buffer">
+                    <img src="texture.png" class="asset">
+                    <canvas id="render-target"></canvas>
+                </section>
+            </main>
+            <footer class="io-bus">
+                <div class="port" id="usb-1"></div>
+                <div class="port" id="usb-2"></div>
+            </footer>
+        </div>
+    </div>
+
+    <!-- UI LAYER -->
+    <header>
+        <div class="brand">HYPER_GRID_v2</div>
+        <div class="divider"></div>
+        <div class="breadcrumbs" id="breadcrumbs">
+            <span class="crumb active">ROOT</span>
+        </div>
+        <div class="divider"></div>
+        <!-- MODE SWITCHER -->
+        <div style="display: flex; gap: 4px;">
+            <button id="mode-grid" class="mode-btn active"
+                style="background: var(--panel); border: 1px solid var(--border); color: var(--text); padding: 4px 12px; font-size: 9px; cursor: pointer; border-radius: 2px; font-family: var(--font); letter-spacing: 0.05em;">GRID</button>
+            <button id="mode-legos" class="mode-btn"
+                style="background: var(--panel); border: 1px solid var(--border); color: var(--text-dim); padding: 4px 12px; font-size: 9px; cursor: pointer; border-radius: 2px; font-family: var(--font); letter-spacing: 0.05em;">LEGOS</button>
+            <button id="mode-tetrad" class="mode-btn"
+                style="background: var(--panel); border: 1px solid var(--border); color: var(--text-dim); padding: 4px 12px; font-size: 9px; cursor: pointer; border-radius: 2px; font-family: var(--font); letter-spacing: 0.05em;">TETRAD</button>
+        </div>
+        <div class="divider"></div>
+        <div class="depth-meter" id="depth-meter">Z: 0</div>
+    </header>
+
+    <main>
+        <!-- THE MAP (Top) -->
+        <div class="grid-viewport">
+            <div class="grid-layer" id="grid">
+                <!-- Cells Injected Here -->
+            </div>
+        </div>
+
+        <!-- THE TERRITORY (Bottom) -->
+        <div class="source-panel">
+            <div class="source-header">
+                <span>SOURCE STREAM</span>
+                <span id="node-count">0 NODES</span>
+            </div>
+            <div id="source-stream">
+                <!-- Lines Injected Here -->
+            </div>
+        </div>
+    </main>
+
+    <div id="highlighter" data-tag="DIV"></div>
+
+    <script>
+        // ----------------------------------------------------
+        // STATE
+        // ----------------------------------------------------
+        // We start exploring document.body or our dummy system
+        const ROOT_NODE = document.getElementById('system-root') || document.body;
+
+        let stack = [ROOT_NODE]; // History of dives
+        let cellMap = new Map(); // Maps Grid Index -> DOM Element
+        let hoverTarget = null;
+        let viewMode = 'grid'; // 'grid' | 'legos' | 'tetrad'
+
+        const gridEl = document.getElementById('grid');
+        const sourceEl = document.getElementById('source-stream');
+        const breadcrumbsEl = document.getElementById('breadcrumbs');
+        const depthMeter = document.getElementById('depth-meter');
+        const highlighter = document.getElementById('highlighter');
+        const nodeCountEl = document.getElementById('node-count');
+
+        // ----------------------------------------------------
+        // LEGOS DOM PARSER
+        // ----------------------------------------------------
+
+        function parseDOM_asLEGOS(element) {
+            const tag = element.tagName.toLowerCase();
+            const id = element.id || '';
+            const name = `${tag}${id ? '#' + id : ''}`;
+
+            return {
+                name,
+                tag,
+
+                // LEGOS Components
+                entities: extractDOMEntities(element),
+                goals: extractDOMGoals(element),
+                obstacles: extractDOMObstacles(element),
+                morphisms: extractDOMRelations(element),
+                shifts: extractDOMShifts(element),
+
+                // Metadata
+                interactive: isInteractive(element),
+                hasEvents: hasEventListeners(element),
+                complexity: calculateDOMComplexity(element)
+            };
+        }
+
+        function extractDOMEntities(element) {
+            const entities = [];
+            const children = Array.from(element.children);
+
+            children.forEach((child, idx) => {
+                const traits = [];
+
+                // Determine traits
+                if (child.hasAttribute('required')) traits.push('required');
+                if (child.hasAttribute('disabled')) traits.push('disabled');
+                if (child.classList.length > 0) traits.push('styled');
+                if (isInteractive(child)) traits.push('interactive');
+                if (child.children.length > 0) traits.push('container');
+
+                entities.push({
+                    id: child.id || `child_${idx}`,
+                    type: '<' + child.tagName.toLowerCase() + '>',
+                    traits
+                });
+            });
+
+            return entities;
+        }
+
+        function extractDOMGoals(element) {
+            const goals = [];
+            const tag = element.tagName.toLowerCase();
+
+            // Form goals
+            if (tag === 'form') {
+                const action = element.getAttribute('action') || 'self';
+                goals.push({
+                    id: 'submit',
+                    name: `<Submit to ${action}>`,
+                    owner: element.id || 'form'
+                });
+            }
+
+            // Link goals
+            if (tag === 'a') {
+                const href = element.getAttribute('href');
+                if (href) {
+                    goals.push({
+                        id: 'navigate',
+                        name: `<Navigate to ${href}>`,
+                        owner: element.id || 'link'
+                    });
+                }
+            }
+
+            // Button goals (infer from context)
+            if (tag === 'button') {
+                const type = element.getAttribute('type') || 'button';
+                goals.push({
+                    id: type,
+                    name: `<${type === 'submit' ? 'Submit Form' : 'Trigger Action'}>`,
+                    owner: element.id || 'button'
+                });
+            }
+
+            // Input goals
+            if (tag === 'input') {
+                const type = element.getAttribute('type') || 'text';
+                goals.push({
+                    id: 'capture_input',
+                    name: `<Capture ${type} data>`,
+                    owner: element.id || 'input'
+                });
+            }
+
+            return goals;
+        }
+
+        function extractDOMObstacles(element) {
+            const obstacles = [];
+
+            // Validation obstacles
+            if (element.hasAttribute('required')) {
+                obstacles.push({
+                    id: 'required',
+                    name: '<Field Required>',
+                    type: 'validation',
+                    affects: '<Form Submission>'
+                });
+            }
+
+            if (element.hasAttribute('pattern')) {
+                obstacles.push({
+                    id: 'pattern',
+                    name: '<Pattern Validation>',
+                    type: 'validation',
+                    affects: '<Input Acceptance>'
+                });
+            }
+
+            // State obstacles
+            if (element.hasAttribute('disabled')) {
+                obstacles.push({
+                    id: 'disabled',
+                    name: '<Element Disabled>',
+                    type: 'state',
+                    affects: '<User Interaction>'
+                });
+            }
+
+            if (element.hasAttribute('readonly')) {
+                obstacles.push({
+                    id: 'readonly',
+                    name: '<Read Only>',
+                    type: 'state',
+                    affects: '<Data Mutation>'
+                });
+            }
+
+            // Min/Max obstacles
+            const min = element.getAttribute('min');
+            const max = element.getAttribute('max');
+            if (min || max) {
+                obstacles.push({
+                    id: 'range',
+                    name: `<Range: ${min || '∞'} to ${max || '∞'}>`,
+                    type: 'validation',
+                    affects: '<Value Bounds>'
+                });
+            }
+
+            return obstacles;
+        }
+
+        function extractDOMRelations(element) {
+            const morphisms = [];
+            const children = Array.from(element.children);
+            const tag = element.tagName.toLowerCase();
+
+            // Parent-child relationships
+            children.forEach(child => {
+                morphisms.push({
+                    verb: '[contains]',
+                    from: tag,
+                    to: child.tagName.toLowerCase()
+                });
+            });
+
+            // Form-input relationships
+            if (tag === 'form') {
+                children.filter(c => c.tagName === 'INPUT').forEach(input => {
+                    morphisms.push({
+                        verb: '[collects]',
+                        from: 'form',
+                        to: input.id || 'input'
+                    });
+                });
+            }
+
+            // Label-input relationships
+            if (tag === 'label') {
+                const forAttr = element.getAttribute('for');
+                if (forAttr) {
+                    morphisms.push({
+                        verb: '[labels]',
+                        from: 'label',
+                        to: forAttr
+                    });
+                }
+            }
+
+            // Event listeners (approximation - can't detect dynamically added ones)
+            const hasClick = element.hasAttribute('onclick') || element.onclick;
+            if (hasClick) {
+                morphisms.push({
+                    verb: '[listens]',
+                    from: tag,
+                    to: 'click'
+                });
+            }
+
+            return morphisms;
+        }
+
+        function extractDOMShifts(element) {
+            const shifts = [];
+
+            // Class manipulation potential
+            if (element.classList.length > 0) {
+                shifts.push({
+                    id: 'class_toggle',
+                    name: `[toggles-class] ${Array.from(element.classList).join(', ')}`,
+                    type: 'style-change',
+                    target: element.id || element.tagName.toLowerCase()
+                });
+            }
+
+            // State changes (for interactive elements)
+            if (isInteractive(element)) {
+                shifts.push({
+                    id: 'state_change',
+                    name: '[updates-state]',
+                    type: 'interaction',
+                    target: element.id || 'element'
+                });
+            }
+
+            return shifts;
+        }
+
+        function isInteractive(element) {
+            const tag = element.tagName.toLowerCase();
+            const interactiveTags = ['button', 'a', 'input', 'select', 'textarea', 'details'];
+            return interactiveTags.includes(tag) ||
+                element.hasAttribute('onclick') ||
+                element.hasAttribute('tabindex');
+        }
+
+        function hasEventListeners(element) {
+            // Approximate - checks for inline handlers
+            return element.hasAttribute('onclick') ||
+                element.hasAttribute('onchange') ||
+                element.hasAttribute('onsubmit') ||
+                element.onclick !== null;
+        }
+
+        function calculateDOMComplexity(element) {
+            const children = element.children.length;
+            const attributes = element.attributes.length;
+            const events = hasEventListeners(element) ? 1 : 0;
+            return children + attributes + events;
+        }
+
+        // ----------------------------------------------------
+        // CORE RENDERER
+        // ----------------------------------------------------
+        // TETRAD GENERATOR (McLuhan's Four Laws)
+        // ----------------------------------------------------
+
+        function generateTetrad(element) {
+            const tag = element.tagName.toLowerCase();
+            const id = element.id;
+            const type = element.getAttribute('type');
+
+            // Element-specific tetrads
+            const tetrads = {
+                'button': {
+                    enhances: 'Instant digital action without page reload',
+                    obsoletes: 'Physical buttons, traditional form submission',
+                    retrieves: 'Tactile feedback expectation from physical world',
+                    reverses: 'Button fatigue, click-spam, over-interaction when everywhere'
+                },
+                'form': {
+                    enhances: 'Structured data collection and validation',
+                    obsoletes: 'Paper forms, manual data entry',
+                    retrieves: 'Bureaucratic form-filling workflows',
+                    reverses: 'Form abandon ment, UX friction when too complex'
+                },
+                'input': {
+                    enhances: 'Real-time data capture with validation',
+                    obsoletes: 'Typewriter, pen and paper',
+                    retrieves: 'Blank form fields waiting to be filled',
+                    reverses: 'Input overload, decision paralysis when too many fields'
+                },
+                'a': {
+                    enhances: 'Instant navigation, hypertext connections',
+                    obsoletes: 'Table of contents, physical page turning',
+                    retrieves: 'Cross-reference footnotes',
+                    reverses: 'Link rot, broken connections, endless rabbit holes'
+                },
+                'canvas': {
+                    enhances: 'Dynamic pixel-level rendering and interaction',
+                    obsoletes: 'Static images, Flash animations',
+                    retrieves: 'Painting on physical canvas',
+                    reverses: 'Performance issues, accessibility barriers when overused'
+                },
+                'img': {
+                    enhances: 'Visual communication, instant recognition',
+                    obsoletes: 'Text descriptions, verbal explanations',
+                    retrieves: 'Physical photographs, cave paintings',
+                    reverses: 'Information overload, banner blindness'
+                },
+                'div': {
+                    enhances: 'Semantic grouping and layout control',
+                    obsoletes: 'Table-based layouts',
+                    retrieves: 'Physical containers, boxes',
+                    reverses: 'Div soup, meaningless nesting when overused'
+                },
+                'header': {
+                    enhances: 'Clear page structure and navigation landmarks',
+                    obsoletes: 'Generic divs for top content',
+                    retrieves: 'Newspaper headers, book title pages',
+                    reverses: 'Multiple headers creating confusion'
+                },
+                'footer': {
+                    enhances: 'Consistent bottom content, legal/contact info',
+                    obsoletes: 'Bottom divs',
+                    retrieves: 'Book imprint, newspaper footer',
+                    reverses: 'Sticky footers blocking content'
+                },
+                'nav': {
+                    enhances: 'Clear navigation structure for users and screen readers',
+                    obsoletes: 'Unstructured link lists',
+                    retrieves: 'Table of contents, site maps',
+                    reverses: 'Menu overload when too many nav elements'
+                },
+                'section': {
+                    enhances: 'Semantic page division, document structure',
+                    obsoletes: 'Generic divs for content blocks',
+                    retrieves: 'Book chapters, article sections',
+                    reverses: 'Over-sectionalization, unclear boundaries'
+                },
+                'select': {
+                    enhances: 'Compact multi-option selection',
+                    obsoletes: 'Radio button lists',
+                    retrieves: 'Drop-down physical selectors',
+                    reverses: 'Hidden options, poor mobile UX when too many'
+                },
+                'textarea': {
+                    enhances: 'Multi-line text input, large content capture',
+                    obsoletes: 'Multiple input fields for paragraphs',
+                    retrieves: 'Notepad, legal pad',
+                    reverses: 'Blank canvas paralysis, unclear size expectations'
+                }
+            };
+
+            // Return specific tetrad or generate generic one
+            return tetrads[tag] || generateGenericTetrad(element);
+        }
+
+        function generateGenericTetrad(element) {
+            const tag = element.tagName.toLowerCase();
+            const isInteract = isInteractive(element);
+            const hasChildren = element.children.length > 0;
+
+            return {
+                enhances: isInteract ?
+                    `Interactive ${tag} element for user engagement` :
+                    `Structural ${tag} for ${hasChildren ? 'grouping content' : 'containing data'}`,
+                obsoletes: `Generic div or span with no semantic meaning`,
+                retrieves: `Physical ${tag} metaphor or container concept`,
+                reverses: `Semantic confusion when misused or over-nested`
+            };
+        }
+
+        // ----------------------------------------------------
+        function render() {
+            const currentNode = stack[stack.length - 1];
+
+            // 1. Get Children (Filtered)
+            // We ignore text nodes and script tags for cleanliness, usually
+            const children = Array.from(currentNode.children);
+
+            // 2. Clear & Prep
+            gridEl.innerHTML = '';
+            sourceEl.innerHTML = '';
+            cellMap.clear();
+
+            nodeCountEl.textContent = `${children.length} NODES`;
+            depthMeter.textContent = `Z: ${stack.length - 1}`;
+
+            // 3. Build 9x9 Grid
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+
+                if (i < children.length) {
+                    const child = children[i];
+                    const tag = child.tagName.toLowerCase();
+                    const id = child.id ? `#${child.id}` : '';
+                    const cls = child.classList.length ? `.${child.classList[0]}` : '';
+                    const childCount = child.children.length;
+
+                    // Visualizing "Code Shape"
+                    cell.innerHTML = `
+                    <div class="cell-header">
+                        <span class="cell-tag">${tag}</span>
+                        <span class="cell-idx">${i.toString().padStart(2, '0')}</span>
+                    </div>
+                    <div class="cell-body">
+                        <div class="code-line med"></div>
+                        <div class="code-line short attr"></div>
+                        <div class="code-line med"></div>
+                    </div>
+                    <div class="cell-footer">
+                        ${id}${cls} ${childCount > 0 ? `[+${childCount}]` : ''}
+                    </div>
+                `;
+
+                    // Events
+                    cell.onmouseenter = () => onHover(i, child);
+                    cell.onmouseleave = () => onLeave();
+                    cell.onclick = () => dive(child);
+
+                    cellMap.set(i, { cell, node: child });
+
+                    // Add corresponding line to Source Stream
+                    addSourceLine(i, child, 0);
+
+                } else {
+                    cell.className = 'cell empty';
+                }
+                gridEl.appendChild(cell);
+            }
+
+            updateBreadcrumbs();
+        }
+
+        // Helper to build the Source Stream HTML
+        function addSourceLine(index, node, depth) {
+            // Route to appropriate renderer based on viewMode
+            if (viewMode === 'legos') {
+                return renderLEGOSView(node, index);
+            } else if (viewMode === 'tetrad') {
+                return renderTetradView(node, index);
+            }
+
+            // Default GRID mode
+            const div = document.createElement('div');
+            div.className = 'source-line';
+            div.dataset.index = index;
+
+            const indent = '  '.repeat(depth);
+            const tag = node.tagName.toLowerCase();
+
+            // Syntax Highlighting
+            let attrs = '';
+            if (node.id) attrs += ` <span class="attr">id</span>=<span class="val">"${node.id}"</span>`;
+            if (node.className) attrs += ` <span class="attr">class</span>=<span class="val">"${node.className}"</span>`;
+
+            div.innerHTML = `
+            <div class="ln">${index.toString().padStart(2, '0')}</div>
+            <div class="code">${indent}&lt;<span class="tag">${tag}</span>${attrs}&gt;${node.children.length ? '...' : ''}&lt;/${tag}&gt;</div>
+        `;
+
+            div.onmouseenter = () => onHover(index, node);
+            div.onmouseleave = () => onLeave();
+
+            sourceEl.appendChild(div);
+
+            // Link map
+            if (cellMap.has(index)) {
+                cellMap.get(index).sourceLine = div;
+            }
+        }
+
+        // ----------------------------------------------------
+        // NAVIGATION (Z-AXIS)
+        // ----------------------------------------------------
+        function dive(node) {
+            if (node.children.length === 0) return; // Leaf node, can't dive
+
+            // Animation: Dive In
+            gridEl.classList.add('dive-in');
+
+            setTimeout(() => {
+                stack.push(node);
+                render();
+                gridEl.classList.remove('dive-in');
+                // Reset scroll
+                sourceEl.scrollTop = 0;
+            }, 200);
+        }
+
+        function ascend(index) {
+            // Animation: Dive Out
+            gridEl.classList.add('dive-out');
+
+            setTimeout(() => {
+                // Slice stack to index
+                stack = stack.slice(0, index + 1);
+                render();
+                gridEl.classList.remove('dive-out');
+            }, 200);
+        }
+
+        function updateBreadcrumbs() {
+            breadcrumbsEl.innerHTML = '';
+            stack.forEach((node, idx) => {
+                const span = document.createElement('span');
+                span.className = 'crumb';
+                if (idx === stack.length - 1) span.classList.add('active');
+
+                let label = node.tagName.toLowerCase();
+                if (node.id) label += `#${node.id}`;
+                else if (idx === 0) label = 'ROOT';
+
+                span.textContent = label + (idx < stack.length - 1 ? ' / ' : '');
+                span.onclick = () => ascend(idx);
+                breadcrumbsEl.appendChild(span);
+            });
+
+            // Auto-scroll breadcrumbs
+            breadcrumbsEl.scrollLeft = breadcrumbsEl.scrollWidth;
+        }
+
+        // ----------------------------------------------------
+        // INTERACTION & HIGHLIGHTING
+        // ----------------------------------------------------
+        function onHover(index, node) {
+            // 1. Highlight Grid Cell
+            const mapData = cellMap.get(index);
+            if (!mapData) return;
+
+            document.querySelectorAll('.cell.empty').forEach(c => c.style.opacity = '0.1');
+
+            // 2. Highlight Source Line
+            document.querySelectorAll('.source-line.active').forEach(el => el.classList.remove('active'));
+            if (mapData.sourceLine) {
+                mapData.sourceLine.classList.add('active');
+                mapData.sourceLine.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+            }
+
+            // 3. Highlight Reality (The DOM Element)
+            const rect = node.getBoundingClientRect();
+
+            // Only highlight if it has dimension and is visible
+            if (rect.width > 0 && rect.height > 0) {
+                highlighter.style.display = 'block';
+                highlighter.style.top = rect.top + 'px';
+                highlighter.style.left = rect.left + 'px';
+                highlighter.style.width = rect.width + 'px';
+                highlighter.style.height = rect.height + 'px';
+                highlighter.setAttribute('data-tag', `${node.tagName}#${node.id || ''}`);
+            }
+        }
+
+        function onLeave() {
+            document.querySelectorAll('.cell.empty').forEach(c => c.style.opacity = '');
+            document.querySelectorAll('.source-line.active').forEach(el => el.classList.remove('active'));
+            highlighter.style.display = 'none';
+        }
+
+        // Keyboard Nav
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Backspace' && stack.length > 1) {
+                ascend(stack.length - 2);
+            }
+        });
+
+        // Mode Switcher
+        document.getElementById('mode-grid').addEventListener('click', () => switchMode('grid'));
+        document.getElementById('mode-legos').addEventListener('click', () => switchMode('legos'));
+        document.getElementById('mode-tetrad').addEventListener('click', () => switchMode('tetrad'));
+
+        function switchMode(mode) {
+            viewMode = mode;
+
+            // Update button styles
+            document.querySelectorAll('.mode-btn').forEach(btn => {
+                btn.style.color = 'var(--text-dim)';
+                btn.classList.remove('active');
+            });
+
+            const activeBtn = document.getElementById(`mode-${mode}`);
+            activeBtn.style.color = mode === 'grid' ? 'var(--text)' :
+                mode === 'legos' ? 'var(--accent)' :
+                    'var(--secondary)';
+            activeBtn.classList.add('active');
+
+            // Re-render with new mode
+            render();
+        }
+
+        function renderLEGOSView(element, index) {
+            const legos = parseDOM_asLEGOS(element);
+            const div = document.createElement('div');
+            div.className = 'source-line';
+            div.dataset.index = index;
+            div.style.cssText = 'display: block; padding: 12px 16px; border-left: 2px solid var(--accent); background: #0a0a0a; margin-bottom: 8px; cursor: pointer;';
+
+            let html = `<div style="color: var(--accent); font-weight: bold; margin-bottom: 8px;">📍 ${legos.name}</div>`;
+
+            if (legos.entities.length > 0) {
+                html += `<div style="margin: 4px 0; font-size: 10px;"><span style="color: var(--text);">
+<ENTITIES></span></div>`;
+                legos.entities.slice(0, 3).forEach(ent => {
+                    html += `<div style="margin-left: 12px; color: var(--text-dim); font-size: 9px;">🔹 ${ent.id} (${ent.traits.join(', ')})</div>`;
+                });
+                if (legos.entities.length > 3) {
+                    html += `<div style="margin-left: 12px; color: var(--text-dim); font-size: 9px;">... ${legos.entities.length - 3} more</div>`;
+                }
+            }
+
+            if (legos.goals.length > 0) {
+                html += `<div style="margin: 4px 0; font-size: 10px;"><span style="color: var(--text);"><GOALS></span></div>`;
+                legos.goals.forEach(goal => {
+                    html += `<div style="margin-left: 12px; color: var(--text-dim); font-size: 9px;">✓ ${goal.name}</div>`;
+                });
+            }
+
+            if (legos.obstacles.length > 0) {
+                html += `<div style="margin: 4px 0; font-size: 10px;"><span style="color: var(--text);"><OBSTACLES></span></div>`;
+                legos.obstacles.slice(0, 2).forEach(obs => {
+                    html += `<div style="margin-left: 12px; color: var(--text-dim); font-size: 9px;">⚠️ ${obs.name}</div>`;
+                });
+            }
+
+            if (legos.morphisms.length > 0) {
+                html += `<div style="margin: 4px 0; font-size: 10px;"><span style="color: var(--text);"><MORPHISMS></span></div>`;
+                legos.morphisms.slice(0, 3).forEach(morph => {
+                    html += `<div style="margin-left: 12px; color: var(--text-dim); font-size: 9px;">${morph.verb} ${morph.from} → ${morph.to}</div>`;
+                });
+            }
+
+            div.innerHTML = html;
+            div.onmouseenter = () => onHover(index, element);
+            div.onmouseleave = () => onLeave();
+            div.onclick = () => dive(element);
+
+            sourceEl.appendChild(div);
+
+            if (cellMap.has(index)) {
+                cellMap.get(index).sourceLine = div;
+            }
+        }
+
+        function renderTetradView(element, index) {
+            const tetrad = generateTetrad(element);
+            const tag = element.tagName.toLowerCase();
+            const div = document.createElement('div');
+            div.className = 'source-line';
+            div.dataset.index = index;
+            div.style.cssText = 'display: block; padding: 12px 16px; border-left: 2px solid var(--secondary); background: #0a0a0a; margin-bottom: 8px; cursor: pointer;';
+
+            let html = `<div style="color: var(--secondary); font-weight: bold; margin-bottom: 8px;">⋔ TETRAD: <${tag}></div>`;
+
+            html += `<div style="margin: 6px 0; font-size: 9px;">
+                <div style="color: var(--text); margin-bottom: 2px;">► ENHANCES</div>
+                <div style="margin-left: 12px; color: var(--text-dim);">${tetrad.enhances}</div>
+            </div>`;
+
+            html += `<div style="margin: 6px 0; font-size: 9px;">
+                <div style="color: var(--text); margin-bottom: 2px;">► OBSOLETES</div>
+                <div style="margin-left: 12px; color: var(--text-dim);">${tetrad.obsoletes}</div>
+            </div>`;
+
+            html += `<div style="margin: 6px 0; font-size: 9px;">
+                <div style="color: var(--text); margin-bottom: 2px;">► RETRIEVES</div>
+                <div style="margin-left: 12px; color: var(--text-dim);">${tetrad.retrieves}</div>
+            </div>`;
+
+            html += `<div style="margin: 6px 0; font-size: 9px;">
+                <div style="color: var(--text); margin-bottom: 2px;">► REVERSES</div>
+                <div style="margin-left: 12px; color: var(--text-dim);">${tetrad.reverses}</div>
+            </div>`;
+
+            div.innerHTML = html;
+            div.onmouseenter = () => onHover(index, element);
+            div.onmouseleave = () => onLeave();
+            div.onclick = () => dive(element);
+
+            sourceEl.appendChild(div);
+
+            if (cellMap.has(index)) {
+                cellMap.get(index).sourceLine = div;
+            }
+        }
+
+        // Boot
+        render();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1068 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG FRANK // UNIFIED v8 // STANDARDIZED</title>
+    <link rel="stylesheet" href="frank-unified.css">
+    <script src="frank-base.js"></script>
+    <style>
+        :root {
+            /* VOID THEME */
+            --bg-void: #020202;
+            --bg-surface: #0a0a0a;
+            --bg-panel: #0f0f0f;
+
+            --line-dim: #222;
+            --line-bright: #444;
+
+            --accent: #0f0;
+            --text-main: #e0e0e0;
+            --text-muted: #666;
+
+            --font-mono: 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            background-color: var(--bg-void);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            font-size: 11px;
+            user-select: none;
+        }
+
+        /* SCROLLBARS */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg-void);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border: 1px solid #000;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        /* --- HEADER --- */
+        #header {
+            height: 36px;
+            background: var(--bg-surface);
+            border-bottom: 1px solid var(--line-dim);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 16px;
+            flex-shrink: 0;
+        }
+
+        .brand {
+            font-weight: bold;
+            letter-spacing: 2px;
+            color: var(--accent);
+            display: flex;
+            gap: 10px;
+            align-items: center;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #333;
+            border-radius: 50%;
+            transition: 0.3s;
+        }
+
+        .status-dot.online {
+            background: var(--accent);
+            box-shadow: 0 0 8px var(--accent);
+        }
+
+        /* --- MAIN LAYOUT (SPLIT VIEW) --- */
+        #main-area {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* LEFT: ORCHESTRATOR (GRID) */
+        #orchestrator-panel {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid var(--line-dim);
+            min-width: 300px;
+        }
+
+        /* RIGHT: TABS & CONTENT */
+        #right-panel {
+            width: 380px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-panel);
+            min-width: 280px;
+        }
+
+        /* --- GRID SECTION --- */
+        #grid-container {
+            flex: 1;
+            padding: 20px;
+            background: radial-gradient(circle at center, #111 0%, #000 90%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+
+        #grid-wrapper {
+            border: 1px solid var(--line-bright);
+            padding: 2px;
+            background: #000;
+            box-shadow: 0 0 30px rgba(0, 0, 0, 0.5);
+        }
+
+        #grid-view {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            width: 50vh;
+            height: 50vh;
+            max-width: 500px;
+            max-height: 500px;
+            gap: 1px;
+            background: #222;
+        }
+
+        .cell {
+            background: #080808;
+            position: relative;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.1s;
+        }
+
+        .cell:hover {
+            z-index: 10;
+            outline: 1px solid #fff;
+        }
+
+        .cell.highlight-group {
+            animation: cellPulse 1s infinite;
+            z-index: 5;
+        }
+
+        @keyframes cellPulse {
+            0% {
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            }
+
+            50% {
+                box-shadow: inset 0 0 0 2px rgba(255, 255, 255, 0.8);
+            }
+
+            100% {
+                box-shadow: inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+            }
+        }
+
+        .cell.occupied::after {
+            content: '';
+            width: 70%;
+            height: 70%;
+            background-color: var(--item-color, #555);
+            box-shadow: inset 1px 1px 0 rgba(255, 255, 255, 0.4), inset -1px -1px 0 rgba(0, 0, 0, 0.5), 0 0 5px var(--item-color);
+            border-radius: 2px;
+        }
+
+        .cell-label {
+            position: absolute;
+            bottom: 1px;
+            right: 2px;
+            font-size: 7px;
+            color: #444;
+            pointer-events: none;
+        }
+
+        #grid-tools {
+            width: 100%;
+            max-width: 500px;
+            margin-top: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 10px;
+            color: var(--text-muted);
+        }
+
+        /* --- TABS --- */
+        #tab-bar {
+            display: flex;
+            border-bottom: 1px solid var(--line-dim);
+            background: var(--bg-surface);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+            font-size: 10px;
+            letter-spacing: 1px;
+        }
+
+        .tab-btn:hover {
+            color: var(--text-main);
+            background: #111;
+        }
+
+        .tab-btn.active {
+            color: var(--accent);
+            border-bottom-color: var(--accent);
+            background: #111;
+        }
+
+        .tab-content {
+            display: none;
+            flex: 1;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tab-content.active {
+            display: flex;
+        }
+
+        /* --- CATALOG TAB --- */
+        #catalog-header {
+            padding: 10px;
+            border-bottom: 1px solid var(--line-dim);
+            display: flex;
+            gap: 5px;
+        }
+
+        #search-input {
+            flex: 1;
+            background: #000;
+            border: 1px solid var(--line-bright);
+            color: var(--text-main);
+            padding: 6px;
+            font-family: inherit;
+            font-size: 11px;
+        }
+
+        #search-input:focus {
+            border-color: var(--accent);
+            outline: none;
+        }
+
+        #catalog-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 0;
+        }
+
+        .catalog-group-header {
+            padding: 6px 10px;
+            background: #111;
+            color: #888;
+            font-size: 9px;
+            font-weight: bold;
+            border-bottom: 1px solid #222;
+            border-top: 1px solid #222;
+            position: sticky;
+            top: 0;
+        }
+
+        .catalog-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 10px;
+            border-bottom: 1px solid #1a1a1a;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+
+        .catalog-item:hover {
+            background: #151515;
+        }
+
+        .catalog-item:active {
+            background: #222;
+        }
+
+        .item-icon {
+            font-size: 14px;
+            margin-right: 10px;
+            width: 20px;
+            text-align: center;
+        }
+
+        .item-info {
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .item-name {
+            font-weight: bold;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .item-id {
+            font-size: 9px;
+            color: #666;
+        }
+
+        /* --- PALETTE TAB --- */
+        #stream-list {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        /* --- MONITOR TAB --- */
+        #monitor-log {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            color: #888;
+            background: #050505;
+        }
+
+        .log-entry {
+            margin-bottom: 4px;
+            border-bottom: 1px solid #111;
+            padding-bottom: 4px;
+        }
+
+        .log-ts {
+            color: #444;
+            margin-right: 5px;
+        }
+
+        .log-kind {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* PACKET BUBBLES */
+        .msg {
+            display: flex;
+            flex-direction: column;
+            background: #0b0b0b;
+            border-left: 3px solid var(--item-color, #444);
+            padding: 6px 10px;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .msg:hover {
+            background: #151515;
+        }
+
+        .msg.selected {
+            background: #1a1a1a;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
+            border-left-width: 6px;
+            padding-left: 7px;
+        }
+
+        .usage-pill {
+            float: right;
+            background: #222;
+            color: #777;
+            padding: 1px 5px;
+            border-radius: 4px;
+            font-size: 9px;
+            font-weight: bold;
+        }
+
+        .msg.selected .usage-pill {
+            color: #fff;
+            background: var(--item-color);
+        }
+
+        .usage-pill.active {
+            color: var(--text-main);
+            border: 1px solid #444;
+        }
+
+        /* --- FOOTER --- */
+        #footer {
+            height: 40px;
+            background: var(--bg-surface);
+            border-top: 1px solid var(--line-dim);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 10px;
+        }
+
+        .btn {
+            background: #111;
+            border: 1px solid var(--line-bright);
+            color: #aaa;
+            padding: 6px 14px;
+            font-family: inherit;
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            transition: 0.2s;
+        }
+
+        .btn:hover {
+            border-color: var(--accent);
+            color: var(--accent);
+        }
+
+        .btn-primary {
+            background: rgba(0, 255, 0, 0.1);
+            border-color: var(--accent);
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        .btn-primary:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        /* OVERLAY */
+        #overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.9);
+            z-index: 100;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        #overlay.active {
+            display: flex;
+        }
+
+        #overlay-box {
+            width: 600px;
+            height: 400px;
+            background: #080808;
+            border: 1px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            padding: 15px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #000;
+            color: #0f0;
+            border: 1px solid #333;
+            padding: 10px;
+            resize: none;
+            margin: 10px 0;
+            font-family: monospace;
+        }
+
+        /* MOBILE */
+        @media (max-width: 768px) {
+            #main-area {
+                flex-direction: column;
+            }
+
+            #orchestrator-panel {
+                width: 100%;
+                height: 55%;
+                border-right: none;
+                border-bottom: 1px solid var(--line-dim);
+            }
+
+            #right-panel {
+                width: 100%;
+                height: 45%;
+            }
+
+            #grid-view {
+                width: 38vh;
+                height: 38vh;
+                max-width: 90vw;
+                max-height: 90vw;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <header id="header">
+        <div class="brand">
+            <div id="bus-light" class="status-dot" title="Bus Status"></div>
+            WAG FRANK // RELATIONAL POSITIONING SYSTEM
+        </div>
+        <div style="font-size:9px; color:#555;">v8.0 // STANDARDIZED // SCENE MANAGEMENT</div>
+    </header>
+
+    <!-- SCENE SELECTOR -->
+    <div id="scene-bar" class="scene-bar">
+        <div class="scene-selector">
+            <label>◼ SCENE</label>
+            <select id="scene-select">
+                <option value="">Select scene...</option>
+            </select>
+        </div>
+        <div class="scene-actions">
+            <button id="btn-new-scene" class="btn btn-icon">+ NEW</button>
+            <button id="btn-save-to-scene" class="btn btn-icon">◼ SAVE</button>
+        </div>
+    </div>
+
+    <div id="main-area">
+
+        <!-- LEFT: ORCHESTRATOR -->
+        <div id="orchestrator-panel">
+            <div id="grid-container">
+                <div id="grid-wrapper">
+                    <div id="grid-view"></div>
+                </div>
+                <div id="grid-tools">
+                    <span id="grid-status">SYSTEM READY</span>
+                    <span style="font-size:9px; opacity:0.6;">LEFT: PAINT // RIGHT: CLEAR</span>
+                </div>
+            </div>
+
+            <div id="footer">
+                <button id="btn-wipe" class="btn">Wipe</button>
+                <button id="btn-analyze" class="btn">Analyze</button>
+                <div style="flex:1"></div>
+                <button id="btn-view" class="btn">Source</button>
+                <button id="btn-build" class="btn btn-primary">BUILD SCENE</button>
+            </div>
+        </div>
+
+        <!-- RIGHT: TABS -->
+        <div id="right-panel">
+            <div class="tabs">
+                <div id="tab-catalog" class="tab-btn active" onclick="switchTab('catalog')">CATALOG</div>
+                <div id="tab-palette" class="tab-btn" onclick="switchTab('palette')">PALETTE</div>
+                <div id="tab-futures" class="tab-btn" onclick="switchTab('futures')">FUTURES</div>
+                <div id="tab-monitor" class="tab-btn" onclick="switchTab('monitor')">MONITOR</div>
+            </div>
+
+            <!-- CATALOG PANEL -->
+            <div id="catalog-panel" class="panel-content" style="display:block">
+                <input type="text" id="search-box" placeholder="Search parts..." onkeyup="filterCatalog()">
+                <div id="catalog-list"></div>
+            </div>
+
+            <!-- PALETTE PANEL -->
+            <div id="palette-panel" class="panel-content" style="display:none">
+                <div style="padding:10px; font-size:11px; color:#666; border-bottom:1px solid var(--border)">
+                    ACTIVE STREAM // CLICK TO PAINT
+                </div>
+                <div id="palette-list"></div>
+            </div>
+
+            <!-- FUTURES PANEL -->
+            <div id="futures-panel" class="panel-content" style="display:none">
+                <div style="padding:10px; font-size:11px; color:#666; border-bottom:1px solid var(--border)">
+                    SCENARIO SELECTOR // LOAD VOCABULARY
+                </div>
+                <div id="futures-list"></div>
+            </div>
+
+            <!-- MONITOR PANEL -->
+            <div id="monitor-panel" class="panel-content" style="display:none">
+                <div id="monitor-log"></div>
+            </div>
+        </div>
+
+    </div>
+
+    <!-- OVERLAY -->
+    <div id="overlay">
+        <div id="overlay-box">
+            <div style="color:var(--accent); font-weight:bold;">MPD SOURCE</div>
+            <textarea id="overlay-text" spellcheck="false"></textarea>
+            <div style="display:flex; justify-content:flex-end; gap:10px;">
+                <button id="btn-close-overlay" class="btn">Close</button>
+                <button id="btn-send-text" class="btn btn-primary">Send to Grace</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- FRANK BASE INTEGRATION ---
+        let frank; // FrankBase instance
+        const inbox = []; // Legacy inbox
+        let grid = []; // Legacy grid
+        let partsDB = {};
+        let selectedInboxId = null;
+
+        // --- DOM REFERENCES ---
+        const dom = {
+            grid: document.getElementById('grid-view'),
+            status: document.getElementById('grid-status'),
+            palette: document.getElementById('palette-list'),
+            catalog: document.getElementById('catalog-list'),
+            futures: document.getElementById('futures-list'),
+            monitor: document.getElementById('monitor-log'),
+            overlay: document.getElementById('overlay'),
+            overlayText: document.getElementById('overlay-text'),
+            busLight: document.getElementById('bus-light'),
+            sceneSelect: document.getElementById('scene-select')
+        };
+
+        // --- INIT ---
+        async function init() {
+            // Initialize FrankBase
+            frank = new FrankBase('unified');
+
+            // Override hooks
+            frank.onSceneLoad = onSceneLoad;
+            frank.onSceneSwitch = onSceneSwitch;
+            frank.onInboxUpdate = onInboxUpdate;
+
+            // Sync legacy arrays
+            grid = frank.grid;
+
+            setupGrid();
+            setupUI();
+            setupSceneUI();
+            renderSceneSelector();
+            await loadPartsDB();
+            renderFutures();
+
+            // Frank sets up bus automatically
+            if (frank.messageHandler.bus) {
+                dom.busLight.classList.add('online');
+            }
+
+            // Load active scene
+            frank.loadActiveScene();
+            updateGridFromFrank();
+        }
+        init();
+
+        // Scene hooks
+        function onSceneLoad(scene) {
+            updateGridFromFrank();
+            updatePaletteFromFrank();
+            logMonitor('LOAD', `Scene loaded: ${scene.name}`);
+        }
+
+        function onSceneSwitch(sceneId) {
+            const scene = frank.sceneManager.getScene(sceneId);
+            updateGridFromFrank();
+            updatePaletteFromFrank();
+            logMonitor('SWITCH', `Switched to: ${scene.name}`);
+        }
+
+        function onInboxUpdate(packet) {
+            inbox.push(packet);
+            renderPaletteItem(packet);
+            logMonitor('RECV', `${packet.kind} from ${packet.source}`);
+        }
+
+        // Update grid from Frank
+        function updateGridFromFrank() {
+            frank.grid.forEach((cell, i) => {
+                const div = dom.grid.children[i];
+                if (cell.occupantId) {
+                    const packet = inbox.find(p => p.id === cell.occupantId);
+                    if (packet) {
+                        div.classList.add('occupied');
+                        div.style.setProperty('--item-color', packet.color || frank.getColorFromString(packet.id));
+                    }
+                } else {
+                    div.classList.remove('occupied');
+                    div.style.removeProperty('--item-color');
+                }
+            });
+        }
+
+        // Update palette from Frank
+        function updatePaletteFromFrank() {
+            if (!dom.palette) return;
+            dom.palette.innerHTML = '';
+            frank.inbox.forEach(p => {
+                if (!inbox.find(existing => existing.id === p.id)) {
+                    inbox.push(p);
+                }
+                renderPaletteItem(p);
+            });
+        }
+
+        // --- TABS ---
+        window.switchTab = function (tabName) {
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+
+            // Find button by text content is tricky, let's assume order or add IDs. 
+            // Simpler: just use the onclick logic to set classes.
+            const btn = Array.from(document.querySelectorAll('.tab-btn')).find(b => b.textContent.toLowerCase() === tabName);
+            if (btn) btn.classList.add('active');
+
+            document.getElementById(`tab-${tabName}`).classList.add('active');
+        }
+
+        // --- 1. CATALOG LOGIC ---
+        async function loadPartsDB() {
+            try {
+                const res = await fetch('wag-viewer-prime-integration-20251112-055341-copy/all-parts-descriptors.json');
+                partsDB = await res.json();
+                renderCatalog(Object.keys(partsDB).slice(0, 100));
+            } catch (e) {
+                dom.catalog.innerHTML = '<div style="padding:10px; color:red;">Error loading parts DB.</div>';
+            }
+        }
+
+        function renderCatalog(partIds) {
+            dom.catalog.innerHTML = '';
+
+            // Grouping Logic
+            const groups = { 'Bricks': [], 'Plates': [], 'Technic': [], 'Other': [] };
+
+            partIds.forEach(id => {
+                const part = partsDB[id];
+                if (!part) return;
+
+                let cat = 'Other';
+                if (part.category) {
+                    if (part.category.includes('Brick')) cat = 'Bricks';
+                    else if (part.category.includes('Plate')) cat = 'Plates';
+                    else if (part.category.includes('Technic')) cat = 'Technic';
+                } else if (part.description) {
+                    if (part.description.includes('Brick')) cat = 'Bricks';
+                    else if (part.description.includes('Plate')) cat = 'Plates';
+                }
+                groups[cat].push({ id, part });
+            });
+
+            // Render Groups
+            Object.keys(groups).forEach(cat => {
+                if (groups[cat].length === 0) return;
+
+                const header = document.createElement('div');
+                header.className = 'catalog-group-header';
+                header.textContent = cat.toUpperCase();
+                dom.catalog.appendChild(header);
+
+                groups[cat].forEach(item => {
+                    const div = document.createElement('div');
+                    div.className = 'catalog-item';
+                    div.innerHTML = `
+              <div class="item-icon">${cat === 'Bricks' ? '🧱' : (cat === 'Plates' ? '🟢' : '📦')}</div>
+              <div class="item-info">
+                <div class="item-name">${item.part.description || 'Unknown'}</div>
+                <div class="item-id">${item.id}</div>
+              </div>
+              <div style="font-size:16px; color:#444;">+</div>
+            `;
+                    div.addEventListener('click', () => addToPalette(item.id, item.part));
+                    dom.catalog.appendChild(div);
+                });
+            });
+        }
+
+        dom.search.addEventListener('input', (e) => {
+            const q = e.target.value.toLowerCase();
+            if (q.length < 2) return;
+            const matches = Object.keys(partsDB).filter(id => {
+                const p = partsDB[id];
+                return id.includes(q) || (p.description && p.description.toLowerCase().includes(q));
+            }).slice(0, 50);
+            renderCatalog(matches);
+        });
+
+        function addToPalette(id, part) {
+            const packet = {
+                id: 'local-' + Date.now() + Math.random(),
+                kind: 'part-mpd',
+                ts: Date.now(),
+                payload: {
+                    name: part.description || `Part ${id}`,
+                    mpdLines: [`1 4 0 0 0 1 0 0 0 1 0 0 0 1 ${id}.dat`]
+                },
+                source: 'CATALOG'
+            };
+            processPacket(packet);
+            selectMessage(packet.id);
+            switchTab('palette'); // Auto-switch to palette
+        }
+
+        // --- 2. ORCHESTRATOR LOGIC ---
+        function setupGrid() {
+            dom.grid.innerHTML = '';
+            for (let i = 0; i < 81; i++) {
+                const cell = { id: i, label: `${String.fromCharCode(65 + Math.floor(i / 9))}${i % 9 + 1}`, occupantId: null, row: Math.floor(i / 9), col: i % 9 };
+                grid.push(cell);
+
+                const div = document.createElement('div');
+                div.className = 'cell';
+                div.innerHTML = `<span class="cell-label">${cell.label}</span>`;
+
+                div.addEventListener('mousedown', (e) => {
+                    if (e.button === 0) onCellClick(i);
+                });
+                div.addEventListener('contextmenu', (e) => {
+                    e.preventDefault();
+                    clearCell(i);
+                });
+
+                dom.grid.appendChild(div);
+            }
+        }
+
+        function onCellClick(idx) {
+            const cell = grid[idx];
+            if (selectedInboxId) {
+                assignToCell(idx, selectedInboxId);
+            } else if (cell.occupantId) {
+                selectMessage(cell.occupantId, true);
+            }
+        }
+
+        function assignToCell(idx, packetId) {
+            const cell = grid[idx];
+            const packet = inbox.find(p => p.id === packetId);
+            if (!packet) return;
+
+            // Use Frank's method for persistence
+            frank.assignToCell(idx, packetId);
+
+            const div = dom.grid.children[idx];
+            div.classList.add('occupied');
+            div.style.setProperty('--item-color', packet.color || frank.getColorFromString(packet.id));
+
+            dom.status.innerHTML = `PAINTED <span style="color:${packet.color}">${packet.payload.name}</span> ON ${cell.label}`;
+            updateUsageCounts();
+        }
+
+        function clearCell(idx) {
+            const cell = grid[idx];
+            if (!cell.occupantId) return;
+
+            // Use Frank's method for persistence
+            frank.clearCell(idx);
+
+            const div = dom.grid.children[idx];
+            div.classList.remove('occupied');
+            div.style.removeProperty('--item-color');
+            updateUsageCounts();
+        }
+
+        function updateUsageCounts() {
+            const counts = {};
+            grid.forEach(c => { if (c.occupantId) counts[c.occupantId] = (counts[c.occupantId] || 0) + 1; });
+            inbox.forEach(p => {
+                const el = document.getElementById(`pill-${p.id}`);
+                if (el) {
+                    el.textContent = `x${counts[p.id] || 0}`;
+                    if (counts[p.id]) el.classList.add('active'); else el.classList.remove('active');
+                }
+            });
+        }
+
+        // Scene UI functions
+        function renderSceneSelector() {
+            const scenes = frank.sceneManager.listScenes();
+            const activeSceneId = frank.sceneManager.activeSceneId;
+
+            dom.sceneSelect.innerHTML = '<option value="">Select scene...</option>';
+
+            scenes.forEach(scene => {
+                const option = document.createElement('option');
+                option.value = scene.id;
+                option.textContent = scene.name;
+                if (scene.id === activeSceneId) option.selected = true;
+                dom.sceneSelect.appendChild(option);
+            });
+        }
+
+        function setupSceneUI() {
+            dom.sceneSelect.addEventListener('change', (e) => {
+                if (e.target.value) frank.switchScene(e.target.value);
+            });
+
+            document.getElementById('btn-new-scene').addEventListener('click', () => {
+                const name = prompt('Enter scene name:', `Scene ${frank.sceneManager.getSceneCount() + 1}`);
+                if (name) {
+                    const scene = frank.sceneManager.createScene(name);
+                    frank.switchScene(scene.id);
+                    renderSceneSelector();
+                }
+            });
+
+            document.getElementById('btn-save-to-scene').addEventListener('click', () => {
+                frank.saveActiveScene();
+                const scene = frank.sceneManager.getActiveScene();
+                logMonitor('SAVE', `Saved to: ${scene.name}`);
+            });
+        }
+
+        // Monitor logging
+        function logMonitor(kind, message) {
+            if (!dom.monitor) return;
+            const ts = new Date().toLocaleTimeString();
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            div.innerHTML = `<span class="log-ts">${ts}</span> <span class="log-kind">${kind}</span>: ${message}`;
+            dom.monitor.appendChild(div);
+            dom.monitor.scrollTop = dom.monitor.scrollHeight;
+        }
+
+        // Render palette item (stub - implement based on existing code)
+        function renderPaletteItem(packet) {
+            // This would render to the palette list - implementation depends on existing UI
+        }
+
+        // --- 4. STREAM & BUS ---
+        function setupBus() {
+            if (bus) {
+                dom.busLight.classList.add('online');
+                bus.onmessage = (e) => {
+                    logMonitor(e.data);
+                    if (e.data && e.data.kind) processPacket({
+                        id: 'msg-' + Date.now() + Math.random(),
+                        kind: e.data.kind,
+                        ts: Date.now(),
+                        payload: e.data.payload || {},
+                        source: 'BUS'
+                    });
+                };
+            }
+        }
+
+        function logMonitor(data) {
+            const div = document.createElement('div');
+            div.className = 'log-entry';
+            const ts = new Date().toLocaleTimeString();
+            div.innerHTML = `<span class="log-ts">[${ts}]</span> <span class="log-kind">${data.kind || 'UNKNOWN'}</span> ${JSON.stringify(data.payload || {}).substring(0, 50)}...`;
+            dom.monitor.appendChild(div);
+            dom.monitor.scrollTop = dom.monitor.scrollHeight;
+        }
+
+        function processPacket(packet) {
+            packet.color = `hsl(${Math.abs(packet.id.split('').reduce((a, c) => a + c.charCodeAt(0), 0) % 360)}, 85%, 60%)`;
+            inbox.push(packet);
+
+            const div = document.createElement('div');
+            div.className = 'msg';
+            div.id = `msg-${packet.id}`;
+            div.style.setProperty('--item-color', packet.color);
+            div.innerHTML = `
+        <div style="display:flex; justify-content:space-between; font-size:9px; color:#666;">
+          <span>${packet.source}</span>
+          <span class="usage-pill" id="pill-${packet.id}">x0</span>
+        </div>
+        <div style="font-weight:bold; margin-top:2px;">${packet.payload.name}</div>
+      `;
+            div.addEventListener('click', () => selectMessage(packet.id));
+            dom.stream.appendChild(div);
+            dom.stream.scrollTop = dom.stream.scrollHeight;
+        }
+
+        function selectMessage(id, scrollTo = false) {
+            selectedInboxId = id;
+            dom.stream.querySelectorAll('.msg').forEach(m => m.classList.remove('selected'));
+            const el = document.getElementById(`msg-${id}`);
+            if (el) {
+                el.classList.add('selected');
+                if (scrollTo) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }
+
+            // Highlight Grid
+            const cells = dom.grid.querySelectorAll('.cell');
+            cells.forEach(c => c.classList.remove('highlight-group'));
+            grid.forEach((c, i) => { if (c.occupantId === id) cells[i].classList.add('highlight-group'); });
+
+            const p = inbox.find(x => x.id === id);
+            if (p) dom.status.innerHTML = `SELECTED: <span style="color:${p.color}">${p.payload.name}</span> // PAINT MODE ACTIVE`;
+        }
+
+        // --- 5. EXPORT & ANALYZE ---
+        function setupUI() {
+            document.getElementById('btn-wipe').addEventListener('click', () => {
+                grid.forEach(c => c.occupantId = null);
+                Array.from(dom.grid.children).forEach(c => { c.classList.remove('occupied', 'highlight-group'); c.style.removeProperty('--item-color'); });
+                updateUsageCounts();
+                saveState();
+            });
+            document.getElementById('btn-view').addEventListener('click', () => {
+                dom.overlayText.value = compose() || '// GRID EMPTY';
+                dom.overlay.classList.add('active');
+            });
+            document.getElementById('btn-close-overlay').addEventListener('click', () => dom.overlay.classList.remove('active'));
+            document.getElementById('btn-build').addEventListener('click', () => {
+                const txt = compose();
+                if (txt && bus) bus.postMessage({ kind: 'scene-mpd', source: 'wag-frank', ts: Date.now(), payload: { name: 'UNIFIED SCENE', mpdLines: txt.split('\n'), mode: 'replace' } });
+            });
+            document.getElementById('btn-analyze').addEventListener('click', () => {
+                if (bus) {
+                    bus.postMessage({ kind: 'tetrad-analyze', source: 'wag-frank-unified', ts: Date.now(), payload: { grid: grid.filter(c => c.occupantId) } });
+                    alert('Sent to Analyzer');
+                }
+            });
+        }
+
+        function compose() {
+            const occupied = grid.filter(c => c.occupantId);
+            if (!occupied.length) return null;
+            const lines = ['0 FILE wag-frank.mpd', '0 Name: WAG FRANK SCENE'];
+            const SPACING = 160;
+            occupied.forEach(cell => {
+                const pack = inbox.find(i => i.id === cell.occupantId);
+                if (!pack) return;
+                const offsetX = (cell.col - 4) * SPACING;
+                const offsetZ = (cell.row - 4) * SPACING;
+                lines.push(`0 // CELL ${cell.label}`);
+                const mpd = pack.payload.mpdLines || [];
+                mpd.forEach(l => {
+                    const t = l.trim();
+                    if (t.startsWith('1 ')) {
+                        const p = t.split(/\s+/);
+                        if (p.length >= 15) {
+                            p[2] = (parseFloat(p[2]) + offsetX).toFixed(3);
+                            p[4] = (parseFloat(p[4]) + offsetZ).toFixed(3);
+                            lines.push(p.join(' '));
+                        } else lines.push(t);
+                    } else lines.push(t);
+                });
+            });
+            return lines.join('\n');
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

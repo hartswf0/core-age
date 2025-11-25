@@ -1,0 +1,574 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>LEGOS 3D // Code Architecture</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --text: #ccc;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            grid-template-rows: 48px 1fr;
+            overflow: hidden;
+        }
+
+        header {
+            grid-column: 1 / -1;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 0 16px;
+            font-size: 10px;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 9px;
+            font-weight: bold;
+            border: none;
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border: none;
+        }
+
+        /* Palette */
+        .palette {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .section-header {
+            color: var(--accent);
+            font-size: 9px;
+            font-weight: bold;
+            margin-bottom: 12px;
+            letter-spacing: 0.1em;
+        }
+
+        .block-btn {
+            width: 100%;
+            padding: 12px;
+            margin-bottom: 8px;
+            background: linear-gradient(135deg, #c44569, #ff6b35);
+            border: none;
+            border-radius: 4px;
+            color: #fff;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+            text-align: left;
+            transition: all 0.2s;
+        }
+
+        .block-btn:hover {
+            transform: translateX(4px);
+            box-shadow: 0 4px 12px rgba(196, 69, 105, 0.4);
+        }
+
+        .block-btn.var {
+            background: linear-gradient(135deg, #4ecdc4, #00ff9d);
+            color: #000;
+        }
+
+        .block-btn.control {
+            background: linear-gradient(135deg, #f7931e, #ff6b35);
+            color: #000;
+        }
+
+        /* 3D Viewport */
+        .viewport {
+            background: #0c0c0c;
+            perspective: 1200px;
+            perspective-origin: 50% 50%;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .scene {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform-style: preserve-3d;
+            transform: translateX(-50%) translateY(-50%) rotateX(-20deg) rotateY(12deg);
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .scene.rotating {
+            animation: rotate360 12s linear infinite;
+        }
+
+        @keyframes rotate360 {
+            from {
+                transform: translateX(-50%) translateY(-50%) rotateX(-20deg) rotateY(0deg);
+            }
+
+            to {
+                transform: translateX(-50%) translateY(-50%) rotateX(-20deg) rotateY(360deg);
+            }
+        }
+
+        /* 3D Blocks */
+        .block-3d {
+            position: absolute;
+            transform-style: preserve-3d;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .block-3d:hover {
+            transform: scale(1.1) !important;
+            filter: brightness(1.3);
+        }
+
+        .block-3d.tower {
+            width: 80px;
+            height: 150px;
+        }
+
+        .block-3d.molecule {
+            width: 60px;
+            height: 60px;
+        }
+
+        .block-3d.atom {
+            width: 40px;
+            height: 40px;
+        }
+
+        /* Cube faces */
+        .face {
+            position: absolute;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            backface-visibility: hidden;
+        }
+
+        /* Tower (function) */
+        .tower .face {
+            width: 80px;
+            height: 150px;
+        }
+
+        .tower .front {
+            background: linear-gradient(180deg, rgba(196, 69, 105, 0.9), rgba(196, 69, 105, 0.6));
+            transform: translateZ(40px);
+        }
+
+        .tower .back {
+            background: linear-gradient(180deg, rgba(196, 69, 105, 0.6), rgba(196, 69, 105, 0.4));
+            transform: translateZ(-40px) rotateY(180deg);
+        }
+
+        .tower .left {
+            width: 80px;
+            background: linear-gradient(180deg, rgba(196, 69, 105, 0.7), rgba(196, 69, 105, 0.5));
+            transform: rotateY(-90deg) translateZ(40px);
+        }
+
+        .tower .right {
+            width: 80px;
+            background: linear-gradient(180deg, rgba(196, 69, 105, 0.7), rgba(196, 69, 105, 0.5));
+            transform: rotateY(90deg) translateZ(40px);
+        }
+
+        .tower .top {
+            width: 80px;
+            height: 80px;
+            background: rgba(196, 69, 105, 1);
+            transform: rotateX(90deg) translateZ(150px);
+        }
+
+        .tower .bottom {
+            width: 80px;
+            height: 80px;
+            background: rgba(196, 69, 105, 0.4);
+            transform: rotateX(-90deg) translateZ(0px);
+        }
+
+        /* Molecule (group) */
+        .molecule .face {
+            width: 60px;
+            height: 60px;
+        }
+
+        .molecule .front {
+            background: rgba(78, 205, 196, 0.9);
+            transform: translateZ(30px);
+        }
+
+        .molecule .back {
+            background: rgba(78, 205, 196, 0.6);
+            transform: translateZ(-30px) rotateY(180deg);
+        }
+
+        .molecule .left {
+            background: rgba(78, 205, 196, 0.7);
+            transform: rotateY(-90deg) translateZ(30px);
+        }
+
+        .molecule .right {
+            background: rgba(78, 205, 196, 0.7);
+            transform: rotateY(90deg) translateZ(30px);
+        }
+
+        .molecule .top {
+            background: rgba(78, 205, 196, 1);
+            transform: rotateX(90deg) translateZ(30px);
+        }
+
+        .molecule .bottom {
+            background: rgba(78, 205, 196, 0.5);
+            transform: rotateX(-90deg) translateZ(-30px);
+        }
+
+        /* Atom (single block) */
+        .atom .face {
+            width: 40px;
+            height: 40px;
+        }
+
+        .atom .front {
+            background: rgba(0, 255, 157, 0.9);
+            transform: translateZ(20px);
+        }
+
+        .atom .back {
+            background: rgba(0, 255, 157, 0.6);
+            transform: translateZ(-20px) rotateY(180deg);
+        }
+
+        .atom .left {
+            background: rgba(0, 255, 157, 0.7);
+            transform: rotateY(-90deg) translateZ(20px);
+        }
+
+        .atom .right {
+            background: rgba(0, 255, 157, 0.7);
+            transform: rotateY(90deg) translateZ(20px);
+        }
+
+        .atom .top {
+            background: rgba(0, 255, 157, 1);
+            transform: rotateX(90deg) translateZ(20px);
+        }
+
+        .atom .bottom {
+            background: rgba(0, 255, 157, 0.5);
+            transform: rotateX(-90deg) translateZ(-20px);
+        }
+
+        /* Labels */
+        .block-label {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            font-size: 10px;
+            font-weight: bold;
+            text-shadow: 0 0 4px rgba(0, 0, 0, 0.8);
+            pointer-events: none;
+            white-space: nowrap;
+        }
+
+        /* Connections */
+        .connection-line {
+            position: absolute;
+            height: 2px;
+            background: linear-gradient(90deg, transparent, var(--accent), transparent);
+            transform-origin: left center;
+            pointer-events: none;
+            opacity: 0.5;
+        }
+
+        /* Controls */
+        .controls {
+            position: absolute;
+            bottom: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            background: rgba(0, 0, 0, 0.8);
+            padding: 12px;
+            border-radius: 8px;
+            border: 1px solid var(--border);
+        }
+
+        .control-btn {
+            padding: 8px 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+            font-weight: bold;
+        }
+
+        .control-btn:hover {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .control-btn.active {
+            background: var(--accent);
+            color: #000;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">LEGOS 3D // Code Architecture</div>
+        <button class="btn" onclick="toggleRotation()">🔄 ROTATE</button>
+        <button class="btn" onclick="resetView()">⟲ RESET VIEW</button>
+        <button class="btn btn-primary" onclick="buildExample()" style="margin-left: auto;">🏗️ BUILD EXAMPLE</button>
+    </header>
+
+    <div class="palette">
+        <div class="section-header">🏗️ BUILD BLOCKS</div>
+        <button class="block-btn" onclick="addBlock('tower', 'myFunction')">
+            <div>🏛️ TOWER</div>
+            <div style="font-size: 8px; opacity: 0.7;">Function/Module</div>
+        </button>
+        <button class="block-btn var" onclick="addBlock('molecule', 'dataGroup')">
+            <div>🔷 MOLECULE</div>
+            <div style="font-size: 8px; opacity: 0.7;">Block Group</div>
+        </button>
+        <button class="block-btn control" onclick="addBlock('atom', 'singleBlock')">
+            <div>⚛️ ATOM</div>
+            <div style="font-size: 8px; opacity: 0.7;">Single Block</div>
+        </button>
+    </div>
+
+    <div class="viewport" id="viewport">
+        <div class="scene" id="scene">
+            <!-- 3D blocks will be added here -->
+        </div>
+
+        <div class="controls">
+            <button class="control-btn" onclick="changeView('front')">FRONT</button>
+            <button class="control-btn" onclick="changeView('top')">TOP</button>
+            <button class="control-btn" onclick="changeView('iso')">ISO</button>
+        </div>
+    </div>
+
+    <script>
+        let blockCount = 0;
+        let rotating = false;
+        const scene = document.getElementById('scene');
+        const viewport = document.getElementById('viewport');
+
+        // Mouse drag to rotate
+        let isDragging = false;
+        let startX, startY, currentRotY = 12, currentRotX = -20;
+
+        viewport.addEventListener('mousedown', e => {
+            isDragging = true;
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        viewport.addEventListener('mousemove', e => {
+            if (!isDragging) return;
+            const deltaX = e.clientX - startX;
+            const deltaY = e.clientY - startY;
+            currentRotY += deltaX * 0.5;
+            currentRotX -= deltaY * 0.5;
+            updateSceneRotation();
+            startX = e.clientX;
+            startY = e.clientY;
+        });
+
+        viewport.addEventListener('mouseup', () => isDragging = false);
+        viewport.addEventListener('mouseleave', () => isDragging = false);
+
+        function updateSceneRotation() {
+            scene.style.transform = `translateX(-50%) translateY(-50%) rotateX(${currentRotX}deg) rotateY(${currentRotY}deg)`;
+        }
+
+        function addBlock(type, name) {
+            blockCount++;
+            const block = document.createElement('div');
+            block.className = `block-3d ${type}`;
+
+            // Position in spiral
+            const angle = blockCount * 0.8;
+            const radius = 120 + (blockCount % 5) * 60;
+            const x = Math.cos(angle) * radius;
+            const z = Math.sin(angle) * radius;
+            const y = -blockCount * 30;
+
+            block.style.transform = `translate3d(${x}px, ${y}px, ${z}px)`;
+
+            // Create cube faces
+            const faces = ['front', 'back', 'left', 'right', 'top', 'bottom'];
+            faces.forEach(face => {
+                const div = document.createElement('div');
+                div.className = `face ${face}`;
+                block.appendChild(div);
+            });
+
+            // Add label on front face
+            const label = document.createElement('div');
+            label.className = 'block-label';
+            label.textContent = `${name}_${blockCount}`;
+            block.querySelector('.front').appendChild(label);
+
+            scene.appendChild(block);
+        }
+
+        function toggleRotation() {
+            rotating = !rotating;
+            if (rotating) {
+                scene.classList.add('rotating');
+            } else {
+                scene.classList.remove('rotating');
+            }
+        }
+
+        function resetView() {
+            currentRotX = -20;
+            currentRotY = 12;
+            updateSceneRotation();
+        }
+
+        function changeView(view) {
+            scene.classList.remove('rotating');
+            rotating = false;
+
+            switch (view) {
+                case 'front':
+                    currentRotX = 0;
+                    currentRotY = 0;
+                    break;
+                case 'top':
+                    currentRotX = -90;
+                    currentRotY = 0;
+                    break;
+                case 'iso':
+                    currentRotX = -20;
+                    currentRotY = 45;
+                    break;
+            }
+            updateSceneRotation();
+        }
+
+        function buildExample() {
+            // Clear existing
+            scene.innerHTML = '';
+            blockCount = 0;
+
+            // Build a code tower structure
+            // Base: atoms
+            for (let i = 0; i < 4; i++) {
+                setTimeout(() => addBlock('atom', 'var'), i * 200);
+            }
+
+            // Middle: molecules
+            setTimeout(() => {
+                for (let i = 0; i < 3; i++) {
+                    setTimeout(() => addBlock('molecule', 'group'), i * 200);
+                }
+            }, 1000);
+
+            // Top: towers (functions)
+            setTimeout(() => {
+                for (let i = 0; i < 2; i++) {
+                    setTimeout(() => addBlock('tower', 'func'), i * 200);
+                }
+            }, 2000);
+        }
+
+        // AUTO-MAPPER INTEGRATION
+        async function loadAndMap() {
+            try {
+                const response = await fetch('/wag-frank-tetrad-inception.html');
+                const text = await response.text();
+
+                // Extract JavaScript
+                const scriptMatch = text.match(/<script>([\s\S]*?)<\/script>/);
+                if (!scriptMatch) {
+                    alert('Could not find JavaScript');
+                    return;
+                }
+
+                const code = scriptMatch[1];
+
+                // Parse code
+                const functions = [];
+                const functionRegex = /function\s+([a-zA-Z_$][a-zA-Z0-9_$]*)\s*\(/g;
+                let match;
+                while ((match = functionRegex.exec(code)) !== null) {
+                    functions.push(match[1]);
+                }
+
+                // Clear and rebuild in 3D
+                scene.innerHTML = '';
+                blockCount = 0;
+
+                // Build towers for first 20 functions
+                functions.slice(0, 20).forEach((name, i) => {
+                    setTimeout(() => {
+                        addBlock('tower', name);
+                    }, i * 100);
+                });
+
+                alert(`Loaded ${functions.length} functions! Showing first 20 as towers.`);
+
+            } catch (e) {
+                alert('Error: ' + e.message);
+            }
+        }
+
+        // Add button click handler
+        const buildBtn = document.querySelector('[onclick="buildExample()"]');
+        if (buildBtn) {
+            buildBtn.onclick = loadAndMap;
+            buildBtn.innerHTML = '🏗️ BUILD FROM WAG-FRANK';
+        }
+
+        // Build initial example
+        buildExample();
+    </script>
+</body>
+
+</html>
+```

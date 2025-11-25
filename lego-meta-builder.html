@@ -1,0 +1,849 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>META-LEGOS // Self-Building Code Language</title>
+    <style>
+        :root {
+            --bg: #080808;
+            --panel: #111;
+            --border: #333;
+            --accent: #00ff9d;
+            --secondary: #0088ff;
+            --text: #ccc;
+            --text-dim: #666;
+
+            /* Primitive block colors */
+            --cell: #4ecdc4;
+            --flow: #f7931e;
+            --decision: #ff6b35;
+            --repeat: #c44569;
+            --meta: #00ff9d;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            display: grid;
+            grid-template-columns: 220px 1fr 350px;
+            grid-template-rows: 48px 1fr;
+            overflow: hidden;
+        }
+
+        /* Header spanning all columns */
+        header {
+            grid-column: 1 / -1;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            padding: 0 16px;
+            font-size: 11px;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: bold;
+            letter-spacing: 0.05em;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 10px;
+            font-weight: bold;
+            border: none;
+            letter-spacing: 0.05em;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+        }
+
+        .btn-primary:hover {
+            background: #00ffaa;
+            transform: scale(1.05);
+        }
+
+        .btn-secondary {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+        }
+
+        .btn-secondary:hover {
+            background: #1a1a1a;
+        }
+
+        .btn-meta {
+            background: var(--meta);
+            color: #000;
+            margin-left: auto;
+        }
+
+        /* Palette Panel */
+        .palette {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            overflow-y: auto;
+            padding: 16px;
+        }
+
+        .palette-section {
+            margin-bottom: 24px;
+        }
+
+        .palette-header {
+            color: var(--accent);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            margin-bottom: 12px;
+            padding-bottom: 6px;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .block-template {
+            padding: 12px;
+            margin-bottom: 8px;
+            border-radius: 4px;
+            cursor: grab;
+            font-size: 10px;
+            font-weight: 600;
+            text-align: center;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+            user-select: none;
+            position: relative;
+        }
+
+        .block-template:hover {
+            transform: translateX(4px);
+            border-color: rgba(255, 255, 255, 0.3);
+        }
+
+        .block-template:active {
+            cursor: grabbing;
+        }
+
+        .block-template.cell {
+            background: var(--cell);
+            color: #000;
+        }
+
+        .block-template.flow {
+            background: var(--flow);
+            color: #000;
+        }
+
+        .block-template.decision {
+            background: var(--decision);
+            color: #fff;
+        }
+
+        .block-template.repeat {
+            background: var(--repeat);
+            color: #fff;
+        }
+
+        .block-template.meta {
+            background: var(--meta);
+            color: #000;
+        }
+
+        .block-template.custom {
+            background: linear-gradient(135deg, var(--secondary), var(--accent));
+            color: #000;
+        }
+
+        .block-count {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            font-size: 8px;
+            opacity: 0.6;
+        }
+
+        /* Grid Workspace */
+        .workspace {
+            background: #0c0c0c;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            overflow: auto;
+        }
+
+        .grid-controls {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 16px;
+            align-items: center;
+        }
+
+        .grid-controls label {
+            font-size: 10px;
+            color: var(--text-dim);
+        }
+
+        .construction-grid {
+            display: grid;
+            grid-template-columns: repeat(12, 70px);
+            grid-template-rows: repeat(12, 70px);
+            gap: 2px;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            position: relative;
+            transition: all 0.1s;
+        }
+
+        .grid-cell.drop-target {
+            background: rgba(0, 255, 157, 0.1);
+            border-color: var(--accent);
+        }
+
+        .grid-cell.selected {
+            background: rgba(0, 136, 255, 0.2);
+            border-color: var(--secondary);
+            box-shadow: inset 0 0 0 2px var(--secondary);
+        }
+
+        .grid-cell.executing {
+            animation: pulse 0.5s ease-in-out;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+                box-shadow: 0 0 20px var(--accent);
+            }
+        }
+
+        /* Placed Blocks */
+        .placed-block {
+            width: 100%;
+            height: 100%;
+            border-radius: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 9px;
+            font-weight: 600;
+            padding: 4px;
+            cursor: pointer;
+            position: relative;
+        }
+
+        .placed-block .block-icon {
+            font-size: 16px;
+            margin-bottom: 4px;
+        }
+
+        .placed-block .block-name {
+            font-size: 8px;
+            opacity: 0.8;
+        }
+
+        .placed-block .remove-btn {
+            position: absolute;
+            top: 2px;
+            right: 2px;
+            width: 16px;
+            height: 16px;
+            background: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 11px;
+            color: #fff;
+        }
+
+        .placed-block:hover .remove-btn {
+            display: flex;
+        }
+
+        /* Execution Actor */
+        .actor {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: var(--accent);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            pointer-events: none;
+            z-index: 100;
+            transition: all 0.3s ease-in-out;
+            box-shadow: 0 0 10px var(--accent);
+        }
+
+        /* Analysis Panel */
+        .analysis-panel {
+            background: #050505;
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .panel-header {
+            padding: 12px 16px;
+            background: #111;
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.05em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .panel-header.legos {
+            color: var(--accent);
+        }
+
+        .panel-header.tetrad {
+            color: var(--secondary);
+        }
+
+        .panel-content {
+            flex: 1;
+            padding: 16px;
+            font-size: 10px;
+            line-height: 1.6;
+            overflow-y: auto;
+        }
+
+        .legos-section {
+            margin-bottom: 16px;
+        }
+
+        .legos-section-header {
+            font-weight: bold;
+            color: var(--accent);
+            margin-bottom: 6px;
+            font-size: 9px;
+            letter-spacing: 0.05em;
+        }
+
+        .legos-item {
+            padding: 6px 0;
+            color: var(--text-dim);
+            font-size: 9px;
+            border-left: 2px solid transparent;
+            padding-left: 8px;
+        }
+
+        .legos-item:hover {
+            border-left-color: var(--accent);
+            color: var(--text);
+        }
+
+        .output-section {
+            height: 200px;
+            background: #000;
+            border-top: 1px solid var(--border);
+            padding: 12px;
+            overflow-y: auto;
+            font-size: 9px;
+        }
+
+        .output-line {
+            margin: 2px 0;
+            color: var(--text-dim);
+        }
+
+        .output-line.success {
+            color: var(--accent);
+        }
+
+        .output-line.error {
+            color: #ff6b6b;
+        }
+
+        .output-line.info {
+            color: var(--secondary);
+        }
+
+        /* Selection rectangle */
+        .selection-rect {
+            position: absolute;
+            border: 2px dashed var(--secondary);
+            background: rgba(0, 136, 255, 0.1);
+            pointer-events: none;
+            z-index: 50;
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="brand">META-LEGOS // Self-Building Language</div>
+        <button class="btn btn-secondary" onclick="clearGrid()">CLEAR</button>
+        <button class="btn btn-secondary" onclick="toggleSelection()">
+            <span id="selection-mode-text">SELECT MODE</span>
+        </button>
+        <button class="btn btn-meta" onclick="defineBlock()" id="define-btn" disabled>
+            📦 DEFINE BLOCK
+        </button>
+        <button class="btn btn-primary" onclick="executeCode()">▶ EXECUTE</button>
+    </header>
+
+    <!-- Palette -->
+    <div class="palette">
+        <div class="palette-section">
+            <div class="palette-header">🔹 PRIMITIVES</div>
+            <div class="block-template cell" draggable="true" data-type="cell" data-primitive="true">
+                <div>💾</div>
+                <div>CELL</div>
+            </div>
+            <div class="block-template flow" draggable="true" data-type="flow" data-primitive="true">
+                <div>→</div>
+                <div>FLOW</div>
+            </div>
+            <div class="block-template decision" draggable="true" data-type="decision" data-primitive="true">
+                <div>◇</div>
+                <div>DECISION</div>
+            </div>
+            <div class="block-template repeat" draggable="true" data-type="repeat" data-primitive="true">
+                <div>⟲</div>
+                <div>REPEAT</div>
+            </div>
+            <div class="block-template meta" draggable="true" data-type="meta" data-primitive="true">
+                <div>✨</div>
+                <div>META</div>
+            </div>
+        </div>
+
+        <div class="palette-section" id="custom-blocks-section" style="display: none;">
+            <div class="palette-header">⚡ CUSTOM BLOCKS</div>
+            <div id="custom-blocks-container"></div>
+        </div>
+    </div>
+
+    <!-- Workspace -->
+    <div class="workspace">
+        <div class="grid-controls">
+            <label>
+                <input type="checkbox" id="show-actor" checked> Show Actor
+            </label>
+            <label style="margin-left: 16px;">Speed: </label>
+            <input type="range" id="speed-slider" min="1" max="10" value="5" style="width: 100px;">
+        </div>
+        <div class="construction-grid" id="grid"></div>
+        <div id="actor" class="actor" style="display: none;">🤖</div>
+    </div>
+
+    <!-- Analysis Panel -->
+    <div class="analysis-panel">
+        <div class="panel-header legos">
+            <span>📖 LEGOS ANALYSIS</span>
+            <button class="btn btn-secondary" style="font-size: 8px; padding: 4px 8px;" onclick="openInTetrad()">
+                OPEN IN TETRAD →
+            </button>
+        </div>
+        <div class="panel-content" id="legos-content">
+            <div class="output-line">Build blocks on the grid to see LEGOS analysis...</div>
+        </div>
+
+        <div class="output-section">
+            <div style="color: var(--secondary); font-weight: bold; margin-bottom: 8px;">► EXECUTION LOG</div>
+            <div id="output-log"></div>
+        </div>
+    </div>
+
+    <script>
+        // === STATE ===
+        const gridState = new Map();
+        const customBlocks = [];
+        let selectionMode = false;
+        let selectedCells = new Set();
+        let selectionStart = null;
+        let executionSpeed = 500;
+
+        // === INIT GRID ===
+        const gridEl = document.getElementById('grid');
+        for (let i = 0; i < 144; i++) {
+            const cell = document.createElement('div');
+            cell.className = 'grid-cell';
+            cell.dataset.index = i;
+
+            cell.addEventListener('dragover', onCellDragOver);
+            cell.addEventListener('drop', onCellDrop);
+            cell.addEventListener('dragleave', onCellDragLeave);
+            cell.addEventListener('click', onCellClick);
+
+            gridEl.appendChild(cell);
+        }
+
+        // === DRAG HANDLERS ===
+        document.querySelectorAll('.block-template').forEach(block => {
+            block.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', e.target.dataset.type);
+            });
+        });
+
+        function onCellDragOver(e) {
+            e.preventDefault();
+            if (!selectionMode) e.currentTarget.classList.add('drop-target');
+        }
+
+        function onCellDragLeave(e) {
+            e.currentTarget.classList.remove('drop-target');
+        }
+
+        function onCellDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('drop-target');
+
+            if (selectionMode) return;
+
+            const index = parseInt(e.currentTarget.dataset.index);
+            const type = e.dataTransfer.getData('text/plain');
+
+            if (!gridState.has(index)) {
+                placeBlock(index, type);
+                analyzeLEGOS();
+            }
+        }
+
+        function onCellClick(e) {
+            if (!selectionMode) return;
+
+            const index = parseInt(e.currentTarget.dataset.index);
+            const cell = e.currentTarget;
+
+            if (selectedCells.has(index)) {
+                selectedCells.delete(index);
+                cell.classList.remove('selected');
+            } else {
+                selectedCells.add(index);
+                cell.classList.add('selected');
+            }
+
+            document.getElementById('define-btn').disabled = selectedCells.size === 0;
+        }
+
+        // === BLOCK PLACEMENT ===
+        function placeBlock(index, type, isCustom = false) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+
+            const icons = {
+                cell: '💾',
+                flow: '→',
+                decision: '◇',
+                repeat: '⟲',
+                meta: '✨'
+            };
+
+            const colors = {
+                cell: 'var(--cell)',
+                flow: 'var(--flow)',
+                decision: 'var(--decision)',
+                repeat: 'var(--repeat)',
+                meta: 'var(--meta)'
+            };
+
+            const block = document.createElement('div');
+            block.className = 'placed-block';
+            block.style.background = isCustom ?
+                'linear-gradient(135deg, var(--secondary), var(--accent))' :
+                colors[type];
+            block.style.color = (type === 'decision' || type === 'repeat') ? '#fff' : '#000';
+
+            block.innerHTML = `
+                <div class="block-icon">${icons[type] || '⚡'}</div>
+                <div class="block-name">${type.toUpperCase()}</div>
+                <div class="remove-btn" onclick="removeBlock(${index})">×</div>
+            `;
+
+            cell.appendChild(block);
+            gridState.set(index, { type, index, isCustom });
+        }
+
+        function removeBlock(index) {
+            const cell = gridEl.querySelector(`[data-index="${index}"]`);
+            cell.innerHTML = '';
+            gridState.delete(index);
+            analyzeLEGOS();
+        }
+
+        function clearGrid() {
+            gridState.clear();
+            selectedCells.clear();
+            document.querySelectorAll('.grid-cell').forEach(cell => {
+                cell.innerHTML = '';
+                cell.classList.remove('selected');
+            });
+            analyzeLEGOS();
+        }
+
+        // === SELECTION MODE ===
+        function toggleSelection() {
+            selectionMode = !selectionMode;
+            document.getElementById('selection-mode-text').textContent =
+                selectionMode ? '✓ SELECTING' : 'SELECT MODE';
+
+            if (!selectionMode) {
+                selectedCells.clear();
+                document.querySelectorAll('.grid-cell').forEach(cell => {
+                    cell.classList.remove('selected');
+                });
+                document.getElementById('define-btn').disabled = true;
+            }
+        }
+
+        // === META-PROGRAMMING: DEFINE NEW BLOCK ===
+        function defineBlock() {
+            if (selectedCells.size === 0) return;
+
+            const name = prompt('Name your new block:');
+            if (!name) return;
+
+            // Extract pattern from selected cells
+            const pattern = Array.from(selectedCells).map(index => ({
+                index,
+                block: gridState.get(index)
+            })).filter(p => p.block);
+
+            if (pattern.length === 0) {
+                alert('No blocks in selection!');
+                return;
+            }
+
+            // Save as custom block
+            customBlocks.push({
+                name,
+                pattern,
+                id: `custom_${Date.now()}`
+            });
+
+            // Add to palette
+            addCustomBlockToPalette(name, pattern.length);
+
+            // Clear selection
+            toggleSelection();
+
+            log(`✨ Created new block: ${name} (${pattern.length} cells)`, 'success');
+        }
+
+        function addCustomBlockToPalette(name, count) {
+            const section = document.getElementById('custom-blocks-section');
+            section.style.display = 'block';
+
+            const container = document.getElementById('custom-blocks-container');
+
+            const blockTemplate = document.createElement('div');
+            blockTemplate.className = 'block-template custom';
+            blockTemplate.draggable = true;
+            blockTemplate.dataset.type = name;
+            blockTemplate.dataset.custom = 'true';
+
+            blockTemplate.innerHTML = `
+                <div>⚡</div>
+                <div>${name.toUpperCase()}</div>
+                <div class="block-count">${count} cells</div>
+            `;
+
+            blockTemplate.addEventListener('dragstart', e => {
+                e.dataTransfer.effectAllowed = 'copy';
+                e.dataTransfer.setData('text/plain', name);
+            });
+
+            container.appendChild(blockTemplate);
+        }
+
+        // === EXECUTION ===
+        async function executeCode() {
+            if (gridState.size === 0) {
+                log('No blocks to execute!', 'error');
+                return;
+            }
+
+            const actor = document.getElementById('actor');
+            const showActor = document.getElementById('show-actor').checked;
+
+            if (showActor) actor.style.display = 'flex';
+
+            clearLog();
+            log('► Execution started...', 'info');
+
+            const blocks = Array.from(gridState.values()).sort((a, b) => a.index - b.index);
+
+            for (let i = 0; i < blocks.length; i++) {
+                const block = blocks[i];
+                const cell = gridEl.querySelector(`[data-index="${block.index}"]`);
+
+                // Move actor
+                if (showActor) {
+                    const rect = cell.getBoundingClientRect();
+                    const gridRect = gridEl.getBoundingClientRect();
+                    actor.style.left = (rect.left - gridRect.left + rect.width / 2 - 10) + 'px';
+                    actor.style.top = (rect.top - gridRect.top + rect.height / 2 - 10) + 'px';
+                }
+
+                // Animate cell
+                cell.classList.add('executing');
+
+                // Execute block
+                await executeBlock(block);
+
+                setTimeout(() => cell.classList.remove('executing'), 500);
+
+                await sleep(executionSpeed);
+            }
+
+            if (showActor) actor.style.display = 'none';
+            log('✓ Execution complete', 'success');
+        }
+
+        async function executeBlock(block) {
+            const actions = {
+                cell: `Stored data in cell`,
+                flow: `Directed execution flow`,
+                decision: `Evaluated condition and branched`,
+                repeat: `Looped iteration`,
+                meta: `Meta: Created new construct`
+            };
+
+            log(`  → ${actions[block.type] || `Executed ${block.type}`}`);
+        }
+
+        // === LEGOS ANALYSIS ===
+        function analyzeLEGOS() {
+            const content = document.getElementById('legos-content');
+
+            if (gridState.size === 0) {
+                content.innerHTML = '<div class="output-line">Build blocks on the grid to see LEGOS analysis...</div>';
+                return;
+            }
+
+            const blocks = Array.from(gridState.values());
+
+            // Count by type
+            const counts = {};
+            blocks.forEach(b => counts[b.type] = (counts[b.type] || 0) + 1);
+
+            // LEGOS components
+            const entities = blocks.map((b, i) => `<Entity ${i}: ${b.type}>`);
+            const morphisms = [];
+
+            // Detect morphisms (adjacency)
+            blocks.forEach((b, i) => {
+                if (i < blocks.length - 1) {
+                    morphisms.push(`[flows] ${b.type} → ${blocks[i + 1].type}`);
+                }
+            });
+
+            let html = `
+                <div class="legos-section">
+                    <div class="legos-section-header">⚡ STRUCTURE</div>
+                    <div class="legos-item">Total blocks: ${blocks.length}</div>
+                    ${Object.entries(counts).map(([type, count]) =>
+                `<div class="legos-item">${type}: ${count}</div>`
+            ).join('')}
+                </div>
+                
+                <div class="legos-section">
+                    <div class="legos-section-header">🔹 ENTITIES</div>
+                    ${entities.slice(0, 5).map(e =>
+                `<div class="legos-item">${e}</div>`
+            ).join('')}
+                    ${entities.length > 5 ? `<div class="legos-item">... ${entities.length - 5} more</div>` : ''}
+                </div>
+                
+                <div class="legos-section">
+                    <div class="legos-section-header">→ MORPHISMS</div>
+                    ${morphisms.slice(0, 5).map(m =>
+                `<div class="legos-item">${m}</div>`
+            ).join('')}
+                    ${morphisms.length > 5 ? `<div class="legos-item">... ${morphisms.length - 5} more</div>` : ''}
+                </div>
+            `;
+
+            content.innerHTML = html;
+        }
+
+        // === TETRAD INTEGRATION ===
+        function openInTetrad() {
+            if (gridState.size === 0) {
+                alert('Build something first!');
+                return;
+            }
+
+            // Serialize grid state
+            const data = {
+                blocks: Array.from(gridState.values()),
+                timestamp: Date.now(),
+                name: 'Grid Program'
+            };
+
+            // Store in localStorage for TETRAD to read
+            localStorage.setItem('lego_code_data', JSON.stringify(data));
+
+            // Open TETRAD
+            window.open('/wag-frank-tetrad-inception.html?source=lego-code', '_blank');
+
+            log('📊 Opened in TETRAD analyzer', 'success');
+        }
+
+        // === UTILITIES ===
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        function log(message, type = 'normal') {
+            const output = document.getElementById('output-log');
+            const line = document.createElement('div');
+            line.className = `output-line ${type}`;
+            line.textContent = message;
+            output.appendChild(line);
+            output.scrollTop = output.scrollHeight;
+        }
+
+        function clearLog() {
+            document.getElementById('output-log').innerHTML = '';
+        }
+
+        // === SPEED CONTROL ===
+        document.getElementById('speed-slider').addEventListener('input', e => {
+            executionSpeed = 1100 - (e.target.value * 100);
+        });
+
+        // === INIT ===
+        analyzeLEGOS();
+    </script>
+</body>
+
+</html>

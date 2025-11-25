@@ -1,0 +1,1513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CORE-AGE // Code Hub</title>
+    <link rel="icon" type="image/svg+xml" href="core-age-favicon.svg">
+    <link rel="alternate icon" href="core-age-favicon.svg" type="image/svg+xml">
+    <meta name="description"
+        content="Central hub for navigating and exploring the COURAGE codebase - HTML apps, tools, and documentation.">
+    <style>
+        :root {
+            --bg: #03180c;
+            --panel: #052010;
+            --panel-dark: #03140d;
+            --border: #0c3a23;
+            --border-light: #1b6e3e;
+            --text: #aef3c1;
+            --text-muted: #5ea275;
+            --dim: #3d5a45;
+            --hot: #aef3c1;
+            --link: #4ade80;
+            --accent: #4ade80;
+            --font: 'JetBrains Mono', 'Menlo', 'Courier New', monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            height: 100vh;
+            background: var(--bg);
+            color: var(--text);
+            font-family: var(--font);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: auto;
+            min-height: 56px;
+            flex: 0 0 auto;
+            background: #000;
+            border-bottom: 2px solid var(--accent);
+            display: flex;
+            align-items: center;
+            padding: 10px 16px;
+            justify-content: space-between;
+            gap: 16px;
+            font-size: 11px;
+            z-index: 100;
+            box-shadow: 0 2px 10px rgba(74, 222, 128, 0.1);
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            min-width: 0;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .brand {
+            font-weight: 900;
+            letter-spacing: 0.15em;
+            background: linear-gradient(135deg, var(--accent), var(--text));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            white-space: nowrap;
+        }
+
+        .stats {
+            display: flex;
+            gap: 12px;
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .stat-value {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+            position: relative;
+        }
+
+        /* Two-column layout for wide screens */
+        @media (min-width: 1200px) {
+            main {
+                flex-direction: row;
+            }
+        }
+
+        /* Grid Section - Now acts as "TV Screen" */
+        .grid-section {
+            flex: 0 0 40vh;
+            background: #050505;
+            border-bottom: 2px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            position: relative;
+            /* For absolute positioned preview */
+        }
+
+        /* Wide screen: grid takes left column */
+        @media (min-width: 1200px) {
+            .grid-section {
+                flex: 0 0 50%;
+                border-bottom: none;
+                border-right: 2px solid var(--border);
+                max-height: 100%;
+            }
+        }
+
+        .grid-header {
+            padding: 12px 16px;
+            background: var(--panel-dark);
+            border-bottom: 1px solid var(--border);
+            font-size: 10px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .grid-count {
+            background: var(--accent);
+            color: #000;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 9px;
+        }
+
+        /* Grid Container - Perfect 9×9 grid with smooth transitions */
+        .grid-container {
+            flex: 1;
+            overflow: auto;
+            padding: 16px;
+
+            /* Calculate cell size to maintain perfect squares */
+            --gap: 10px;
+            --cell-size: calc((100% - (9 * var(--gap))) / 9);
+
+            display: grid;
+            grid-template-columns: repeat(9, var(--cell-size));
+            grid-auto-rows: var(--cell-size);
+            gap: var(--gap);
+            align-content: start;
+            -webkit-overflow-scrolling: touch;
+
+            /* Smooth transitions when hiding */
+            transition: opacity 0.3s ease;
+        }
+
+        /* Wide screen: adjust gap for better fit */
+        @media (min-width: 1200px) {
+            .grid-container {
+                --gap: clamp(4px, 0.5vw, 10px);
+                padding: clamp(8px, 1vw, 16px);
+            }
+        }
+
+        .grid-container.hidden {
+            display: none;
+        }
+
+        /* File Cards - Perfect squares enforced */
+        .file-card {
+            width: 100%;
+            height: 100%;
+            aspect-ratio: 1 / 1;
+            background: var(--panel);
+            border: 2px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            padding: 8px;
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0, 0, 0, 0.3);
+        }
+
+        .file-card.empty {
+            opacity: 0.5;
+            background: var(--panel);
+            border: 2px dashed var(--border-light);
+            box-shadow: none;
+            cursor: default;
+        }
+
+        .file-card.empty::before {
+            content: '•';
+            font-size: 24px;
+            color: var(--border);
+            opacity: 0.5;
+        }
+
+        .file-card:not(.empty):hover {
+            transform: scale(1.05);
+            border-color: var(--accent);
+            box-shadow: 0 4px 12px rgba(74, 222, 128, 0.2), inset 0 0 20px rgba(0, 0, 0, 0.3);
+            z-index: 10;
+        }
+
+        .file-card.active {
+            background: rgba(74, 222, 128, 0.1);
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent);
+        }
+
+        /* Inline preview iframe */
+        .file-card-preview {
+            position: absolute;
+            inset: 0;
+            background: #fff;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            z-index: 5;
+        }
+
+        .file-card:hover .file-card-preview {
+            opacity: 1;
+        }
+
+        .file-card-preview iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            pointer-events: none;
+            transform: scale(1);
+            transform-origin: top left;
+        }
+
+        .file-icon {
+            width: clamp(40px, 10vw, 60px);
+            height: clamp(40px, 10vw, 60px);
+            border-radius: 50%;
+            flex-shrink: 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.4);
+            transition: transform 0.2s;
+
+            /* Center the theme letters */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: clamp(12px, 3vw, 16px);
+            font-weight: bold;
+            color: #000;
+        }
+
+        .file-card:not(.empty):hover .file-icon {
+            transform: scale(1.1);
+        }
+
+        .file-card-name {
+            font-size: clamp(7px, 1.8vw, 9px);
+            text-align: center;
+            opacity: 0.9;
+            line-height: 1.2;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            line-clamp: 2;
+            width: 100%;
+            font-weight: 500;
+            word-break: break-word;
+        }
+
+        /* Tooltip styling */
+        .file-card[title]:hover::after {
+            content: attr(title);
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%) translateY(-8px);
+            background: rgba(0, 0, 0, 0.95);
+            color: var(--text);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            white-space: nowrap;
+            z-index: 1000;
+            pointer-events: none;
+            border: 1px solid var(--accent);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+        }
+
+        .file-card[title]:hover::before {
+            content: '';
+            position: absolute;
+            bottom: 100%;
+            left: 50%;
+            transform: translateX(-50%);
+            border: 6px solid transparent;
+            border-top-color: var(--accent);
+            z-index: 1000;
+            pointer-events: none;
+        }
+
+        /* Resize Handle */
+        .resize-handle {
+            height: 8px;
+            background: var(--border);
+            cursor: ns-resize;
+            flex-shrink: 0;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.2s;
+        }
+
+        /* Wide screen: vertical resize handle */
+        @media (min-width: 1200px) {
+            .resize-handle {
+                width: 8px;
+                height: auto;
+                cursor: ew-resize;
+                flex-direction: column;
+            }
+
+            .resize-handle::before {
+                writing-mode: vertical-rl;
+                transform: rotate(180deg);
+            }
+        }
+
+        .resize-handle:hover {
+            background: var(--accent);
+        }
+
+        .resize-handle::before {
+            content: '⋯';
+            color: var(--text-muted);
+            font-size: 16px;
+            letter-spacing: 4px;
+        }
+
+        .resize-handle.dragging {
+            background: var(--accent);
+        }
+
+        /* List Section */
+        .list-section {
+            flex: 1;
+            background: var(--bg);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            min-height: 100px;
+        }
+
+        /* Wide screen: list takes right column */
+        @media (min-width: 1200px) {
+            .list-section {
+                flex: 1;
+                min-width: 300px;
+            }
+        }
+
+        .list-header {
+            padding: 10px 12px;
+            background: var(--panel-dark);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            align-items: center;
+            flex-shrink: 0;
+        }
+
+        .search-box {
+            flex: 1;
+            min-width: 150px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 10px;
+            font-size: 10px;
+            font-family: inherit;
+            border-radius: 4px;
+        }
+
+        .search-box:focus {
+            outline: none;
+            border-color: var(--accent);
+        }
+
+        .filter-btn {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 10px;
+            font-size: 9px;
+            font-family: inherit;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .filter-btn:hover {
+            color: var(--text);
+            border-color: var(--accent);
+        }
+
+        .filter-btn.active {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        .list-container {
+            flex: 1;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+
+        .file-category {
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-header {
+            background: var(--panel-dark);
+            padding: 8px 12px;
+            font-size: 9px;
+            font-weight: bold;
+            color: var(--accent);
+            letter-spacing: 0.1em;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            user-select: none;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .category-header:hover {
+            background: #0a0a0a;
+        }
+
+        .category-count {
+            background: var(--accent);
+            color: #000;
+            padding: 2px 6px;
+            border-radius: 8px;
+            font-size: 8px;
+        }
+
+        .file-items {
+            background: var(--panel);
+        }
+
+        .file-item {
+            padding: 10px 12px;
+            border-bottom: 1px solid rgba(12, 58, 35, 0.3);
+            cursor: pointer;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .file-item:hover {
+            background: rgba(74, 222, 128, 0.05);
+            border-left: 3px solid var(--accent);
+            padding-left: 9px;
+        }
+
+        .file-item.active {
+            background: rgba(74, 222, 128, 0.1);
+            border-left: 3px solid var(--accent);
+            padding-left: 9px;
+        }
+
+        .file-item-icon {
+            font-size: 16px;
+            opacity: 0.6;
+            flex-shrink: 0;
+        }
+
+        .file-item-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .file-item-name {
+            font-size: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .file-item-meta {
+            font-size: 8px;
+            color: var(--text-muted);
+            margin-top: 2px;
+        }
+
+        .file-item-size {
+            font-size: 8px;
+            color: var(--dim);
+            flex-shrink: 0;
+        }
+
+        /* File theme indicator in list - colored circle with letters */
+        .file-theme-indicator {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            box-shadow: 0 1px 3px rgba(0, 0, 0, 0.2);
+
+            /* Center the theme letters */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            font-weight: bold;
+            color: #000;
+        }
+
+        /* Preview Overlay - Positioned IN grid section */
+        .preview-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 100;
+            flex-direction: column;
+
+            /* Animation */
+            opacity: 0;
+            transform: scale(0.95);
+            transition: opacity 0.3s ease, transform 0.3s ease;
+        }
+
+        .preview-overlay.active {
+            display: flex;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        /* Full Screen Overlay - Full window */
+        .fullscreen-overlay {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 1000;
+            flex-direction: column;
+        }
+
+        .fullscreen-overlay.active {
+            display: flex;
+            animation: slideIn 0.3s ease forwards;
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: scale(0.95);
+            }
+
+            to {
+                opacity: 1;
+                transform: scale(1);
+            }
+        }
+
+        .preview-controls,
+        .fullscreen-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 16px;
+            background: var(--panel-dark);
+            border-bottom: 2px solid var(--accent);
+            flex-shrink: 0;
+        }
+
+        .preview-filename,
+        .fullscreen-filename {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--accent);
+            letter-spacing: 0.05em;
+            flex: 1;
+        }
+
+        .preview-buttons {
+            display: flex;
+            gap: 8px;
+        }
+
+        .preview-btn {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            color: var(--text);
+            padding: 6px 12px;
+            font-size: 10px;
+            font-family: inherit;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+            letter-spacing: 0.05em;
+            white-space: nowrap;
+        }
+
+        .preview-btn:hover {
+            background: var(--accent);
+            color: #000;
+            border-color: var(--accent);
+        }
+
+        #preview-iframe,
+        #fullscreen-iframe {
+            flex: 1;
+            border: none;
+            background: #fff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent);
+        }
+
+        @media (max-width: 767px) {
+            .header-left {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 8px;
+            }
+
+            .preview-info {
+                padding-left: 0;
+                border-left: none;
+                padding-top: 8px;
+                border-top: 1px solid var(--border);
+            }
+
+            .grid-container {
+                padding: 10px;
+                gap: 6px;
+            }
+        }
+
+        @media (min-width: 768px) {
+            header {
+                padding: 10px 20px;
+            }
+
+            .grid-container {
+                gap: 12px;
+                padding: 16px;
+            }
+
+            .file-item-name {
+                font-size: 11px;
+            }
+
+            .stats {
+                font-size: 10px;
+            }
+        }
+
+        @media (min-width: 1200px) {
+            .grid-container {
+                gap: 14px;
+                padding: 20px;
+            }
+        }
+
+        /* About Modal */
+        .about-modal {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.85);
+            backdrop-filter: blur(8px);
+            z-index: 2000;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .about-modal.active {
+            display: flex;
+            opacity: 1;
+        }
+
+        .about-content {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            width: 100%;
+            max-width: 600px;
+            max-height: 90vh;
+            overflow-y: auto;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.5);
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .about-modal.active .about-content {
+            transform: scale(1);
+        }
+
+        .about-header {
+            padding: 20px;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: var(--panel-dark);
+        }
+
+        .about-title {
+            font-size: 14px;
+            font-weight: bold;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+        }
+
+        .about-body {
+            padding: 24px;
+            line-height: 1.6;
+            color: var(--text-muted);
+        }
+
+        .logline {
+            font-size: 18px;
+            color: var(--text);
+            margin-bottom: 24px;
+            font-weight: 300;
+            border-left: 3px solid var(--accent);
+            padding-left: 16px;
+        }
+
+        .thematic-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 12px;
+            margin: 24px 0;
+        }
+
+        .theme-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--border);
+            padding: 12px;
+            border-radius: 6px;
+        }
+
+        .theme-title {
+            font-size: 11px;
+            font-weight: bold;
+            color: var(--text);
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .theme-desc {
+            font-size: 11px;
+            opacity: 0.8;
+        }
+
+        .about-footer {
+            padding: 16px 20px;
+            border-top: 1px solid var(--border);
+            text-align: right;
+            background: var(--panel-dark);
+        }
+
+        .btn-primary {
+            background: var(--accent);
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            border-radius: 4px;
+            font-weight: bold;
+            cursor: pointer;
+            font-size: 12px;
+        }
+
+        .btn-primary:hover {
+            opacity: 0.9;
+        }
+
+        .header-btn {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text-muted);
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 11px;
+            transition: all 0.2s;
+            margin-right: 12px;
+        }
+
+        .header-btn:hover {
+            border-color: var(--accent);
+            color: var(--text);
+        }
+    </style>
+</head>
+
+<body>
+    <header>
+        <div class="header-left">
+            <div class="brand">CORE-AGE</div>
+        </div>
+        <div class="header-right">
+            <button class="header-btn" id="about-btn">About</button>
+            <div class="stats">
+                <div><span class="stat-value" id="total-files">...</span> files</div>
+                <div><span class="stat-value" id="total-size">...</span></div>
+            </div>
+        </div>
+    </header>
+
+
+
+    <!-- About Modal -->
+    <div id="about-modal" class="about-modal">
+        <div class="about-content">
+            <div class="about-header">
+                <div class="about-title">CORE-AGE // MANIFESTO</div>
+                <button class="header-btn" id="close-about-btn" style="margin:0; border:none;">✕</button>
+            </div>
+            <div class="about-body">
+                <div class="logline">
+                    "A recursive, holographic IDE that treats Code, 3D Models, and Logic as interchangeable LEGO
+                    bricks."
+                </div>
+
+                <p>
+                    <strong>CORE-AGE</strong> (from PIE <em>*kerd-</em>: Heart) is an operating system for
+                    <strong>Living Software Architectures</strong>. It unifies the spatial (3D), the structural (DOM),
+                    and the logical (Code) into a single "Frankenstein" interface.
+                </p>
+
+                <div class="thematic-grid">
+                    <div class="theme-box">
+                        <div class="theme-title">
+                            <span style="color: #FACC15">●</span> INCEPTION
+                        </div>
+                        <div class="theme-desc">
+                            <strong>The Recursive Loop.</strong> The system builds the tools that build the system. DOM
+                            elements are parsed as "Legos".
+                        </div>
+                    </div>
+                    <div class="theme-box">
+                        <div class="theme-title">
+                            <span style="color: #4ADE80">●</span> TETRAD
+                        </div>
+                        <div class="theme-desc">
+                            <strong>The Analytic Engine.</strong> McLuhan's Laws of Media (Enhance, Obsolesce, Retrieve,
+                            Reverse).
+                        </div>
+                    </div>
+                    <div class="theme-box" style="grid-column: span 2;">
+                        <div class="theme-title">
+                            <span style="color: #22D3EE">●</span> WAG (POLYSEMIC)
+                        </div>
+                        <div class="theme-desc">
+                            <strong>1. Words Assemble Geometry:</strong> A tool for liberation (Freire).<br>
+                            <strong>2. Words Assemble Grids:</strong> Organizing info into spatial lattices.<br>
+                            <strong>3. Words Assemble Generations:</strong> Recursive world-building.<br>
+                            <strong>4. Wild Ass Guess:</strong> The heuristic for chaotic prototyping.
+                        </div>
+                    </div>
+                    <div class="theme-box">
+                        <div class="theme-title">
+                            <span style="color: #F472B6">●</span> FRANK
+                        </div>
+                        <div class="theme-desc">
+                            <strong>The Architecture.</strong> A "Frankenstein" synthesis via the <strong>Bus
+                                Protocol</strong>.
+                        </div>
+                    </div>
+                </div>
+
+                <p
+                    style="font-size: 11px; opacity: 0.7; margin-top: 12px; border-top: 1px solid var(--border); padding-top: 12px;">
+                    <strong>SYSTEM DNA:</strong><br>
+                    > ETYMOLOGY: <a href="etymology.html" target="_blank" style="color: var(--accent);">View Genealogy
+                        (*kerd- to Courage)</a><br>
+                    > CORE METAPHOR: Everything is a LEGO.<br>
+                    > KNOWLEDGE ENGINE: Self-Documenting Library (Hub).
+                </p>
+            </div>
+            <div class="about-footer">
+                <button class="btn-primary" id="close-about-footer-btn">ACKNOWLEDGE</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Full Screen Overlay: Opens when clicking from grid or fullscreen button -->
+    <div id="fullscreen-overlay" class="fullscreen-overlay">
+        <div class="fullscreen-controls">
+            <span class="fullscreen-filename" id="fullscreen-filename"></span>
+            <div class="preview-buttons">
+                <button class="preview-btn" id="copy-code-btn">📋 Copy Code</button>
+                <button class="preview-btn" id="open-tab-btn">🔗 Open in Tab</button>
+                <button class="preview-btn" id="close-fullscreen-btn">✕ Close</button>
+            </div>
+        </div>
+        <iframe id="fullscreen-iframe"></iframe>
+    </div>
+
+    <main>
+        <div class="grid-section" id="grid-section">
+            <!-- Grid Preview: Opens inside grid section when clicking from list -->
+            <div id="preview-overlay" class="preview-overlay">
+                <div class="preview-controls">
+                    <span class="preview-filename" id="preview-filename"></span>
+                    <div class="preview-buttons">
+                        <button class="preview-btn" id="copy-path-btn">📋 Copy Path</button>
+                        <button class="preview-btn" id="fullscreen-btn">⛶ Full Screen</button>
+                        <button class="preview-btn" id="close-preview-btn">✕ Close</button>
+                    </div>
+                </div>
+                <iframe id="preview-iframe"></iframe>
+            </div>
+            <!-- Grid container with dynamic content -->
+            <div class="grid-container" id="html-grid"></div>
+        </div>
+
+        <div class="resize-handle" id="resize-handle"></div>
+
+        <div class="list-section" id="list-section">
+            <div class="list-header">
+                <input type="text" class="search-box" id="search" placeholder="🔍 Search..." />
+                <div id="filters"></div>
+            </div>
+            <div class="list-container" id="file-list"></div>
+        </div>
+    </main>
+
+    <script>
+        let manifest = null;
+        let filteredFiles = [];
+        let currentFilter = 'all';
+        let currentPreviewFile = null;
+
+        const iconMap = {
+            '.html': '🌐',
+            '.json': '📋',
+            '.md': '📄',
+            '.mpd': '🧱',
+            '.js': '⚡',
+            '.css': '🎨',
+            'other': '📁'
+        };
+
+        // Theme categorization with color codes
+        const themeColors = {
+            'inception': '#4ade80',    // Green - Inception tools
+            'wag-frank': '#22d3ee',    // Cyan - WAG-Frank tools
+            'wag': '#a78bfa',          // Purple - General WAG tools
+            'timber': '#fb923c',       // Orange - Timber tools
+            'brick': '#f472b6',        // Pink - Brick/LEGO tools
+            'skeleton': '#fbbf24',     // Yellow - Skeleton tools
+            'lego': '#f472b6',         // Pink - LEGO tools
+            'pathology': '#ef4444',    // Red - Pathology tools
+            'system': '#6366f1',       // Indigo - System tools
+            'grid': '#8b5cf6',         // Violet - Grid tools
+            'manual': '#ec4899',       // Magenta - Manual/tutorial tools
+            'default': '#5ea275'       // Muted green - Default
+        };
+
+        function getFileTheme(filename) {
+            const name = filename.toLowerCase();
+            if (name.includes('inception')) return 'inception';
+            if (name.includes('wag-frank')) return 'wag-frank';
+            if (name.includes('wag')) return 'wag';
+            if (name.includes('timber')) return 'timber';
+            if (name.includes('brick') || name.includes('lego')) return 'brick';
+            if (name.includes('skeleton')) return 'skeleton';
+            if (name.includes('pathology')) return 'pathology';
+            if (name.includes('system') || name.includes('monitor')) return 'system';
+            if (name.includes('grid')) return 'grid';
+            if (name.includes('manual') || name.includes('tutorial')) return 'manual';
+            return 'default';
+        }
+
+        // Resize functionality
+        let isResizing = false;
+        let startY = 0;
+        let startX = 0;
+        let startGridHeight = 0;
+        let startGridWidth = 0;
+
+        const gridSection = document.getElementById('grid-section');
+        const resizeHandle = document.getElementById('resize-handle');
+        const listSection = document.getElementById('list-section');
+
+        if (resizeHandle) {
+            resizeHandle.addEventListener('mousedown', startResize);
+            resizeHandle.addEventListener('touchstart', startResize);
+        }
+
+        function isWideScreen() {
+            return window.innerWidth >= 1200;
+        }
+
+        function startResize(e) {
+            isResizing = true;
+            resizeHandle.classList.add('dragging');
+
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+
+            startY = clientY;
+            startX = clientX;
+            startGridHeight = gridSection.offsetHeight;
+            startGridWidth = gridSection.offsetWidth;
+
+            document.addEventListener('mousemove', doResize);
+            document.addEventListener('mouseup', stopResize);
+            document.addEventListener('touchmove', doResize);
+            document.addEventListener('touchend', stopResize);
+
+            e.preventDefault();
+        }
+
+        function doResize(e) {
+            if (!isResizing) return;
+
+            const clientY = e.type.includes('mouse') ? e.clientY : e.touches[0].clientY;
+            const clientX = e.type.includes('mouse') ? e.clientX : e.touches[0].clientX;
+
+            if (isWideScreen()) {
+                // Horizontal resize
+                const deltaX = clientX - startX;
+                const newWidth = startGridWidth + deltaX;
+                const minWidth = 300;
+                const maxWidth = window.innerWidth - 300;
+
+                if (newWidth >= minWidth && newWidth <= maxWidth) {
+                    const percentage = (newWidth / window.innerWidth) * 100;
+                    gridSection.style.flex = `0 0 ${percentage}%`;
+                }
+            } else {
+                // Vertical resize
+                const deltaY = clientY - startY;
+                const newHeight = startGridHeight + deltaY;
+                const minHeight = 150;
+                const maxHeight = window.innerHeight - 200;
+
+                if (newHeight >= minHeight && newHeight <= maxHeight) {
+                    gridSection.style.flex = `0 0 ${newHeight}px`;
+                }
+            }
+        }
+
+        function stopResize() {
+            isResizing = false;
+            resizeHandle.classList.remove('dragging');
+            document.removeEventListener('mousemove', doResize);
+            document.removeEventListener('mouseup', stopResize);
+            document.removeEventListener('touchmove', doResize);
+            document.removeEventListener('touchend', stopResize);
+        }
+
+        async function loadManifest() {
+            try {
+                const response = await fetch('file-manifest.json');
+                manifest = await response.json();
+                initializeUI();
+            } catch (error) {
+                console.error('Failed to load manifest:', error);
+            }
+        }
+
+        function initializeUI() {
+            document.getElementById('total-files').textContent = manifest.total_files;
+            document.getElementById('total-size').textContent = manifest.total_size_human;
+
+            const extensions = Object.keys(manifest.summary.extensions);
+            const filtersContainer = document.getElementById('filters');
+
+            const allBtn = document.createElement('button');
+            allBtn.className = 'filter-btn active';
+            allBtn.textContent = 'All';
+            allBtn.onclick = () => filterBy('all');
+            filtersContainer.appendChild(allBtn);
+
+            extensions.forEach(ext => {
+                const btn = document.createElement('button');
+                btn.className = 'filter-btn';
+                btn.textContent = ext.toUpperCase();
+                btn.dataset.ext = ext;
+                btn.onclick = () => filterBy(ext);
+                filtersContainer.appendChild(btn);
+            });
+
+            renderHTMLGrid();
+            filterBy('all');
+
+            document.getElementById('search').addEventListener('input', (e) => {
+                const query = e.target.value.toLowerCase();
+                renderFileList(filteredFiles.filter(f =>
+                    f.name.toLowerCase().includes(query)
+                ));
+            });
+        }
+
+        let hoverTimeout = null;
+
+        function renderHTMLGrid() {
+            const htmlFiles = manifest.files.all.filter(f => f.extension === '.html');
+            const grid = document.getElementById('html-grid');
+
+            grid.innerHTML = '';
+
+            // Always create 81 cells (9×9 grid)
+            for (let i = 0; i < 81; i++) {
+                const file = htmlFiles[i]; // Will be undefined if i >= htmlFiles.length
+
+                const card = document.createElement('div');
+                card.className = 'file-card';
+
+                if (file) {
+                    // Cell with file - colored circle WITH theme letters
+                    const theme = getFileTheme(file.name);
+                    const color = themeColors[theme];
+                    const initial = theme.substring(0, 2).toUpperCase();
+
+                    card.dataset.theme = theme;
+                    card.tabIndex = 0;
+                    card.title = file.name;
+
+                    const iconHtml = `
+                        <div class="file-icon" style="background: ${color};">
+                            ${initial}
+                        </div>
+                        <div class="file-card-name">${file.name.replace('.html', '')}</div>
+                    `;
+
+                    const previewHtml = `
+                        <div class="file-card-preview">
+                            <iframe data-src="${file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.')}"></iframe>
+                        </div>
+                    `;
+
+                    card.innerHTML = iconHtml + previewHtml;
+
+                    // Hover to load preview
+                    const iframe = card.querySelector('.file-card-preview iframe');
+                    if (!iframe.src && iframe.dataset.src) {
+                        if (hoverTimeout) clearTimeout(hoverTimeout);
+                        hoverTimeout = setTimeout(() => {
+                            iframe.src = iframe.dataset.src;
+                        }, 200);
+                    }
+                    card.addEventListener('mouseenter', () => {
+                        const iframe = card.querySelector('.file-card-preview iframe');
+                        if (!iframe.src && iframe.dataset.src) {
+                            if (hoverTimeout) clearTimeout(hoverTimeout);
+                            hoverTimeout = setTimeout(() => {
+                                iframe.src = iframe.dataset.src;
+                            }, 200);
+                        }
+                    });
+
+                    card.addEventListener('mouseleave', () => {
+                        if (hoverTimeout) clearTimeout(hoverTimeout);
+                    });
+
+                    // Click from grid → FULL SCREEN preview
+                    card.addEventListener('click', () => {
+                        openFullScreen(file);
+                    });
+
+                    // Store file reference for list interaction
+                    card.dataset.fileName = file.name;
+                } else {
+                    // Empty cell - bullet added via CSS ::before
+                    card.classList.add('empty');
+                }
+
+                grid.appendChild(card);
+            }
+        }
+
+        // Grid-based preview
+        function openPreview(file) {
+            const overlay = document.getElementById('preview-overlay');
+            const iframe = document.getElementById('preview-iframe');
+            const filename = document.getElementById('preview-filename');
+
+            filename.textContent = file.name;
+            iframe.src = file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.');
+            currentPreviewFile = file;
+
+            // Only animate if not already active
+            if (!overlay.classList.contains('active')) {
+                setTimeout(() => {
+                    overlay.classList.add('active');
+                }, 150);
+            }
+
+            // Highlight in grid
+            document.querySelectorAll('.file-card').forEach(card => {
+                if (card.dataset.fileName === file.name) {
+                    card.classList.add('active');
+                    // Optional: scroll to card
+                } else {
+                    card.classList.remove('active');
+                }
+            });
+        }
+
+        // Full-screen preview
+        function openFullScreen(file) {
+            const overlay = document.getElementById('fullscreen-overlay');
+            const iframe = document.getElementById('fullscreen-iframe');
+            const filename = document.getElementById('fullscreen-filename');
+
+            filename.textContent = file.name;
+            iframe.src = file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.');
+            overlay.classList.add('active');
+
+            currentPreviewFile = file;
+        }
+
+        function closePreview() {
+            const overlay = document.getElementById('preview-overlay');
+            const iframe = document.getElementById('preview-iframe');
+            const gridContainer = document.getElementById('html-grid');
+
+            // Fade out preview, scale in grid
+            overlay.classList.remove('active');
+
+            setTimeout(() => {
+                gridContainer.classList.remove('preview-active');
+                iframe.src = '';
+            }, 300);
+
+            currentPreviewFile = null;
+        }
+
+        function closeFullScreen() {
+            const overlay = document.getElementById('fullscreen-overlay');
+            const iframe = document.getElementById('fullscreen-iframe');
+
+            overlay.classList.remove('active');
+            iframe.src = '';
+            currentPreviewFile = null;
+        }
+
+        function openCurrentInNewTab() {
+            if (currentPreviewFile) {
+                window.open(currentPreviewFile.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
+            }
+        }
+
+        async function copyFilePath() {
+            if (!currentPreviewFile) return;
+            try {
+                await navigator.clipboard.writeText(currentPreviewFile.path);
+                const btn = document.getElementById('copy-path-btn');
+                const originalText = btn.textContent;
+                btn.textContent = '✔ Copied!';
+                setTimeout(() => btn.textContent = originalText, 2000);
+            } catch (err) {
+                console.error('Failed to copy path:', err);
+            }
+        }
+
+        // Setup preview overlay controls
+        document.getElementById('close-preview-btn').addEventListener('click', closePreview);
+
+        // Seamless transition to Full Screen
+        document.getElementById('fullscreen-btn').addEventListener('click', () => {
+            if (currentPreviewFile) {
+                // Open full screen immediately
+                openFullScreen(currentPreviewFile);
+
+                // Hide preview overlay immediately without animation/timeout
+                const previewOverlay = document.getElementById('preview-overlay');
+                const previewIframe = document.getElementById('preview-iframe');
+
+                previewOverlay.classList.remove('active');
+                previewIframe.src = ''; // Clear source to stop playing/rendering in background
+            }
+        });
+
+        // Setup full-screen overlay controls  
+        document.getElementById('close-fullscreen-btn').addEventListener('click', closeFullScreen);
+        document.getElementById('open-tab-btn').addEventListener('click', openCurrentInNewTab);
+        document.getElementById('copy-code-btn').addEventListener('click', copyFilePath); // Reusing copy button logic
+
+        //Double-click iframe to open in new tab
+        document.getElementById('fullscreen-iframe').addEventListener('dblclick', openCurrentInNewTab);
+
+        // Close preview on Escape key
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') {
+                closePreview();
+                closeFullScreen();
+                closeAbout(); // Also close about modal on escape
+            }
+
+            // Arrow key navigation
+            if (currentPreviewFile) {
+                if (e.key === 'ArrowLeft') navigatePreview(-1);
+                if (e.key === 'ArrowRight') navigatePreview(1);
+            }
+        });
+
+        // Close overlay when clicking background
+        document.getElementById('preview-overlay').addEventListener('click', (e) => {
+            if (e.target.id === 'preview-overlay') {
+                closePreview();
+            }
+        });
+
+        // Navigation Logic
+        function navigatePreview(direction) {
+            if (!currentPreviewFile || !manifest) return;
+
+            const htmlFiles = manifest.files.all.filter(f => f.extension === '.html');
+            const currentIndex = htmlFiles.findIndex(f => f.path === currentPreviewFile.path);
+
+            if (currentIndex === -1) return;
+
+            let newIndex = currentIndex + direction;
+            if (newIndex < 0) newIndex = htmlFiles.length - 1;
+            if (newIndex >= htmlFiles.length) newIndex = 0;
+
+            const nextFile = htmlFiles[newIndex];
+
+            // Update preview
+            if (document.getElementById('preview-overlay').classList.contains('active')) {
+                openPreview(nextFile);
+            } else if (document.getElementById('fullscreen-overlay').classList.contains('active')) {
+                openFullScreen(nextFile);
+            }
+        }
+
+        function filterBy(filter) {
+            currentFilter = filter;
+
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.classList.remove('active');
+                if ((filter === 'all' && btn.textContent === 'All') ||
+                    btn.dataset.ext === filter) {
+                    btn.classList.add('active');
+                }
+            });
+
+            filteredFiles = filter === 'all'
+                ? manifest.files.all
+                : manifest.files.all.filter(f => f.extension === filter);
+
+            renderFileList(filteredFiles);
+        }
+
+        function renderFileList(files) {
+            const container = document.getElementById('file-list');
+
+            if (files.length === 0) {
+                container.innerHTML = '<div style="padding:20px;text-align:center;color:var(--text-muted);">No files found</div>';
+                return;
+            }
+
+            const grouped = {};
+            files.forEach(file => {
+                const ext = file.extension || 'other';
+                if (!grouped[ext]) grouped[ext] = [];
+                grouped[ext].push(file);
+            });
+
+            container.innerHTML = '';
+
+
+            Object.keys(grouped).sort().forEach(ext => {
+                const category = document.createElement('div');
+                category.className = 'file-category';
+
+                const header = document.createElement('div');
+                header.className = 'category-header';
+                header.innerHTML = `
+                    <span>${ext.toUpperCase()}</span>
+                    <span class="category-count">${grouped[ext].length}</span>
+                `;
+                category.appendChild(header);
+
+                const items = document.createElement('div');
+                items.className = 'file-items';
+
+                grouped[ext].forEach(file => {
+                    const item = document.createElement('div');
+                    item.className = 'file-item';
+
+                    // For HTML files: show color-coded circle with theme letters
+                    // For other files: show regular file icon
+                    let iconHtml = '';
+                    if (ext === '.html') {
+                        const theme = getFileTheme(file.name);
+                        const color = themeColors[theme];
+                        const initial = theme.substring(0, 2).toUpperCase();
+                        iconHtml = `<div class="file-theme-indicator" style="background: ${color};">${initial}</div>`;
+                    } else {
+                        iconHtml = `<div class="file-item-icon">${iconMap[ext] || iconMap['other']}</div>`;
+                    }
+
+                    item.innerHTML = `
+                        ${iconHtml}
+                        <div class="file-item-info">
+                            <div class="file-item-name">${file.name}</div>
+                            <div class="file-item-meta">${new Date(file.modified).toLocaleDateString()}</div>
+                        </div>
+                        <div class="file-item-size">${file.size_human}</div>
+                    `;
+
+                    item.onclick = () => {
+                        if (ext === '.html') {
+                            openPreview(file);
+                        } else {
+                            window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
+                        }
+                    };
+                    items.appendChild(item);
+                });
+
+                category.appendChild(items);
+                container.appendChild(category);
+            });
+        }
+
+        // About Modal Logic
+        const aboutModal = document.getElementById('about-modal');
+        const aboutBtn = document.getElementById('about-btn');
+        const closeAboutBtn = document.getElementById('close-about-btn');
+        const closeAboutFooterBtn = document.getElementById('close-about-footer-btn');
+
+        function openAbout() {
+            aboutModal.classList.add('active');
+        }
+
+        function closeAbout() {
+            aboutModal.classList.remove('active');
+        }
+
+        if (aboutBtn) aboutBtn.addEventListener('click', openAbout);
+        if (closeAboutBtn) closeAboutBtn.addEventListener('click', closeAbout);
+        if (closeAboutFooterBtn) closeAboutFooterBtn.addEventListener('click', closeAbout);
+
+        // Close on outside click
+        aboutModal.addEventListener('click', (e) => {
+            if (e.target === aboutModal) {
+                closeAbout();
+            }
+        });
+
+        // Load manifest on start
+        loadManifest();
+    </script>
+</body>
+
+</html>

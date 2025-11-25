@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – Skeleton Pathology Studio</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #e5e7eb;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .studio {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .studio-header {
+            background: linear-gradient(135deg, #020617, #0f172a);
+            border-bottom: 1px solid #1e293b;
+            padding: 12px 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .title {
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            font-weight: 700;
+        }
+
+        .workflow {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            font-size: 10px;
+            color: #6b7280;
+        }
+
+        .step {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 10px;
+            background: rgba(99, 102, 241, 0.1);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 999px;
+        }
+
+        .arrow {
+            color: #4b5563;
+            font-size: 12px;
+        }
+
+        .studio-body {
+            flex: 1;
+            display: grid;
+            grid-template-columns: 1.2fr 0.8fr;
+            gap: 0;
+            min-height: 0;
+            background: #000;
+        }
+
+        .panel {
+            display: flex;
+            flex-direction: column;
+            border-right: 1px solid #1e293b;
+            min-height: 0;
+        }
+
+        .panel:last-child {
+            border-right: none;
+        }
+
+        .panel-header {
+            background: #020617;
+            border-bottom: 1px solid #1e293b;
+            padding: 8px 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.12em;
+            color: #9ca3af;
+        }
+
+        .panel-icon {
+            font-size: 12px;
+        }
+
+        .panel-body {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+            background: #0a0a0f;
+        }
+
+        iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+            display: block;
+        }
+
+        @media (max-width: 1200px) {
+            .studio-body {
+                grid-template-columns: 1fr;
+                grid-template-rows: 1fr 1fr;
+            }
+
+            .panel {
+                border-right: none;
+                border-bottom: 1px solid #1e293b;
+            }
+
+            .panel:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .info-badge {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(99, 102, 241, 0.9);
+            color: white;
+            padding: 4px 10px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 700;
+            letter-spacing: 0.1em;
+            z-index: 10;
+            pointer-events: none;
+            animation: fadeIn 600ms;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="studio">
+        <header class="studio-header">
+            <div class="title">WAG · Skeleton Pathology Studio</div>
+            <div class="workflow">
+                <div class="step">1️⃣ Load broken GOLD</div>
+                <span class="arrow">→</span>
+                <div class="step">2️⃣ Fix + Export</div>
+                <span class="arrow">→</span>
+                <div class="step">3️⃣ Verify report</div>
+            </div>
+        </header>
+
+        <main class="studio-body">
+            <section class="panel">
+                <div class="panel-header">
+                    <span class="panel-icon">🔧</span>
+                    <span>MPD Data Explorer</span>
+                    <span style="margin-left: auto; font-size: 9px; color: #6b7280;">Detect + Fix + Export</span>
+                </div>
+                <div class="panel-body">
+                    <div class="info-badge">ACTIVE TOOL</div>
+                    <iframe src="mpd-data-explorer.html" title="MPD Data Explorer"></iframe>
+                </div>
+            </section>
+
+            <section class="panel">
+                <div class="panel-header">
+                    <span class="panel-icon">📊</span>
+                    <span>Pathology Report Viewer</span>
+                    <span style="margin-left: auto; font-size: 9px; color: #6b7280;">Validate + Audit</span>
+                </div>
+                <div class="panel-body">
+                    <div class="info-badge">VERIFICATION</div>
+                    <iframe src="pathology-report-viewer.html" title="Pathology Report Viewer"></iframe>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script>
+        // Fade out info badges after 3 seconds
+        setTimeout(() => {
+            document.querySelectorAll('.info-badge').forEach(badge => {
+                badge.style.transition = 'opacity 500ms';
+                badge.style.opacity = '0';
+            });
+        }, 3000);
+    </script>
+</body>
+
+</html>

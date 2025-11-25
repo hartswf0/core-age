@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG FRANK // LEGO-GPT OLOG v10 // STANDARDIZED</title>
+    <link rel="stylesheet" href="frank-unified.css">
+    <script src="frank-base.js"></script>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Courier New', monospace;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --panel: #111;
+            --border: #333;
+            --accent: #FFD700;
+            --text: #ddd;
+            --dim: #666;
+            --cell: #1a1a1a;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Header */
+        #header {
+            padding: 10px 15px;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+        }
+
+        #header h1 {
+            font-size: clamp(10px, 3vw, 14px);
+            letter-spacing: 2px;
+            color: var(--accent);
+        }
+
+        #header .ver {
+            font-size: 8px;
+            color: var(--dim);
+            margin-top: 2px;
+        }
+
+        /* Layout - Stacks on mobile */
+        #main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 1px;
+            background: var(--border);
+            overflow: hidden;
+        }
+
+        .panel {
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .panel-hdr {
+            padding: 8px;
+            border-bottom: 1px solid var(--border);
+            font-size: 9px;
+            letter-spacing: 1px;
+            color: var(--accent);
+            text-transform: uppercase;
+            font-weight: bold;
+        }
+
+        .panel-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 8px;
+        }
+
+        /* Inbox */
+        .inbox-item {
+            padding: 10px;
+            margin-bottom: 8px;
+            background: var(--cell);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            transition: all 0.2s;
+        }
+
+        .inbox-item:hover,
+        .inbox-item.selected {
+            border-color: var(--accent);
+            background: rgba(255, 215, 0, 0.05);
+        }
+
+        .inbox-item img {
+            width: 50px;
+            height: 50px;
+            flex-shrink: 0;
+            border-radius: 4px;
+        }
+
+        .inbox-item .info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .inbox-item .type {
+            color: var(--accent);
+            font-weight: bold;
+            font-size: 10px;
+            margin-bottom: 3px;
+        }
+
+        .inbox-item .label {
+            font-size: 11px;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .inbox-item .source {
+            font-size: 8px;
+            color: var(--dim);
+            margin-top: 2px;
+        }
+
+        /* Grid - Responsive size */
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+            aspect-ratio: 1;
+            max-width: 100%;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .cell {
+            background: var(--cell);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.2s;
+            aspect-ratio: 1;
+            overflow: hidden;
+        }
+
+        .cell:hover {
+            border-color: var(--accent);
+            background: rgba(255, 215, 0, 0.1);
+        }
+
+        .cell.occupied {
+            border-color: var(--accent);
+            background: radial-gradient(circle at 50% 30%, rgba(255, 215, 0, 0.2), var(--cell));
+        }
+
+        .cell img {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            object-fit: contain;
+            object-position: center;
+            opacity: 0.9;
+            pointer-events: none;
+        }
+
+        /* Chat */
+        .msg {
+            margin-bottom: 8px;
+            padding: 8px;
+            background: var(--cell);
+            border-left: 2px solid var(--accent);
+            font-size: 10px;
+            line-height: 1.4;
+        }
+
+        .msg .time {
+            color: var(--dim);
+            font-size: 8px;
+            margin-bottom: 3px;
+        }
+
+        .msg .ref {
+            color: var(--accent);
+            font-weight: bold;
+        }
+
+        /* Actions */
+        .actions {
+            padding: 8px;
+            border-top: 1px solid var(--border);
+            display: flex;
+            gap: 6px;
+            flex-wrap: wrap;
+            background: var(--panel);
+        }
+
+        .btn {
+            padding: 8px 12px;
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--accent);
+            font-size: 9px;
+            letter-spacing: 1px;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+            white-space: nowrap;
+        }
+
+        .btn:hover {
+            background: rgba(255, 215, 0, 0.1);
+            border-color: var(--accent);
+        }
+
+        /* Mobile - Better spacing */
+        @media (min-width: 768px) {
+            #main {
+                flex-direction: row;
+            }
+
+            .panel {
+                flex: 1;
+            }
+
+            #grid-panel {
+                flex: 2;
+            }
+        }
+
+        @media (max-width: 767px) {
+            .panel {
+                flex: 0 0 auto;
+                max-height: 40vh;
+            }
+
+            #grid-panel {
+                flex: 1;
+                min-height: 300px;
+            }
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--bg);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="header">
+        <h1>WAG FRANK // LEGO-GPT OLOG</h1>
+        <div class="ver">v10.0 // STANDARDIZED // SCENE MANAGEMENT</div>
+    </div>
+
+    <!-- SCENE SELECTOR -->
+    <div class="scene-bar">
+        <div class="scene-selector">
+            <label>▪ SCENE</label>
+            <select id="scene-select">
+                <option value="">Select scene...</option>
+            </select>
+        </div>
+        <div class="scene-actions">
+            <button class="btn btn-icon" id="btn-new-scene">+ NEW</button>
+        </div>
+    </div>
+
+    <div id="main">
+        <div id="inbox-panel" class="panel">
+            <div class="panel-hdr">◻ INBOX</div>
+            <div class="panel-body" id="inbox"></div>
+        </div>
+
+        <div id="grid-panel" class="panel">
+            <div class="panel-hdr">◻ GRID</div>
+            <div class="panel-body">
+                <div id="grid"></div>
+            </div>
+        </div>
+
+        <div id="chat-panel" class="panel">
+            <div class="panel-hdr">◻ CHAT</div>
+            <div class="panel-body" id="chat"></div>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="btn" onclick="parseGrid()">PARSE → CHAT</button>
+        <button class="btn" onclick="clearGrid()">CLEAR</button>
+        <button class="btn" onclick="exportState()">EXPORT</button>
+    </div>
+
+    <script>
+        const ICONS = {
+            Entity: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_entity_1763954969030.png',
+            Morphism: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_morphism_1763954988325.png',
+            Goal: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_goal_1763955002570.png',
+            Obstacle: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_obstacle_1763955017549.png',
+            Location: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_location_1763955030608.png',
+            Shift: '/Users/gaia/.gemini/antigravity/brain/2f89667a-5467-4ee8-ad53-8c2ab9a6788d/icon_shift_1763955052033.png'
+        };
+
+        // FRANK BASE INTEGRATION
+        let frank;
+        const state = { inbox: [], grid: {}, chat: [], selected: null };
+
+        function init() {
+            // Initialize FrankBase
+            frank = new FrankBase('olog');
+            frank.onSceneLoad = onSceneLoad;
+            frank.onSceneSwitch = onSceneSwitch;
+            frank.onInboxUpdate = onInboxUpdate;
+
+            createGrid();
+            populateInbox();
+            renderInbox();
+            setupSceneUI();
+            renderSceneSelector();
+
+            // Load active scene
+            frank.loadActiveScene();
+
+            addChat('FRANK LEGO-GPT OLOG initialized');
+            addChat('Icon system loaded');
+            addChat('Scene management enabled');
+        }
+
+        // Scene hooks
+        function onSceneLoad(scene) {
+            // Restore grid from scene
+            state.grid = {};
+            scene.grid.forEach((cell, i) => {
+                if (cell.occupantId) {
+                    const item = frank.inbox.find(p => p.id === cell.occupantId);
+                    if (item) state.grid[i] = item;
+                }
+            });
+            renderGrid();
+            addChat(`Scene loaded: ${scene.name}`);
+        }
+
+        function onSceneSwitch(sceneId) {
+            const scene = frank.sceneManager.getScene(sceneId);
+            onSceneLoad(scene);
+        }
+
+        function onInboxUpdate(packet) {
+            state.inbox.push({
+                type: packet.kind || 'Entity',
+                label: packet.payload?.name || 'Item',
+                source: packet.source || 'Bus',
+                data: packet,
+                id: packet.id || Date.now()
+            });
+            renderInbox();
+            addChat(`Received ${packet.kind} from ${packet.source}`);
+        }
+
+        // Scene UI
+        function renderSceneSelector() {
+            const scenes = frank.sceneManager.listScenes();
+            const activeSceneId = frank.sceneManager.activeSceneId;
+            const select = document.getElementById('scene-select');
+
+            select.innerHTML = '<option value="">Select scene...</option>';
+            scenes.forEach(scene => {
+                const option = document.createElement('option');
+                option.value = scene.id;
+                option.textContent = scene.name;
+                if (scene.id === activeSceneId) option.selected = true;
+                select.appendChild(option);
+            });
+        }
+
+        function setupSceneUI() {
+            document.getElementById('scene-select').addEventListener('change', (e) => {
+                if (e.target.value) frank.switchScene(e.target.value);
+            });
+
+            document.getElementById('btn-new-scene').addEventListener('click', () => {
+                const name = prompt('Enter scene name:', `Scene ${frank.sceneManager.getSceneCount() + 1}`);
+                if (name) {
+                    const scene = frank.sceneManager.createScene(name);
+                    frank.switchScene(scene.id);
+                    renderSceneSelector();
+                }
+            });
+        }
+
+        function createGrid() {
+            const g = document.getElementById('grid');
+            for (let i = 0; i < 81; i++) {
+                const c = document.createElement('div');
+                c.className = 'cell';
+                c.dataset.i = i;
+                c.onclick = () => placeAt(i);
+                g.appendChild(c);
+            }
+        }
+
+        function populateInbox() {
+            state.inbox = [
+                { type: 'Entity', label: 'Character-01', source: 'Minifigurator' },
+                { type: 'Morphism', label: 'Seeks →', source: 'Tetrad' },
+                { type: 'Goal', label: 'Escape', source: 'Catalog' },
+                { type: 'Obstacle', label: 'Door', source: 'Locationator' },
+                { type: 'Location', label: 'Lab-A', source: 'Locationator' },
+                { type: 'Shift', label: 'Transform', source: 'System' }
+            ];
+        }
+
+        function renderInbox() {
+            const c = document.getElementById('inbox');
+            c.innerHTML = '';
+            state.inbox.forEach((item, i) => {
+                const el = document.createElement('div');
+                el.className = 'inbox-item' + (state.selected === i ? ' selected' : '');
+                el.innerHTML = `
+                    <img src="${ICONS[item.type]}" alt="${item.type}">
+                    <div class="info">
+                        <div class="type">◻ ${item.type}</div>
+                        <div class="label">${item.label}</div>
+                        <div class="source">from: ${item.source}</div>
+                    </div>
+                `;
+                el.onclick = () => { state.selected = i; renderInbox(); addChat(`Selected: ${item.label}`); };
+                c.appendChild(el);
+            });
+        }
+
+        function placeAt(idx) {
+            if (state.selected === null) return;
+            const item = state.inbox[state.selected];
+
+            // Use Frank's method for persistence
+            frank.assignToCell(idx, item.id || item.label);
+
+            state.grid[idx] = { ...item };
+            state.inbox.splice(state.selected, 1);
+            state.selected = null;
+            renderGrid();
+            renderInbox();
+            addChat(`◻ PLACE: ${item.label} → cell ${idx}`);
+        }
+
+        function renderGrid() {
+            Object.entries(state.grid).forEach(([idx, item]) => {
+                const c = document.querySelector(`[data-i="${idx}"]`);
+                c.classList.add('occupied');
+                c.innerHTML = `<img src="${ICONS[item.type]}" alt="${item.type}">`;
+            });
+        }
+
+        function clearGrid() {
+            state.grid = {};
+            document.querySelectorAll('.cell').forEach(c => { c.classList.remove('occupied'); c.innerHTML = ''; });
+            addChat('[CLEAR] Grid reset');
+        }
+
+        function parseGrid() {
+            if (Object.keys(state.grid).length === 0) { addChat('[PARSE] Grid empty'); return; }
+            addChat('[PARSE] Reading grid...');
+            Object.entries(state.grid).forEach(([idx, item]) => {
+                const x = idx % 9, y = Math.floor(idx / 9);
+                addChat(`→ <span class="ref">${item.label}</span> [${item.type}] at (${x},${y})`);
+            });
+            addChat(`[PARSE] Complete: ${Object.keys(state.grid).length} items`);
+        }
+
+        function exportState() {
+            const json = JSON.stringify(state, null, 2);
+            console.log(json);
+            addChat('[EXPORT] State logged to console');
+        }
+
+        function addChat(msg) {
+            const t = new Date().toLocaleTimeString();
+            state.chat.push({ time: t, msg });
+            const c = document.getElementById('chat');
+            const el = document.createElement('div');
+            el.className = 'msg';
+            el.innerHTML = `<div class="time">${t}</div><div>${msg}</div>`;
+            c.appendChild(el);
+            c.scrollTop = c.scrollHeight;
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

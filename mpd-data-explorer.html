@@ -1,0 +1,1054 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG – MPD Data Explorer</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #0a0a0f;
+            color: #e5e7eb;
+            overflow: hidden;
+            height: 100vh;
+        }
+
+        .app {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        header {
+            background: linear-gradient(135deg, rgba(20, 20, 30, 0.95), rgba(10, 10, 15, 0.95));
+            border: 1px solid rgba(99, 102, 241, 0.2);
+            border-radius: 16px;
+            padding: 16px 20px;
+            backdrop-filter: blur(20px);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+        }
+
+        .header-top {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+
+        h1 {
+            font-size: 18px;
+            font-weight: 700;
+            letter-spacing: 0.5px;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
+
+        .paste-area {
+            width: 100%;
+            margin-top: 12px;
+            padding: 12px;
+            background: rgba(15, 15, 25, 0.6);
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            border-radius: 8px;
+            color: #9ca3af;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            resize: vertical;
+            min-height: 60px;
+        }
+
+        .paste-area:focus {
+            outline: none;
+            border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.2);
+        }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: 1px solid rgba(99, 102, 241, 0.3);
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.8), rgba(20, 20, 30, 0.8));
+            color: #a5b4fc;
+            font-size: 12px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 200ms;
+        }
+
+        .btn:hover {
+            background: linear-gradient(135deg, rgba(99, 102, 241, 0.2), rgba(79, 70, 229, 0.2));
+            border-color: #6366f1;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        .stats {
+            display: flex;
+            gap: 16px;
+            font-size: 11px;
+            color: #9ca3af;
+            margin-top: 8px;
+        }
+
+        .stat-item {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+        }
+
+        .stat-value {
+            font-weight: 700;
+            color: #a5b4fc;
+        }
+
+        .grid-container {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            background: rgba(15, 15, 25, 0.4);
+            border-radius: 12px;
+            padding: 6px;
+            border: 1px solid rgba(55, 65, 81, 0.3);
+        }
+
+        .grid-container::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        .grid-container::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.4);
+            border-radius: 4px;
+        }
+
+        .grid-container::-webkit-scrollbar-thumb {
+            background: linear-gradient(180deg, #6366f1, #4f46e5);
+            border-radius: 4px;
+        }
+
+        .line-container {
+            margin-bottom: 8px;
+            border-radius: 12px;
+            overflow: hidden;
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.5), rgba(20, 20, 30, 0.5));
+            border: 1px solid rgba(55, 65, 81, 0.3);
+            transition: all 300ms;
+        }
+
+        .line-container:hover {
+            border-color: rgba(99, 102, 241, 0.5);
+            box-shadow: 0 4px 16px rgba(99, 102, 241, 0.2);
+        }
+
+        .line-container.expanded {
+            border-color: #6366f1;
+        }
+
+        .line-header {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 12px;
+            cursor: pointer;
+            transition: all 200ms;
+        }
+
+        .line-header:hover {
+            background: rgba(40, 40, 60, 0.6);
+        }
+
+        .line-num-badge {
+            min-width: 50px;
+            text-align: center;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 4px 8px;
+            border-radius: 6px;
+            background: rgba(55, 65, 81, 0.6);
+            color: #9ca3af;
+            border: 1px solid rgba(75, 85, 99, 0.5);
+        }
+
+        .line-container.is-part .line-num-badge {
+            background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2));
+            color: #4ade80;
+            border-color: rgba(34, 197, 94, 0.5);
+        }
+
+        .line-source {
+            flex: 1;
+            font-family: 'Fira Code', monospace;
+            font-size: 11px;
+            color: #9ca3af;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        .line-container.is-part .line-source {
+            color: #e5e7eb;
+            font-weight: 500;
+        }
+
+        .expand-icon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: rgba(99, 102, 241, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            color: #a5b4fc;
+            transition: transform 200ms;
+        }
+
+        .line-container.expanded .expand-icon {
+            transform: rotate(90deg);
+        }
+
+        .line-details {
+            display: none;
+            padding: 12px;
+            background: rgba(10, 10, 20, 0.6);
+            border-top: 1px solid rgba(55, 65, 81, 0.4);
+        }
+
+        .line-container.expanded .line-details {
+            display: block;
+        }
+
+        .detail-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 12px;
+        }
+
+        .detail-card {
+            background: linear-gradient(135deg, rgba(30, 30, 45, 0.7), rgba(20, 20, 30, 0.7));
+            border: 1px solid rgba(55, 65, 81, 0.5);
+            border-radius: 8px;
+            padding: 10px;
+        }
+
+        .detail-card-title {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7280;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .detail-card-title .icon {
+            font-size: 14px;
+        }
+
+        .detail-content {
+            font-size: 11px;
+            line-height: 1.6;
+        }
+
+        .tag {
+            display: inline-block;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 10px;
+            margin: 2px;
+            font-weight: 600;
+        }
+
+        .tag.color {
+            background: rgba(244, 114, 182, 0.2);
+            border: 1px solid rgba(244, 114, 182, 0.4);
+            color: #f9a8d4;
+        }
+
+        .tag.pos {
+            background: rgba(34, 197, 94, 0.2);
+            border: 1px solid rgba(34, 197, 94, 0.4);
+            color: #86efac;
+        }
+
+        .tag.part {
+            background: rgba(96, 165, 250, 0.2);
+            border: 1px solid rgba(96, 165, 250, 0.4);
+            color: #93c5fd;
+        }
+
+        .tag.meta {
+            background: rgba(236, 72, 153, 0.2);
+            border: 1px solid rgba(236, 72, 153, 0.4);
+            color: #f9a8d4;
+        }
+
+        .stud-list {
+            max-height: 150px;
+            overflow-y: auto;
+            margin-top: 6px;
+        }
+
+        .stud-item {
+            display: flex;
+            gap: 4px;
+            padding: 4px 6px;
+            margin: 2px 0;
+            background: rgba(15, 23, 42, 0.5);
+            border-radius: 4px;
+            font-family: 'Fira Code', monospace;
+            font-size: 9px;
+            flex-wrap: wrap;
+        }
+
+        .coord {
+            padding: 1px 4px;
+            border-radius: 2px;
+            background: rgba(96, 165, 250, 0.15);
+            color: #93c5fd;
+        }
+
+        .canvas-viz {
+            width: 100%;
+            height: 80px;
+            background: rgba(10, 10, 20, 0.8);
+            border-radius: 6px;
+            margin-top: 8px;
+        }
+
+        .empty-state {
+            color: #6b7280;
+            font-size: 10px;
+            font-style: italic;
+            text-align: center;
+            padding: 8px;
+        }
+
+        .count-badge {
+            background: rgba(99, 102, 241, 0.3);
+            color: #a5b4fc;
+            padding: 2px 6px;
+            border-radius: 999px;
+            font-size: 9px;
+            font-weight: 700;
+            font-family: 'Fira Code', monospace;
+        }
+
+        .pathology-bad {
+            color: #ef4444;
+            font-weight: 700;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        .pathology-warn {
+            color: #f97316;
+            font-weight: 600;
+        }
+
+        .pathology-good {
+            color: #22c55e;
+            font-weight: 600;
+        }
+
+        .loading {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            height: 200px;
+            color: #6b7280;
+            font-size: 14px;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .loading::after {
+            content: '...';
+            animation: pulse 1.5s ease-in-out infinite;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app">
+        <header>
+            <div class="header-top">
+                <h1>WAG – MPD Data Explorer</h1>
+                <div class="controls">
+                    <button class="btn" onclick="document.getElementById('fileInput').click()">
+                        📁 Load File
+                    </button>
+                    <button class="btn" onclick="loadFromPaste()">
+                        ⚡ Load from Paste
+                    </button>
+                    <button class="btn" onclick="expandAll()">
+                        📂 Expand All
+                    </button>
+                    <button class="btn" onclick="collapseAll()">
+                        📁 Collapse All
+                    </button>
+                    <button class="btn" onclick="redistributeStuds()"
+                        style="background: linear-gradient(135deg, rgba(234, 88, 12, 0.3), rgba(194, 65, 12, 0.2)); border-color: rgba(234, 88, 12, 0.5);">
+                        🔄 Fix LineNum (Synthetic)
+                    </button>
+                    <button class="btn" onclick="exportCorrectedGold()"
+                        style="background: linear-gradient(135deg, rgba(34, 197, 94, 0.3), rgba(22, 163, 74, 0.2)); border-color: rgba(34, 197, 94, 0.5);">
+                        💾 Export Corrected GOLD
+                    </button>
+                    <input type="file" id="fileInput" accept=".json,.mpd" onchange="loadFile(event)">
+                </div>
+            </div>
+            <textarea class="paste-area" id="pasteArea"
+                placeholder="Paste GOLD JSON or MPD content here, then click 'Load from Paste'..."></textarea>
+            <div class="stats">
+                <div class="stat-item">
+                    <span>Lines:</span>
+                    <span class="stat-value" id="lineCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Parts:</span>
+                    <span class="stat-value" id="partCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Studs:</span>
+                    <span class="stat-value" id="studCount">0</span>
+                </div>
+                <div class="stat-item">
+                    <span>Distinct Lines:</span>
+                    <span class="stat-value" id="distinctLineCount">0</span>
+                </div>
+                <div class="stat-item" id="pathologyIndicator">
+                    <span id="pathologyText"></span>
+                </div>
+                <div class="stat-item">
+                    <span>Part Skeleton:</span>
+                    <span class="stat-value" id="partSkeletonCount">0</span>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid-container" id="gridContainer">
+            <div class="loading">Load a GOLD JSON or MPD file to explore all data containers</div>
+        </div>
+    </div>
+
+    <script>
+        let state = {
+            lines: [],
+            parts: [],
+            studSkeleton: [],
+            partSkeleton: [],
+            expandedLines: new Set(),
+            originalGold: null
+        };
+
+        function loadFile(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (e) => {
+                processText(e.target.result);
+            };
+            reader.readAsText(file);
+        }
+
+        function loadFromPaste() {
+            const text = document.getElementById('pasteArea').value;
+            if (!text.trim()) {
+                alert('Please paste some content first!');
+                return;
+            }
+            processText(text);
+        }
+
+        function processText(text) {
+            try {
+                const json = JSON.parse(text);
+                loadFromGoldJson(json);
+            } catch {
+                loadFromMpd(text);
+            }
+        }
+
+        function loadFromGoldJson(json) {
+            state.originalGold = json;
+            const mpdContent = json.mpd_content || '';
+            const lines = mpdContent.split(/\r?\n/);
+
+            state.lines = lines.map((text, index) => ({
+                index,
+                text,
+                isPart: text.trim().startsWith('1 '),
+                parsed: parseLine(text, index)
+            }));
+
+            state.studSkeleton = json.stud_skeleton || [];
+            state.partSkeleton = json.part_skeletons || [];
+
+            state.parts = state.lines
+                .filter(l => l.isPart)
+                .map(l => l.parsed);
+
+            renderGrid();
+            updateStats();
+        }
+
+        function loadFromMpd(text) {
+            const lines = text.split(/\r?\n/);
+
+            state.lines = lines.map((text, index) => ({
+                index,
+                text,
+                isPart: text.trim().startsWith('1 '),
+                parsed: parseLine(text, index)
+            }));
+
+            state.studSkeleton = [];
+            state.partSkeleton = [];
+
+            state.parts = state.lines
+                .filter(l => l.isPart)
+                .map(l => l.parsed);
+
+            renderGrid();
+            updateStats();
+        }
+
+        function parseLine(text, lineIndex) {
+            const trimmed = text.trim();
+
+            if (trimmed.startsWith('1 ')) {
+                const tokens = trimmed.split(/\s+/);
+                if (tokens.length >= 15) {
+                    return {
+                        type: 'part',
+                        color: tokens[1],
+                        x: Number(tokens[2]),
+                        y: Number(tokens[3]),
+                        z: Number(tokens[4]),
+                        matrix: [
+                            Number(tokens[5]), Number(tokens[6]), Number(tokens[7]),
+                            Number(tokens[8]), Number(tokens[9]), Number(tokens[10]),
+                            Number(tokens[11]), Number(tokens[12]), Number(tokens[13])
+                        ],
+                        partId: tokens[14],
+                        lineIndex
+                    };
+                }
+            }
+
+            if (trimmed.startsWith('0 ')) {
+                if (trimmed.includes('FRANK_CELL')) {
+                    try {
+                        const jsonMatch = trimmed.match(/\{.*\}/);
+                        if (jsonMatch) {
+                            return {
+                                type: 'meta',
+                                meta: JSON.parse(jsonMatch[0]),
+                                lineIndex
+                            };
+                        }
+                    } catch (e) { }
+                }
+                return { type: 'comment', text: trimmed, lineIndex };
+            }
+
+            return { type: 'other', lineIndex };
+        }
+
+        function toggleLine(index) {
+            if (state.expandedLines.has(index)) {
+                state.expandedLines.delete(index);
+            } else {
+                state.expandedLines.add(index);
+            }
+            renderGrid();
+        }
+
+        function expandAll() {
+            state.lines.forEach((_, idx) => state.expandedLines.add(idx));
+            renderGrid();
+        }
+
+        function collapseAll() {
+            state.expandedLines.clear();
+            renderGrid();
+        }
+
+        function redistributeStuds() {
+            if (state.studSkeleton.length === 0) {
+                alert('No stud skeleton data to redistribute!');
+                return;
+            }
+
+            const partLines = state.lines
+                .map((line, idx) => ({ line, idx }))
+                .filter(({ line }) => line.isPart && line.parsed);
+
+            if (partLines.length === 0) {
+                alert('No part lines found for redistribution!');
+                return;
+            }
+
+            // Count original distribution
+            const originalCounts = {};
+            state.studSkeleton.forEach(s => {
+                originalCounts[s.lineNum] = (originalCounts[s.lineNum] || 0) + 1;
+            });
+
+            console.log('📊 Original lineNum distribution:', originalCounts);
+            console.log('🎯 Found', partLines.length, 'part lines for redistribution');
+
+            // Redistribute using spatial heuristic
+            let redistributed = 0;
+            state.studSkeleton.forEach((stud, studIdx) => {
+                // Find nearest part by 3D Euclidean distance
+                let nearestLine = null;
+                let minDist = Infinity;
+
+                partLines.forEach(({ line, idx }) => {
+                    const part = line.parsed;
+                    const dx = stud.x - part.x;
+                    const dy = stud.y - part.y;
+                    const dz = stud.z - part.z;
+                    const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+
+                    if (dist < minDist) {
+                        minDist = dist;
+                        nearestLine = idx;
+                    }
+                });
+
+                const oldLine = stud.lineNum;
+                if (nearestLine !== null && oldLine !== nearestLine) {
+                    stud.lineNum = nearestLine;
+                    redistributed++;
+                    if (studIdx < 5) { // Log first 5 changes for debugging
+                        console.log(`  Stud ${studIdx}: ${oldLine} → ${nearestLine}`);
+                    }
+                }
+            });
+
+            // Count new distribution
+            const newCounts = {};
+            state.studSkeleton.forEach(s => {
+                newCounts[s.lineNum] = (newCounts[s.lineNum] || 0) + 1;
+            });
+
+            console.log('✅ New lineNum distribution:', newCounts);
+            console.log(`🔄 Redistributed ${redistributed} studs across ${partLines.length} part lines`);
+
+            // Validate redistribution actually happened
+            if (redistributed === 0) {
+                alert('⚠️ Warning: No studs were redistributed!\n\nThis may mean:\n1. All studs are already at their nearest parts\n2. Part positions match stud positions exactly\n\nCheck console for details.');
+                return;
+            }
+
+            const distinctBefore = Object.keys(originalCounts).length;
+            const distinctAfter = Object.keys(newCounts).length;
+
+            alert(`✅ Redistributed ${redistributed} studs!\n\nBefore: ${distinctBefore} distinct lines\nAfter: ${distinctAfter} distinct lines\n\nOriginal: ${JSON.stringify(originalCounts)}\nNew: ${JSON.stringify(newCounts)}\n\n👉 Now click "Export Corrected GOLD" to save`);
+
+            renderGrid();
+            updateStats();
+        }
+
+        function exportCorrectedGold() {
+            if (!state.originalGold) {
+                alert('No GOLD data loaded to export! Load a GOLD JSON file first.');
+                return;
+            }
+
+            // Compute original distribution
+            const originalDist = new Map();
+            const originalStuds = state.originalGold.stud_skeleton || [];
+            originalStuds.forEach(s => {
+                const ln = s.lineNum;
+                originalDist.set(ln, (originalDist.get(ln) || 0) + 1);
+            });
+
+            let origMaxLine = null;
+            let origMaxCount = 0;
+            originalDist.forEach((count, line) => {
+                if (count > origMaxCount) {
+                    origMaxCount = count;
+                    origMaxLine = line;
+                }
+            });
+
+            const origDistinctLines = originalDist.size;
+            const origTopRatio = originalStuds.length > 0 ? origMaxCount / originalStuds.length : 0;
+
+            // Compute new distribution
+            const newDist = new Map();
+            state.studSkeleton.forEach(s => {
+                const ln = s.lineNum;
+                newDist.set(ln, (newDist.get(ln) || 0) + 1);
+            });
+
+            let newMaxLine = null;
+            let newMaxCount = 0;
+            newDist.forEach((count, line) => {
+                if (count > newMaxCount) {
+                    newMaxCount = count;
+                    newMaxLine = line;
+                }
+            });
+
+            const newDistinctLines = newDist.size;
+            const newTopRatio = state.studSkeleton.length > 0 ? newMaxCount / state.studSkeleton.length : 0;
+
+            // Determine severity
+            let severity = 'HEALTHY';
+            if (origTopRatio >= 0.9) severity = 'CRITICAL';
+            else if (origTopRatio >= 0.7) severity = 'WARNING';
+            else if (origDistinctLines <= 2) severity = 'WARNING';
+
+            // Build histogram objects
+            const origHistogram = {};
+            originalDist.forEach((count, line) => { origHistogram[line] = count; });
+
+            const newHistogram = {};
+            newDist.forEach((count, line) => { newHistogram[line] = count; });
+
+            // Build pathology report
+            const pathologyReport = {
+                detected_at: new Date().toISOString(),
+                corrected_by: 'MPD Data Explorer Synthetic Redistributor v1.0',
+                severity: severity,
+                original_distribution: {
+                    distinct_lines: origDistinctLines,
+                    top_line: origMaxLine,
+                    top_count: origMaxCount,
+                    top_percentage: parseFloat((origTopRatio * 100).toFixed(1)),
+                    histogram: origHistogram
+                },
+                corrected_distribution: {
+                    distinct_lines: newDistinctLines,
+                    top_line: newMaxLine,
+                    top_count: newMaxCount,
+                    top_percentage: parseFloat((newTopRatio * 100).toFixed(1)),
+                    histogram: newHistogram
+                },
+                correction_method: 'spatial_proximity_3d_euclidean',
+                correction_parameters: {
+                    algorithm: 'nearest_neighbor_by_world_position',
+                    distance_metric: 'euclidean_3d'
+                },
+                mpd_lines_count: state.lines.length,
+                part_lines_count: state.parts.length,
+                recommendation: 'Regenerate from source using per-line stud sampler (Courage v9+) for canonical skeleton'
+            };
+
+            // Reconstruct GOLD with corrected stud skeleton and pathology report
+            const correctedGold = {
+                ...state.originalGold,
+                stud_skeleton: state.studSkeleton,
+                _skeleton_pathology_report: pathologyReport
+            };
+
+            // Download as JSON
+            const blob = new Blob([JSON.stringify(correctedGold, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `corrected_${state.originalGold.filename || 'gold'}_${new Date().toISOString().replace(/[:.]/g, '-')}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+
+            console.log('Exported corrected GOLD with pathology report:', pathologyReport);
+            alert(`✅ Exported with pathology report!\n\nSeverity: ${severity}\nOriginal: ${origDistinctLines} distinct lines, top line owned ${(origTopRatio * 100).toFixed(1)}%\nCorrected: ${newDistinctLines} distinct lines, top line owns ${(newTopRatio * 100).toFixed(1)}%`);
+        }
+
+        function renderGrid() {
+            const container = document.getElementById('gridContainer');
+            container.innerHTML = '';
+
+            state.lines.forEach((line, idx) => {
+                const lineContainer = document.createElement('div');
+                lineContainer.className = 'line-container';
+                if (line.isPart) lineContainer.classList.add('is-part');
+                if (state.expandedLines.has(idx)) lineContainer.classList.add('expanded');
+
+                // Header
+                const header = document.createElement('div');
+                header.className = 'line-header';
+                header.onclick = () => toggleLine(idx);
+
+                const numBadge = document.createElement('div');
+                numBadge.className = 'line-num-badge';
+                numBadge.textContent = idx.toString().padStart(3, '0');
+                header.appendChild(numBadge);
+
+                const source = document.createElement('div');
+                source.className = 'line-source';
+                source.textContent = line.text || ' ';
+                header.appendChild(source);
+
+                const expandIcon = document.createElement('div');
+                expandIcon.className = 'expand-icon';
+                expandIcon.textContent = '▶';
+                header.appendChild(expandIcon);
+
+                lineContainer.appendChild(header);
+
+                // Details
+                const details = document.createElement('div');
+                details.className = 'line-details';
+
+                const detailGrid = document.createElement('div');
+                detailGrid.className = 'detail-grid';
+
+                // Container 1: Parsed Part Data
+                if (line.parsed && line.parsed.type === 'part') {
+                    const partCard = createCard('🔧 Parsed Part Data', renderPartData(line.parsed));
+                    detailGrid.appendChild(partCard);
+                }
+
+                // Container 2: Metadata
+                if (line.parsed && line.parsed.type === 'meta') {
+                    const metaCard = createCard('📋 Metadata (FRANK_CELL)', renderMetaData(line.parsed.meta));
+                    detailGrid.appendChild(metaCard);
+                }
+
+                // Container 3: Comments
+                if (line.parsed && line.parsed.type === 'comment') {
+                    const commentCard = createCard('💬 Comment', `<div class="tag meta">${line.parsed.text}</div>`);
+                    detailGrid.appendChild(commentCard);
+                }
+
+                // Container 4: Stud Skeleton Array
+                const studs = state.studSkeleton.filter(s => s.lineNum === idx);
+                if (studs.length > 0) {
+                    const studCard = createCard(
+                        `🔵 Stud Skeleton Array <span class="count-badge">${studs.length}</span>`,
+                        renderStudArray(studs)
+                    );
+                    detailGrid.appendChild(studCard);
+                }
+
+                // Container 5: Part Skeleton Array
+                const partSkels = state.partSkeleton.filter(s => s.lineNum === idx);
+                if (partSkels.length > 0) {
+                    const skelCard = createCard(
+                        `🟣 Part Skeleton Array <span class="count-badge">${partSkels.length}</span>`,
+                        renderPartSkeletonArray(partSkels)
+                    );
+                    detailGrid.appendChild(skelCard);
+                }
+
+                details.appendChild(detailGrid);
+                lineContainer.appendChild(details);
+                container.appendChild(lineContainer);
+            });
+        }
+
+        function createCard(title, content) {
+            const card = document.createElement('div');
+            card.className = 'detail-card';
+
+            const titleEl = document.createElement('div');
+            titleEl.className = 'detail-card-title';
+            titleEl.innerHTML = title;
+            card.appendChild(titleEl);
+
+            const contentEl = document.createElement('div');
+            contentEl.className = 'detail-content';
+            contentEl.innerHTML = content;
+            card.appendChild(contentEl);
+
+            return card;
+        }
+
+        function renderPartData(part) {
+            return `
+        <div class="tag color">Color: ${part.color}</div>
+        <div class="tag pos">X: ${part.x}</div>
+        <div class="tag pos">Y: ${part.y}</div>
+        <div class="tag pos">Z: ${part.z}</div>
+        <div class="tag part">${part.partId}</div>
+      `;
+        }
+
+        function renderMetaData(meta) {
+            return Object.entries(meta).map(([key, val]) =>
+                `<div class="tag meta">${key}: ${val}</div>`
+            ).join('');
+        }
+
+        function renderStudArray(studs) {
+            const list = studs.map(s => `
+        <div class="stud-item">
+          <span class="coord">x:${s.x.toFixed(1)}</span>
+          <span class="coord">y:${s.y.toFixed(1)}</span>
+          <span class="coord">z:${s.z.toFixed(1)}</span>
+          <span class="coord">L${s.layer || 0}</span>
+        </div>
+      `).join('');
+
+            return `<div class="stud-list">${list}</div>${renderStudCanvas(studs)}`;
+        }
+
+        function renderStudCanvas(studs) {
+            const id = `canvas_${Math.random().toString(36).substr(2, 9)}`;
+            setTimeout(() => drawStuds(id, studs), 10);
+            return `<canvas id="${id}" class="canvas-viz" width="300" height="80"></canvas>`;
+        }
+
+        function drawStuds(canvasId, studs) {
+            const canvas = document.getElementById(canvasId);
+            if (!canvas) return;
+
+            const ctx = canvas.getContext('2d');
+            ctx.clearRect(0, 0, 300, 80);
+
+            let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+            studs.forEach(s => {
+                if (s.x < minX) minX = s.x;
+                if (s.x > maxX) maxX = s.x;
+                if (s.z < minZ) minZ = s.z;
+                if (s.z > maxZ) maxZ = s.z;
+            });
+
+            const spanX = (maxX - minX) || 1;
+            const spanZ = (maxZ - minZ) || 1;
+            const padding = 10;
+
+            studs.forEach(stud => {
+                const xNorm = (stud.x - minX) / spanX;
+                const zNorm = (stud.z - minZ) / spanZ;
+                const x = padding + xNorm * (300 - padding * 2);
+                const y = 80 - (padding + zNorm * (80 - padding * 2));
+
+                const hue = ((stud.layer || 0) * 30) % 360;
+                ctx.fillStyle = `hsl(${hue}, 70%, 60%)`;
+                ctx.beginPath();
+                ctx.arc(x, y, 4, 0, Math.PI * 2);
+                ctx.fill();
+
+                ctx.fillStyle = `hsla(${hue}, 70%, 60%, 0.3)`;
+                ctx.beginPath();
+                ctx.arc(x, y, 7, 0, Math.PI * 2);
+                ctx.fill();
+            });
+        }
+
+        function renderPartSkeletonArray(skels) {
+            const list = skels.map(s => {
+                const wp = s.worldPos || s;
+                return `
+          <div class="stud-item">
+            <span class="coord">x:${wp.x?.toFixed(1) || 'N/A'}</span>
+            <span class="coord">y:${wp.y?.toFixed(1) || 'N/A'}</span>
+            <span class="coord">z:${wp.z?.toFixed(1) || 'N/A'}</span>
+          </div>
+        `;
+            }).join('');
+
+            return `<div class="stud-list">${list}</div>`;
+        }
+
+        function updateStats() {
+            document.getElementById('lineCount').textContent = state.lines.length;
+            document.getElementById('partCount').textContent = state.parts.length;
+            document.getElementById('studCount').textContent = state.studSkeleton.length;
+            document.getElementById('partSkeletonCount').textContent = state.partSkeleton.length;
+
+            // Pathology detection
+            const byLine = new Map();
+            state.studSkeleton.forEach(s => {
+                const ln = s.lineNum;
+                byLine.set(ln, (byLine.get(ln) || 0) + 1);
+            });
+
+            const distinctLines = byLine.size;
+            document.getElementById('distinctLineCount').textContent = distinctLines;
+
+            const pathologyText = document.getElementById('pathologyText');
+            const pathologyIndicator = document.getElementById('pathologyIndicator');
+
+            if (state.studSkeleton.length === 0) {
+                pathologyText.textContent = '';
+                pathologyIndicator.className = 'stat-item';
+                return;
+            }
+
+            // Find dominant line
+            let maxLine = null;
+            let maxCount = 0;
+            byLine.forEach((count, line) => {
+                if (count > maxCount) {
+                    maxCount = count;
+                    maxLine = line;
+                }
+            });
+
+            const topRatio = maxCount / state.studSkeleton.length;
+            const percent = (topRatio * 100).toFixed(1);
+
+            if (topRatio >= 0.9) {
+                pathologyText.textContent = `⚠️ PATHOLOGY: Line ${maxLine} owns ${percent}% of studs`;
+                pathologyText.className = 'pathology-bad';
+            } else if (topRatio >= 0.7) {
+                pathologyText.textContent = `⚠ Warning: Line ${maxLine} owns ${percent}% of studs`;
+                pathologyText.className = 'pathology-warn';
+            } else if (distinctLines > 1) {
+                pathologyText.textContent = `✓ Healthy: studs spread across ${distinctLines} lines`;
+                pathologyText.className = 'pathology-good';
+            } else {
+                pathologyText.textContent = '';
+                pathologyText.className = '';
+            }
+        }
+
+        // Demo data
+        setTimeout(() => {
+            const demoMpd = `0 FILE demo.mpd
+0 Name: WAG Demo Scene
+0 !LDRAW_ORG Model
+0 // FRANK_CELL {"cell":"A1","kind":"scene","name":"Base"}
+1 16 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // FRANK_CELL {"cell":"B2","kind":"scene","name":"Stack"}
+1 4 60 0 0 1 0 0 0 1 0 0 0 1 3001.dat
+1 14 0 0 60 1 0 0 0 1 0 0 0 1 3001.dat`;
+            loadFromMpd(demoMpd);
+        }, 100);
+    </script>
+</body>
+
+</html>

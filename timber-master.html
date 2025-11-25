@@ -1,0 +1,1249 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>WAG Master Builder v9</title>
+    <link rel="icon" type="image/svg+xml"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' fill='%23020203'/%3E%3Crect x='42' y='30' width='16' height='50' fill='%238B4513' rx='2'/%3E%3Cpath d='M 30 25 L 70 25 L 75 35 L 65 45 L 25 45 L 35 35 Z' fill='%23C0C0C0' stroke='%23666' stroke-width='1.5'/%3E%3Cpath d='M 65 45 L 75 35 L 70 25 L 65 30 Z' fill='%23888' opacity='0.6'/%3E%3C/svg%3E" />
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+    <style>
+        :root {
+            /* Deep Industrial Theme */
+            --bg: #020203;
+            --panel: #0a0a0c;
+            --text: #889;
+            --accent: #ffcc00;
+            --border: #222;
+
+            /* Telemetry Colors */
+            --c-x: #ff3366;
+            --c-y: #00ffaa;
+            --c-z: #3366ff;
+
+            /* Grid Colors */
+            --grid-base: #112233;
+            --grid-highlight: #004455;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            margin: 0;
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Courier New', monospace;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* 3D Viewport */
+        #viewport {
+            height: 60vh;
+            width: 100%;
+            background: radial-gradient(circle at center, #111 0%, #000 100%);
+            position: relative;
+            z-index: 1;
+        }
+
+        /* HUD Layer */
+        #hud-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            overflow: hidden;
+        }
+
+        .hud-tag {
+            position: absolute;
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            padding: 2px 4px;
+            border-radius: 2px;
+            background: rgba(0, 0, 0, 0.8);
+            border: 1px solid;
+            transform: translate(-50%, -50%);
+            display: none;
+            /* JS toggles */
+            white-space: nowrap;
+        }
+
+        .tag-x {
+            color: var(--c-x);
+            border-color: var(--c-x);
+        }
+
+        .tag-y {
+            color: var(--c-y);
+            border-color: var(--c-y);
+        }
+
+        .tag-z {
+            color: var(--c-z);
+            border-color: var(--c-z);
+        }
+
+        /* Editor Panel */
+        #editor-container {
+            height: 40vh;
+            background: var(--panel);
+            border-top: 2px solid var(--accent);
+            display: flex;
+            flex-direction: column;
+            z-index: 10;
+        }
+
+        .toolbar {
+            height: 36px;
+            background: #000;
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 12px;
+            justify-content: space-between;
+        }
+
+        .brand {
+            color: var(--accent);
+            font-weight: 900;
+            font-size: 14px;
+        }
+
+        .btn {
+            background: #151515;
+            border: 1px solid #333;
+            color: #aaa;
+            padding: 3px 8px;
+            font-size: 10px;
+            cursor: pointer;
+            border-radius: 3px;
+            font-weight: bold;
+        }
+
+        .btn:hover {
+            color: #fff;
+            border-color: var(--accent);
+        }
+
+        /* List */
+        #code-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding-bottom: 40px;
+        }
+
+        .line-row {
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid var(--border);
+            height: 40px;
+            background: var(--panel);
+            transition: background 0.1s;
+        }
+
+        .line-row:hover {
+            background: #101015;
+        }
+
+        .line-row.selected {
+            background: rgba(255, 204, 0, 0.08);
+            border-left: 3px solid var(--accent);
+        }
+
+        .line-row.header {
+            background: #050505;
+            color: #666;
+            cursor: pointer;
+            font-style: italic;
+        }
+
+        .line-row.header:hover {
+            color: var(--accent);
+        }
+
+        .checkbox {
+            width: 32px;
+            display: flex;
+            justify-content: center;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .line-row.selected .checkbox {
+            color: var(--accent);
+            text-shadow: 0 0 5px var(--accent);
+        }
+
+        .tokens {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            overflow-x: auto;
+            gap: 6px;
+            padding: 0 10px;
+            height: 100%;
+            scrollbar-width: none;
+        }
+
+        .dial {
+            padding: 3px 5px;
+            background: #181818;
+            border: 1px solid #333;
+            border-radius: 2px;
+            min-width: 30px;
+            text-align: center;
+            cursor: ns-resize;
+            flex-shrink: 0;
+            user-select: none;
+            font-weight: bold;
+            font-size: 11px;
+            touch-action: none;
+        }
+
+        .dial:hover {
+            border-color: #555;
+        }
+
+        .dial.dragging {
+            background: var(--accent);
+            color: #000 !important;
+            transform: scale(1.1);
+            z-index: 100;
+        }
+
+        /* Semantic Colors */
+        .x-val {
+            color: var(--c-x);
+        }
+
+        .y-val {
+            color: var(--c-y);
+        }
+
+        .z-val {
+            color: var(--c-z);
+        }
+
+        .c-val {
+            color: #fff;
+            font-weight: 900;
+        }
+
+        .m-val {
+            color: #666;
+            font-weight: normal;
+            font-size: 10px;
+        }
+
+        /* Raw Overlay */
+        #raw-overlay {
+            position: absolute;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.98);
+            z-index: 200;
+            display: none;
+            flex-direction: column;
+            padding: 20px;
+        }
+
+        textarea {
+            flex: 1;
+            background: #111;
+            color: #0f0;
+            border: 1px solid #333;
+            padding: 15px;
+            font-family: monospace;
+            margin-bottom: 10px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="viewport">
+        <div id="hud-layer"></div>
+    </div>
+
+    <div id="editor-container">
+        <div class="toolbar">
+            <div class="brand">WAG MASTER v9</div>
+            <div style="display:flex; gap:10px; align-items:center">
+                <button class="btn" onclick="toggleRaw()">RAW</button>
+                <button class="btn" onclick="openGoldFileMaster()">LOAD</button>
+                <button class="btn" onclick="exportCode()">COPY</button>
+                <button class="btn" onclick="downloadMPD()">SAVE</button>
+                <button class="btn" id="skeletonToggleBtn" onclick="toggleSkeleton()"
+                    title="Toggle skeleton overlays (studs, bones, part dots) on top of cubes">SKELETON</button>
+                <button class="btn" onclick="toggleCalibration()"
+                    title="Calibration mode - adjust skeleton offset">CALIBRATE</button>
+            </div>
+        </div>
+
+        <!-- Calibration Panel -->
+        <div id="calibration-panel"
+            style="display:none; background:#050505; border-bottom:1px solid var(--border); padding:10px; display:none;">
+            <div style="color:var(--accent); font-size:10px; margin-bottom:8px">SKELETON OFFSET CALIBRATION</div>
+            <div style="display:flex; gap:15px; align-items:center">
+                <div style="display:flex; gap:5px; align-items:center">
+                    <span style="font-size:9px; color:var(--c-x)">X:</span>
+                    <input type="number" id="offset-x" value="0" step="1"
+                        style="width:60px; background:#111; border:1px solid #333; color:var(--c-x); padding:3px; font-size:10px"
+                        onchange="updateSkeletonOffset()">
+                </div>
+                <div style="display:flex; gap:5px; align-items:center">
+                    <span style="font-size:9px; color:var(--c-y)">Y:</span>
+                    <input type="number" id="offset-y" value="0" step="1"
+                        style="width:60px; background:#111; border:1px solid #333; color:var(--c-y); padding:3px; font-size:10px"
+                        onchange="updateSkeletonOffset()">
+                </div>
+                <div style="display:flex; gap:5px; align-items:center">
+                    <span style="font-size:9px; color:var(--c-z)">Z:</span>
+                    <input type="number" id="offset-z" value="800" step="1"
+                        style="width:60px; background:#111; border:1px solid #333; color:var(--c-z); padding:3px; font-size:10px"
+                        onchange="updateSkeletonOffset()">
+                </div>
+                <button class="btn" onclick="resetSkeletonOffset()">RESET</button>
+                <div style="font-size:9px; color:#666; margin-left:auto">
+                    Align GOLD skeleton to MPD cubes
+                </div>
+            </div>
+        </div>
+
+        <input type="file" id="gold-file-master" style="display:none" accept=".json,application/json">
+        <div id="code-scroll"></div>
+    </div>
+
+    <div id="raw-overlay">
+        <h3 style="color:var(--accent); margin:0 0 10px 0">SOURCE CODE</h3>
+        <textarea id="raw-text" spellcheck="false"></textarea>
+        <div style="display:flex; gap:10px">
+            <button class="btn" onclick="loadRaw()"
+                style="flex:1; color:var(--accent); border-color:var(--accent)">LOAD</button>
+            <button class="btn" onclick="toggleRaw()" style="flex:1">CANCEL</button>
+        </div>
+    </div>
+
+    <script>
+        /* --- 1. DATA --- */
+        const DEFAULT_MPD = `0 FILE wag_master_v9.mpd
+0 // BASEPLATE
+1 15 0 0 0 1 0 0 0 1 0 0 0 1 3811.dat
+0 // RED PILLAR
+1 4 -60 -24 -60 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 -60 -48 -60 1 0 0 0 1 0 0 0 1 3001.dat
+1 4 -60 -72 -60 1 0 0 0 1 0 0 0 1 3001.dat
+0 // BLUE PILLAR
+1 1 60 -24 60 1 0 0 0 1 0 0 0 1 3001.dat
+1 1 60 -48 60 1 0 0 0 1 0 0 0 1 3001.dat`;
+
+        let state = {
+            lines: [], audioReady: false, studs: [], partSkeleton: [], groundViolations: [], skeletonEnabled: true,
+            skeletonOffset: { x: 0, y: 0, z: 800 }, calibrationMode: false
+        }; // Z=800 default offset
+
+        // --- 2. AUDIO ---
+        let click, alarm;
+        async function initAudio() {
+            if (state.audioReady) return;
+            await Tone.start();
+            click = new Tone.MembraneSynth({ envelope: { attack: 0.001, decay: 0.05 } }).toDestination();
+            click.volume.value = -18;
+            alarm = new Tone.Synth({ oscillator: { type: "sawtooth" }, envelope: { release: 0.1 } }).toDestination();
+            alarm.volume.value = -15;
+            state.audioReady = true;
+        }
+        function sfxTick() { if (state.audioReady) click.triggerAttackRelease("C2", "32n"); }
+        function sfxSnap() { if (state.audioReady) click.triggerAttackRelease("G2", "32n"); }
+        function sfxCollide() { if (state.audioReady) alarm.triggerAttackRelease("A3", "16n"); }
+
+        // --- 3. PARSER ---
+        function parse(text) {
+            state.lines = text.split('\n').map((raw, i) => {
+                raw = raw.trim();
+                if (!raw) return { id: i, type: -1, raw: "" };
+                const p = raw.split(/\s+/);
+                const type = parseInt(p[0]);
+                if (type === 1 && p.length >= 14) {
+                    return {
+                        id: i, type: 1, isPart: true,
+                        color: parseInt(p[1]),
+                        x: parseFloat(p[2]), y: parseFloat(p[3]), z: parseFloat(p[4]),
+                        matrix: p.slice(5, 14).map(parseFloat),
+                        file: p.slice(14).join(' '),
+                        raw: raw, selected: false
+                    };
+                } else if (type === 0) {
+                    return { id: i, type: 0, isHeader: true, raw: raw, selected: false };
+                }
+                return { id: i, type: type, isPart: false, raw: raw };
+            });
+            // Auto-select first group
+            const first = state.lines.find(l => l.isPart);
+            if (first) first.selected = true;
+        }
+
+        function compile(line) {
+            if (line.isPart) {
+                const m = line.matrix.map(n => Math.round(n * 1000) / 1000);
+                line.raw = `1 ${line.color} ${Math.round(line.x)} ${Math.round(line.y)} ${Math.round(line.z)} ${m.join(' ')} ${line.file}`;
+            }
+        }
+
+        function duplicateLine(id) {
+            const src = state.lines[id];
+            if (!src || !src.isPart) return;
+            const clone = JSON.parse(JSON.stringify(src));
+            clone.y -= 24; // Stack on top
+            compile(clone);
+            state.lines.splice(id + 1, 0, clone);
+            state.lines.forEach((l, i) => l.id = i); // Re-index
+            renderEditor(); update3D();
+        }
+
+        // --- 4. THREE.JS ---
+        const scene = new THREE.Scene();
+        // Match WERE/Courage: technical blue-black background, light fog far away
+        scene.background = new THREE.Color(0x0a0b10);
+        scene.fog = new THREE.Fog(0x0a0b10, 800, 2400);
+
+        const camera = new THREE.PerspectiveCamera(50, window.innerWidth / (window.innerHeight * 0.6), 0.1, 2000);
+        const renderer = new THREE.WebGLRenderer({ antialias: true });
+        renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+        document.getElementById('viewport').appendChild(renderer.domElement);
+
+        const controls = new THREE.OrbitControls(camera, renderer.domElement);
+        controls.enableDamping = true;
+        camera.position.set(200, 220, 200);
+        camera.lookAt(0, 0, 0);
+
+        // GROUPS
+        const worldRoot = new THREE.Group();
+        worldRoot.scale.set(1, -1, 1); // Flip Y for LDraw
+        scene.add(worldRoot);
+
+        // Skeleton overlays (bones + studs) live under worldRoot so they share the same flip
+        const skeletonRoot = new THREE.Group();
+        worldRoot.add(skeletonRoot);
+        const bonesGroup = new THREE.Group();
+        const studsGroup = new THREE.Group();
+        const partDotsGroup = new THREE.Group();
+        skeletonRoot.add(bonesGroup);
+        skeletonRoot.add(studsGroup);
+        skeletonRoot.add(partDotsGroup);
+        skeletonRoot.visible = false;
+
+        const teleRoot = new THREE.Group();
+        scene.add(teleRoot); // No flip for telemetry
+
+        // --- THE CONTAINMENT FIELD (Walls) ---
+        const BOUNDS = 1600; // Expanded room: ±1600 in X/Z to encompass entire scene
+        const walls = {
+            floor: createWallPlane(BOUNDS, 0x00ffaa),
+            ceil: createWallPlane(BOUNDS, 0x00ffaa),
+            left: createWallPlane(BOUNDS, 0xff3366),
+            right: createWallPlane(BOUNDS, 0xff3366),
+            back: createWallPlane(BOUNDS, 0x3366ff),
+            front: createWallPlane(BOUNDS, 0x3366ff),
+        };
+
+        // Position Walls
+        walls.floor.rotation.x = -Math.PI / 2;
+
+        walls.ceil.rotation.x = Math.PI / 2;
+        walls.ceil.position.y = 200; // Height of room
+
+        walls.back.position.set(0, 100, -BOUNDS);
+
+        walls.front.position.set(0, 100, BOUNDS);
+        walls.front.rotation.y = Math.PI;
+
+        walls.left.rotation.y = Math.PI / 2;
+        walls.left.position.set(-BOUNDS, 100, 0);
+
+        walls.right.rotation.y = -Math.PI / 2;
+        walls.right.position.set(BOUNDS, 100, 0);
+
+        function createWallPlane(size, color) {
+            // Grid Helper + Transparent Plane for Collision Glow
+            const group = new THREE.Group();
+
+            // Grid — keep cell size ~20 units regardless of room size
+            const worldSize = size * 2; // Extent from -size to +size
+            const divisions = Math.max(20, Math.round(worldSize / 20));
+            const g = new THREE.GridHelper(worldSize, divisions, color, 0x112233);
+            g.rotation.x = Math.PI / 2; // Rotate grid to be a plane facing Z
+            group.add(g);
+
+            // Collision Mesh (Glows when hit)
+            const geo = new THREE.PlaneGeometry(size * 2, size * 2);
+            const mat = new THREE.MeshBasicMaterial({ color: color, transparent: true, opacity: 0, side: THREE.DoubleSide });
+            const mesh = new THREE.Mesh(geo, mat);
+            mesh.userData.isWall = true;
+            group.add(mesh);
+
+            scene.add(group);
+            return group;
+        }
+
+        // --- TELEMETRY POOL (Multi-Target) ---
+        const MAX_SELECT = 50;
+        const shadowPool = [];
+        const shadowMat = new THREE.MeshBasicMaterial({ transparent: true, opacity: 0.4, side: THREE.DoubleSide });
+        const boxProjGeo = new THREE.PlaneGeometry(1, 1);
+
+        for (let i = 0; i < MAX_SELECT * 5; i++) { // 5 shadows per brick
+            const m = new THREE.Mesh(boxProjGeo, shadowMat.clone());
+            m.visible = false;
+            teleRoot.add(m);
+            shadowPool.push(m);
+        }
+
+        // HUD Label Pool
+        const labelPool = [];
+        function getLabel(i) {
+            if (!labelPool[i]) {
+                const el = document.createElement('div');
+                el.className = 'hud-tag';
+                document.getElementById('hud-layer').appendChild(el);
+                labelPool[i] = el;
+            }
+            return labelPool[i];
+        }
+
+        // --- RENDERER ---
+        const boxGeo = new THREE.BoxGeometry(1, 1, 1);
+        const lColors = { 0: 0x222, 1: 0x0055BF, 2: 0x257A24, 4: 0xC91A09, 14: 0xFFD700, 15: 0xEEE, 25: 0xffaa00 };
+        const studGeo = new THREE.SphereGeometry(6, 12, 12); // INCREASED from 2 to 6 for visibility
+        const studMat = new THREE.MeshBasicMaterial({ color: 0x00ffff, transparent: true, opacity: 1.0, vertexColors: true }); // Full opacity
+        const studMatsByColor = {}; // legacy map preserved for compatibility (bones reuse lDraw colours)
+        const studColorTmp = new THREE.Color(0x00ffff);
+        const studMatrixTmp = new THREE.Matrix4();
+        const partDotGeo = new THREE.SphereGeometry(8, 16, 16); // INCREASED from 4 to 8 for visibility
+
+        function update3D() {
+            // Recenter worldRoot so Courage's base grid layer sits at Y=0 in the room
+            worldRoot.position.set(0, 0, 0);
+            if (Array.isArray(state.studs) && state.studs.length) {
+                const layerStats = {};
+                state.studs.forEach(node => {
+                    if (!node || typeof node.layer !== 'number' || typeof node.y !== 'number') return;
+                    const key = node.layer | 0;
+                    let stat = layerStats[key];
+                    if (!stat) {
+                        stat = { count: 0, sumY: 0 };
+                        layerStats[key] = stat;
+                    }
+                    stat.count++;
+                    stat.sumY += node.y;
+                });
+                let bestLayer = null;
+                let bestCount = 0;
+                Object.keys(layerStats).forEach(k => {
+                    const stat = layerStats[k];
+                    if (stat.count > bestCount) {
+                        bestCount = stat.count;
+                        bestLayer = parseInt(k, 10);
+                    }
+                });
+                if (bestLayer !== null && bestCount > 0) {
+                    const stat = layerStats[bestLayer];
+                    const baseGridY = stat.sumY / stat.count;
+                    if (isFinite(baseGridY)) {
+                        worldRoot.position.y = -baseGridY;
+                    }
+                }
+            }
+
+            // 1. Rebuild Bricks
+            const kill = [];
+            worldRoot.traverse(c => { if (c.userData && c.userData.isBrick) kill.push(c); });
+            kill.forEach(c => worldRoot.remove(c));
+
+            // Reset skeleton overlays
+            bonesGroup.clear();
+            studsGroup.clear();
+            if (typeof partDotsGroup.clear === 'function') partDotsGroup.clear();
+            const hasAnySkeleton = (state.studs && state.studs.length) || (state.partSkeleton && state.partSkeleton.length);
+            skeletonRoot.visible = !!(hasAnySkeleton && state.skeletonEnabled);
+
+            // Reset Telemetry
+            shadowPool.forEach(s => s.visible = false);
+            labelPool.forEach(l => l.style.display = 'none');
+
+            // Reset Wall Glows
+            Object.values(walls).forEach(w => w.children[1].material.opacity = 0);
+
+            let shadowIdx = 0;
+            let labelIdx = 0;
+            let collisionDetected = false;
+
+            // Build skeleton cache: lineNum -> {mesh, studs[], dots[]}
+            const skeletonCache = {};
+
+            state.lines.forEach(line => {
+                if (line.isPart) {
+                    // -- BRICK MESH --
+                    const m = new THREE.Mesh(boxGeo, new THREE.MeshStandardMaterial({
+                        color: lColors[line.color] || 0x888, roughness: 0.5, metalness: 0.2
+                    }));
+                    m.userData.isBrick = true;
+                    m.userData.lineId = line.id;
+
+                    // Dimensions
+                    let s = [20, 24, 20];
+                    if (line.file.includes('3811')) s = [320, 4, 320];
+                    m.scale.set(s[0], s[1], s[2]);
+                    m.position.set(line.x, line.y, line.z);
+
+                    const mat = new THREE.Matrix4();
+                    mat.set(
+                        line.matrix[0], line.matrix[1], line.matrix[2], 0,
+                        line.matrix[3], line.matrix[4], line.matrix[5], 0,
+                        line.matrix[6], line.matrix[7], line.matrix[8], 0,
+                        0, 0, 0, 1
+                    );
+                    m.rotation.setFromRotationMatrix(mat);
+
+                    // Store in skeleton cache for tethering
+                    const lineNum = line.id + 1; // 1-based
+                    skeletonCache[lineNum] = { mesh: m, studs: [], dots: [] };
+
+                    if (line.selected) {
+                        m.material.emissive.setHex(0x332200);
+                        const wire = new THREE.LineSegments(new THREE.EdgesGeometry(boxGeo), new THREE.LineBasicMaterial({ color: 0xffd700 }));
+                        m.add(wire);
+
+                        // -- TELEMETRY (Per Selected Brick) --
+                        const vx = line.x;
+                        const vy = -line.y; // Visual Y
+                        const vz = line.z;
+                        const brickColor = lColors[line.color] || 0xffffff;
+
+                        // 1. Project to Floor (Green Axis)
+                        setShadow(shadowIdx++, vx, 0, vz, s[0], s[2], -Math.PI / 2, 0, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), vx, 0, vz, `Y:${Math.round(line.y)}`, 'tag-y');
+
+                        // 2. Project to Left Wall (Red Axis)
+                        setShadow(shadowIdx++, -BOUNDS, vy, vz, s[2], s[1], 0, Math.PI / 2, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), -BOUNDS, vy, vz, `X:${Math.round(vx)}`, 'tag-x');
+
+                        // 3. Project to Back Wall (Blue Axis)
+                        setShadow(shadowIdx++, vx, vy, -BOUNDS, s[0], s[1], 0, 0, 0, brickColor);
+                        updateLabel(getLabel(labelIdx++), vx, vy, -BOUNDS, `Z:${Math.round(vz)}`, 'tag-z');
+
+                        // 4. Project to Right Wall (Optional/contextual)
+                        setShadow(shadowIdx++, BOUNDS, vy, vz, s[2], s[1], 0, -Math.PI / 2, 0, brickColor);
+
+                        // 5. Project to Front Wall
+                        setShadow(shadowIdx++, vx, vy, BOUNDS, s[0], s[1], 0, Math.PI, 0, brickColor);
+
+
+                        // -- COLLISION DETECTION --
+                        // Check Boundaries
+                        if (vy < 0) { walls.floor.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vy > 200) { walls.ceil.children[1].material.opacity = 0.4; collisionDetected = true; }
+
+                        if (vx < -BOUNDS) { walls.left.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vx > BOUNDS) { walls.right.children[1].material.opacity = 0.4; collisionDetected = true; }
+
+                        if (vz < -BOUNDS) { walls.back.children[1].material.opacity = 0.4; collisionDetected = true; }
+                        if (vz > BOUNDS) { walls.front.children[1].material.opacity = 0.4; collisionDetected = true; }
+                    }
+
+                    worldRoot.add(m);
+                }
+            });
+
+            // 2. Skeleton overlays from GOLD stud_skeleton (if present)
+            const selectedLineNums = new Set();
+            state.lines.forEach(l => { if (l.isPart && l.selected) selectedLineNums.add(l.id + 1); }); // GOLD lineNum is 1-based
+
+            const violationLines = new Set();
+            if (Array.isArray(state.groundViolations)) {
+                state.groundViolations.forEach(entry => {
+                    if (entry && typeof entry.lineNum === 'number') {
+                        violationLines.add(entry.lineNum);
+                    }
+                });
+            }
+
+            // Build a map of lineNum -> transformation matrix + position for binding skeleton to cubes
+            const lineNumToTransform = {};
+            state.lines.forEach((line, idx) => {
+                if (!line.isPart) return;
+                const lineNum = idx + 1; // 1-based
+                const mat4 = new THREE.Matrix4();
+                // Construct full transformation matrix: translation * rotation
+                mat4.set(
+                    line.matrix[0], line.matrix[1], line.matrix[2], line.x,
+                    line.matrix[3], line.matrix[4], line.matrix[5], line.y,
+                    line.matrix[6], line.matrix[7], line.matrix[8], line.z,
+                    0, 0, 0, 1
+                );
+                lineNumToTransform[lineNum] = mat4;
+            });
+
+            // 2. TETHER skeleton studs to brick meshes (parent-child hierarchy)
+            if (state.skeletonEnabled && state.studs && state.studs.length) {
+                state.studs.forEach(node => {
+                    if (!node || typeof node.x !== 'number' || typeof node.y !== 'number' || typeof node.z !== 'number') return;
+                    const lineNum = (typeof node.lineNum === 'number') ? node.lineNum : 0;
+                    const cache = skeletonCache[lineNum];
+                    if (!cache || !cache.mesh) return;
+
+                    // Create stud sphere in LOCAL space (relative to brick mesh)
+                    const studColor = new THREE.Color(0x00ffff);
+                    const srcLine = state.lines[lineNum > 0 ? (lineNum - 1) : 0];
+                    if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
+                        studColor.setHex(lColors[srcLine.color]);
+                        studColor.multiplyScalar(2.0); // Make brighter
+                    }
+
+                    const studMesh = new THREE.Mesh(studGeo, new THREE.MeshBasicMaterial({
+                        color: studColor,
+                        transparent: true,
+                        opacity: 1.0
+                    }));
+
+                    // Position in LOCAL space with calibration offset
+                    studMesh.position.set(
+                        node.x + state.skeletonOffset.x,
+                        node.y + state.skeletonOffset.y,  // Keep Y non-flipped in local space
+                        node.z + state.skeletonOffset.z
+                    );
+                    studMesh.userData.isStud = true;
+                    studMesh.userData.lineNum = lineNum;
+
+                    // TETHER: Add as child of brick mesh
+                    cache.mesh.add(studMesh);
+                });
+            }
+
+
+            // Bones removed - now using tethered approach with studs/dots as cube children
+
+            // 3. TETHER part control dots to brick meshes (parent-child hierarchy)
+            if (state.skeletonEnabled && state.partSkeleton && state.partSkeleton.length) {
+                state.partSkeleton.forEach(node => {
+                    if (!node) return;
+                    const idx0 = (typeof node.lineNum === 'number') ? node.lineNum : null;
+                    const wp = node.worldPos || node;
+                    if (idx0 === null || !wp || typeof wp.x !== 'number' || typeof wp.y !== 'number' || typeof wp.z !== 'number') return;
+                    const lineNum = idx0 + 1; // convert 0-based editor index to 1-based GOLD lineNum
+                    const cache = skeletonCache[lineNum];
+                    if (!cache || !cache.mesh) return;
+
+                    // When something is selected, only show dots for those lines
+                    if (selectedLineNums.size && !selectedLineNums.has(lineNum)) return;
+
+                    const srcLine = state.lines[idx0];
+                    const dotColor = new THREE.Color(0x00ffff);
+                    if (srcLine && typeof srcLine.color === 'number' && lColors[srcLine.color]) {
+                        dotColor.setHex(lColors[srcLine.color]);
+                        dotColor.multiplyScalar(2.5); // Make MUCH brighter
+                    }
+
+                    const dotMat = new THREE.MeshBasicMaterial({
+                        color: dotColor,
+                        transparent: true,
+                        opacity: 1.0,
+                        emissive: dotColor,
+                        emissiveIntensity: 0.5
+                    });
+
+                    const dot = new THREE.Mesh(partDotGeo, dotMat);
+
+                    // Position in LOCAL space (relative to brick) with calibration offset
+                    dot.position.set(
+                        wp.x + state.skeletonOffset.x,
+                        wp.y + state.skeletonOffset.y,  // Keep Y non-flipped in local space
+                        wp.z + state.skeletonOffset.z
+                    );
+                    dot.userData.isStud = true; // allow picking via stud path
+                    dot.userData.isPartDot = true;
+                    dot.userData.lineNum = lineNum;
+
+                    // Add wireframe sphere around part dot for extra visibility
+                    const wireSphere = new THREE.Mesh(
+                        new THREE.SphereGeometry(10, 8, 8),
+                        new THREE.MeshBasicMaterial({ color: 0xffff00, wireframe: true, transparent: true, opacity: 0.8 })
+                    );
+                    dot.add(wireSphere);
+
+                    // TETHER: Add as child of brick mesh
+                    cache.mesh.add(dot);
+                });
+            }
+
+            if (collisionDetected) sfxCollide();
+        }
+
+        function setShadow(idx, x, y, z, w, h, rx, ry, rz, col) {
+            if (idx >= shadowPool.length) return;
+            const s = shadowPool[idx];
+            s.visible = true;
+            s.position.set(x, y, z);
+            s.scale.set(w, h, 1);
+            s.rotation.set(rx, ry, rz);
+            s.material.color.setHex(col);
+        }
+
+        function updateLabel(el, x, y, z, txt, cls) {
+            const v = new THREE.Vector3(x, y, z);
+            v.project(camera);
+            if (v.z > 1) { el.style.display = 'none'; return; }
+            el.className = `hud-tag ${cls}`;
+            el.style.display = 'block';
+            el.style.left = `${(v.x * .5 + .5) * renderer.domElement.clientWidth}px`;
+            el.style.top = `${(-(v.y * .5) + .5) * renderer.domElement.clientHeight}px`;
+            el.innerText = txt;
+        }
+
+        /* --- 5. EDITOR --- */
+        function renderEditor() {
+            const c = document.getElementById('code-scroll');
+            c.innerHTML = '';
+
+            state.lines.forEach(line => {
+                const row = document.createElement('div');
+
+                if (line.isHeader) {
+                    row.className = 'line-row header';
+                    row.innerHTML = `<div style="padding-left:10px">${line.raw}</div>`;
+                    row.onclick = () => selectSection(line.id);
+                    c.appendChild(row); return;
+                }
+
+                row.className = `line-row ${line.selected ? 'selected' : ''}`;
+                row.oncontextmenu = (e) => { e.preventDefault(); duplicateLine(line.id); };
+
+                const chk = document.createElement('div');
+                chk.className = 'checkbox'; chk.innerText = line.selected ? '☑' : '☐';
+                chk.onclick = () => toggleSelect(line);
+                row.appendChild(chk);
+
+                const tok = document.createElement('div');
+                tok.className = 'tokens';
+
+                if (line.isPart) {
+                    tok.appendChild(makeDial(line, 'color', 1, 'C', 'c-val'));
+                    tok.appendChild(makeDial(line, 'x', 20, 'X', 'x-val'));
+                    tok.appendChild(makeDial(line, 'y', 8, 'Y', 'y-val'));
+                    tok.appendChild(makeDial(line, 'z', 20, 'Z', 'z-val'));
+                    for (let i = 0; i < 9; i++) tok.appendChild(makeMatrixDial(line, i));
+                } else {
+                    tok.innerText = line.raw; tok.style.color = '#555';
+                }
+                row.appendChild(tok);
+                c.appendChild(row);
+            });
+        }
+
+        function toggleSelect(line) { initAudio(); line.selected = !line.selected; sfxTick(); renderEditor(); update3D(); }
+
+        function selectSection(id) {
+            initAudio(); let i = id + 1;
+            while (i < state.lines.length && state.lines[i].type !== 0) {
+                if (state.lines[i].isPart) state.lines[i].selected = true;
+                i++;
+            }
+            sfxSnap(); renderEditor(); update3D();
+        }
+
+        function makeDial(obj, key, step, lbl, cls) {
+            const el = document.createElement('div');
+            el.className = 'dial';
+            el.innerHTML = `<span class="x-val" style="font-size:8px; margin-right:2px">${lbl}</span><span class="${cls}">${Math.round(obj[key])}</span>`;
+
+            let startY = 0, startVal = 0;
+            const start = (y) => { initAudio(); startY = y; startVal = obj[key]; el.classList.add('dragging'); }
+            const move = (y) => {
+                const d = Math.round((startY - y) / 10) * step;
+                const nv = startVal + d;
+                if (nv !== obj[key]) {
+                    const diff = nv - obj[key];
+                    obj[key] = nv;
+
+
+                    if (obj.selected) {
+                        state.lines.forEach(l => {
+                            if (l.isPart && l.selected && l !== obj) {
+                                l[key] += diff;
+                                compile(l);
+
+                            }
+                        });
+                    }
+                    el.querySelector(`.${cls}`).innerText = nv;
+                    compile(obj); update3D(); sfxTick();
+                }
+            }
+            const end = () => { el.classList.remove('dragging'); renderEditor(); sfxSnap(); }
+
+            el.addEventListener('touchstart', e => { e.stopPropagation(); start(e.touches[0].clientY) }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); e.stopPropagation(); move(e.touches[0].clientY) }, { passive: false });
+            el.addEventListener('touchend', end);
+            el.addEventListener('mousedown', e => { start(e.clientY); const mm = ev => move(ev.clientY); const mu = () => { end(); window.removeEventListener('mousemove', mm); window.removeEventListener('mouseup', mu) }; window.addEventListener('mousemove', mm); window.addEventListener('mouseup', mu); });
+            return el;
+        }
+
+        function makeMatrixDial(obj, idx) {
+            const el = document.createElement('div');
+            el.className = 'dial m-val';
+            el.innerText = Math.round(obj.matrix[idx] * 10) / 10;
+            let startY = 0;
+            const h = (y) => {
+                const d = (startY - y) / 50;
+                const v = Math.round((obj.matrix[idx] + d) * 10) / 10;
+                if (v !== obj.matrix[idx]) {
+                    obj.matrix[idx] = v; el.innerText = v; compile(obj); update3D();
+                }
+            }
+            el.addEventListener('touchstart', e => { startY = e.touches[0].clientY }, { passive: false });
+            el.addEventListener('touchmove', e => { e.preventDefault(); h(e.touches[0].clientY) }, { passive: false });
+            return el;
+        }
+
+        function applyGoldPayloadFromObject(obj) {
+            if (obj && typeof obj.mpd_content === 'string') {
+                parse(obj.mpd_content);
+                if (Array.isArray(obj.stud_skeleton)) {
+                    state.studs = obj.stud_skeleton.slice();
+                } else {
+                    state.studs = [];
+                }
+                if (Array.isArray(obj.part_skeletons)) {
+                    state.partSkeleton = obj.part_skeletons.slice();
+                } else {
+                    state.partSkeleton = [];
+                }
+                if (Array.isArray(obj.ground_violations)) {
+                    state.groundViolations = obj.ground_violations.slice();
+                } else {
+                    state.groundViolations = [];
+                }
+                return true;
+            } else if (obj && Array.isArray(obj.stud_skeleton)) {
+                state.studs = obj.stud_skeleton.slice();
+                state.partSkeleton = Array.isArray(obj.part_skeletons) ? obj.part_skeletons.slice() : [];
+                state.groundViolations = Array.isArray(obj.ground_violations) ? obj.ground_violations.slice() : [];
+                return true;
+            } else if (Array.isArray(obj)) {
+                state.studs = obj.slice();
+                state.partSkeleton = [];
+                state.groundViolations = [];
+                return true;
+            }
+            return false;
+        }
+
+        function loadGoldText(txt) {
+            let handled = false;
+            let jsonText = txt.trim();
+            try {
+                const parsed = JSON.parse(jsonText);
+                handled = applyGoldPayloadFromObject(parsed);
+            } catch (_) {
+                const fixed = jsonText.replace(/}\.\s*$/, '}');
+                if (fixed !== jsonText) {
+                    try {
+                        const parsed2 = JSON.parse(fixed);
+                        handled = applyGoldPayloadFromObject(parsed2);
+                    } catch (_) { }
+                }
+            }
+            if (!handled) {
+                parse(txt);
+                state.studs = [];
+                state.partSkeleton = [];
+                state.groundViolations = [];
+            }
+            return handled;
+        }
+
+        /* --- INIT --- */
+        function syncSkeletonToggleUI() {
+            const btn = document.getElementById('skeletonToggleBtn');
+            if (!btn) return;
+            btn.style.opacity = state.skeletonEnabled ? '1' : '0.4';
+        }
+
+        function toggleSkeleton() {
+            state.skeletonEnabled = !state.skeletonEnabled;
+            syncSkeletonToggleUI();
+            update3D();
+        }
+
+        function toggleCalibration() {
+            state.calibrationMode = !state.calibrationMode;
+            const panel = document.getElementById('calibration-panel');
+            if (panel) {
+                panel.style.display = state.calibrationMode ? 'block' : 'none';
+            }
+        }
+
+        function updateSkeletonOffset() {
+            const x = parseFloat(document.getElementById('offset-x').value) || 0;
+            const y = parseFloat(document.getElementById('offset-y').value) || 0;
+            const z = parseFloat(document.getElementById('offset-z').value) || 0;
+            state.skeletonOffset = { x, y, z };
+            update3D();
+        }
+
+        function resetSkeletonOffset() {
+            state.skeletonOffset = { x: 0, y: 0, z: 800 }; // Reset to calibrated default
+            document.getElementById('offset-x').value = '0';
+            document.getElementById('offset-y').value = '0';
+            document.getElementById('offset-z').value = '800';
+            update3D();
+        }
+
+        function toggleRaw() {
+            const e = document.getElementById('raw-overlay');
+            if (e.style.display === 'flex') e.style.display = 'none';
+            else { document.getElementById('raw-text').value = state.lines.map(l => l.raw).join('\n'); e.style.display = 'flex'; }
+        }
+        function loadRaw() {
+            const txt = document.getElementById('raw-text').value;
+            if (!txt.trim()) { toggleRaw(); return; }
+            loadGoldText(txt);
+            renderEditor(); update3D(); toggleRaw();
+        }
+        function exportCode() { navigator.clipboard.writeText(state.lines.map(l => l.raw).join('\n')).then(() => alert('Copied!')); }
+
+        function downloadMPD() {
+            const txt = state.lines.map(l => l.raw).join('\n');
+            const blob = new Blob([txt], { type: 'text/plain' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'wag_master_export.mpd';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+
+        function openGoldFileMaster() {
+            const inp = document.getElementById('gold-file-master');
+            if (inp) inp.click();
+        }
+
+        (function attachGoldFileMaster() {
+            const inp = document.getElementById('gold-file-master');
+            if (!inp) return;
+            inp.addEventListener('change', (e) => {
+                const file = e.target.files && e.target.files[0];
+                if (!file) return;
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const txt = String(ev.target && ev.target.result || '');
+                    loadGoldText(txt);
+                    renderEditor();
+                    update3D();
+                };
+                reader.readAsText(file);
+                e.target.value = '';
+            });
+        })();
+
+        // Allow a studio shell to push Courage GOLD payloads directly into WAG Master, and sync selection from TIMBER
+        window.addEventListener('message', (event) => {
+            const data = event.data;
+            if (!data || typeof data !== 'object' || !data.type) return;
+            if (data.type === 'studio-load-gold-from-courage') {
+                const payload = data.payload;
+                if (!payload) return;
+                const ok = applyGoldPayloadFromObject(payload);
+                if (ok) {
+                    renderEditor();
+                    update3D();
+                }
+            } else if (data.type === 'timber-selection-update') {
+                const nums = Array.isArray(data.lineNums) ? data.lineNums : [];
+                const targets = new Set();
+                nums.forEach(n => {
+                    const v = parseInt(n, 10);
+                    if (!isNaN(v)) targets.add(v);
+                });
+
+                let changed = false;
+                state.lines.forEach(line => {
+                    if (!line || !line.isPart) return;
+                    const ln = line.id + 1; // GOLD lineNum is 1-based
+                    const want = targets.size ? targets.has(ln) : false;
+                    if (line.selected !== want) {
+                        line.selected = want;
+                        changed = true;
+                    }
+                });
+
+                if (changed) {
+                    renderEditor();
+                    update3D();
+                }
+            }
+        });
+
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / (window.innerHeight * 0.6);
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight * 0.6);
+        });
+
+        const light = new THREE.DirectionalLight(0xffffff, 1.2);
+        light.position.set(100, 300, 100);
+        scene.add(light);
+        scene.add(new THREE.AmbientLight(0xffffff, 0.4));
+
+        parse(DEFAULT_MPD);
+
+        // If hosted inside a studio iframe, we can adjust defaults (e.g., start with cubes-only in Courage/Master studio)
+        try {
+            if (window.frameElement && window.frameElement.getAttribute && window.frameElement.getAttribute('data-studio-host') === 'courage-master') {
+                state.skeletonEnabled = false;
+            }
+        } catch (_) { }
+
+        renderEditor();
+        update3D();
+        syncSkeletonToggleUI();
+
+        const raycaster = new THREE.Raycaster();
+        const mouse = new THREE.Vector2();
+
+        function toggleByLineNum(lineNum) {
+            if (typeof lineNum !== 'number') return false;
+            let changed = false;
+            state.lines.forEach(l => {
+                if (l.isPart && (l.id + 1) === lineNum) {
+                    l.selected = !l.selected;
+                    changed = true;
+                }
+            });
+            if (changed) {
+                renderEditor();
+                update3D();
+            }
+            return changed;
+        }
+
+        renderer.domElement.addEventListener('click', (event) => {
+            const rect = renderer.domElement.getBoundingClientRect();
+            mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(mouse, camera);
+
+            const studCandidates = [];
+            const boneCandidates = [];
+            const brickCandidates = [];
+            worldRoot.traverse(obj => {
+                if (!obj.userData) return;
+                if (obj.userData.isStud) studCandidates.push(obj);
+                else if (obj.userData.isBone) boneCandidates.push(obj);
+                else if (obj.userData.isBrick) brickCandidates.push(obj);
+            });
+
+            // 1) Try studs (fine-grained skeleton picking) - WITH AUTO-ZOOM
+            if (studCandidates.length) {
+                const hits = raycaster.intersectObjects(studCandidates, true);
+                if (hits.length) {
+                    let obj = hits[0].object;
+                    // Auto-zoom to orb position
+                    const worldPos = new THREE.Vector3();
+                    obj.getWorldPosition(worldPos);
+                    state.cameraZoomTarget = worldPos.clone();
+
+                    while (obj && !obj.userData.isStud && obj !== worldRoot) obj = obj.parent;
+                    if (obj && obj.userData && typeof obj.userData.lineNum === 'number') {
+                        if (toggleByLineNum(obj.userData.lineNum)) return;
+                    }
+                }
+            }
+
+            // 2) Try bones (per-line proxy volumes) - WITH AUTO-ZOOM
+            if (boneCandidates.length) {
+                const hits = raycaster.intersectObjects(boneCandidates, true);
+                if (hits.length) {
+                    let obj = hits[0].object;
+                    // Auto-zoom to bone center
+                    const worldPos = new THREE.Vector3();
+                    obj.getWorldPosition(worldPos);
+                    state.cameraZoomTarget = worldPos.clone();
+
+                    while (obj && !obj.userData.isBone && obj !== worldRoot) obj = obj.parent;
+                    if (obj && obj.userData && typeof obj.userData.lineNum === 'number') {
+                        if (toggleByLineNum(obj.userData.lineNum)) return;
+                    }
+                }
+            }
+
+            // 3) Fall back to brick meshes (original behavior) - WITH AUTO-ZOOM
+            if (!brickCandidates.length) return;
+            const hits = raycaster.intersectObjects(brickCandidates, true);
+            if (!hits.length) return;
+            let obj = hits[0].object;
+
+            // Auto-zoom to brick center
+            const worldPos = new THREE.Vector3();
+            obj.getWorldPosition(worldPos);
+            state.cameraZoomTarget = worldPos.clone();
+
+            while (obj && !obj.userData.isBrick && obj !== worldRoot) {
+                obj = obj.parent;
+            }
+            if (!obj || !obj.userData || typeof obj.userData.lineId !== 'number') return;
+            const idx = obj.userData.lineId;
+            const line = state.lines[idx];
+            if (!line || !line.isPart) return;
+            line.selected = !line.selected;
+            renderEditor();
+            update3D();
+        });
+
+        function animate() {
+            requestAnimationFrame(animate);
+            controls.update();
+
+            // Auto-zoom to orb on click (smooth lerp)
+            if (state.cameraZoomTarget) {
+                controls.target.lerp(state.cameraZoomTarget, 0.1);
+                const dist = controls.target.distanceTo(state.cameraZoomTarget);
+                if (dist < 1) {
+                    state.cameraZoomTarget = null; // Stop when close enough
+                }
+            }
+
+            // Re-run HUD Logic every frame for smoothness
+            let lIdx = 0;
+            state.lines.forEach(line => {
+                if (line.isPart && line.selected) {
+                    const vx = line.x; const vy = -line.y; const vz = line.z;
+                    // Reuse label pool logic
+                    const lblY = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblY, vx, 0, vz, `Y:${Math.round(line.y)}`, 'tag-y');
+
+                    const lblX = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblX, -BOUNDS, vy, vz, `X:${Math.round(vx)}`, 'tag-x');
+
+                    const lblZ = labelPool[lIdx++] || getLabel(lIdx - 1);
+                    updateLabel(lblZ, vx, vy, -BOUNDS, `Z:${Math.round(vz)}`, 'tag-z');
+                }
+            });
+            renderer.render(scene, camera);
+        }
+        animate();
+
+    </script>
+</body>
+
+</html>
