@@ -1,0 +1,564 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Multiverse</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --accent: #22d3ee;
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        /* Dynamic Theme Colors based on POV */
+        [data-pov="Entity"] {
+            --accent: #3b82f6;
+        }
+
+        [data-pov="Core"] {
+            --accent: #fbbf24;
+        }
+
+        [data-pov="Goal"] {
+            --accent: #fcd34d;
+        }
+
+        [data-pov="Obstacle"] {
+            --accent: #f87171;
+        }
+
+        [data-pov="Morphism"] {
+            --accent: #22d3ee;
+        }
+
+        [data-pov="Story"] {
+            --accent: #4ade80;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-main);
+            height: 100dvh;
+            overflow: hidden;
+            transition: background 0.5s var(--ease);
+        }
+
+        /* LAYOUT STACK */
+        .stack-root {
+            display: grid;
+            grid-template-rows: 48px 1fr 200px 60px;
+            height: 100%;
+        }
+
+        /* 1. CHANNEL NAV (The Multiverse Strip) */
+        #channel-bar {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0 1rem;
+            overflow-x: auto;
+            white-space: nowrap;
+        }
+
+        .channel-chip {
+            padding: 4px 12px;
+            border-radius: 4px;
+            border: 1px solid var(--border);
+            font-size: 0.7rem;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .channel-chip:hover {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .channel-chip.active {
+            background: rgba(255, 255, 255, 0.05);
+            border-color: var(--accent);
+            color: var(--accent);
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+        }
+
+        /* 2. RETINA (3D Isometric Grid) */
+        #retina {
+            position: relative;
+            perspective: 1000px;
+            background: radial-gradient(circle at 50% 50%, rgba(30, 41, 59, 0.5) 0%, var(--bg) 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        .grid-stage {
+            transform: rotateX(55deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+            transition: transform 0.8s var(--ease);
+        }
+
+        .grid-frame {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+            width: 360px;
+            height: 360px;
+            background: rgba(255, 255, 255, 0.01);
+            border: 2px solid var(--border);
+            box-shadow: 0 0 40px rgba(0, 0, 0, 0.5);
+        }
+
+        .cell {
+            position: relative;
+            background: rgba(15, 23, 42, 0.6);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.2s;
+            cursor: pointer;
+            transform-style: preserve-3d;
+        }
+
+        .cell:hover {
+            background: var(--surface);
+            border-color: var(--accent);
+            transform: translateZ(10px);
+        }
+
+        .cell.active {
+            background: var(--focus);
+            border-color: var(--accent);
+        }
+
+        .iso-item {
+            width: 100%;
+            height: 100%;
+            /* Counter-rotate to face camera */
+            transform: rotateZ(45deg) rotateX(-55deg) translateY(-10px) scale(1.5);
+            pointer-events: none;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.5));
+            animation: dropIn 0.4s var(--ease);
+        }
+
+        /* 3. HINGE (Timeline) */
+        #hinge {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            display: flex;
+            flex-direction: column-reverse;
+            overflow-y: auto;
+            padding: 1rem;
+            gap: 0.5rem;
+        }
+
+        .log-node {
+            display: flex;
+            gap: 0.75rem;
+            padding: 0.5rem;
+            border-left: 2px solid var(--border);
+            font-size: 0.8rem;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            position: relative;
+        }
+
+        .log-node:hover {
+            background: var(--surface);
+            border-left-color: var(--accent);
+            color: var(--text-main);
+        }
+
+        .fork-btn {
+            position: absolute;
+            right: 10px;
+            top: 50%;
+            transform: translateY(-50%);
+            opacity: 0;
+            transition: opacity 0.2s;
+            background: var(--bg);
+            border: 1px solid var(--accent);
+            color: var(--accent);
+            padding: 2px 8px;
+            font-size: 0.6rem;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        .log-node:hover .fork-btn {
+            opacity: 1;
+        }
+
+        /* 4. ACTUATOR (Input) */
+        #actuator {
+            background: var(--bg);
+            border-top: 1px solid var(--border);
+            padding: 0 1rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            height: 100%;
+            color: var(--text-main);
+            font-family: 'JetBrains Mono';
+            outline: none;
+        }
+
+        /* OVERLAYS */
+        #cell-inspector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            width: 240px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent);
+            border-radius: 8px;
+            padding: 1rem;
+            backdrop-filter: blur(8px);
+            display: none;
+            flex-direction: column;
+            gap: 0.5rem;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            z-index: 100;
+            animation: slideIn 0.2s var(--ease);
+        }
+
+        @keyframes dropIn {
+            from {
+                transform: rotateZ(45deg) rotateX(-55deg) translateY(-40px) scale(0);
+                opacity: 0;
+            }
+        }
+
+        @keyframes slideIn {
+            from {
+                transform: translateX(20px);
+                opacity: 0;
+            }
+        }
+
+        @keyframes flash {
+            0% {
+                background-color: var(--accent);
+            }
+
+            100% {
+                background-color: transparent;
+            }
+        }
+
+        .flash-anim {
+            animation: flash 0.5s var(--ease);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="stack-root">
+        <!-- 1. MULTIVERSE NAV -->
+        <div id="channel-bar"></div>
+
+        <!-- 2. GRID (RETINA) -->
+        <div id="retina" onclick="UI.closeInspector()">
+            <div class="grid-stage">
+                <div class="grid-frame" id="grid"></div>
+            </div>
+
+            <!-- Inspector Overlay -->
+            <div id="cell-inspector" onclick="event.stopPropagation()">
+                <div
+                    class="flex justify-between items-center text-[10px] uppercase text-[var(--text-muted)] tracking-widest font-bold border-b border-[var(--border)] pb-2 mb-2">
+                    <span>Node Inspector</span>
+                    <span id="insp-idx">#--</span>
+                </div>
+                <div class="flex items-center gap-3 mb-2">
+                    <div id="insp-icon" class="w-8 h-8"></div>
+                    <div>
+                        <div id="insp-type" class="text-sm font-bold text-[var(--accent)]">TYPE</div>
+                        <div id="insp-content" class="text-xs text-[var(--text-main)] opacity-80">Content</div>
+                    </div>
+                </div>
+                <button onclick="LOGIC.forkFromCell()"
+                    class="w-full py-2 bg-[var(--surface)] hover:bg-[var(--accent)] hover:text-black border border-[var(--border)] text-[var(--accent)] text-xs font-bold transition-colors flex items-center justify-center gap-2">
+                    <i data-lucide="git-fork" class="w-3 h-3"></i> BRANCH REALITY
+                </button>
+            </div>
+        </div>
+
+        <!-- 3. LOG (HINGE) -->
+        <div id="hinge"></div>
+
+        <!-- 4. INPUT (ACTUATOR) -->
+        <div id="actuator">
+            <span class="text-[var(--accent)]">>>></span>
+            <input id="cmd-input" placeholder="Enter narrative or /cmd..." autocomplete="off">
+        </div>
+    </div>
+
+    <script>
+        // =========================================
+        // 1. VISUAL ASSETS (SVG Factory)
+        // =========================================
+        const ICONS = {
+            getIso(c) {
+                return `<svg viewBox="0 0 40 40" class="iso-item"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.t}" stroke="#1e293b" stroke-width="0.5"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.l}" stroke="#1e293b" stroke-width="0.5"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.r}" stroke="#1e293b" stroke-width="0.5"/></svg>`;
+            },
+            colors: {
+                blue: { t: '#60a5fa', l: '#3b82f6', r: '#2563eb' },
+                yellow: { t: '#fcd34d', l: '#f59e0b', r: '#d97706' },
+                red: { t: '#f87171', l: '#ef4444', r: '#dc2626' },
+                cyan: { t: '#22d3ee', l: '#06b6d4', r: '#0891b2' },
+                green: { t: '#4ade80', l: '#16a34a', r: '#15803d' }
+            },
+            Entity: () => ICONS.getIso(ICONS.colors.blue),
+            Core: () => ICONS.getIso(ICONS.colors.yellow),
+            Obstacle: () => ICONS.getIso(ICONS.colors.red),
+            Morphism: () => ICONS.getIso(ICONS.colors.cyan),
+            Goal: () => `<div class="relative w-full h-full iso-item"><div class="absolute -top-4 left-0 right-0 mx-auto w-4 h-4 text-yellow-400 z-10 flex justify-center"><svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg></div>${ICONS.getIso(ICONS.colors.blue)}</div>`
+        };
+
+        // =========================================
+        // 2. STATE ONTOLOGY
+        // =========================================
+        const STATE = {
+            channels: {},
+            currentId: null,
+            activeCell: null, // For inspection
+
+            init() {
+                // Prime Reality
+                this.createChannel('PRIME', 'Prime Reality', null, 'Entity');
+
+                // Initial Seed
+                const ch = this.channels['PRIME'];
+                ch.grid[40] = { type: 'Core', content: 'Origin' };
+                ch.grid[41] = { type: 'Entity', content: 'Observer' };
+
+                this.switchChannel('PRIME');
+                lucide.createIcons();
+            },
+
+            createChannel(id, name, parentState = null, anchorType = 'Entity') {
+                this.channels[id] = {
+                    id, name, anchorType,
+                    // Deep copy grid if parent exists, else empty
+                    grid: parentState ? JSON.parse(JSON.stringify(parentState.grid)) : Array(81).fill(null),
+                    // Copy history up to fork point, or init
+                    history: parentState ? [...parentState.history] : [{ msg: 'Reactor Online', time: Date.now() }]
+                };
+
+                // If this is a POV fork, we emphasize the anchor
+                if (parentState && parentState.pivotIdx !== undefined) {
+                    const ch = this.channels[id];
+                    ch.history.push({ msg: `Reality collapsed to POV: [${parentState.pivotIdx}]`, time: Date.now() });
+                }
+
+                UI.renderChannelBar();
+                return id;
+            },
+
+            switchChannel(id) {
+                this.currentId = id;
+                document.documentElement.setAttribute('data-pov', this.channels[id].anchorType);
+                UI.renderGrid();
+                UI.renderLog();
+                UI.renderChannelBar();
+
+                // Visual Flash effect
+                document.body.classList.remove('flash-anim');
+                void document.body.offsetWidth; // trigger reflow
+                document.body.classList.add('flash-anim');
+            }
+        };
+
+        // =========================================
+        // 3. LOGIC ENGINES (Morphisms)
+        // =========================================
+        const LOGIC = {
+            commit(text) {
+                if (!text.trim()) return;
+                const ch = STATE.channels[STATE.currentId];
+
+                // Parse Command
+                if (text.startsWith('/')) {
+                    const parts = text.split(' ');
+                    const cmd = parts[0];
+                    if (cmd === '/spawn') {
+                        const type = parts[1] || 'Entity';
+                        const idx = Math.floor(Math.random() * 81);
+                        ch.grid[idx] = { type, content: text.replace('/spawn ', '') };
+                        ch.history.push({ msg: `Spawned ${type} at ${idx}`, time: Date.now() });
+                    }
+                } else {
+                    // Narrative -> Pseudo-Procedural Generation
+                    ch.history.push({ msg: text, time: Date.now() });
+                    // Random effect
+                    if (Math.random() > 0.5) {
+                        const empty = ch.grid.map((c, i) => c ? null : i).filter(i => i !== null);
+                        if (empty.length) {
+                            const idx = empty[Math.floor(Math.random() * empty.length)];
+                            const types = ['Entity', 'Obstacle', 'Morphism', 'Goal'];
+                            ch.grid[idx] = {
+                                type: types[Math.floor(Math.random() * types.length)],
+                                content: text.substring(0, 15)
+                            };
+                        }
+                    }
+                }
+
+                UI.renderGrid();
+                UI.renderLog();
+            },
+
+            // TEMPORAL FORK: Branch from a specific point in history
+            forkFromHistory(histIdx) {
+                const parent = STATE.channels[STATE.currentId];
+                const newId = `FORK-${Math.floor(Math.random() * 9999)}`;
+
+                // Slice history
+                const slicedHistory = parent.history.slice(0, histIdx + 1);
+
+                STATE.createChannel(newId, `Fork of ${parent.name}`, {
+                    grid: parent.grid, // Inherit grid state (simplified)
+                    history: slicedHistory
+                }, parent.anchorType);
+
+                STATE.channels[newId].history.push({ msg: '>> TEMPORAL BRANCH CREATED', time: Date.now() });
+                STATE.switchChannel(newId);
+            },
+
+            // SPATIAL FORK: Branch from a specific Entity POV
+            forkFromCell() {
+                if (STATE.activeCell === null) return;
+
+                const parent = STATE.channels[STATE.currentId];
+                const cellData = parent.grid[STATE.activeCell];
+                if (!cellData) return;
+
+                const newId = `POV-${cellData.type.toUpperCase()}-${Math.floor(Math.random() * 999)}`;
+
+                // Create new reality anchored to this type
+                STATE.createChannel(newId, `${cellData.content} POV`, {
+                    grid: parent.grid,
+                    history: parent.history,
+                    pivotIdx: STATE.activeCell
+                }, cellData.type);
+
+                // Morph logic: Clear unrelated entities? Focus camera?
+                // For now, let's emphasize the POV by changing the theme (via anchorType)
+                // and logging the shift.
+
+                STATE.switchChannel(newId);
+                UI.closeInspector();
+            }
+        };
+
+        // =========================================
+        // 4. UI RENDERER
+        // =========================================
+        const UI = {
+            renderChannelBar() {
+                const bar = document.getElementById('channel-bar');
+                bar.innerHTML = '';
+                Object.values(STATE.channels).forEach(ch => {
+                    const chip = document.createElement('div');
+                    chip.className = `channel-chip ${ch.id === STATE.currentId ? 'active' : ''}`;
+                    chip.innerHTML = `<span class="font-bold">${ch.id}</span> <span>${ch.name}</span>`;
+                    chip.onclick = () => STATE.switchChannel(ch.id);
+                    bar.appendChild(chip);
+                });
+            },
+
+            renderGrid() {
+                const frame = document.getElementById('grid');
+                frame.innerHTML = '';
+                const ch = STATE.channels[STATE.currentId];
+
+                ch.grid.forEach((cell, i) => {
+                    const el = document.createElement('div');
+                    el.className = 'cell';
+                    if (cell) {
+                        el.innerHTML = ICONS[cell.type] ? ICONS[cell.type]() : ICONS.Entity();
+                        el.onclick = (e) => {
+                            e.stopPropagation();
+                            this.openInspector(i, cell);
+                        };
+                    } else {
+                        // Empty cell click? Maybe spawn menu?
+                    }
+                    frame.appendChild(el);
+                });
+            },
+
+            renderLog() {
+                const cont = document.getElementById('hinge');
+                cont.innerHTML = '';
+                const ch = STATE.channels[STATE.currentId];
+
+                [...ch.history].reverse().forEach((h, idx) => {
+                    const realIdx = ch.history.length - 1 - idx;
+                    const el = document.createElement('div');
+                    el.className = 'log-node';
+                    el.innerHTML = `
+                        <div class="font-mono text-[10px] opacity-50 pt-1">${realIdx}</div>
+                        <div>${h.msg}</div>
+                        <button class="fork-btn" onclick="LOGIC.forkFromHistory(${realIdx})">FORK HERE</button>
+                    `;
+                    cont.appendChild(el);
+                });
+            },
+
+            openInspector(idx, data) {
+                STATE.activeCell = idx;
+                const insp = document.getElementById('cell-inspector');
+                insp.style.display = 'flex';
+
+                document.getElementById('insp-idx').innerText = `#${idx}`;
+                document.getElementById('insp-type').innerText = data.type;
+                document.getElementById('insp-content').innerText = data.content;
+                document.getElementById('insp-icon').innerHTML = ICONS[data.type] ? ICONS[data.type]() : ICONS.Entity();
+            },
+
+            closeInspector() {
+                document.getElementById('cell-inspector').style.display = 'none';
+                STATE.activeCell = null;
+            }
+        };
+
+        // Init Interactions
+        const input = document.getElementById('cmd-input');
+        input.addEventListener('keydown', e => {
+            if (e.key === 'Enter') {
+                LOGIC.commit(input.value);
+                input.value = '';
+            }
+        });
+
+        STATE.init();
+
+    </script>
+</body>
+
+</html>

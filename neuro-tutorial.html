@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Neurosymbolic Loop · Tutorial</title>
+    <style>
+        :root {
+            --lego-red: #d02c2f;
+            --lego-blue: #0055bf;
+            --lego-yellow: #f5a623;
+            --lego-green: #237841;
+            --lego-white: #ffffff;
+            --lego-black: #111111;
+            --bg-color: #f0f0f0;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background-color: var(--bg-color);
+            color: var(--lego-black);
+            margin: 0;
+            padding: 0;
+            line-height: 1.6;
+        }
+
+        header {
+            background: var(--lego-yellow);
+            padding: 40px 20px;
+            text-align: center;
+            border-bottom: 8px solid var(--lego-red);
+        }
+
+        h1 {
+            font-size: 3rem;
+            margin: 0;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: var(--lego-black);
+            text-shadow: 2px 2px 0px rgba(255, 255, 255, 0.5);
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-top: 10px;
+            color: #333;
+        }
+
+        main {
+            max-width: 900px;
+            margin: 40px auto;
+            padding: 0 20px;
+        }
+
+        .card {
+            background: var(--lego-white);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 30px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-left: 8px solid var(--lego-blue);
+            transition: transform 0.2s;
+        }
+
+        .card:hover {
+            transform: translateY(-2px);
+        }
+
+        .card.red {
+            border-left-color: var(--lego-red);
+        }
+
+        .card.green {
+            border-left-color: var(--lego-green);
+        }
+
+        .card.yellow {
+            border-left-color: var(--lego-yellow);
+        }
+
+        h2 {
+            margin-top: 0;
+            font-size: 1.8rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .stud {
+            width: 20px;
+            height: 20px;
+            background: currentColor;
+            border-radius: 50%;
+            display: inline-block;
+            box-shadow: inset -2px -2px 4px rgba(0, 0, 0, 0.2);
+        }
+
+        .diagram {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin: 20px 0;
+            text-align: center;
+            font-family: monospace;
+            border: 2px dashed #ccc;
+        }
+
+        .code-block {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 15px;
+            border-radius: 6px;
+            overflow-x: auto;
+            font-family: 'Fira Code', monospace;
+            font-size: 0.9rem;
+        }
+
+        .corpus-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        .corpus-item {
+            background: #eee;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .corpus-item::before {
+            content: '';
+            width: 8px;
+            height: 8px;
+            background: var(--lego-blue);
+            border-radius: 50%;
+        }
+
+        .btn {
+            display: inline-block;
+            background: var(--lego-blue);
+            color: white;
+            padding: 12px 24px;
+            text-decoration: none;
+            border-radius: 6px;
+            font-weight: bold;
+            margin-top: 20px;
+            transition: background 0.2s;
+        }
+
+        .btn:hover {
+            background: #004499;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>The Neurosymbolic Loop</h1>
+        <div class="subtitle">How we teach AI to build like a Master Builder</div>
+    </header>
+
+    <main>
+        <!-- Section 1: The Concept -->
+        <div class="card red">
+            <h2 style="color: var(--lego-red)"><span class="stud"></span> The Big Idea</h2>
+            <p>
+                Building with LEGO is a mix of <strong>Creativity</strong> (Art) and <strong>Rules</strong>
+                (Engineering).
+                To make an AI that builds well, we need both.
+            </p>
+            <div class="diagram">
+                🧠 <strong>Neural (The Artist)</strong><br>
+                "This feels right."<br>
+                (Embeddings, Intuition, Style)
+                <br><br>
+                ⬇️ ⬆️ <strong>The Loop</strong> ⬆️ ⬇️
+                <br><br>
+                📐 <strong>Symbolic (The Lawyer)</strong><br>
+                "This is legal."<br>
+                (Ontology, Physics, Constraints)
+            </div>
+        </div>
+
+        <!-- Section 2: The Math (Embeddings vs. Market Basket) -->
+        <div class="card blue">
+            <h2 style="color: var(--lego-blue)"><span class="stud"></span> The Math: Beyond Market Basket Analysis</h2>
+            <p>
+                You might recognize this as similar to <strong>Market Basket Analysis</strong> (e.g., "People who buy
+                Bread also buy Butter").
+                While similar, our approach (Embeddings) is much more powerful for design.
+            </p>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-top: 20px;">
+                <div style="background: #eef; padding: 15px; border-radius: 8px;">
+                    <h3 style="margin-top: 0; color: #004499;">🛒 Market Basket (Association Rules)</h3>
+                    <p style="font-size: 0.9rem;">
+                        <strong>Output:</strong> Rules like "If 3001, then 3003".<br>
+                        <strong>Limitation:</strong> It's rigid. It doesn't know that a "Laser Sword" is similar to a
+                        "Spear" unless they appear together explicitly. It treats every part as a unique ID.
+                    </p>
+                </div>
+                <div style="background: #eef; padding: 15px; border-radius: 8px; border: 2px solid var(--lego-blue);">
+                    <h3 style="margin-top: 0; color: #004499;">🧠 Vector Embeddings (Our Approach)</h3>
+                    <p style="font-size: 0.9rem;">
+                        <strong>Output:</strong> 64-dimensional coordinates.<br>
+                        <strong>Advantage:</strong> It captures <em>Latent Similarity</em>. If "Sword" and "Shield"
+                        appear in Castle sets, and "Laser" and "Shield" appear in Space sets, the math learns that
+                        <strong>Sword ≈ Laser</strong> because they share a context (Shield).
+                    </p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Section 3: The Data Pipeline -->
+        <div class="card yellow">
+            <h2 style="color: var(--lego-yellow)"><span class="stud"></span> The Training Pipeline</h2>
+            <p>
+                How do we turn raw LDraw files into "Design Intuition"? Here is the full pipeline.
+            </p>
+
+            <div class="diagram" style="text-align: left;">
+                <pre class="mermaid">
+graph LR
+    A[📂 LDraw Library] -->|Parse .mpd/.ldr| B(📄 Context Extraction)
+    B -->|Sliding Window| C{🔢 Co-occurrence Matrix}
+    C -->|Math: log(P(xy)/P(x)P(y))| D[📊 PPMI Matrix]
+    D -->|Linear Algebra: SVD| E[💎 Dense Vectors]
+    E -->|Export| F[💾 embeddings.json]
+    
+    style A fill:#f5a623,stroke:#333,stroke-width:2px
+    style C fill:#d02c2f,stroke:#333,stroke-width:2px,color:white
+    style E fill:#0055bf,stroke:#333,stroke-width:2px,color:white
+    style F fill:#237841,stroke:#333,stroke-width:2px,color:white
+                </pre>
+            </div>
+            <p style="font-size: 0.9rem; color: #666;">
+                * We use <strong>PPMI (Positive Pointwise Mutual Information)</strong> to filter out noise (common parts
+                like "Plate 1x1" that appear everywhere) and focus on meaningful connections.
+            </p>
+        </div>
+
+        <!-- Section 3b: The Symbolic Conscience (Egri's Theory) -->
+        <div class="card" style="border-left-color: #8b5cf6;">
+            <h2 style="color: #8b5cf6"><span class="stud" style="color: #8b5cf6"></span> The Symbolic Conscience: Egri’s
+                Dramatic Theory</h2>
+            <p>
+                To prevent the AI from generating "slop" (technically correct but soulless designs), we ground the
+                <strong>Symbolic Layer</strong> in Lajos Egri’s dramatic principles.
+                We treat the LDraw construction as a medium for storytelling.
+            </p>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 15px; margin: 20px 0;">
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #6d28d9;">🚀 ENHANCES</strong>
+                    <ul style="font-size: 0.85rem; padding-left: 20px; margin: 5px 0;">
+                        <li>Thematic clarity via <em>Premise</em> (causal thesis)</li>
+                        <li>Believability via <em>3-D Character</em> bone structure</li>
+                        <li>Momentum via <em>Unity of Opposites</em></li>
+                    </ul>
+                </div>
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #6d28d9;">⏮️ RETRIEVES</strong>
+                    <ul style="font-size: 0.85rem; padding-left: 20px; margin: 5px 0;">
+                        <li>Aristotelian causality ("Because... Therefore")</li>
+                        <li>Physiognomy as destiny pressure</li>
+                        <li>Dialectical craftsmanship</li>
+                    </ul>
+                </div>
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #6d28d9;">🗑️ OBSOLESCES</strong>
+                    <ul style="font-size: 0.85rem; padding-left: 20px; margin: 5px 0;">
+                        <li>Plot-first outlines that bolt theme on later</li>
+                        <li>Flat "quirk lists" for characters</li>
+                        <li>Arbitrary antagonists</li>
+                    </ul>
+                </div>
+                <div style="background: #f5f3ff; padding: 15px; border-radius: 8px;">
+                    <strong style="color: #6d28d9;">⚠️ REVERSES</strong>
+                    <ul style="font-size: 0.85rem; padding-left: 20px; margin: 5px 0;">
+                        <li>Premise tyranny → Didactic pamphleteering</li>
+                        <li>Over-engineered psychology → Schematic puppets</li>
+                        <li>Relentless unity → Melodrama</li>
+                    </ul>
+                </div>
+            </div>
+
+            <h3 style="font-size: 1.1rem; margin-top: 20px; color: #333;">System Mapping</h3>
+            <div class="code-block" style="background: #2e1065; color: #ddd;">
+                # Snap-Mapping to Systems Stack
+
+                Premise ↔ Purpose/Order (Theme as Constraint)
+                Bone Structure ↔ Identity/Domain (Physio/Socio pressures)
+                Unity of Opposites ↔ Integrate Operator (Forced Collision)
+                Dialectic ↔ Shed → Integrate → Ground (Evolution)
+            </div>
+
+            <p style="font-size: 0.9rem; margin-top: 15px; font-style: italic; color: #555;">
+                "Premise test: Can every major action be phrased as 'therefore' from the thesis? If not, cut or retune."
+            </p>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="egri-worksheet.html" class="btn" style="background: #6d28d9;">Open Operator Manual
+                    (Worksheet)</a>
+            </div>
+        </div>
+
+        <!-- Section 4: Hardware & Scale -->
+        <div class="card" style="border-left-color: #666;">
+            <h2 style="color: #333"><span class="stud" style="color: #666"></span> Hardware & Scale</h2>
+            <p>
+                "Do I need a GPU cluster for this?"
+            </p>
+            <ul style="list-style: none; padding: 0;">
+                <li style="margin-bottom: 10px;">
+                    <strong>💻 Small Scale (< 10,000 Parts):</strong> <span
+                                style="background: #dfd; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">CPU
+                                is Fine</span><br>
+                            Our current method (SVD) runs perfectly on a standard laptop CPU. Matrix factorization is
+                            efficient for vocabularies of this size.
+                </li>
+                <li style="margin-bottom: 10px;">
+                    <strong>🚀 Massive Scale (> 100,000 Parts):</strong> <span
+                        style="background: #fdd; padding: 2px 6px; border-radius: 4px; font-size: 0.8rem; font-weight: bold;">GPU
+                        Required</span><br>
+                    If we were training on <em>every Lego set ever made</em>, we would switch to
+                    <strong>PyTorch</strong> or <strong>TensorFlow</strong>. We would use a "Graph Neural Network" (GNN)
+                    or a standard Skip-Gram model, which benefits massively from GPU parallelization.
+                </li>
+            </ul>
+        </div>
+
+        <!-- Section 5: The Corpus -->
+        <div class="card green">
+            <h2 style="color: var(--lego-green)"><span class="stud"></span> The Training Corpus</h2>
+            <p>
+                These are the <strong>Real Models</strong> we used to train the system.
+                The AI has "studied" these kits to learn its intuition.
+            </p>
+            <div id="corpus-container" class="corpus-list">
+                <div class="corpus-item">Loading corpus data...</div>
+            </div>
+        </div>
+
+        <!-- Section 4: Try It -->
+        <div class="card green">
+            <h2 style="color: var(--lego-green)"><span class="stud"></span> Try It Yourself</h2>
+            <p>
+                Go to the <strong>Neuro-Studio</strong> to see this in action.
+                Load a scene, analyze it, and ask the AI to suggest additions based on what it learned from the models
+                above.
+            </p>
+            <a href="neuro-studio.html" class="btn">Open Neuro-Studio</a>
+        </div>
+
+    </main>
+
+    <script type="module">
+        import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+        mermaid.initialize({ startOnLoad: true });
+    </script>
+
+    <script>
+        // Load the embeddings metadata to show the corpus
+        fetch('embeddings.json')
+            .then(response => response.json())
+            .then(data => {
+                const container = document.getElementById('corpus-container');
+                container.innerHTML = '';
+
+                if (data.metadata && data.metadata.corpus) {
+                    data.metadata.corpus.forEach(filename => {
+                        const div = document.createElement('div');
+                        div.className = 'corpus-item';
+                        div.textContent = filename;
+                        container.appendChild(div);
+                    });
+                } else {
+                    container.innerHTML = '<div class="corpus-item">No corpus metadata found.</div>';
+                }
+            })
+            .catch(err => {
+                console.error(err);
+                document.getElementById('corpus-container').innerHTML = '<div class="corpus-item">Error loading corpus data.</div>';
+            });
+    </script>
+
+</body>
+
+</html>

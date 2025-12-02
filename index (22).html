@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Ontological Ancestor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+
+            /* LEGOS Ontology Colors */
+            --c-core: #fbbf24;
+            /* Yellow */
+            --c-entity: #3b82f6;
+            /* Blue */
+            --c-morph: #22d3ee;
+            /* Cyan */
+            --c-goal: #f87171;
+            /* Red */
+            --c-story: #4ade80;
+            /* Green */
+            --c-meta: #a855f7;
+            /* Purple */
+
+            --focus: rgba(34, 211, 238, 0.1);
+            --wire-base: #475569;
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+            --sidebar-width: 72px;
+            --timeline-width: 320px;
+            --header-h: 56px;
+            --footer-h: 120px;
+        }
+
+        [data-theme="terminal"] {
+            --bg: #000;
+            --panel: #111;
+            --surface: #222;
+            --border: #333;
+            --text-main: #0f0;
+            --text-muted: #080;
+            --c-core: #ff0;
+            --c-entity: #0ff;
+            --c-morph: #0ff;
+            --c-goal: #f00;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        /* LAYOUT */
+        .layout-root {
+            display: grid;
+            grid-template-areas:
+                "header header header"
+                "sidebar canvas timeline"
+                "sidebar footer timeline";
+            grid-template-columns: var(--sidebar-width) 1fr var(--timeline-width);
+            grid-template-rows: var(--header-h) 1fr var(--footer-h);
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: "header header" "canvas canvas" "timeline timeline" "footer footer";
+                grid-template-columns: 0px 1fr;
+                grid-template-rows: 50px 1fr 150px 80px;
+            }
+
+            #sidebar {
+                display: none;
+            }
+        }
+
+        /* HEADER */
+        #header {
+            grid-area: header;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            z-index: 50;
+        }
+
+        /* SIDEBAR (Palette) */
+        #sidebar {
+            grid-area: sidebar;
+            border-right: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+            gap: 1rem;
+            z-index: 40;
+        }
+
+        .tool {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: grab;
+            transition: all 0.2s var(--ease);
+        }
+
+        .tool:hover {
+            background: var(--surface);
+            border-color: var(--border);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        .tool svg {
+            width: 32px;
+            height: 32px;
+            filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.5));
+        }
+
+        /* CANVAS (Retina) */
+        #canvas {
+            grid-area: canvas;
+            position: relative;
+            background: var(--bg);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-frame {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            /* Technical Grid Background */
+            background-image:
+                linear-gradient(var(--surface) 1px, transparent 1px),
+                linear-gradient(90deg, var(--surface) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .cell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .cell.active {
+            background: var(--focus);
+            box-shadow: inset 0 0 10px var(--focus);
+        }
+
+        /* TIMELINE (Chat) */
+        #timeline {
+            grid-area: timeline;
+            border-left: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .node {
+            background: var(--surface);
+            border-left: 3px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .node:hover {
+            transform: translateX(2px);
+            background: #222;
+        }
+
+        .node.Core {
+            border-left-color: var(--c-core);
+        }
+
+        .node.Entity {
+            border-left-color: var(--c-entity);
+        }
+
+        .node.Morphism {
+            border-left-color: var(--c-morph);
+        }
+
+        .node-meta {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .node-content {
+            font-size: 0.75rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        /* FOOTER (Actuator) */
+        #footer {
+            grid-area: footer;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 60;
+        }
+
+        textarea {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            resize: none;
+            border-radius: 4px;
+        }
+
+        textarea:focus {
+            border-color: var(--c-morph);
+        }
+
+        /* ANIMATIONS */
+        @keyframes popIn {
+            0% {
+                transform: scale(0) translateY(10px);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) translateY(-2px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .lego-svg {
+            width: 85%;
+            height: 85%;
+            animation: popIn 0.3s var(--ease) forwards;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+        }
+    </style>
+</head>
+
+<body class="layout-root" data-theme="dark">
+
+    <header id="header">
+        <div class="flex items-center gap-3">
+            <i data-lucide="cpu" class="text-[var(--c-morph)] w-5 h-5"></i>
+            <span class="text-xs font-bold tracking-widest text-[var(--text-muted)]">ONYX REACTOR</span>
+        </div>
+        <div class="flex gap-4 text-[0.65rem] text-[var(--text-muted)] font-bold">
+            <span class="text-[var(--c-core)]">CORE</span>
+            <span class="text-[var(--c-entity)]">ENT</span>
+            <span class="text-[var(--c-morph)]">MORPH</span>
+            <span class="text-[var(--c-goal)]">GOAL</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="resetGrid()" class="p-2 hover:text-[var(--c-goal)]"><i data-lucide="trash-2"
+                    class="w-4 h-4"></i></button>
+        </div>
+    </header>
+
+    <aside id="sidebar">
+        <!-- Palette Rendered via JS -->
+    </aside>
+
+    <main id="canvas">
+        <div id="grid" class="grid-frame"></div>
+        <div class="absolute bottom-2 left-4 text-[0.65rem] text-[var(--text-muted)]">
+            CELL: <span id="hover-idx" class="text-white">--</span>
+        </div>
+    </main>
+
+    <aside id="timeline">
+        <div
+            class="p-2 border-b border-[var(--border)] text-[10px] font-bold tracking-widest text-center text-[var(--text-muted)] bg-[var(--bg)]">
+            EVENT LOG
+        </div>
+        <div id="chat-stream" class="chat-scroll">
+            <div class="node">
+                <div class="node-meta"><span>SYSTEM</span><span>INIT</span></div>
+                <div class="node-content">Reactor Online. Grid locked.</div>
+            </div>
+        </div>
+    </aside>
+
+    <footer id="footer">
+        <div class="flex h-full gap-2">
+            <textarea id="input" placeholder="Paste code to decompose, or narrative commands..."></textarea>
+            <button onclick="processInput()"
+                class="w-12 h-full bg-[var(--panel)] border border-[var(--border)] rounded flex items-center justify-center hover:border-[var(--c-morph)] hover:text-[var(--c-morph)] transition-colors">
+                <i data-lucide="arrow-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================
+        // 1. ISOMETRIC PRIMITIVES (The Distinctive Icons)
+        // =========================================
+        const ICONS = {
+            getIsoCube(colorInput) {
+                const map = {
+                    '#fbbf24': 'yellow',
+                    '#3b82f6': 'blue',
+                    '#22d3ee': 'cyan',
+                    '#f87171': 'red',
+                    '#c084fc': 'purple',
+                    '#4ade80': 'green'
+                };
+                const colorName = map[colorInput] || 'blue';
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                    red: { top: '#f87171', left: '#ef4444', right: '#dc2626' }
+                };
+                const c = colors[colorName] || colors.blue;
+                return `<svg viewBox="0 0 40 40" class="w-full h-full">
+                    <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1"/>
+                    <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1"/>
+                    <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1"/>
+                </svg>`;
+            },
+
+            Entity: (c) => ICONS.getIsoCube(c),
+
+            Core: (c) => ICONS.getIsoCube(c),
+
+            Morphism: (c) => `
+                <div class="relative w-full h-full flex items-center justify-between">
+                    <div class="w-5 h-5">${ICONS.getIsoCube(c)}</div>
+                    <div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative"></div>
+                    <div class="w-5 h-5">${ICONS.getIsoCube(c)}</div>
+                </div>`,
+
+            Goal: (c) => `
+                <div class="relative w-full h-full">
+                    <div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400" style="z-index:10">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    ${ICONS.getIsoCube(c)}
+                </div>`,
+
+            Location: (c) => `
+                <div class="relative w-full h-full flex items-center justify-center">
+                    <div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube(c)}</div>
+                    <div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube(c)}</div>
+                </div>`,
+
+            Story: (c) => `
+                <div class="relative w-full h-full flex flex-col items-center justify-start pt-1">
+                    <div class="w-4 h-4 z-10">${ICONS.getIsoCube(c)}</div>
+                    <div class="w-full h-0.5 bg-current opacity-50"></div>
+                    <div class="flex gap-1 mt-2">
+                        <div class="w-2.5 h-2.5">${ICONS.getIsoCube(c)}</div>
+                        <div class="w-2.5 h-2.5">${ICONS.getIsoCube(c)}</div>
+                        <div class="w-2.5 h-2.5">${ICONS.getIsoCube(c)}</div>
+                    </div>
+                </div>`
+        };
+
+        // =========================================
+        // 2. ONTOLOGY DEFINITIONS
+        // =========================================
+        const ONTOLOGY = {
+            Core: { type: 'Core', color: '#fbbf24', match: /class|interface|extends/ },
+            Entity: { type: 'Entity', color: '#3b82f6', match: /const|let|var|new/ },
+            Morphism: { type: 'Morphism', color: '#22d3ee', match: /function|=>|\(\)/ },
+            Goal: { type: 'Goal', color: '#f87171', match: /return|throw|try|catch/ },
+            Location: { type: 'Location', color: '#c084fc', match: /import|export|from/ },
+            Story: { type: 'Story', color: '#4ade80', match: /\/\// }
+        };
+
+        // =========================================
+        // 3. STATE & LOGIC
+        // =========================================
+        const STATE = {
+            grid: Array(81).fill(null),
+            dragType: null
+        };
+
+        function init() {
+            renderPalette();
+            renderGrid();
+            lucide.createIcons();
+
+            document.getElementById('input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processInput();
+                }
+            });
+        }
+
+        // --- Render Sidebar Palette ---
+        function renderPalette() {
+            const sb = document.getElementById('sidebar');
+            Object.keys(ONTOLOGY).forEach(k => {
+                const def = ONTOLOGY[k];
+                const el = document.createElement('div');
+                el.className = 'tool';
+                el.title = k;
+                el.draggable = true;
+                el.innerHTML = ICONS[k](def.color);
+
+                el.ondragstart = (e) => {
+                    STATE.dragType = k;
+                    e.dataTransfer.effectAllowed = 'copy';
+                };
+                sb.appendChild(el);
+            });
+        }
+
+        // --- Render Grid ---
+        function renderGrid() {
+            const el = document.getElementById('grid');
+            el.innerHTML = '';
+            STATE.grid.forEach((data, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+
+                if (data) {
+                    const def = ONTOLOGY[data.type];
+                    cell.innerHTML = ICONS[data.type](def.color);
+                    cell.title = `${data.type}: ${data.content || ''}`;
+                } else {
+                    cell.innerHTML = `<span style="opacity:0.1">${i}</span>`;
+                }
+
+                // Events
+                cell.onmouseover = () => document.getElementById('hover-idx').innerText = i;
+                cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('active'); };
+                cell.ondragleave = () => cell.classList.remove('active');
+                cell.ondrop = (e) => handleDrop(e, i);
+                cell.onclick = () => {
+                    if (data) logToTimeline(data.type, `Inspect Cell ${i}: ${data.content || 'Unknown'}`);
+                };
+
+                el.appendChild(cell);
+            });
+        }
+
+        function logToTimeline(type, text) {
+            const stream = document.getElementById('chat-stream');
+            const node = document.createElement('div');
+            node.className = `node ${type}`;
+            node.innerHTML = `
+                <div class="node-meta">
+                    <span>${type}</span>
+                    <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                </div>
+                <div class="node-content">${text.substring(0, 100)}</div>
+            `;
+            stream.appendChild(node);
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // --- Logic ---
+        function handleDrop(e, idx) {
+            e.preventDefault();
+            const type = STATE.dragType;
+            if (!type) return;
+
+            STATE.grid[idx] = { type, content: 'Manual Drop' };
+            renderGrid();
+            logToTimeline('Entity', `Placed ${type} at [${idx}]`);
+            STATE.dragType = null;
+        }
+
+        function processInput() {
+            const input = document.getElementById('input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+
+            if (text.match(/function|const|var|class|\{|\}/)) {
+                decomposeCode(text);
+            } else {
+                logToTimeline('Entity', text);
+                proceduralGen(text);
+            }
+        }
+
+        // Code-to-Grid Decomposer
+        function decomposeCode(code) {
+            const lines = code.split('\n');
+            let placed = 0;
+            logToTimeline('Morphism', 'Decomposing Code Structure...');
+
+            lines.forEach((line, i) => {
+                const trim = line.trim();
+                if (!trim) return;
+
+                let matchType = null;
+                for (const [key, def] of Object.entries(ONTOLOGY)) {
+                    if (def.match.test(trim)) {
+                        matchType = key;
+                        break;
+                    }
+                }
+
+                if (matchType) {
+                    const idx = i % 81; // Topological Wrap
+                    STATE.grid[idx] = { type: matchType, content: trim };
+                    placed++;
+                }
+            });
+
+            renderGrid();
+            logToTimeline('Core', `Mapped ${placed} syntax nodes to Grid Topology.`);
+        }
+
+        function proceduralGen(text) {
+            let seed = 0;
+            for (let i = 0; i < text.length; i++) seed += text.charCodeAt(i);
+            const count = Math.max(1, seed % 5);
+            const types = Object.keys(ONTOLOGY);
+
+            for (let i = 0; i < count; i++) {
+                const pos = (seed * (i + 2)) % 81;
+                const type = types[(seed + i) % types.length];
+                STATE.grid[pos] = { type, content: 'Narrative Flux' };
+            }
+            renderGrid();
+            logToTimeline('Story', `Materialized ${count} nodes from narrative.`);
+        }
+
+        function resetGrid() {
+            STATE.grid.fill(null);
+            renderGrid();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAR→TAO System Expl
+
+        ainer</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🧠</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            background: #0a0e1a;
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, sans-serif;
+        }
+
+        .slide {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            padding: 4rem 2rem;
+            scroll-snap-align: start;
+        }
+
+        .container {
+            max-width: 900px;
+            width: 100%;
+        }
+
+        .viewport {
+            scroll-snap-type: y mandatory;
+            overflow-y: scroll;
+            height: 100vh;
+        }
+
+        h1 {
+            font-size: clamp(2rem, 6vw, 4rem);
+            font-weight: 900;
+            margin: 0 0 1rem;
+        }
+
+        h2 {
+            font-size: clamp(1.5rem, 4vw, 2.5rem);
+            font-weight: 700;
+            margin: 0 0 1.5rem;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, #60a5fa, #4ade80);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .box {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 16px;
+            padding: 2rem;
+            margin: 1.5rem 0;
+        }
+
+        .arrow {
+            font-size: 3rem;
+            margin: 1rem 0;
+            opacity: 0.4;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.5rem 1rem;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.875rem;
+            margin: 0.25rem;
+        }
+
+        .badge-blue {
+            background: #1e3a8a;
+            color: #60a5fa;
+        }
+
+        .badge-green {
+            background: #14532d;
+            color: #4ade80;
+        }
+
+        .badge-yellow {
+            background: #713f12;
+            color: #fbbf24;
+        }
+
+        .badge-red {
+            background: #7f1d1d;
+            color: #f87171;
+        }
+
+        code {
+            background: #0f172a;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            font-family: 'Monaco', monospace;
+        }
+
+        .flow-diagram {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 1rem;
+            margin: 2rem 0;
+        }
+
+        .flow-item {
+            text-align: center;
+            padding: 1.5rem;
+            border: 2px solid #334155;
+            border-radius: 12px;
+            transition: all 0.3s;
+        }
+
+        .flow-item:hover {
+            border-color: #60a5fa;
+            transform: translateY(-4px);
+        }
+
+        .nav {
+            position: fixed;
+            bottom: 2rem;
+            right: 2rem;
+            z-index: 1000;
+        }
+
+        .nav-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #334155;
+            margin: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .nav-dot:hover,
+        .nav-dot.active {
+            background: #60a5fa;
+            transform: scale(1.3);
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+        }
+
+        .pulse {
+            animation: pulse 2s infinite;
+        }
+
+        .grid-preview {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 4px;
+            max-width: 200px;
+            margin: 1rem auto;
+        }
+
+        .grid-cell {
+            aspect-ratio: 1;
+            border-radius: 2px;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="viewport">
+        <!-- Slide 1: Title -->
+        <div class="slide" style="background: linear-gradient(135deg, #0a0e1a, #1e293b)">
+            <div class="container text-center">
+                <div class="text-6xl mb-4">🐸</div>
+                <h1 class="gradient-text">GAR→TAO System</h1>
+                <p class="text-xl opacity-75 max-w-2xl mx-auto mt-4">
+                    From pixels to narratives: How we turn images into semantic story graphs
+                </p>
+                <div class="mt-12 text-sm pulse opacity-50">Scroll to explore ↓</div>
+            </div>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide">
+            <div class="container">
+                <h2 class="gradient-text">The Challenge</h2>
+                <div class="box">
+                    <div class="text-4xl mb-4">🖼️</div>
+                    <p class="text-lg leading-relaxed">Images are <strong>rich with semantic meaning</strong>, but
+                        computers see them as just pixels. We need a way to extract the <strong>narrative
+                            structure</strong> hidden within.</p>
+                </div>
+                <div class="grid grid-cols-2 gap-4 mt-8">
+                    <div class="box text-center">
+                        <div class="text-2xl mb-2">❌</div>
+                        <strong>Raw Pixels</strong>
+                        <p class="text-sm opacity-75 mt-2">Meaningless RGB values</p>
+                    </div>
+                    <div class="box text-center">
+                        <div class="text-2xl mb-2">✅</div>
+                        <strong>Narrative Graph</strong>
+                        <p class="text-sm opacity-75 mt-2">Entities, Goals, Obstacles</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 3: GAR Introduction -->
+        <div class="slide">
+            <div class="container">
+                <h2>Step 1: <span class="gradient-text">GAR Analysis</span></h2>
+                <div class="box">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="text-5xl">📊</div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Grid Assembles Reality</h3>
+                            <p class="opacity-75">Visual segmentation engine</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-700 pt-4 mt-4">
+                        <strong>What GAR Does:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-2 opacity-90">
+                            <li>Divides image into <code>20×20</code> grid</li>
+                            <li>Analyzes <strong>color</strong>, <strong>edges</strong>, and <strong>flow</strong></li>
+                            <li>Clusters similar regions using <strong>K-means</strong></li>
+                            <li>Exports rich semantic data</li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="grid-preview">
+                    <div class="grid-cell" style="background: #f87171"></div>
+                    <div class="grid-cell" style="background: #60a5fa"></div>
+                    <div class="grid-cell" style="background: #60a5fa"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #f87171"></div>
+                    <div class="grid-cell" style="background: #60a5fa"></div>
+                    <div class="grid-cell" style="background: #fbbf24"></div>
+                    <div class="grid-cell" style="background: #fbbf24"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #60a5fa"></div>
+                    <div class="grid-cell" style="background: #fbbf24"></div>
+                    <div class="grid-cell" style="background: #fbbf24"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                    <div class="grid-cell" style="background: #60a5fa"></div>
+                    <div class="grid-cell" style="background: #f87171"></div>
+                    <div class="grid-cell" style="background: #f87171"></div>
+                    <div class="grid-cell" style="background: #4ade80"></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 4: Color Mapping -->
+        <div class="slide">
+            <div class="container">
+                <h2>Step 2: <span class="gradient-text">Semantic Mapping</span></h2>
+                <div class="box">
+                    <strong class="text-xl">🎨 Narrative Color Palette</strong>
+                    <p class="mt-2 opacity-75">Colors and features map to story elements:</p>
+                    <div class="grid grid-cols-2 gap-3 mt-6">
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded" style="background: #60a5fa"></div>
+                            <div>
+                                <strong>Entity</strong>
+                                <p class="text-sm opacity-75">Actors & objects</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded" style="background: #fbbf24"></div>
+                            <div>
+                                <strong>Core</strong>
+                                <p class="text-sm opacity-75">Central themes</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded" style="background: #4ade80"></div>
+                            <div>
+                                <strong>Goal</strong>
+                                <p class="text-sm opacity-75">Desired states</p>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded" style="background: #f87171"></div>
+                            <div>
+                                <strong>Obstacle</strong>
+                                <p class="text-sm opacity-75">Conflicts</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="box mt-4">
+                    <strong>Smart Detection Rules:</strong>
+                    <ul class="list-disc list-inside mt-2 space-y-1 text-sm opacity-90">
+                        <li>High edge density → <span class="badge badge-red">Obstacle</span></li>
+                        <li>Center position + yellow → <span class="badge badge-yellow">Core</span></li>
+                        <li>Bright, low saturation → <span class="badge badge-green">Goal</span></li>
+                        <li>Default fallback → <span class="badge badge-blue">Entity</span></li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 5: TAO Import -->
+        <div class="slide">
+            <div class="container">
+                <h2>Step 3: <span class="gradient-text">TAO Visualization</span></h2>
+                <div class="box">
+                    <div class="flex items-center gap-4 mb-4">
+                        <div class="text-5xl">🧠</div>
+                        <div>
+                            <h3 class="text-2xl font-bold">Temporal Archetypal Ontology</h3>
+                            <p class="opacity-75">Narrative graph builder</p>
+                        </div>
+                    </div>
+                    <div class="border-t border-gray-700 pt-4 mt-4">
+                        <strong>What TAO Does:</strong>
+                        <ul class="list-disc list-inside mt-2 space-y-2 opacity-90">
+                            <li>Receives semantic data from GAR</li>
+                            <li>Spawns <strong>3D nodes</strong> on canvas</li>
+                            <li>Prevents overlap with <strong>collision detection</strong></li>
+                            <li>Shows <strong>background image</strong> for context</li>
+                            <li>Links related entities with <strong>flow vectors</strong></li>
+                        </ul>
+                    </div>
+                </div>
+                <div class="text-center mt-6 text-sm opacity-50">
+                    💡 The grid image appears as a subtle background (15% opacity)
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 6: Full Pipeline -->
+        <div class="slide">
+            <div class="container">
+                <h2 class="gradient-text text-center mb-8">The Complete Pipeline</h2>
+                <div class="flow-diagram">
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">📷</div>
+                        <strong>1. Image</strong>
+                        <p class="text-sm opacity-75 mt-2">Load into GAR</p>
+                    </div>
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">🔬</div>
+                        <strong>2. Analyze</strong>
+                        <p class="text-sm opacity-75 mt-2">Segment & Extract</p>
+                    </div>
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">📦</div>
+                        <strong>3. Export</strong>
+                        <p class="text-sm opacity-75 mt-2">Send to Studio</p>
+                    </div>
+                </div>
+                <div class="arrow text-center">↓</div>
+                <div class="box">
+                    <div class="text-center">
+                        <strong class="text-xl">Studio (Auto-Transmit)</strong>
+                        <p class="text-sm opacity-75 mt-2">GAR Mixer → Server → TAO</p>
+                    </div>
+                </div>
+                <div class="arrow text-center">↓</div>
+                <div class="flow-diagram">
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">🎯</div>
+                        <strong>4. Import</strong>
+                        <p class="text-sm opacity-75 mt-2">TAO receives</p>
+                    </div>
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">🎨</div>
+                        <strong>5. Render</strong>
+                        <p class="text-sm opacity-75 mt-2">3D nodes + BG</p>
+                    </div>
+                    <div class="flow-item">
+                        <div class="text-4xl mb-3">🔗</div>
+                        <strong>6. Connect</strong>
+                        <p class="text-sm opacity-75 mt-2">Build graph</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 7: Features -->
+        <div class="slide">
+            <div class="container">
+                <h2 class="gradient-text">Key Features</h2>
+                <div class="grid grid-cols-2 gap-4">
+                    <div class="box">
+                        <div class="text-3xl mb-2">👁️</div>
+                        <strong>Preview Narrative</strong>
+                        <p class="text-sm opacity-75 mt-2">See semantic types before export in GAR-04 and GAR-06</p>
+                    </div>
+                    <div class="box">
+                        <div class="text-3xl mb-2">💾</div>
+                        <strong>Download JSON</strong>
+                        <p class="text-sm opacity-75 mt-2">Inspect raw exported data</p>
+                    </div>
+                    <div class="box">
+                        <div class="text-3xl mb-2">🚫</div>
+                        <strong>No Overlap</strong>
+                        <p class="text-sm opacity-75 mt-2">Spiral search finds empty cells</p>
+                    </div>
+                    <div class="box">
+                        <div class="text-3xl mb-2">📐</div>
+                        <strong>Background Image</strong>
+                        <p class="text-sm opacity-75 mt-2">Context visualization in TAO</p>
+                    </div>
+                    <div class="box">
+                        <div class="text-3xl mb-2">⚡</div>
+                        <strong>Auto-Transmit</strong>
+                        <p class="text-sm opacity-75 mt-2">Instant Studio→TAO flow</p>
+                    </div>
+                    <div class="box">
+                        <div class="text-3xl mb-2">♾️</div>
+                        <strong>Unlimited Types</strong>
+                        <p class="text-sm opacity-75 mt-2">Many nodes per color/type</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Slide 8: Try It -->
+        <div class="slide" style="background: linear-gradient(135deg, #1e293b, #0a0e1a)">
+            <div class="container text-center">
+                <h2 class="gradient-text">Ready to Try?</h2>
+                <div class="box mt-8">
+                    <strong class="text-xl">Quick Start Guide</strong>
+                    <ol class="text-left mt-4 space-y-3 max-w-lg mx-auto">
+                        <li><code>1.</code> Open <strong>gar-onyx-studio.html</strong></li>
+                        <li><code>2.</code> Select <strong>GAR-04</strong> or <strong>GAR-06</strong></li>
+                        <li><code>3.</code> Adjust <strong>K</strong> (segments) and <strong>Reassemble</strong></li>
+                        <li><code>4.</code> Check <strong>Preview Narrative</strong> to see types</li>
+                        <li><code>5.</code> Click <strong>Export to ONYX</strong></li>
+                        <li><code>6.</code> Watch nodes appear in <strong>TAO</strong>!</li>
+                    </ol>
+                </div>
+                <div class="mt-8 text-sm opacity-50">
+                    🎯 Tip: Use the local server at <code>localhost:3399</code>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Navigation Dots -->
+    <div class="nav">
+        <div class="nav-dot active" onclick="goToSlide(0)"></div>
+        <div class="nav-dot" onclick="goToSlide(1)"></div>
+        <div class="nav-dot" onclick="goToSlide(2)"></div>
+        <div class="nav-dot" onclick="goToSlide(3)"></div>
+        <div class="nav-dot" onclick="goToSlide(4)"></div>
+        <div class="nav-dot" onclick="goToSlide(5)"></div>
+        <div class="nav-dot" onclick="goToSlide(6)"></div>
+        <div class="nav-dot" onclick="goToSlide(7)"></div>
+    </div>
+
+    <script>
+        const slides = document.querySelectorAll('.slide');
+        const dots = document.querySelectorAll('.nav-dot');
+        const viewport = document.querySelector('.viewport');
+
+        function goToSlide(index) {
+            slides[index].scrollIntoView({ behavior: 'smooth' });
+        }
+
+        viewport.addEventListener('scroll', () => {
+            let current = 0;
+            slides.forEach((slide, i) => {
+                const rect = slide.getBoundingClientRect();
+                if (rect.top >= -100 && rect.top < window.innerHeight / 2) {
+                    current = i;
+                }
+            });
+            dots.forEach((dot, i) => {
+                dot.classList.toggle('active', i === current);
+            });
+        });
+
+        // Keyboard navigation
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowDown' || e.key === 'ArrowRight' || e.key === ' ') {
+                e.preventDefault();
+                const current = Array.from(slides).findIndex(s => s.getBoundingClientRect().top >= -100);
+                if (current < slides.length - 1) goToSlide(current + 1);
+            } else if (e.key === 'ArrowUp' || e.key === 'ArrowLeft') {
+                e.preventDefault();
+                const current = Array.from(slides).findIndex(s => s.getBoundingClientRect().top >= -100);
+                if (current > 0) goToSlide(current - 1);
+            }
+        });
+    </script>
+</body>
+
+</html>

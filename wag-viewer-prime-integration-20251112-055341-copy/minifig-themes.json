@@ -1,0 +1,52 @@
+{
+  "themes": {
+    "star_wars": {
+      "name": "Star Wars",
+      "description": "Saga characters grouped by era",
+      "subgroups": [
+        {
+          "id": "ot_core",
+          "title": "Original Trilogy Heroes",
+          "characters": [
+            {
+              "id": "luke-skywalker-anh",
+              "title": "Luke Skywalker (A New Hope)",
+              "mpd": "minifigs/star-wars/luke-skywalker-anh.mpd"
+            },
+            {
+              "id": "han-solo-anh",
+              "title": "Han Solo (A New Hope)",
+              "mpd": "minifigs/star-wars/han-solo-anh.mpd"
+            },
+            {
+              "id": "leia-organa-anh",
+              "title": "Princess Leia Organa (A New Hope)",
+              "mpd": "minifigs/star-wars/leia-organa-anh.mpd"
+            }
+          ]
+        },
+        {
+          "id": "ot_allies",
+          "title": "Original Trilogy Allies",
+          "characters": [
+            {
+              "id": "chewbacca-ot",
+              "title": "Chewbacca",
+              "mpd": "minifigs/star-wars/chewbacca-ot.mpd"
+            },
+            {
+              "id": "obi-wan-ot",
+              "title": "Obi-Wan Kenobi (Ben)",
+              "mpd": "minifigs/star-wars/obi-wan-ot.mpd"
+            },
+            {
+              "id": "r2-d2-classic",
+              "title": "R2-D2",
+              "mpd": "minifigs/star-wars/r2-d2-classic.mpd"
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

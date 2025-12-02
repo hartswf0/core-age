@@ -1,0 +1,641 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Reactor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* =========================================
+           I. THEME (The Visual Ontology)
+           ========================================= */
+        :root {
+            --bg: #030305;
+            --panel: #0a0a0c;
+            --surface: #141416;
+            --border: #222224;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+
+            /* LEGOS Ontology Colors */
+            --c-core: #fbbf24;
+            /* Yellow (Slab) */
+            --c-entity: #3b82f6;
+            /* Blue (Cube) */
+            --c-morph: #22d3ee;
+            /* Cyan (Orb) */
+            --c-goal: #f87171;
+            /* Red (Pyramid) */
+            --c-story: #4ade80;
+            /* Green (Plane) */
+            --c-meta: #a855f7;
+            /* Purple (Pillar) */
+
+            --focus: rgba(34, 211, 238, 0.1);
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+            --sidebar-w: 72px;
+            --timeline-w: 340px;
+            --header-h: 56px;
+            --footer-h: 120px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        /* =========================================
+           II. SKELETON (Wireframe & DOM)
+           ========================================= */
+        .reactor-shell {
+            display: grid;
+            grid-template-areas:
+                "header header header"
+                "sidebar canvas timeline"
+                "sidebar footer timeline";
+            grid-template-columns: var(--sidebar-w) 1fr var(--timeline-w);
+            grid-template-rows: var(--header-h) 1fr var(--footer-h);
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        @media (max-width: 768px) {
+            .reactor-shell {
+                grid-template-areas: "header header" "canvas canvas" "timeline timeline" "footer footer";
+                grid-template-columns: 0px 1fr;
+                grid-template-rows: 50px 1fr 150px 80px;
+            }
+
+            #sidebar {
+                display: none;
+            }
+        }
+
+        /* AREA 1: The Header (Meta-Controls) */
+        #header {
+            grid-area: header;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            z-index: 50;
+        }
+
+        /* AREA 2: The Palette (Sidebar) */
+        #sidebar {
+            grid-area: sidebar;
+            border-right: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+            gap: 1rem;
+            z-index: 40;
+        }
+
+        /* AREA 3: The Retina (Canvas) */
+        #canvas {
+            grid-area: canvas;
+            position: relative;
+            background: var(--bg);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* AREA 4: The Fork (Timeline) */
+        #timeline {
+            grid-area: timeline;
+            border-left: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* AREA 5: The Actuator (Footer) */
+        #footer {
+            grid-area: footer;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 60;
+        }
+
+        /* =========================================
+           COMPONENT STYLES
+           ========================================= */
+        /* Retina Grid */
+        .grid-frame {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1;
+            border: 1px solid var(--border);
+            /* Technical Grid Background */
+            background-image:
+                linear-gradient(var(--surface) 1px, transparent 1px),
+                linear-gradient(90deg, var(--surface) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.8);
+        }
+
+        .cell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .cell.active {
+            background: var(--focus);
+            box-shadow: inset 0 0 10px var(--focus);
+        }
+
+        /* Tools */
+        .tool {
+            width: 48px;
+            height: 48px;
+            border-radius: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: grab;
+            transition: all 0.2s var(--ease);
+        }
+
+        .tool:hover {
+            background: var(--surface);
+            border-color: var(--border);
+            transform: scale(1.1);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Chat Nodes */
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .node {
+            background: var(--surface);
+            border-left: 3px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: transform 0.1s;
+            position: relative;
+        }
+
+        .node:hover {
+            transform: translateX(2px);
+            background: #1a1a1c;
+        }
+
+        .node-meta {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .node-content {
+            font-size: 0.75rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+            color: #ccc;
+        }
+
+        /* Input */
+        textarea {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            resize: none;
+            border-radius: 4px;
+        }
+
+        textarea:focus {
+            border-color: var(--c-morph);
+        }
+
+        /* Animation */
+        @keyframes popIn {
+            0% {
+                transform: scale(0) translateY(10px);
+                opacity: 0;
+            }
+
+            60% {
+                transform: scale(1.1) translateY(-2px);
+                opacity: 1;
+            }
+
+            100% {
+                transform: scale(1) translateY(0);
+            }
+        }
+
+        .lego-svg {
+            width: 85%;
+            height: 85%;
+            animation: popIn 0.3s var(--ease) forwards;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.6));
+        }
+
+        .grid-status {
+            position: absolute;
+            bottom: 8px;
+            left: 8px;
+            font-size: 10px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body class="reactor-shell">
+
+    <!-- HEADER -->
+    <header id="header">
+        <div class="flex items-center gap-3">
+            <i data-lucide="cpu" class="text-[var(--c-morph)] w-5 h-5"></i>
+            <span class="text-xs font-bold tracking-widest text-[var(--text-muted)]">ONYX REACTOR</span>
+        </div>
+        <!-- Legend -->
+        <div class="flex gap-4 text-[0.65rem] text-[var(--text-muted)] font-bold">
+            <span class="text-[var(--c-core)]">CORE</span>
+            <span class="text-[var(--c-entity)]">ENT</span>
+            <span class="text-[var(--c-morph)]">MORPH</span>
+            <span class="text-[var(--c-goal)]">GOAL</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="MUSCLES.reset()" class="p-2 hover:text-[var(--c-goal)]" title="Clear Grid"><i
+                    data-lucide="trash-2" class="w-4 h-4"></i></button>
+        </div>
+    </header>
+
+    <!-- SIDEBAR (Palette) -->
+    <aside id="sidebar">
+        <!-- Rendered via JS -->
+    </aside>
+
+    <!-- RETINA (Grid) -->
+    <main id="canvas">
+        <div id="grid" class="grid-frame"></div>
+        <div class="grid-status">
+            CELL: <span id="hover-idx" class="text-white">--</span> | STATE: <span id="sys-state">IDLE</span>
+        </div>
+    </main>
+
+    <!-- FORK (Timeline) -->
+    <aside id="timeline">
+        <div
+            class="p-2 border-b border-[var(--border)] text-[10px] font-bold tracking-widest text-center text-[var(--text-muted)] bg-[var(--bg)] flex justify-between items-center px-4">
+            <span>EVENT LOG</span>
+            <span id="node-count">0 NODES</span>
+        </div>
+        <div id="chat-stream" class="chat-scroll">
+            <div class="node" style="border-left-color: var(--text-muted)">
+                <div class="node-meta"><span>SYSTEM</span><span>INIT</span></div>
+                <div class="node-content">Reactor Online. Ontology Loaded.</div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- ACTUATOR (Input) -->
+    <footer id="footer">
+        <div class="flex h-full gap-2">
+            <textarea id="input" placeholder="Paste code to decompose, or narrative commands..."></textarea>
+            <button onclick="TENDONS.commit()"
+                class="w-12 h-full bg-[var(--panel)] border border-[var(--border)] rounded flex items-center justify-center hover:border-[var(--c-morph)] hover:text-[var(--c-morph)] transition-colors">
+                <i data-lucide="arrow-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================
+        // I. VISUAL ONTOLOGY (Icons)
+        // =========================================
+        const ICONS = {
+            // CUBE (Entity/Variable) - Standard
+            Entity: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <path d="M20 2 L38 11 L20 20 L2 11 Z" fill="${c}" filter="brightness(1.2)"/>
+                    <path d="M2 11 L20 20 L20 38 L2 29 Z" fill="${c}" filter="brightness(0.9)"/>
+                    <path d="M38 11 L20 20 L20 38 L38 29 Z" fill="${c}" filter="brightness(0.7)"/>
+                </svg>`,
+
+            // SLAB (Core/Class) - Wide Foundation
+            Core: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <path d="M20 14 L38 20 L20 26 L2 20 Z" fill="${c}" filter="brightness(1.2)"/>
+                    <path d="M2 20 L20 26 L20 34 L2 28 Z" fill="${c}" filter="brightness(0.9)"/>
+                    <path d="M38 20 L20 26 L20 34 L38 28 Z" fill="${c}" filter="brightness(0.7)"/>
+                </svg>`,
+
+            // ORB (Morphism/Function) - Dynamic Sphere
+            Morphism: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <defs>
+                        <radialGradient id="grad-${c}" cx="30%" cy="30%" r="70%">
+                            <stop offset="0%" style="stop-color: #fff; stop-opacity: 0.8" />
+                            <stop offset="100%" style="stop-color: ${c}; stop-opacity: 1" />
+                        </radialGradient>
+                    </defs>
+                    <circle cx="20" cy="20" r="12" fill="url(#grad-${c})"/>
+                    <ellipse cx="20" cy="34" rx="10" ry="3" fill="black" opacity="0.3" filter="blur(2px)"/>
+                </svg>`,
+
+            // PYRAMID (Goal/Hazard) - Sharp Directionality
+            Goal: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <path d="M20 2 L36 34 L20 38 Z" fill="${c}" filter="brightness(0.8)"/>
+                    <path d="M20 2 L4 34 L20 38 Z" fill="${c}" filter="brightness(1.1)"/>
+                </svg>`,
+
+            // PLANE (Story/Comment) - Narrative Layer
+            Story: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <path d="M5 10 L35 10 L30 30 L0 30 Z" fill="${c}" opacity="0.7"/>
+                    <path d="M0 30 L30 30 L30 32 L0 32 Z" fill="${c}"/>
+                </svg>`,
+
+            // PILLAR (Location) - Spatial Anchor
+            Location: (c) => `
+                <svg viewBox="0 0 40 40" class="lego-svg">
+                    <path d="M14 2 L26 2 L26 38 L14 38 Z" fill="${c}"/>
+                    <path d="M14 2 L26 2 L20 8 L8 8 Z" fill="${c}" filter="brightness(1.3)"/>
+                </svg>`
+        };
+
+        // =========================================
+        // II. LIGAMENTS (State & Schema)
+        // =========================================
+        const APP = {
+            state: {
+                grid: Array(81).fill(null),
+                dragType: null,
+                nodeCount: 0
+            },
+            ontology: {
+                Core: { color: '#fbbf24', match: /class|interface|extends/ }, // Yellow
+                Entity: { color: '#3b82f6', match: /const|let|var|new/ },      // Blue
+                Morphism: { color: '#22d3ee', match: /function|=>|\(\)/ },       // Cyan
+                Goal: { color: '#f87171', match: /return|throw|catch/ },     // Red
+                Location: { color: '#a855f7', match: /import|export|from/ },     // Purple
+                Story: { color: '#4ade80', match: /\/\// }                    // Green
+            }
+        };
+
+        // =========================================
+        // III. MUSCLES (Logic Engines)
+        // =========================================
+        const MUSCLES = {
+            // 1. SceneAssembler (Narrative -> Grid)
+            // Simulates AI by hashing text to grid positions (Entropy)
+            assembleScene: (text) => {
+                let seed = 0;
+                for (let i = 0; i < text.length; i++) seed += text.charCodeAt(i);
+
+                const count = Math.max(1, seed % 6); // 1-5 items
+                const types = Object.keys(APP.ontology);
+
+                // Clear old flux
+                APP.state.grid.forEach(c => { if (c && c.source === 'flux') c = null; });
+
+                for (let i = 0; i < count; i++) {
+                    const pos = (seed * (i + 3)) % 81;
+                    const typeIdx = (seed + i) % types.length;
+                    const type = types[typeIdx];
+
+                    APP.state.grid[pos] = {
+                        type,
+                        content: 'Narrative Flux',
+                        source: 'flux',
+                        id: Date.now() + i
+                    };
+                }
+
+                RENDER.grid();
+                RENDER.log('Story', `Materialized ${count} nodes from narrative flux.`);
+            },
+
+            // 2. CodeDecomposer (Code -> Grid)
+            // Parses syntax and maps line numbers to grid topology
+            decomposeCode: (code) => {
+                const lines = code.split('\n');
+                let placed = 0;
+                RENDER.log('Morphism', 'Decomposing Code Structure...');
+
+                lines.forEach((line, i) => {
+                    const trim = line.trim();
+                    if (!trim) return;
+
+                    let matchType = null;
+                    // Heuristic Matching
+                    for (const [key, def] of Object.entries(APP.ontology)) {
+                        if (def.match.test(trim)) {
+                            matchType = key;
+                            break;
+                        }
+                    }
+
+                    if (matchType) {
+                        const idx = i % 81; // Wrap text to grid
+                        APP.state.grid[idx] = {
+                            type: matchType,
+                            content: trim,
+                            source: 'code',
+                            id: Date.now() + i
+                        };
+                        placed++;
+                    }
+                });
+
+                RENDER.grid();
+                RENDER.log('Core', `Mapped ${placed} syntax nodes to Grid Topology.`);
+            },
+
+            // 3. Reset
+            reset: () => {
+                APP.state.grid.fill(null);
+                RENDER.grid();
+                RENDER.log('System', 'Grid cleared.');
+            }
+        };
+
+        // =========================================
+        // IV. TENDONS (Input & Event Handling)
+        // =========================================
+        const TENDONS = {
+            init: () => {
+                RENDER.sidebar();
+                RENDER.grid();
+                lucide.createIcons();
+
+                // Key Binding
+                document.getElementById('input').addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter' && !e.shiftKey) {
+                        e.preventDefault();
+                        TENDONS.commit();
+                    }
+                });
+            },
+
+            commit: () => {
+                const input = document.getElementById('input');
+                const text = input.value.trim();
+                if (!text) return;
+                input.value = '';
+
+                document.getElementById('sys-state').innerText = 'PROCESSING...';
+
+                // Artificial Latency for "Feel"
+                setTimeout(() => {
+                    // Fork Logic: Code vs Narrative
+                    if (text.match(/function|const|var|class|\{|\}/)) {
+                        MUSCLES.decomposeCode(text);
+                    } else {
+                        RENDER.log('Entity', text); // Log user input
+                        MUSCLES.assembleScene(text);
+                    }
+                    document.getElementById('sys-state').innerText = 'IDLE';
+                }, 300);
+            },
+
+            dragStart: (e, type) => {
+                APP.state.dragType = type;
+                e.dataTransfer.effectAllowed = 'copy';
+            },
+
+            drop: (e, idx) => {
+                e.preventDefault();
+                const type = APP.state.dragType;
+                if (!type) return;
+
+                APP.state.grid[idx] = { type, content: 'Manual Drop', source: 'manual', id: Date.now() };
+                RENDER.grid();
+                RENDER.log(type, `Placed ${type} at [${idx}]`);
+                APP.state.dragType = null;
+            }
+        };
+
+        // =========================================
+        // V. RENDERERS (Visual output)
+        // =========================================
+        const RENDER = {
+            sidebar: () => {
+                const sb = document.getElementById('sidebar');
+                Object.keys(APP.ontology).forEach(k => {
+                    const def = APP.ontology[k];
+                    const el = document.createElement('div');
+                    el.className = 'tool';
+                    el.title = k;
+                    el.draggable = true;
+                    el.innerHTML = ICONS[k](def.color);
+                    el.ondragstart = (e) => TENDONS.dragStart(e, k);
+                    sb.appendChild(el);
+                });
+            },
+
+            grid: () => {
+                const el = document.getElementById('grid');
+                el.innerHTML = '';
+                APP.state.grid.forEach((data, i) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+
+                    if (data) {
+                        const def = APP.ontology[data.type];
+                        cell.innerHTML = ICONS[data.type](def.color);
+                        cell.title = `${data.type}\n${data.content}`;
+                        cell.onclick = () => RENDER.log(data.type, `PROBE [${i}]: ${data.content}`);
+                    } else {
+                        cell.innerHTML = `<span style="opacity:0.1">${i}</span>`;
+                    }
+
+                    // Event Listeners
+                    cell.onmouseover = () => document.getElementById('hover-idx').innerText = String(i).padStart(2, '0');
+                    cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('active'); };
+                    cell.ondragleave = () => cell.classList.remove('active');
+                    cell.ondrop = (e) => TENDONS.drop(e, i);
+
+                    el.appendChild(cell);
+                });
+            },
+
+            log: (type, text) => {
+                const stream = document.getElementById('chat-stream');
+                const node = document.createElement('div');
+                node.className = `node ${type}`;
+
+                // Color code the border based on type
+                const color = APP.ontology[type]?.color || '#666';
+                node.style.borderLeftColor = color;
+
+                node.innerHTML = `
+                    <div class="node-meta">
+                        <span style="color:${color}">${type.toUpperCase()}</span>
+                        <span>${new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    </div>
+                    <div class="node-content">${text}</div>
+                `;
+                stream.appendChild(node);
+                stream.scrollTop = stream.scrollHeight;
+
+                // Update counter
+                APP.state.nodeCount++;
+                document.getElementById('node-count').innerText = `${APP.state.nodeCount} NODES`;
+            }
+        };
+
+        // BOOT
+        TENDONS.init();
+
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Forensic Reconstruction: Ontological Ancestor v1.2</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        /* =========================================
+           ◻ E1.11: Styling-System (THEME)
+           ========================================= */
+        :root {
+            /* THEME variables */
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+            --font-ui: 'JetBrains Mono', monospace;
+            --font-code: 'JetBrains Mono', monospace;
+            --func: #fbbf24;
+            --var: #60a5fa;
+            --tag: #c084fc;
+            --ctrl: #f87171;
+            --focus: rgba(245, 158, 11, 0.2);
+            --wire-base: #475569;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+
+            /* Layout dimensions */
+            --header-height: 64px;
+            --console-height: 256px;
+            --sidebar-width: 288px;
+            --inspector-width: 320px;
+        }
+
+        [data-theme="parchment"] {
+            --bg: #fefce8;
+            --panel: #fef9c3;
+            --surface: #fde047;
+            --border: #facc15;
+            --text-muted: #eab308;
+            --text-main: #713f12;
+            --wire-base: #facc15;
+            --func: #dc2626;
+            --var: #2563eb;
+            --tag: #7c3aed;
+            --ctrl: #16a34a;
+            --focus: rgba(245, 158, 11, 0.4);
+        }
+
+        [data-theme="terminal"] {
+            --bg: #171717;
+            --panel: #262626;
+            --surface: #404040;
+            --border: #525252;
+            --text-muted: #737373;
+            --text-main: #86efac;
+            --wire-base: #22c55e;
+            --func: #fde047;
+            --var: #93c5fd;
+            --tag: #d8b4fe;
+            --ctrl: #fca5a5;
+            --focus: rgba(34, 197, 94, 0.3);
+        }
+
+        /* Animations */
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes grid-fade {
+            0% {
+                opacity: 0.05;
+            }
+
+            100% {
+                opacity: 0.15;
+            }
+        }
+
+        .animate-slide-in-right {
+            animation: slideInRight 0.3s var(--ease) forwards;
+        }
+
+        .animate-fade-up {
+            animation: fadeUp 0.3s var(--ease) forwards;
+        }
+
+        .animate-grid-fade {
+            animation: grid-fade 2s ease-in-out infinite alternate;
+        }
+
+        /* Global */
+        body {
+            font-family: var(--font-ui);
+            background-color: var(--bg);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--panel);
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--border);
+            border-radius: 3px;
+        }
+
+        /* Layout Grid */
+        .layout-root {
+            display: grid;
+            grid-template-areas: "sidebar header header" "sidebar canvas inspector" "console console console";
+            grid-template-columns: var(--sidebar-width) 1fr var(--inspector-width);
+            grid-template-rows: var(--header-height) 1fr var(--console-height);
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        /* Mobile Breakpoint */
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: "header header header" "canvas canvas canvas" "console console console";
+                grid-template-columns: 0px 1fr 0px;
+            }
+
+            .sidebar-expanded {
+                width: 100vw !important;
+                z-index: 1000;
+            }
+
+            .inspector-expanded {
+                transform: translateY(0) !important;
+            }
+        }
+
+        /* Areas */
+        #header-bar {
+            grid-area: header;
+        }
+
+        #canvas-area {
+            grid-area: canvas;
+        }
+
+        #sidebar {
+            grid-area: sidebar;
+        }
+
+        #inspector {
+            grid-area: inspector;
+        }
+
+        #console-panel {
+            grid-area: console;
+        }
+
+        /* Components */
+        .header-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            z-index: 900;
+        }
+
+        .nav-deck {
+            display: flex;
+            gap: 0.5rem;
+            background: var(--surface);
+            padding: 0.25rem;
+            border-radius: 0.5rem;
+        }
+
+        .nav-tab {
+            padding: 0.5rem 1rem;
+            border-radius: 0.375rem;
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+
+        .nav-tab.active {
+            background: var(--focus);
+            color: var(--func);
+            box-shadow: 0 0 10px rgba(245, 158, 11, 0.2);
+        }
+
+        .sidebar {
+            background: var(--panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: width 0.3s var(--ease);
+            overflow: hidden;
+            z-index: 500;
+        }
+
+        .sidebar-collapsed {
+            width: 0px !important;
+            padding: 0 !important;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            margin: 0.25rem;
+            border-radius: 0.5rem;
+            color: var(--text-main);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+
+        .tool-item:hover {
+            background: var(--surface);
+            transform: translateX(4px);
+        }
+
+        /* Canvas & Grid */
+        #canvas-area {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            overflow: hidden;
+            background: var(--bg);
+        }
+
+        #grid-lock {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            padding: 0;
+            pointer-events: none;
+        }
+
+        .grid-cell {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            position: relative;
+            pointer-events: auto;
+            transition: all 0.2s var(--ease);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Updated Grid Cell States */
+        .grid-cell:hover {
+            border-color: var(--func);
+        }
+
+        .grid-cell.focus {
+            background: var(--focus);
+            border-color: var(--func);
+        }
+
+        .grid-cell.drop-target {
+            background: rgba(34, 211, 238, 0.15);
+            /* cyan-400/15 */
+            border-color: #22d3ee;
+            box-shadow: inset 0 0 15px rgba(34, 211, 238, 0.2);
+        }
+
+        #nodes-layer {
+            position: absolute;
+            inset: 0;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .node-instance {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            pointer-events: auto;
+            transition: transform 0.2s var(--ease), top 0.2s ease-out, left 0.2s ease-out;
+            z-index: 10;
+            /* Improved interaction area */
+            width: 64px;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-instance.dragging {
+            transition: none;
+            z-index: 100;
+            cursor: grabbing;
+            scale: 1.1;
+        }
+
+        .node-instance:hover .node-halo {
+            opacity: 0.3;
+        }
+
+        .node-halo {
+            position: absolute;
+            inset: 0;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--func) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s var(--ease);
+        }
+
+        #connections-layer {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        #preview-frame {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            background: white;
+            display: none;
+        }
+
+        .preview-active #preview-frame {
+            display: block;
+        }
+
+        /* Panels */
+        #inspector {
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.3s var(--ease);
+            z-index: 999;
+            overflow: hidden;
+        }
+
+        .inspector-collapsed {
+            transform: translateX(100%);
+        }
+
+        #console-panel {
+            background: var(--panel);
+            border-top: 1px solid var(--border);
+            transition: height 0.3s var(--ease);
+            z-index: 200;
+        }
+
+        .console-collapsed {
+            height: 2rem !important;
+        }
+
+        .log-entry {
+            font-family: var(--font-code);
+            font-size: 0.75rem;
+            padding: 0.25rem 0.5rem;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .log-success {
+            color: #22c55e;
+        }
+
+        .log-info {
+            color: #60a5fa;
+        }
+
+        .log-warn {
+            color: #fbbf24;
+        }
+
+        .log-error {
+            color: #f87171;
+        }
+
+        /* Utilities */
+        #toast-container {
+            position: fixed;
+            bottom: 1rem;
+            left: 50%;
+            transform: translateX(-50%);
+            z-index: 1000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            width: 90%;
+            max-width: 400px;
+            pointer-events: none;
+        }
+
+        .toast {
+            background: var(--panel);
+            border: 1px solid var(--func);
+            color: var(--text-main);
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            backdrop-filter: blur(4px);
+            pointer-events: auto;
+            animation: fadeUp 0.3s var(--ease);
+        }
+
+        #sideblade-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 2000;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .sideblade-active #sideblade-overlay {
+            display: flex;
+        }
+
+        #sideblade {
+            width: 90%;
+            max-width: 600px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            padding: 1.5rem;
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        #code-editor {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: var(--bg);
+            padding: 1rem;
+            overflow-y: auto;
+            font-family: var(--font-code);
+            font-size: 0.875rem;
+            line-height: 1.5;
+        }
+
+        .editor-active #code-editor {
+            display: block;
+        }
+
+        /* Code Syntax */
+        .line.active {
+            background: var(--focus);
+            border-left: 2px solid var(--func);
+        }
+
+        .token-func {
+            color: var(--func);
+        }
+
+        .token-var {
+            color: var(--var);
+        }
+
+        .token-tag {
+            color: var(--tag);
+        }
+
+        .token-ctrl {
+            color: var(--ctrl);
+        }
+
+        .token-comment {
+            color: var(--text-muted);
+            font-style: italic;
+        }
+    </style>
+</head>
+
+<body class="layout-root" data-theme="dark">
+
+    <div id="toast-container"></div>
+
+    <div id="sideblade-overlay">
+        <div id="sideblade">
+            <h3 style="color: var(--func); font-weight: bold;">INGEST CODE</h3>
+            <textarea id="paste-input"
+                class="w-full h-32 bg-[var(--bg)] border border-[var(--border)] rounded p-2 text-[var(--text-main)] font-mono text-xs"
+                placeholder="Paste code here..."></textarea>
+            <div style="display: flex; gap: 0.5rem;">
+                <button onclick="INGEST.load()"
+                    class="tool-item flex-1 justify-center border border-[var(--border)]">LOAD</button>
+                <button onclick="INGEST.ingestSelf()"
+                    class="tool-item flex-1 justify-center border border-[var(--border)]">SELF</button>
+                <button onclick="INGEST.toggleBlade()"
+                    class="tool-item flex-1 justify-center border border-[var(--border)]">CANCEL</button>
+            </div>
+        </div>
+    </div>
+
+    <button id="mobile-menu-btn" onclick="SIDEBAR.toggle()"
+        class="absolute top-4 left-4 z-50 p-2 bg-[var(--panel)] border border-[var(--border)] rounded md:hidden">
+        <i data-lucide="menu" style="color: var(--text-main);"></i>
+    </button>
+
+    <header id="header-bar" class="header-bar">
+        <div class="nav-deck">
+            <button class="nav-tab active" data-view="system" onclick="VIEW_MODE.switch('system')">SYSTEM</button>
+            <button class="nav-tab" data-view="story" onclick="VIEW_MODE.switch('story')">STORY</button>
+            <button class="nav-tab" data-view="code" onclick="VIEW_MODE.switch('code')">CODE</button>
+        </div>
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <button id="btn-play" onclick="AUTOPLAY.toggle()" title="Toggle Autoplay"
+                style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="play" style="color: var(--text-muted);"></i>
+            </button>
+            <div class="theme-switcher flex bg-[var(--surface)] p-1 rounded">
+                <button class="theme-btn active" data-theme="dark" onclick="THEME.set('dark')">D</button>
+                <button class="theme-btn" data-theme="parchment" onclick="THEME.set('parchment')">P</button>
+                <button class="theme-btn" data-theme="terminal" onclick="THEME.set('terminal')">T</button>
+            </div>
+            <button onclick="INGEST.toggleBlade()" title="Ingest Code"
+                style="padding: 0.5rem; border: 1px solid var(--border); border-radius: 0.375rem; background: var(--panel);">
+                <i data-lucide="upload" style="color: var(--text-muted);"></i>
+            </button>
+        </div>
+    </header>
+
+    <aside id="sidebar" class="sidebar sidebar-expanded">
+        <div
+            style="height: var(--header-height); display: flex; align-items: center; padding: 0 1rem; border-bottom: 1px solid var(--border);">
+            <div id="header-icon" class="w-8 h-8 mr-3 bg-cyan-500/20 rounded border border-cyan-500/50"></div>
+            <div style="display: flex; flex-direction: column;">
+                <span style="font-weight: bold; color: var(--text-main);">ONTO-ANCESTOR</span>
+                <span
+                    style="font-size: 0.625rem; color: var(--func); text-transform: uppercase; letter-spacing: 0.1em;">Unified
+                    Grid</span>
+            </div>
+        </div>
+        <div id="tools-list" style="flex: 1; overflow-y: auto; padding: 0.5rem;"></div>
+        <div class="p-4 border-t border-[var(--border)] text-center text-[10px] text-[var(--text-muted)]">
+            Drag tools to grid • Snap to Cells
+        </div>
+    </aside>
+
+    <main id="canvas-area">
+        <!-- Background Grid Effect -->
+        <div class="absolute inset-0 pointer-events-none opacity-10 animate-grid-fade"
+            style="background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px); background-size: 40px 40px;">
+        </div>
+
+        <!-- 9x9 Grid System -->
+        <div id="grid-lock"></div>
+
+        <!-- Spatial Layers -->
+        <div id="nodes-layer"></div>
+        <svg id="connections-layer"></svg>
+
+        <!-- Alternative Views -->
+        <iframe id="preview-frame"></iframe>
+        <div id="code-editor"></div>
+
+        <!-- HUD -->
+        <div
+            class="absolute top-4 left-4 text-[10px] text-cyan-500/50 font-mono hidden md:block bg-[var(--panel)] p-1 border border-[var(--border)] rounded">
+            XY: <span id="coords">000.000</span> | CELL: <span id="cell-idx">--</span>
+        </div>
+    </main>
+
+    <aside id="inspector" class="inspector-collapsed">
+        <div
+            style="height: 3rem; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span style="font-weight: bold; color: var(--text-main);">Inspector</span>
+            </div>
+            <button onclick="INSPECTOR.close()" style="color: var(--text-muted);"><i data-lucide="x"
+                    class="w-4 h-4"></i></button>
+        </div>
+        <div id="inspector-content" style="flex: 1; overflow-y: auto; padding: 1rem;"></div>
+        <div style="padding: 1rem; border-top: 1px solid var(--border);">
+            <button onclick="INSPECTOR.delete()"
+                class="w-full p-3 bg-red-500/10 text-red-400 border border-red-500/30 rounded text-xs font-bold">DELETE
+                ENTITY</button>
+        </div>
+    </aside>
+
+    <div id="console-panel" style="height: var(--console-height);">
+        <div id="console-header"
+            style="height: 2rem; background: var(--surface); display: flex; align-items: center; justify-content: space-between; padding: 0 1rem; cursor: pointer; border-bottom: 1px solid var(--border);"
+            onclick="CONSOLE.toggle()">
+            <div
+                style="display: flex; align-items: center; gap: 0.5rem; color: var(--text-muted); font-size: 0.75rem; font-weight: bold;">
+                <i data-lucide="terminal" class="w-3 h-3"></i> <span>SYSTEM CONSOLE</span>
+            </div>
+            <i id="console-toggle-icon" data-lucide="chevron-down" class="w-3 h-3 text-slate-400"></i>
+        </div>
+        <div id="console-content" style="height: calc(100% - 2rem); overflow-y: auto; padding: 0.5rem;"></div>
+    </div>
+
+    <script>
+        // =========================================
+        // STATE_MANAGEMENT
+        // =========================================
+        const STATE = {
+            systemNodes: [], // The visual nodes floating above
+            blocks: Array(81).fill(null), // The grid state (0-80)
+            definitions: new Map(),
+            lines: [],
+            viewMode: 'system',
+            sidebarOpen: window.innerWidth > 768,
+            consoleOpen: true,
+            theme: 'dark',
+            selectedNodeId: null,
+            draggedNodeId: null,
+            lastX: 0,
+            lastY: 0,
+            // Track which cell is being hovered during drag
+            hoveredCellIndex: null
+        };
+
+        // =========================================
+        // GRID_SYSTEM (Updated Logic)
+        // =========================================
+        const GRID = {
+            rows: 9,
+            cols: 9,
+
+            // Convert % to Grid Cell Index (0-80)
+            getIndexFromPerc(x, y) {
+                const col = Math.floor(x / (100 / this.cols));
+                const row = Math.floor(y / (100 / this.rows));
+                if (col < 0 || col >= this.cols || row < 0 || row >= this.rows) return null;
+                return row * this.cols + col;
+            },
+
+            // Get Center % coordinates for a Grid Index
+            getCenterFromIndex(index) {
+                const col = index % this.cols;
+                const row = Math.floor(index / this.cols);
+                const stepX = 100 / this.cols;
+                const stepY = 100 / this.rows;
+                return {
+                    x: (col * stepX) + (stepX / 2),
+                    y: (row * stepY) + (stepY / 2)
+                };
+            },
+
+            // Snap XY % to nearest Cell Center
+            snapToCenter(x, y) {
+                const idx = this.getIndexFromPerc(x, y);
+                return idx !== null ? this.getCenterFromIndex(idx) : { x, y };
+            }
+        };
+
+        // =========================================
+        // ICONS (Visual Assets)
+        // =========================================
+        const ICONS = {
+            getIsoCube(color = "blue") {
+                const colors = {
+                    blue: { t: '#60a5fa', l: '#3b82f6', r: '#2563eb' },
+                    yellow: { t: '#fcd34d', l: '#f59e0b', r: '#d97706' },
+                    cyan: { t: '#22d3ee', l: '#06b6d4', r: '#0891b2' },
+                    purple: { t: '#e879f9', l: '#c026d3', r: '#a21caf' },
+                    red: { t: '#f87171', l: '#ef4444', r: '#dc2626' }
+                };
+                const c = colors[color] || colors.blue;
+                return `<svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-md"><path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.t}" stroke="rgba(0,0,0,0.2)"/><path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.l}" stroke="rgba(0,0,0,0.2)"/><path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.r}" stroke="rgba(0,0,0,0.2)"/></svg>`;
+            },
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => ICONS.getIsoCube('red'),
+            Obstacle: () => ICONS.getIsoCube('purple'),
+            Morphism: () => ICONS.getIsoCube('cyan'),
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center text-yellow-400"><i data-lucide="zap" class="w-2/3 h-2/3"></i></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center text-cyan-400"><i data-lucide="map-pin" class="w-2/3 h-2/3"></i></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center text-purple-400"><i data-lucide="clock" class="w-2/3 h-2/3"></i></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center text-green-400"><i data-lucide="clapperboard" class="w-2/3 h-2/3"></i></div>`,
+            Story: () => `<div class="relative w-full h-full flex items-center justify-center text-blue-400"><i data-lucide="book-open" class="w-2/3 h-2/3"></i></div>`
+        };
+
+        // =========================================
+        // THEME & LOG
+        // =========================================
+        const THEME = {
+            set(mode) {
+                document.body.setAttribute('data-theme', mode);
+                STATE.theme = mode;
+                document.querySelectorAll('.theme-btn').forEach(btn => btn.classList.toggle('active', btn.dataset.theme === mode));
+                LOG.toast(`Theme: ${mode.toUpperCase()}`);
+            }
+        };
+
+        const LOG = {
+            info(m) { CONSOLE.log('INFO', m); },
+            toast(msg) {
+                const el = document.createElement('div');
+                el.className = 'toast';
+                el.innerHTML = `<i data-lucide="check-circle" class="w-4 h-4 text-cyan-400"></i> ${msg}`;
+                document.getElementById('toast-container').appendChild(el);
+                lucide.createIcons();
+                setTimeout(() => { el.style.opacity = '0'; setTimeout(() => el.remove(), 300); }, 3000);
+            }
+        };
+
+        // =========================================
+        // RENDERER (Grid & Nodes)
+        // =========================================
+        const RENDERER = {
+            // Render the 9x9 Grid Slots
+            grid() {
+                const container = document.getElementById('grid-lock');
+                container.innerHTML = '';
+                for (let i = 0; i < 81; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.index = i;
+
+                    // Show block state if exists (from Code mode)
+                    if (STATE.blocks[i]) {
+                        cell.classList.add('focus');
+                        cell.innerHTML = `<span class="text-xs opacity-50 font-mono">${STATE.blocks[i].data.type}</span>`;
+                    } else {
+                        // Minimal index marker
+                        cell.innerHTML = `<span class="text-[8px] opacity-20">${i}</span>`;
+                    }
+                    container.appendChild(cell);
+                }
+            },
+
+            // Render the Drag-and-Drop Nodes
+            nodes() {
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = STATE.systemNodes.map(node => {
+                    const isSelected = STATE.selectedNodeId === node.id;
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance ${isSelected ? 'selected' : ''}" 
+                         style="left: ${node.x}%; top: ${node.y}%;"
+                         data-node-id="${node.id}"
+                         onmousedown="EVENTS.startDrag(event, ${node.id})"
+                         ontouchstart="EVENTS.startDrag(event, ${node.id})"
+                         onclick="INSPECTOR.select(${node.id})">
+                        <div class="node-halo"></div>
+                        <div class="w-12 h-12 relative z-10 transition-transform hover:scale-110">
+                            ${iconFn()}
+                        </div>
+                        <div class="absolute -bottom-4 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-1 py-0.5 bg-[var(--panel)] border border-[var(--border)] rounded text-[8px] text-[var(--text-main)] pointer-events-none z-20">
+                            ${node.label}
+                        </div>
+                    </div>`;
+                }).join('');
+                lucide.createIcons();
+            },
+
+            connections() {
+                const svg = document.getElementById('connections-layer');
+                svg.innerHTML = '';
+
+                // Simple star topology from Core (ID:1)
+                const core = STATE.systemNodes.find(n => n.id === 1);
+                if (!core) return;
+
+                STATE.systemNodes.forEach(node => {
+                    if (node.id === 1) return;
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', `${core.x}%`);
+                    line.setAttribute('y1', `${core.y}%`);
+                    line.setAttribute('x2', `${node.x}%`);
+                    line.setAttribute('y2', `${node.y}%`);
+                    line.setAttribute('stroke', 'var(--wire-base)');
+                    line.setAttribute('stroke-width', '1');
+                    line.setAttribute('stroke-opacity', '0.4');
+                    svg.appendChild(line);
+                });
+            }
+        };
+
+        // =========================================
+        // EVENTS (Drag & Drop Logic)
+        // =========================================
+        const EVENTS = {
+            startDrag(e, id) {
+                // Prevent drag if clicking buttons inside node (future proofing)
+                if (e.target.tagName === 'BUTTON') return;
+
+                STATE.isDragging = true;
+                STATE.draggedNodeId = id;
+                const evt = e.touches ? e.touches[0] : e;
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+
+                const el = document.querySelector(`[data-node-id="${id}"]`);
+                if (el) el.classList.add('dragging');
+
+                document.body.style.cursor = 'grabbing';
+            },
+
+            handleDragMove(e) {
+                if (!STATE.isDragging || !STATE.draggedNodeId) return;
+                e.preventDefault();
+
+                const evt = e.touches ? e.touches[0] : e;
+                const deltaX = evt.clientX - STATE.lastX;
+                const deltaY = evt.clientY - STATE.lastY;
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+
+                // Convert pixels to percentage delta
+                const canvasRect = document.getElementById('canvas-area').getBoundingClientRect();
+                const percentX = (deltaX / canvasRect.width) * 100;
+                const percentY = (deltaY / canvasRect.height) * 100;
+
+                const node = STATE.systemNodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    node.x = Math.max(0, Math.min(100, node.x + percentX));
+                    node.y = Math.max(0, Math.min(100, node.y + percentY));
+
+                    // Visual Update
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+
+                    // HUD Update
+                    document.getElementById('coords').innerText = `${node.x.toFixed(1)}, ${node.y.toFixed(1)}`;
+
+                    // Grid Snap Prediction (Highlight Cell)
+                    const cellIdx = GRID.getIndexFromPerc(node.x, node.y);
+
+                    // Only update DOM if cell changed
+                    if (cellIdx !== STATE.hoveredCellIndex) {
+                        // Clear old
+                        if (STATE.hoveredCellIndex !== null) {
+                            const oldCell = document.querySelector(`.grid-cell[data-index="${STATE.hoveredCellIndex}"]`);
+                            if (oldCell) oldCell.classList.remove('drop-target');
+                        }
+                        // Set new
+                        if (cellIdx !== null) {
+                            const newCell = document.querySelector(`.grid-cell[data-index="${cellIdx}"]`);
+                            if (newCell) newCell.classList.add('drop-target');
+                            document.getElementById('cell-idx').innerText = cellIdx;
+                        }
+                        STATE.hoveredCellIndex = cellIdx;
+                    }
+
+                    RENDERER.connections();
+                }
+            },
+
+            handleDragEnd() {
+                if (!STATE.isDragging) return;
+
+                const node = STATE.systemNodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    // Snap to grid logic
+                    const center = GRID.snapToCenter(node.x, node.y);
+                    node.x = center.x;
+                    node.y = center.y;
+
+                    // Update visual position
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.classList.remove('dragging');
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+
+                    // Log the move
+                    const idx = GRID.getIndexFromPerc(node.x, node.y);
+                    LOG.info(`Node ${node.id} snapped to Cell ${idx}`);
+                }
+
+                // Cleanup
+                if (STATE.hoveredCellIndex !== null) {
+                    const oldCell = document.querySelector(`.grid-cell[data-index="${STATE.hoveredCellIndex}"]`);
+                    if (oldCell) oldCell.classList.remove('drop-target');
+                }
+
+                STATE.isDragging = false;
+                STATE.draggedNodeId = null;
+                STATE.hoveredCellIndex = null;
+                document.body.style.cursor = 'default';
+
+                RENDERER.connections();
+                PERSISTENCE.save();
+            }
+        };
+
+        // =========================================
+        // SIDEBAR & TOOLS
+        // =========================================
+        const SIDEBAR = {
+            toggle() {
+                STATE.sidebarOpen = !STATE.sidebarOpen;
+                const sb = document.getElementById('sidebar');
+                sb.classList.toggle('sidebar-collapsed', !STATE.sidebarOpen);
+                sb.classList.toggle('sidebar-expanded', STATE.sidebarOpen);
+            },
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity' }, { label: 'Core', icon: 'Core' },
+                    { label: 'Goal', icon: 'Goal' }, { label: 'Obstacle', icon: 'Obstacle' },
+                    { label: 'Morphism', icon: 'Morphism' }, { label: 'Shift', icon: 'Shift' },
+                    { label: 'Location', icon: 'Location' }, { label: 'Timepoint', icon: 'Timepoint' },
+                    { label: 'Scene', icon: 'Scene' }, { label: 'Story', icon: 'Story' }
+                ];
+                document.getElementById('tools-list').innerHTML = tools.map(t => `
+                    <div class="tool-item" onclick="SIDEBAR.addNode('${t.label}', '${t.icon}')">
+                        <div class="w-8 h-8">${ICONS[t.icon]()}</div>
+                        <div class="flex flex-col"><span class="text-sm text-[var(--text-main)]">${t.label}</span></div>
+                        <i data-lucide="plus" class="w-3 h-3 ml-auto text-[var(--text-muted)]"></i>
+                    </div>
+                `).join('');
+                lucide.createIcons();
+            },
+            addNode(type, icon) {
+                // Find empty center-ish cell
+                const centerPos = GRID.getCenterFromIndex(40); // Cell 40 is center
+                const id = Date.now();
+                const node = { id, type: type.toLowerCase(), icon, label: `${type}<${id.toString().slice(-3)}>`, x: centerPos.x, y: centerPos.y };
+                STATE.systemNodes.push(node);
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.toast(`Added ${type}`);
+            }
+        };
+
+        // =========================================
+        // INSPECTOR & CONSOLE
+        // =========================================
+        const INSPECTOR = {
+            select(id) {
+                STATE.selectedNodeId = id;
+                RENDERER.nodes(); // update selected visual
+                const node = STATE.systemNodes.find(n => n.id === id);
+                if (!node) return;
+
+                const html = `
+                    <div class="space-y-4 animate-fade-up">
+                        <div class="space-y-2">
+                            <label class="text-[10px] uppercase tracking-wider text-slate-500 font-semibold">Properties</label>
+                            <div class="p-3 rounded bg-slate-800/50 border border-slate-700/50 space-y-2">
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">ID</span> <span class="font-mono text-cyan-500">${node.id}</span>
+                                </div>
+                                <div class="flex justify-between items-center text-xs">
+                                    <span class="text-slate-400">Type</span> <span class="font-mono text-yellow-500">${node.type}</span>
+                                </div>
+                                <div class="flex flex-col gap-1 text-xs">
+                                    <span class="text-slate-400">Label</span>
+                                    <input type="text" value="${node.label}" onchange="INSPECTOR.updateLabel(${node.id}, this.value)" class="bg-transparent border-b border-slate-600 focus:border-cyan-500 outline-none text-white w-full py-1">
+                                </div>
+                            </div>
+                        </div>
+                        <pre class="bg-black/30 p-2 rounded text-[10px] font-mono text-slate-400 overflow-x-auto">${JSON.stringify(node, null, 2)}</pre>
+                    </div>
+                `;
+
+                document.getElementById('inspector-content').innerHTML = html;
+                const el = document.getElementById('inspector');
+                el.classList.remove('inspector-collapsed');
+            },
+            updateLabel(id, val) {
+                const n = STATE.systemNodes.find(x => x.id === id);
+                if (n) { n.label = val; RENDERER.nodes(); PERSISTENCE.save(); }
+            },
+            delete() {
+                if (STATE.selectedNodeId === 1) return LOG.toast("Cannot delete Core");
+                STATE.systemNodes = STATE.systemNodes.filter(n => n.id !== STATE.selectedNodeId);
+                STATE.selectedNodeId = null;
+                RENDERER.nodes();
+                RENDERER.connections();
+                this.close();
+                PERSISTENCE.save();
+            },
+            close() {
+                document.getElementById('inspector').classList.add('inspector-collapsed');
+                STATE.selectedNodeId = null;
+                RENDERER.nodes();
+            }
+        };
+
+        const CONSOLE = {
+            toggle() {
+                STATE.consoleOpen = !STATE.consoleOpen;
+                document.getElementById('console-panel').classList.toggle('console-collapsed', !STATE.consoleOpen);
+                document.getElementById('console-toggle-icon').setAttribute('data-lucide', STATE.consoleOpen ? 'chevron-down' : 'chevron-up');
+                lucide.createIcons();
+            },
+            log(type, msg) {
+                const div = document.createElement('div');
+                div.className = `log-entry log-${type.toLowerCase()}`;
+                div.innerHTML = `<span class="font-bold">${type}</span> ${msg}`;
+                document.getElementById('console-content').prepend(div);
+            }
+        };
+
+        // =========================================
+        // PERSISTENCE & INIT
+        // =========================================
+        const PERSISTENCE = {
+            save() {
+                localStorage.setItem('oa_state_v1.2', JSON.stringify({
+                    nodes: STATE.systemNodes,
+                    theme: STATE.theme
+                }));
+            },
+            load() {
+                const data = JSON.parse(localStorage.getItem('oa_state_v1.2'));
+                if (data) {
+                    STATE.systemNodes = data.nodes;
+                    THEME.set(data.theme);
+                } else {
+                    // Default Core Node
+                    STATE.systemNodes = [{ id: 1, type: 'core', icon: 'Core', label: 'Core<1>', x: 50, y: 50 }];
+                }
+            }
+        };
+
+        const VIEW_MODE = {
+            switch(mode) {
+                STATE.viewMode = mode;
+                document.querySelectorAll('.nav-tab').forEach(t => t.classList.toggle('active', t.dataset.view === mode));
+
+                const els = { nodes: document.getElementById('nodes-layer'), grid: document.getElementById('grid-lock'), code: document.getElementById('code-editor') };
+
+                if (mode === 'system') {
+                    els.nodes.style.display = 'block';
+                    els.grid.style.opacity = '1';
+                    els.code.style.display = 'none';
+                } else if (mode === 'code') {
+                    els.nodes.style.display = 'none';
+                    els.grid.style.opacity = '0.1';
+                    els.code.style.display = 'block';
+                    document.getElementById('code-editor').innerHTML = `<pre class="text-xs text-green-400 font-mono">${JSON.stringify(STATE.systemNodes, null, 2)}</pre>`;
+                }
+                LOG.toast(`View: ${mode.toUpperCase()}`);
+            }
+        };
+
+        const INGEST = {
+            toggleBlade() { document.body.classList.toggle('sideblade-active'); },
+            ingestSelf() { document.getElementById('paste-input').value = document.documentElement.outerHTML; },
+            load() {
+                const val = document.getElementById('paste-input').value;
+                try {
+                    const parsed = JSON.parse(val);
+                    if (Array.isArray(parsed)) {
+                        STATE.systemNodes = parsed;
+                        RENDERER.nodes();
+                        RENDERER.connections();
+                        LOG.toast("Nodes Imported");
+                        this.toggleBlade();
+                    }
+                } catch (e) { LOG.toast("Invalid JSON"); }
+            }
+        };
+
+        const AUTOPLAY = {
+            toggle() { LOG.toast("Simulating Flux..."); }
+        };
+
+        // Bootstrap
+        function init() {
+            PERSISTENCE.load();
+            SIDEBAR.renderTools();
+            RENDERER.grid();
+            RENDERER.nodes();
+            RENDERER.connections();
+
+            // Listeners
+            const canvas = document.getElementById('canvas-area');
+            canvas.addEventListener('mousemove', EVENTS.handleDragMove);
+            canvas.addEventListener('touchmove', EVENTS.handleDragMove, { passive: false });
+            window.addEventListener('mouseup', EVENTS.handleDragEnd);
+            window.addEventListener('touchend', EVENTS.handleDragEnd);
+            window.addEventListener('resize', () => RENDERER.connections());
+
+            LOG.info("System Online. Grid Interlock Active.");
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

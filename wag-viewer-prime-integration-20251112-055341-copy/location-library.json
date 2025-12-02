@@ -1,0 +1,116 @@
+{
+  "generated": "2025-11-16T00:00:00.000Z",
+  "source": "hand-curated for wag-grace LOCATION / Production Designer",
+  "stats": {
+    "locationCount": 3
+  },
+  "slotBuckets": {
+    "FLOOR": {
+      "kingdoms": ["BASEPLATE", "PLATE"],
+      "preferredPhyla": ["32 x 32", "16 x 16", "8 x 16"]
+    },
+    "WALL": {
+      "kingdoms": ["PANEL", "BRICK"],
+      "preferredPhyla": ["1 x 4", "1 x 6", "2 x 4", "2 x 6"]
+    },
+    "DOOR": {
+      "kingdoms": ["DOOR"]
+    },
+    "WINDOW": {
+      "kingdoms": ["WINDOW"]
+    },
+    "ROOF": {
+      "kingdoms": ["SLOPE", "WEDGE", "TILE"],
+      "preferredPhyla": ["2 x 2", "2 x 3", "2 x 4"]
+    },
+    "TREE": {
+      "kingdoms": ["PLANT"],
+      "keywordHints": ["tree", "palm", "pine", "bush"]
+    },
+    "PROP": {
+      "kingdoms": ["CONTAINER", "FURNITURE", "SIGN", "TOOL", "PLANT", "OTHER"],
+      "keywordHints": ["bench", "lamp", "mailbox", "hydrant", "trash", "fence", "crate"]
+    }
+  },
+  "locations": [
+    {
+      "id": "small-room-01",
+      "title": "Small Room (Plain Wall)",
+      "tags": ["indoor", "room", "generic"],
+      "notes": "Simple 32x32 baseplate with a back wall, door opening and a window. Good for character vignettes.",
+      "parts": [
+        {
+          "label": "FLOOR",
+          "filename": "3811.dat",
+          "description": "Baseplate 32 x 32"
+        },
+        {
+          "label": "WALL",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (placeholder wall module)"
+        },
+        {
+          "label": "DOOR",
+          "filename": "6003.dat",
+          "description": "Plate  6 x  6 with  4 x  4 Round Corner (used as door frame placeholder)"
+        },
+        {
+          "label": "WINDOW",
+          "filename": "6003.dat",
+          "description": "Plate  6 x  6 with  4 x  4 Round Corner (used as window frame placeholder)"
+        }
+      ]
+    },
+    {
+      "id": "street-corner-01",
+      "title": "Street Corner (Road Base)",
+      "tags": ["outdoor", "street", "road"],
+      "notes": "Road baseplate with a curb wall and space for a building facade.",
+      "parts": [
+        {
+          "label": "FLOOR",
+          "filename": "44336.dat",
+          "description": "Baseplate 32 x 32 Road 6-Stud Straight"
+        },
+        {
+          "label": "WALL",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (placeholder building facade)"
+        },
+        {
+          "label": "TREE",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (placeholder tree/lamppost module)"
+        },
+        {
+          "label": "PROP",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (placeholder street prop)"
+        }
+      ]
+    },
+    {
+      "id": "forest-patch-01",
+      "title": "Forest Patch (Clearing)",
+      "tags": ["outdoor", "forest", "clearing"],
+      "notes": "Neutral plate used as ground with multiple trees and props arranged around a central clearing.",
+      "parts": [
+        {
+          "label": "FLOOR",
+          "filename": "6003.dat",
+          "description": "Plate  6 x  6 with  4 x  4 Round Corner (ground patch placeholder)"
+        },
+        {
+          "label": "TREE",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (tree trunk placeholder)"
+        },
+        {
+          "label": "PROP",
+          "filename": "3001.dat",
+          "description": "Brick  2 x  4 (campfire/rock placeholder)"
+        }
+      ]
+    }
+  ]
+}

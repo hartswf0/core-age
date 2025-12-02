@@ -1,0 +1,613 @@
+{
+  "top_keywords": {
+    "wag": 10,
+    "gold": 7,
+    "skeleton": 6,
+    "mesh": 6,
+    "pathology": 5,
+    "test": 5,
+    "line": 5,
+    "brick": 4,
+    "haven": 4,
+    "grid": 4,
+    "scene": 4,
+    "multi": 3,
+    "timber": 3,
+    "report": 3,
+    "walk": 3,
+    "tutorial": 3,
+    "courage": 3,
+    "2025": 3,
+    "temporal": 3,
+    "stud": 2
+  },
+  "families": {
+    "skeleton": 6,
+    "stud": 3,
+    "wag": 10,
+    "multi": 3,
+    "brick": 4,
+    "timber": 3,
+    "pathology": 5,
+    "grid": 4,
+    "gold": 7,
+    "mesh": 6,
+    "assembly": 2,
+    "temporal": 3
+  },
+  "family_details": {
+    "skeleton": [
+      "skeleton-control-room.html",
+      "skeleton-ontology-explorer.html",
+      "skeleton-pathology-diagnosis.md",
+      "skeleton-pathology-studio.html",
+      "stud-skeleton-binding-demo.html",
+      "stud-skeleton-binding-enhanced.html"
+    ],
+    "stud": [
+      "skeleton-pathology-studio.html",
+      "stud-skeleton-binding-demo.html",
+      "stud-skeleton-binding-enhanced.html"
+    ],
+    "wag": [
+      "test-wag-gold.json",
+      "wag-brave.html",
+      "wag-gold-scene.json",
+      "wag-grid-walk.html",
+      "wag-were-twilight.html",
+      "wag-yark.html",
+      "wag_courage_calibration_compass.mpd",
+      "wag_gold_other_563_2025-11-21_16-21-42.json",
+      "wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+      "wag_gold_scene_1_2025-11-22_20-09-17 (1).json"
+    ],
+    "multi": [
+      "multi-good.html",
+      "multi-move-bones.html",
+      "multi-move.html"
+    ],
+    "brick": [
+      "brick-haven-central.html",
+      "brick-haven-previs.html",
+      "brick_haven_city.mpd",
+      "brick_haven_tutorial.html"
+    ],
+    "timber": [
+      "TIMBER-tutorial.html",
+      "timber-master-v2.html",
+      "timber-master.html"
+    ],
+    "pathology": [
+      "pathology-report-schema.md",
+      "pathology-report-verification.md",
+      "pathology-report-viewer.html",
+      "skeleton-pathology-diagnosis.md",
+      "skeleton-pathology-studio.html"
+    ],
+    "grid": [
+      "grid-walk copy.html",
+      "grid-walk.html",
+      "mpd-line-grid-viewer.html",
+      "wag-grid-walk.html"
+    ],
+    "gold": [
+      "gold-nba.json",
+      "gold_test.json",
+      "test-wag-gold.json",
+      "wag-gold-scene.json",
+      "wag_gold_other_563_2025-11-21_16-21-42.json",
+      "wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+      "wag_gold_scene_1_2025-11-22_20-09-17 (1).json"
+    ],
+    "mesh": [
+      "assembly-line-single-mesh.html",
+      "mesh-compilation-data-flow.md",
+      "mesh-primitive-breakdown.md",
+      "temporal-mesh-encoding.md",
+      "temporal-mesh-instrumentation.md",
+      "temporal-mesh-lab.html"
+    ],
+    "assembly": [
+      "assembly-line-single-mesh.html",
+      "assembly-line.html"
+    ],
+    "temporal": [
+      "temporal-mesh-encoding.md",
+      "temporal-mesh-instrumentation.md",
+      "temporal-mesh-lab.html"
+    ]
+  },
+  "ontology": {
+    "Spatial": 9,
+    "Temporal": 7,
+    "Structural": 6,
+    "Diagnostic": 3,
+    "Constructive": 4,
+    "Interface": 1,
+    "Data": 17,
+    "Tutorial": 4,
+    "Core": 5
+  },
+  "ontology_details": {
+    "Spatial": [
+      "grid-walk copy.html",
+      "grid-walk.html",
+      "line-22-autopsy.html",
+      "line-aware-scene-graph.md",
+      "mpd-line-grid-viewer.html",
+      "multi-good.html",
+      "multi-move-bones.html",
+      "multi-move.html",
+      "wag-grid-walk.html"
+    ],
+    "Temporal": [
+      "assembly-line-single-mesh.html",
+      "lab-hub.html",
+      "mesh-compilation-data-flow.md",
+      "mesh-primitive-breakdown.md",
+      "temporal-mesh-encoding.md",
+      "temporal-mesh-instrumentation.md",
+      "temporal-mesh-lab.html"
+    ],
+    "Structural": [
+      "skeleton-control-room.html",
+      "skeleton-ontology-explorer.html",
+      "skeleton-pathology-diagnosis.md",
+      "skeleton-pathology-studio.html",
+      "stud-skeleton-binding-demo.html",
+      "stud-skeleton-binding-enhanced.html"
+    ],
+    "Diagnostic": [
+      "pathology-report-schema.md",
+      "pathology-report-verification.md",
+      "pathology-report-viewer.html"
+    ],
+    "Constructive": [
+      "assembly-line.html",
+      "brick-haven-central.html",
+      "brick-haven-previs.html",
+      "brick_haven_tutorial.html"
+    ],
+    "Interface": [
+      "mpd-data-explorer.html"
+    ],
+    "Data": [
+      "brick_haven_city.mpd",
+      "file-manifest-raw.json",
+      "gold-nba.json",
+      "gold_test.json",
+      "minifig_family (17).mpd",
+      "sticker_gallery.mpd",
+      "sticker_gallery_v2.mpd",
+      "tbon.mpd",
+      "test-bon.mpd",
+      "test-wag-gold.json",
+      "test.mpd",
+      "test_frank.mpd",
+      "wag-gold-scene.json",
+      "wag_courage_calibration_compass.mpd",
+      "wag_gold_other_563_2025-11-21_16-21-42.json",
+      "wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+      "wag_gold_scene_1_2025-11-22_20-09-17 (1).json"
+    ],
+    "Tutorial": [
+      "LEGOS-tutorial-primal.html",
+      "TIMBER-tutorial.html",
+      "timber-master-v2.html",
+      "timber-master.html"
+    ],
+    "Core": [
+      "courage.html",
+      "courage_annotated.html",
+      "wag-brave.html",
+      "wag-were-twilight.html",
+      "wag-yark.html"
+    ]
+  },
+  "l_system_mapping": {
+    "Generators": [
+      {
+        "name": "wag-brave.html",
+        "path": "/Users/gaia/COURAGE/wag-brave.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 111122,
+        "size_human": "108.52 KB",
+        "modified": "2025-11-19T04:20:56.794137",
+        "created": "2025-11-19T03:30:30.318194",
+        "accessed": "2025-11-19T04:20:59.308058",
+        "permissions": "644"
+      },
+      {
+        "name": "wag_courage_calibration_compass.mpd",
+        "path": "/Users/gaia/COURAGE/wag_courage_calibration_compass.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 1646,
+        "size_human": "1.61 KB",
+        "modified": "2025-11-19T08:54:26.927384",
+        "created": "2025-11-18T21:04:15.277970",
+        "accessed": "2025-11-19T08:54:36.576530",
+        "permissions": "644"
+      },
+      {
+        "name": "courage_annotated.html",
+        "path": "/Users/gaia/COURAGE/courage_annotated.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 474939,
+        "size_human": "463.81 KB",
+        "modified": "2025-11-18T23:55:20.876114",
+        "created": "2025-11-18T23:55:09.780689",
+        "accessed": "2025-11-18T23:56:07.326138",
+        "permissions": "644"
+      },
+      {
+        "name": "courage.html",
+        "path": "/Users/gaia/COURAGE/courage.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 467180,
+        "size_human": "456.23 KB",
+        "modified": "2025-11-21T16:41:35.332150",
+        "created": "2025-11-18T22:51:36.342905",
+        "accessed": "2025-11-21T16:41:36.973901",
+        "permissions": "644"
+      }
+    ],
+    "Rules": [
+      {
+        "name": "mesh-primitive-breakdown.md",
+        "path": "/Users/gaia/COURAGE/mesh-primitive-breakdown.md",
+        "extension": ".md",
+        "mime_type": "unknown",
+        "size_bytes": 10080,
+        "size_human": "9.84 KB",
+        "modified": "2025-11-22T04:37:03.891305",
+        "created": "2025-11-22T04:37:03.800116",
+        "accessed": "2025-11-22T04:37:05.612285",
+        "permissions": "644"
+      },
+      {
+        "name": "assembly-line-single-mesh.html",
+        "path": "/Users/gaia/COURAGE/assembly-line-single-mesh.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 19643,
+        "size_human": "19.18 KB",
+        "modified": "2025-11-22T04:56:22.069181",
+        "created": "2025-11-22T04:56:21.953879",
+        "accessed": "2025-11-22T04:56:22.081243",
+        "permissions": "644"
+      },
+      {
+        "name": "mesh-compilation-data-flow.md",
+        "path": "/Users/gaia/COURAGE/mesh-compilation-data-flow.md",
+        "extension": ".md",
+        "mime_type": "unknown",
+        "size_bytes": 6350,
+        "size_human": "6.20 KB",
+        "modified": "2025-11-22T04:35:12.180540",
+        "created": "2025-11-22T04:35:12.112236",
+        "accessed": "2025-11-22T04:35:13.414936",
+        "permissions": "644"
+      },
+      {
+        "name": "temporal-mesh-lab.html",
+        "path": "/Users/gaia/COURAGE/temporal-mesh-lab.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 21958,
+        "size_human": "21.44 KB",
+        "modified": "2025-11-22T05:16:25.076981",
+        "created": "2025-11-22T05:16:24.650789",
+        "accessed": "2025-11-22T05:16:25.089185",
+        "permissions": "644"
+      },
+      {
+        "name": "temporal-mesh-encoding.md",
+        "path": "/Users/gaia/COURAGE/temporal-mesh-encoding.md",
+        "extension": ".md",
+        "mime_type": "unknown",
+        "size_bytes": 9684,
+        "size_human": "9.46 KB",
+        "modified": "2025-11-22T04:41:53.171402",
+        "created": "2025-11-22T04:41:53.142894",
+        "accessed": "2025-11-22T04:41:53.794026",
+        "permissions": "644"
+      },
+      {
+        "name": "temporal-mesh-instrumentation.md",
+        "path": "/Users/gaia/COURAGE/temporal-mesh-instrumentation.md",
+        "extension": ".md",
+        "mime_type": "unknown",
+        "size_bytes": 12727,
+        "size_human": "12.43 KB",
+        "modified": "2025-11-22T05:04:52.998293",
+        "created": "2025-11-22T05:04:52.584629",
+        "accessed": "2025-11-22T05:04:54.319494",
+        "permissions": "644"
+      }
+    ],
+    "Structures": [
+      {
+        "name": "stud-skeleton-binding-demo.html",
+        "path": "/Users/gaia/COURAGE/stud-skeleton-binding-demo.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 23750,
+        "size_human": "23.19 KB",
+        "modified": "2025-11-21T20:51:37.619981",
+        "created": "2025-11-21T20:50:36.591208",
+        "accessed": "2025-11-21T20:57:39.693615",
+        "permissions": "644"
+      },
+      {
+        "name": "skeleton-control-room.html",
+        "path": "/Users/gaia/COURAGE/skeleton-control-room.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 29427,
+        "size_human": "28.74 KB",
+        "modified": "2025-11-22T02:17:59.439466",
+        "created": "2025-11-22T02:17:59.336210",
+        "accessed": "2025-11-22T02:17:59.451060",
+        "permissions": "644"
+      },
+      {
+        "name": "skeleton-ontology-explorer.html",
+        "path": "/Users/gaia/COURAGE/skeleton-ontology-explorer.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 46524,
+        "size_human": "45.43 KB",
+        "modified": "2025-11-22T03:14:42.102440",
+        "created": "2025-11-22T02:00:04.218437",
+        "accessed": "2025-11-22T03:14:43.541154",
+        "permissions": "644"
+      },
+      {
+        "name": "skeleton-pathology-diagnosis.md",
+        "path": "/Users/gaia/COURAGE/skeleton-pathology-diagnosis.md",
+        "extension": ".md",
+        "mime_type": "unknown",
+        "size_bytes": 6350,
+        "size_human": "6.20 KB",
+        "modified": "2025-11-22T04:17:21.409324",
+        "created": "2025-11-22T04:17:21.344029",
+        "accessed": "2025-11-22T04:17:23.212377",
+        "permissions": "644"
+      },
+      {
+        "name": "skeleton-pathology-studio.html",
+        "path": "/Users/gaia/COURAGE/skeleton-pathology-studio.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 6030,
+        "size_human": "5.89 KB",
+        "modified": "2025-11-22T00:34:17.000357",
+        "created": "2025-11-22T00:34:16.918352",
+        "accessed": "2025-11-22T00:36:53.010947",
+        "permissions": "644"
+      },
+      {
+        "name": "stud-skeleton-binding-enhanced.html",
+        "path": "/Users/gaia/COURAGE/stud-skeleton-binding-enhanced.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 31317,
+        "size_human": "30.58 KB",
+        "modified": "2025-11-21T21:00:43.093384",
+        "created": "2025-11-21T20:59:18.902587",
+        "accessed": "2025-11-21T21:10:04.741512",
+        "permissions": "644"
+      }
+    ],
+    "Manifestations": [
+      {
+        "name": "wag_courage_calibration_compass.mpd",
+        "path": "/Users/gaia/COURAGE/wag_courage_calibration_compass.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 1646,
+        "size_human": "1.61 KB",
+        "modified": "2025-11-19T08:54:26.927384",
+        "created": "2025-11-18T21:04:15.277970",
+        "accessed": "2025-11-19T08:54:36.576530",
+        "permissions": "644"
+      },
+      {
+        "name": "wag_gold_scene_1_2025-11-22_20-09-17 (1).json",
+        "path": "/Users/gaia/COURAGE/wag_gold_scene_1_2025-11-22_20-09-17 (1).json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 300605,
+        "size_human": "293.56 KB",
+        "modified": "2025-11-21T20:12:39.641219",
+        "created": "2025-11-21T20:09:18.024771",
+        "accessed": "2025-11-21T20:12:39.721040",
+        "permissions": "644"
+      },
+      {
+        "name": "gold-nba.json",
+        "path": "/Users/gaia/COURAGE/gold-nba.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 380892,
+        "size_human": "371.96 KB",
+        "modified": "2025-11-19T09:19:25.809099",
+        "created": "2025-11-19T09:19:24.874566",
+        "accessed": "2025-11-19T09:19:25.872257",
+        "permissions": "644"
+      },
+      {
+        "name": "sticker_gallery_v2.mpd",
+        "path": "/Users/gaia/COURAGE/sticker_gallery_v2.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 2235,
+        "size_human": "2.18 KB",
+        "modified": "2025-11-20T01:27:00.833435",
+        "created": "2025-11-20T01:27:00.705820",
+        "accessed": "2025-11-20T01:27:02.533527",
+        "permissions": "644"
+      },
+      {
+        "name": "wag_gold_other_563_2025-11-21_16-21-42.json",
+        "path": "/Users/gaia/COURAGE/wag_gold_other_563_2025-11-21_16-21-42.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 172126,
+        "size_human": "168.09 KB",
+        "modified": "2025-11-21T16:23:09.217637",
+        "created": "2025-11-21T16:21:42.122532",
+        "accessed": "2025-11-21T16:23:09.279972",
+        "permissions": "644"
+      },
+      {
+        "name": "test.mpd",
+        "path": "/Users/gaia/COURAGE/test.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 17544,
+        "size_human": "17.13 KB",
+        "modified": "2025-11-21T16:25:35.035017",
+        "created": "2025-11-21T16:25:33.536452",
+        "accessed": "2025-11-21T16:25:36.445749",
+        "permissions": "644"
+      },
+      {
+        "name": "sticker_gallery.mpd",
+        "path": "/Users/gaia/COURAGE/sticker_gallery.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 1664,
+        "size_human": "1.62 KB",
+        "modified": "2025-11-20T01:10:16.354204",
+        "created": "2025-11-20T01:10:16.000905",
+        "accessed": "2025-11-20T01:10:17.665290",
+        "permissions": "644"
+      },
+      {
+        "name": "tbon.mpd",
+        "path": "/Users/gaia/COURAGE/tbon.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 17610,
+        "size_human": "17.20 KB",
+        "modified": "2025-11-19T17:06:17.713437",
+        "created": "2025-11-19T17:06:16.744391",
+        "accessed": "2025-11-19T17:06:19.977176",
+        "permissions": "644"
+      },
+      {
+        "name": "test-bon.mpd",
+        "path": "/Users/gaia/COURAGE/test-bon.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 17455,
+        "size_human": "17.05 KB",
+        "modified": "2025-11-19T16:58:56.935648",
+        "created": "2025-11-19T16:58:55.737273",
+        "accessed": "2025-11-19T16:58:58.218758",
+        "permissions": "644"
+      },
+      {
+        "name": "minifig_family (17).mpd",
+        "path": "/Users/gaia/COURAGE/minifig_family (17).mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 1846,
+        "size_human": "1.80 KB",
+        "modified": "2025-11-21T20:53:56.232039",
+        "created": "2025-11-21T20:53:50.227527",
+        "accessed": "2025-11-21T20:53:56.554498",
+        "permissions": "644"
+      },
+      {
+        "name": "test_frank.mpd",
+        "path": "/Users/gaia/COURAGE/test_frank.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 805,
+        "size_human": "0.79 KB",
+        "modified": "2025-11-21T19:06:48.439336",
+        "created": "2025-11-21T19:06:48.138091",
+        "accessed": "2025-11-21T19:06:49.759511",
+        "permissions": "644"
+      },
+      {
+        "name": "gold_test.json",
+        "path": "/Users/gaia/COURAGE/gold_test.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 25294,
+        "size_human": "24.70 KB",
+        "modified": "2025-11-20T04:57:25.180364",
+        "created": "2025-11-20T04:57:25.179589",
+        "accessed": "2025-11-20T04:57:26.161056",
+        "permissions": "644"
+      },
+      {
+        "name": "wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+        "path": "/Users/gaia/COURAGE/wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 294540,
+        "size_human": "287.64 KB",
+        "modified": "2025-11-21T16:18:09.041238",
+        "created": "2025-11-19T04:52:50.989760",
+        "accessed": "2025-11-21T16:18:09.122072",
+        "permissions": "644"
+      },
+      {
+        "name": "file-manifest-raw.json",
+        "path": "/Users/gaia/COURAGE/file-manifest-raw.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 11819,
+        "size_human": "11.54 KB",
+        "modified": "2025-11-22T22:28:06.634662",
+        "created": "2025-11-22T22:28:06.316330",
+        "accessed": "2025-11-22T22:28:06.736177",
+        "permissions": "644"
+      },
+      {
+        "name": "test-wag-gold.json",
+        "path": "/Users/gaia/COURAGE/test-wag-gold.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 453876,
+        "size_human": "443.24 KB",
+        "modified": "2025-11-21T16:26:54.213302",
+        "created": "2025-11-21T16:26:53.091046",
+        "accessed": "2025-11-21T16:26:54.354063",
+        "permissions": "644"
+      },
+      {
+        "name": "brick_haven_city.mpd",
+        "path": "/Users/gaia/COURAGE/brick_haven_city.mpd",
+        "extension": ".mpd",
+        "mime_type": "unknown",
+        "size_bytes": 10455,
+        "size_human": "10.21 KB",
+        "modified": "2025-11-19T22:31:30.257004",
+        "created": "2025-11-19T22:31:30.242773",
+        "accessed": "2025-11-19T22:31:32.107410",
+        "permissions": "644"
+      },
+      {
+        "name": "wag-gold-scene.json",
+        "path": "/Users/gaia/COURAGE/wag-gold-scene.json",
+        "extension": ".json",
+        "mime_type": "application/json",
+        "size_bytes": 380892,
+        "size_human": "371.96 KB",
+        "modified": "2025-11-19T08:09:35.294173",
+        "created": "2025-11-19T08:09:34.139040",
+        "accessed": "2025-11-19T08:09:35.435889",
+        "permissions": "644"
+      }
+    ]
+  }
+}

@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>Grid Assembles Reality — 20×20 Mosaic</title>
+    <style>
+        :root {
+            /* Swap this to your art URL */
+            --img: url('https://images.unsplash.com/photo-1505483531331-4071f3c5b2a9?q=80&w=1200&auto=format&fit=crop');
+            --cols: 20;
+            --rows: 20;
+            --size: min(92vmin, 1024px);
+            --grid: rgba(0, 255, 180, .28);
+            --bg: #0b0d10;
+            --ink: #e9e9e9;
+            --accent: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .main {
+            min-height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .panel {
+            width: var(--size);
+        }
+
+        .hdr {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 12px;
+        }
+
+        .hdr h1 {
+            font-weight: 700;
+            letter-spacing: .02em;
+            font-size: clamp(16px, 2.6vmin, 24px);
+            margin: 0
+        }
+
+        .hdr .small {
+            opacity: .7;
+            font-size: .9em
+        }
+
+        .controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        button,
+        input {
+            background: #12161c;
+            color: var(--ink);
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:hover {
+            border-color: #3a9
+        }
+
+        input.url {
+            min-width: 260px;
+            width: min(48vw, 520px)
+        }
+
+        .stage {
+            position: relative;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, .5), inset 0 0 0 1px #222
+        }
+
+        /* subtle vignette */
+        .stage::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(60% 60% at 50% 45%, transparent 0 60%, rgba(0, 0, 0, .35) 100%);
+            pointer-events: none
+        }
+
+        .grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--cols), 1fr);
+            grid-template-rows: repeat(var(--rows), 1fr);
+        }
+
+        .tile {
+            position: relative;
+            opacity: 0;
+            transform: scale(.96);
+            filter: blur(8px) saturate(.1) brightness(.7);
+            transition: opacity .6s cubic-bezier(.18, .7, .16, 1), transform .6s cubic-bezier(.18, .7, .16, 1), filter .9s ease;
+            background-image: var(--img);
+            background-size: 100% 100%;
+            outline: 1px solid color-mix(in hsl, var(--grid) 95%, transparent);
+        }
+
+        .tile.on {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0) saturate(1) brightness(1);
+            outline-color: color-mix(in hsl, var(--grid) 0%, transparent)
+        }
+
+        /* heat shimmer (applied globally during build) */
+        @keyframes shimmer {
+            0% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-.7px)
+            }
+
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        .stage.building {
+            filter: contrast(1.02) saturate(1.03)
+        }
+
+        .tile.on.build-wobble {
+            animation: shimmer 1.6s ease-in-out var(--delay) 2
+        }
+
+        /* ember flicker overlay */
+        .flicker {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(100% 65% at 50% 70%, rgba(255, 110, 30, .18), transparent 60%);
+            mix-blend-mode: screen;
+            opacity: .0;
+            transition: opacity .6s ease
+        }
+
+        .stage.ready .flicker {
+            opacity: .6
+        }
+
+        .legend {
+            margin-top: 10px;
+            color: #9aa3ad;
+            font-size: .92em
+        }
+
+        .code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace
+        }
+
+        .badge {
+            background: #11161c;
+            border: 1px solid #2a323a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-right: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="panel">
+            <div class="hdr">
+                <h1>Grid Assembles Reality</h1>
+                <div class="small">20×20 cells, ripple from the frog → full scene</div>
+                <div class="controls">
+                    <input class="url" placeholder="Paste image URL (optional)" />
+                    <button id="rebuild">Reassemble</button>
+                </div>
+            </div>
+            <div class="stage" id="stage">
+                <div class="grid" id="grid"></div>
+                <div class="flicker"></div>
+            </div>
+            <div class="legend code">
+                <span class="badge">Prompt (≈250c)</span>Grid births the scene: 20×20 cells ignite from the
+                frog—rippling outward—to reveal the photo. Tiles brighten, unblur, and colorize; grid lines fade;
+                heat\-shimmer and ember flicker settle into a gentle loop. Title locks, smoke drifts.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STAGE = document.getElementById('stage');
+        const GRID = document.getElementById('grid');
+        const rebuildBtn = document.getElementById('rebuild');
+        const urlInput = document.querySelector('.url');
+
+        // CONFIG — tweak to taste
+        const COLS = 20, ROWS = 20;                  // grid
+        const ORIGIN = { c: 8, r: 13 };              // frog-ish center (H13)
+        const CELL_DELAY = 90;                       // ms per ring
+        const NOISE = 80;                            // random jitter per cell
+        const WOBBLE_PROB = 0.55;                    // some tiles shimmer briefly
+
+        function setImage(url) {
+            if (url) document.documentElement.style.setProperty('--img', `url('${url}')`);
+        }
+
+        function makeGrid() {
+            GRID.style.setProperty('--cols', COLS);
+            GRID.style.setProperty('--rows', ROWS);
+            GRID.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const t = document.createElement('div');
+                    t.className = 'tile';
+                    // position the slice of the background
+                    const x = (c / (COLS - 1)) * 100, y = (r / (ROWS - 1)) * 100;
+                    t.style.backgroundPosition = `${x}% ${y}%`;
+                    GRID.appendChild(t);
+                }
+            }
+        }
+
+        function assemble() {
+            STAGE.classList.add('building');
+            const tiles = [...GRID.children];
+            tiles.forEach((t, i) => { t.classList.remove('on', 'build-wobble') });
+
+            const delayOf = (r, c) => {
+                const dc = Math.abs(c - ORIGIN.c);
+                const dr = Math.abs(r - ORIGIN.r);
+                // Manhattan distance = ring index; add subtle radial feel
+                const base = (dc + dr) * CELL_DELAY;
+                return base + (Math.random() * NOISE);
+            };
+
+            let maxDelay = 0;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const i = r * COLS + c;
+                    const d = delayOf(r, c);
+                    maxDelay = Math.max(maxDelay, d);
+                    const tile = tiles[i];
+                    tile.style.setProperty('--delay', `${(d / 1000).toFixed(2)}s`);
+                    setTimeout(() => {
+                        tile.classList.add('on');
+                        if (Math.random() < WOBBLE_PROB) tile.classList.add('build-wobble');
+                    }, d);
+                }
+            }
+            // when finished, settle
+            setTimeout(() => {
+                STAGE.classList.remove('building');
+                STAGE.classList.add('ready');
+            }, maxDelay + 1200);
+        }
+
+        rebuildBtn.addEventListener('click', () => {
+            setImage(urlInput.value.trim());
+            assemble();
+        });
+
+        // Boot
+        makeGrid();
+        assemble();
+    </script>
+</body>
+
+</html>

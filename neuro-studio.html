@@ -1,0 +1,1191 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG · Neurosymbolic Studio</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%238b5cf6'/%3E%3C/svg%3E">
+    <style>
+        :root {
+            --bg-void: #050508;
+            --bg-panel: #0f0f16;
+            --text-primary: #e2e8f0;
+            --text-dim: #64748b;
+            --accent-cyan: #06b6d4;
+            --accent-purple: #8b5cf6;
+            --accent-green: #10b981;
+            --accent-orange: #f59e0b;
+            --accent-red: #ef4444;
+            --border-color: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', 'Fira Code', monospace;
+            background-color: var(--bg-void);
+            color: var(--text-primary);
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        header {
+            height: 60px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            align-items: center;
+            padding: 0 24px;
+            background: var(--bg-panel);
+            justify-content: space-between;
+            z-index: 10;
+        }
+
+        h1 {
+            font-size: 16px;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, var(--accent-purple), var(--accent-cyan));
+            background-clip: text;
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .controls {
+            display: flex;
+            gap: 8px;
+        }
+
+        .btn {
+            padding: 6px 12px;
+            border-radius: 6px;
+            border: 1px solid var(--border-color);
+            background: rgba(15, 23, 42, 0.6);
+            color: var(--text-primary);
+            font-size: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .btn:hover {
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+            background: rgba(139, 92, 246, 0.1);
+        }
+
+        .btn.primary {
+            border-color: var(--accent-purple);
+            color: var(--accent-purple);
+        }
+
+        .btn.primary:hover {
+            background: rgba(139, 92, 246, 0.2);
+            box-shadow: 0 0 10px rgba(139, 92, 246, 0.3);
+        }
+
+        input[type="file"] {
+            display: none;
+        }
+
+        main {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* Left Panel: Visualization */
+        #viz-panel {
+            flex: 2;
+            position: relative;
+            background: radial-gradient(circle at center, #0a0a12 0%, #050508 100%);
+            overflow: hidden;
+            border-right: 1px solid var(--border-color);
+        }
+
+        #graph-canvas {
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Right Panel: Control & Log */
+        #control-panel {
+            flex: 1;
+            min-width: 350px;
+            max-width: 500px;
+            display: flex;
+            flex-direction: column;
+            background: var(--bg-panel);
+        }
+
+        .panel-section {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .panel-section:last-child {
+            border-bottom: none;
+            flex: 1;
+        }
+
+        .section-header {
+            padding: 12px 16px;
+            font-size: 11px;
+            text-transform: uppercase;
+            color: var(--text-dim);
+            background: rgba(15, 23, 42, 0.8);
+            letter-spacing: 1px;
+            border-bottom: 1px solid var(--border-color);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .section-content {
+            padding: 16px;
+            overflow-y: auto;
+        }
+
+        .log-container {
+            flex: 1;
+            background: #000;
+            padding: 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 10px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 4px;
+        }
+
+        .log-entry {
+            padding: 4px 0;
+            border-bottom: 1px solid #111;
+            color: var(--text-dim);
+        }
+
+        .log-entry.info {
+            color: var(--accent-cyan);
+        }
+
+        .log-entry.success {
+            color: var(--accent-green);
+        }
+
+        .log-entry.warn {
+            color: var(--accent-orange);
+        }
+
+        .log-entry.error {
+            color: var(--accent-red);
+        }
+
+        .log-entry.neuro {
+            color: var(--accent-purple);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+
+        .stat-card {
+            background: rgba(255, 255, 255, 0.03);
+            padding: 8px;
+            border-radius: 4px;
+            border: 1px solid var(--border-color);
+        }
+
+        .stat-label {
+            font-size: 9px;
+            color: var(--text-dim);
+            text-transform: uppercase;
+        }
+
+        .stat-value {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--text-primary);
+            margin-top: 2px;
+        }
+
+        .action-group {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .node-tooltip {
+            position: absolute;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--accent-purple);
+            color: #fff;
+            padding: 8px;
+            border-radius: 4px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 100;
+            display: none;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
+            max-width: 200px;
+        }
+
+        .node-tooltip h3 {
+            color: var(--accent-cyan);
+            margin-bottom: 4px;
+            font-size: 11px;
+        }
+
+        .node-tooltip p {
+            color: var(--text-dim);
+            margin-bottom: 2px;
+        }
+    </style>
+    <script src="embeddings_data.js"></script>
+</head>
+
+<body>
+
+    <header>
+        <h1>WAG · Neurosymbolic Studio</h1>
+        <div class="controls">
+            <a href="neuro-tutorial.html" class="btn"
+                style="text-decoration: none; display: inline-flex; align-items: center;">📚 Tutorial</a>
+            <button class="btn" onclick="document.getElementById('fileInput').click()">📁 Load GOLD Scene</button>
+            <input type="file" id="fileInput" accept=".json" onchange="app.loadScene(event)">
+        </div>
+    </header>
+
+    <main>
+        <div id="viz-panel">
+            <canvas id="graph-canvas"></canvas>
+            <div id="tooltip" class="node-tooltip"></div>
+        </div>
+
+        <div id="control-panel">
+            <div class="panel-section">
+                <div class="section-header">
+                    <span>🧠 Neuro-State</span>
+                    <span id="status-badge" style="color: var(--accent-green)">IDLE</span>
+                </div>
+                <div class="section-content">
+                    <div class="stat-grid">
+                        <div class="stat-card">
+                            <div class="stat-label">Nodes</div>
+                            <div class="stat-value" id="stat-nodes">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Edges</div>
+                            <div class="stat-value" id="stat-edges">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Entities</div>
+                            <div class="stat-value" id="stat-entities">0</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-label">Conflicts</div>
+                            <div class="stat-value" id="stat-conflicts" style="color: var(--accent-red)">0</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-header">⚡ Operations</div>
+                <div class="section-content">
+                    <div class="action-group">
+                        <button class="btn primary" onclick="app.analyzeNarrative()">🔍 Analyze Narrative</button>
+                        <button class="btn" onclick="app.suggestAddition()">✨ Suggest Addition</button>
+                        <button class="btn" onclick="app.verifyOntology()">🛡️ Verify Ontology</button>
+                        <button class="btn" onclick="app.exportMPD()">💾 Export MPD</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-header">🧬 DNA Injection (Egri)</div>
+                <div class="section-content">
+                    <textarea id="dna-input" placeholder="Paste DNA JSON here..."
+                        style="width: 100%; height: 60px; background: #000; color: #0f0; border: 1px solid #333; font-family: monospace; font-size: 10px; margin-bottom: 8px;"></textarea>
+                    <button class="btn" onclick="app.injectDNA()">💉 Inject DNA</button>
+                </div>
+            </div>
+
+            <div class="panel-section">
+                <div class="section-header">📜 Reasoning Log</div>
+                <div class="log-container" id="log-output">
+                    <div class="log-entry info">System initialized. Waiting for scene data...</div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <script>
+        // --- Ontology Definition ---
+        // --- Ontology Definition (Merged & Expanded) ---
+        const LEGOS_ONTOLOGY = {
+            // Path-based rules (from taxonomy-neuro.html)
+            paths: {
+                "Parts/Minifig/Accessory/Weapon": { role: "Aggressor", color: 4, trait: "Conflict", category: "Weapon" },
+                "Parts/Minifig/Body": { role: "Actor", color: 14, trait: "Agency", category: "Body" },
+                "Parts/Vegetation": { role: "Nature", color: 2, trait: "Growth", category: "Nature" },
+                "Parts/Technic": { role: "Mechanism", color: 1, trait: "Logic", category: "Technic" },
+                "Parts/Brick": { role: "Structure", color: 71, trait: "Stability", category: "Structure" },
+                "Parts/Plate": { role: "Structure", color: 72, trait: "Stability", category: "Structure" }
+            },
+            // Keyword fallbacks
+            keywords: {
+                "sword": { role: "Aggressor", color: 4, category: "Weapon" },
+                "gun": { role: "Aggressor", color: 4, category: "Weapon" },
+                "plant": { role: "Nature", color: 2, category: "Nature" },
+                "tree": { role: "Nature", color: 2, category: "Nature" },
+                "brick": { role: "Structure", color: 71, category: "Structure" },
+                "plate": { role: "Structure", color: 72, category: "Structure" },
+                "technic": { role: "Mechanism", color: 1, category: "Technic" }
+            },
+            // Color meanings
+            colors: {
+                4: { archetype: 'Villain', role: 'Character', traits: ['Chaos', 'Action'] }, // Red
+                1: { archetype: 'Hero', role: 'Character', traits: ['Logic', 'Order'] },     // Blue
+                2: { archetype: 'Guide', role: 'Character', traits: ['Nature', 'Growth'] },  // Green
+                14: { archetype: 'Ally', role: 'Character', traits: ['Optimism', 'Support'] }, // Yellow
+                0: { archetype: 'Void', role: 'Environment', traits: ['Authority', 'Finality'] }, // Black
+                71: { archetype: 'Structure', role: 'Environment', traits: ['Neutral', 'Urban'] }, // Light Gray
+                72: { archetype: 'Structure', role: 'Environment', traits: ['Neutral', 'Urban'] }, // Dark Gray
+            },
+            // Logical Rules for the Symbolic Layer
+            rules: [
+                {
+                    id: 'villain_needs_weapon',
+                    check: (graph) => {
+                        const villains = graph.entities.filter(e => e.archetype === 'Villain');
+                        const issues = [];
+                        villains.forEach(v => {
+                            const hasWeapon = graph.getConnectedNodes(v).some(n => n.category === 'Weapon');
+                            if (!hasWeapon) issues.push({ entity: v, concept: 'Weapon', msg: 'Villain missing weapon' });
+                        });
+                        return issues;
+                    }
+                },
+                {
+                    id: 'hero_needs_ally',
+                    check: (graph) => {
+                        const heroes = graph.entities.filter(e => e.archetype === 'Hero');
+                        const issues = [];
+                        heroes.forEach(h => {
+                            const hasAlly = graph.entities.some(e => e.archetype === 'Ally' && graph.getDistance(h, e) < 100);
+                            if (!hasAlly) issues.push({ entity: h, concept: 'Ally', msg: 'Hero is isolated' });
+                        });
+                        return issues;
+                    }
+                },
+                {
+                    id: 'nature_needs_space',
+                    check: (graph) => {
+                        const nature = graph.entities.filter(e => e.archetype === 'Guide');
+                        const issues = [];
+                        nature.forEach(n => {
+                            // Check density
+                            if (n.count > 5) return; // Already a grove
+                            issues.push({ entity: n, concept: 'Nature', msg: 'Nature patch too small' });
+                        });
+                        return issues;
+                    }
+                }
+            ]
+        };
+
+        // --- 1. Symbolic Layer (The "Lawyer") ---
+        class SymbolicLayer {
+            constructor() {
+                this.ontology = LEGOS_ONTOLOGY;
+            }
+
+            // Check if a node complies with ontology rules
+            validate(node, graph) {
+                const issues = [];
+
+                // Type Check
+                if (!node.category || node.category === 'Unknown') {
+                    // Try to infer
+                    const inferred = this.inferCategory(node);
+                    if (inferred) node.category = inferred;
+                    else issues.push(`Unknown category for part ${node.file}`);
+                }
+
+                // Rule Check (Contextual)
+                this.ontology.rules.forEach(rule => {
+                    // We need to pass a context to the rule, not just the whole graph
+                    // For now, we'll stick to the global check style but scoped to this node if possible
+                    // ... implementation of specific node checks ...
+                });
+
+                return issues;
+            }
+
+            inferCategory(node) {
+                const file = node.file.toLowerCase();
+                const desc = node.raw ? node.raw.split(' ').slice(15).join(' ').toLowerCase() : '';
+
+                // 1. Check Keywords
+                for (const [key, meta] of Object.entries(this.ontology.keywords)) {
+                    if (file.includes(key) || desc.includes(key)) return meta.category;
+                }
+
+                // 2. Default
+                return 'Structure';
+            }
+
+            getArchetype(color) {
+                return this.ontology.colors[color] || { archetype: 'Unknown', role: 'Prop' };
+            }
+        }
+
+        // --- 2. Neural Layer (The "Artist") ---
+        // Uses REAL embeddings from window.REAL_EMBEDDINGS (loaded via script)
+        class NeuralLayer {
+            constructor() {
+                this.embeddings = new Map();
+                this.loadEmbeddings();
+            }
+
+            loadEmbeddings() {
+                if (window.REAL_EMBEDDINGS) {
+                    const data = window.REAL_EMBEDDINGS;
+                    console.log(`[Neural] Loading ${data.metadata.count} real embeddings (${data.metadata.model})...`);
+                    for (const [id, info] of Object.entries(data.vectors)) {
+                        this.embeddings.set(id.toLowerCase(), info.vector);
+                    }
+                    console.log("[Neural] Embeddings ready.");
+                } else {
+                    console.warn("[Neural] REAL_EMBEDDINGS not found. Check embeddings_data.js");
+                }
+            }
+
+            // Generate a "semantic embedding" for a node
+            embed(node) {
+                const fileKey = node.file.toLowerCase();
+                if (this.embeddings.has(fileKey)) {
+                    return this.embeddings.get(fileKey);
+                }
+                // Fallback: Random vector (Noise)
+                return Array(64).fill(0).map(() => Math.random() - 0.5);
+            }
+
+            // Find parts "similar" to a query vector or concept
+            // Concept can be a string (category) or a vector
+            sample(concept, k = 5, filterFn = null) {
+                let targetVector;
+
+                if (Array.isArray(concept)) {
+                    targetVector = concept;
+                } else {
+                    // Concept is a string (e.g., "Weapon")
+                    // We need a seed vector. 
+                    // Strategy: Find *any* part in our embeddings that matches this category keyword
+                    const seeds = [];
+                    for (const [id, vec] of this.embeddings.entries()) {
+                        // Simple keyword matching on ID for now, or use ontology if available
+                        // Ideally we'd have a category map. 
+                        // Let's use the global ontology keywords to find a seed.
+                        for (const [key, meta] of Object.entries(LEGOS_ONTOLOGY.keywords)) {
+                            if (id.includes(key) && meta.category === concept) {
+                                seeds.push(vec);
+                                break;
+                            }
+                        }
+                        if (seeds.length > 5) break; // Enough seeds
+                    }
+
+                    if (seeds.length === 0) {
+                        // No seed found for this concept, return random
+                        return [];
+                    }
+
+                    // Average the seeds to get a "Concept Vector"
+                    targetVector = new Array(64).fill(0);
+                    seeds.forEach(vec => {
+                        vec.forEach((val, i) => targetVector[i] += val);
+                    });
+                    targetVector = targetVector.map(v => v / seeds.length);
+                }
+
+                // Brute-force Cosine Similarity Search (O(N))
+                // For 2000 items, this is instant.
+                const candidates = [];
+                for (const [id, vec] of this.embeddings.entries()) {
+                    if (filterFn && !filterFn(id)) continue;
+
+                    const sim = this.cosineSimilarity(targetVector, vec);
+                    candidates.push({ file: id, score: sim });
+                }
+
+                // Sort and return top K
+                return candidates.sort((a, b) => b.score - a.score).slice(0, k);
+            }
+
+            cosineSimilarity(a, b) {
+                let dot = 0;
+                let magA = 0;
+                let magB = 0;
+                for (let i = 0; i < a.length; i++) {
+                    dot += a[i] * b[i];
+                    magA += a[i] * a[i];
+                    magB += b[i] * b[i];
+                }
+                return dot / (Math.sqrt(magA) * Math.sqrt(magB) + 1e-8);
+            }
+        }
+
+        // --- 3. The Graph (State) ---
+        class NeuroGraph {
+            constructor() {
+                this.nodes = new Map();
+                this.edges = [];
+                this.entities = [];
+
+                this.symbolic = new SymbolicLayer();
+                this.neural = new NeuralLayer();
+            }
+
+            clear() {
+                this.nodes.clear();
+                this.edges = [];
+                this.entities = [];
+            }
+
+            addNode(node) {
+                this.nodes.set(node.id, node);
+                // Compute embedding on addition
+                node.embedding = this.neural.embed(node);
+            }
+
+            addEdge(sourceId, targetId, type, weight = 1) {
+                this.edges.push({ source: sourceId, target: targetId, type, weight });
+            }
+
+            getConnectedNodes(entity) {
+                const entityNodeIds = entity.nodes;
+                const connected = [];
+                this.edges.forEach(e => {
+                    if (entityNodeIds.includes(e.source) && !entityNodeIds.includes(e.target)) {
+                        connected.push(this.nodes.get(e.target));
+                    }
+                    if (entityNodeIds.includes(e.target) && !entityNodeIds.includes(e.source)) {
+                        connected.push(this.nodes.get(e.source));
+                    }
+                });
+                return connected;
+            }
+
+            getDistance(e1, e2) {
+                return Math.sqrt((e1.x - e2.x) ** 2 + (e1.y - e2.y) ** 2 + (e1.z - e2.z) ** 2);
+            }
+
+            ingestGold(goldData) {
+                this.clear();
+                const lines = goldData.mpd_content.split(/\r?\n/);
+                let partCount = 0;
+
+                lines.forEach((line, idx) => {
+                    const trimmed = line.trim();
+                    if (trimmed.startsWith('1 ')) {
+                        const tokens = trimmed.split(/\s+/);
+                        if (tokens.length >= 15) {
+                            const file = tokens[14].toLowerCase();
+                            // Use Symbolic Layer to infer category
+                            const category = this.symbolic.inferCategory({ file, raw: trimmed });
+
+                            const node = {
+                                id: `part_${idx}`,
+                                lineIdx: idx,
+                                type: 'part',
+                                color: parseInt(tokens[1]),
+                                x: parseFloat(tokens[2]),
+                                y: parseFloat(tokens[3]),
+                                z: parseFloat(tokens[4]),
+                                file: tokens[14],
+                                category: category,
+                                raw: line
+                            };
+                            this.addNode(node);
+                            partCount++;
+                        }
+                    }
+                });
+
+                this.inferProximityEdges();
+                this.analyze();
+                return { nodes: this.nodes.size, edges: this.edges.length };
+            }
+
+            inferProximityEdges(threshold = 80) {
+                const nodeList = Array.from(this.nodes.values());
+                for (let i = 0; i < nodeList.length; i++) {
+                    for (let j = i + 1; j < nodeList.length; j++) {
+                        const a = nodeList[i];
+                        const b = nodeList[j];
+                        const dist = Math.sqrt(Math.pow(a.x - b.x, 2) + Math.pow(a.y - b.y, 2) + Math.pow(a.z - b.z, 2));
+                        if (dist < threshold) {
+                            this.addEdge(a.id, b.id, 'proximity', 1 - (dist / threshold));
+                        }
+                    }
+                }
+            }
+
+            analyze() {
+                const findings = [];
+                this.entities = [];
+                const colorGroups = new Map();
+
+                this.nodes.forEach(node => {
+                    if (!colorGroups.has(node.color)) colorGroups.set(node.color, []);
+                    colorGroups.get(node.color).push(node);
+                });
+
+                colorGroups.forEach((nodes, color) => {
+                    const ontology = this.symbolic.getArchetype(color);
+                    if (!ontology) return;
+
+                    if (nodes.length >= 2 && ontology.role === 'Character') {
+                        const center = this.getCentroid(nodes);
+                        const entity = {
+                            id: `entity_${this.entities.length}`,
+                            archetype: ontology.archetype,
+                            role: ontology.role,
+                            traits: ontology.traits,
+                            color,
+                            count: nodes.length,
+                            x: center.x, y: center.y, z: center.z,
+                            nodes: nodes.map(n => n.id)
+                        };
+                        this.entities.push(entity);
+                        findings.push(`Detected Entity: ${entity.archetype} (${nodes.length} parts)`);
+                    }
+                });
+                return findings;
+            }
+
+            getCentroid(nodes) {
+                let x = 0, y = 0, z = 0;
+                nodes.forEach(n => { x += n.x; y += n.y; z += n.z; });
+                return { x: x / nodes.length, y: y / nodes.length, z: z / nodes.length };
+            }
+
+            // Export graph to valid MPD format
+            exportMPD(filename = "generated_scene.mpd", author = "Neurosymbolic Generator") {
+                const lines = [];
+
+                // Header
+                lines.push(`0 FILE ${filename}`);
+                lines.push(`0 Name: ${filename}`);
+                lines.push(`0 Author: ${author}`);
+                lines.push(`0 !LDRAW_ORG Model`);
+                lines.push(`0 !LICENCE Redistributable under CCAL version 2.0`);
+                lines.push(`0 BFC CERTIFY CCW`);
+                lines.push(``);
+
+                // Decorative header
+                lines.push(`0 // ╔════════════════════════════════════════════════════════════╗`);
+                lines.push(`0 // ║  NEUROSYMBOLIC GENERATED SCENE                             ║`);
+                lines.push(`0 // ║  Nodes: ${this.nodes.size.toString().padEnd(3)} | Edges: ${this.edges.length.toString().padEnd(3)} | Entities: ${this.entities.length.toString().padEnd(3)}                  ║`);
+                lines.push(`0 // ╚════════════════════════════════════════════════════════════╝`);
+                lines.push(``);
+                lines.push(`0 STEP`);
+                lines.push(``);
+
+                // Group nodes by entity
+                this.entities.forEach((entity, idx) => {
+                    lines.push(`0 // ═══ Entity ${idx + 1}: ${entity.archetype} (${entity.count} parts) ═══`);
+                    lines.push(``);
+
+                    const entityNodes = entity.nodes.map(nid => this.nodes.get(nid)).filter(n => n);
+                    entityNodes.forEach(node => {
+                        // LDraw Type 1 line: 1 <colour> x y z a b c d e f g h i <file>
+                        // Default identity matrix: 1 0 0 0 1 0 0 0 1
+                        const line = `1 ${node.color} ${node.x.toFixed(1)} ${node.y.toFixed(1)} ${node.z.toFixed(1)} 1 0 0 0 1 0 0 0 1 ${node.file}`;
+                        lines.push(line);
+                    });
+                    lines.push(``);
+                });
+
+                // Ungrouped nodes (not in any entity)
+                const groupedIds = new Set(this.entities.flatMap(e => e.nodes));
+                const ungrouped = Array.from(this.nodes.values()).filter(n => !groupedIds.has(n.id));
+
+                if (ungrouped.length > 0) {
+                    lines.push(`0 // ═══ Ungrouped Parts (${ungrouped.length}) ═══`);
+                    lines.push(``);
+                    ungrouped.forEach(node => {
+                        const line = `1 ${node.color} ${node.x.toFixed(1)} ${node.y.toFixed(1)} ${node.z.toFixed(1)} 1 0 0 0 1 0 0 0 1 ${node.file}`;
+                        lines.push(line);
+                    });
+                    lines.push(``);
+                }
+
+                lines.push(`0 STEP`);
+                lines.push(`0 NOFILE`);
+
+                return lines.join('\n');
+            }
+        }
+
+        // --- 4. The Generator (Controller) ---
+        // Orchestrates the Neurosymbolic Loop
+        class Generator {
+            constructor(graph, logger) {
+                this.graph = graph;
+                this.log = logger;
+                this.dna = null; // DNA from Egri
+            }
+
+            injectDNA(jsonString) {
+                try {
+                    this.dna = JSON.parse(jsonString);
+                    this.log(`DNA Injected: ${this.dna.seed} (${this.dna.archetype})`, 'neuro');
+                    this.log(`Entropy: ${this.dna.entropy} | Palette: ${this.dna.palette.length} colors`, 'info');
+                    return true;
+                } catch (e) {
+                    this.log("Invalid DNA JSON", 'error');
+                    return false;
+                }
+            }
+
+            // The Core Loop: Sketch -> Sample -> Validate -> Commit
+            runLoop() {
+                this.log("--- Starting Neurosymbolic Loop ---", 'neuro');
+
+                // Step 1: Symbolic Sketch (Identify Needs)
+                // "What is missing based on the ontology?"
+                const needs = this.sketchNeeds();
+
+                // If no needs, but we have DNA, maybe we force a need based on Archetype?
+                if (needs.length === 0 && this.dna) {
+                    this.log("No structural needs. Forcing DNA-based expansion...", 'neuro');
+                    // Find a random entity and give it a need based on DNA archetype
+                    // e.g. "Navigator" needs "Vehicle" parts?
+                    // For now, let's just create a generic need
+                    if (this.graph.entities.length > 0) {
+                        needs.push({ entity: this.graph.entities[0], concept: 'Structure' });
+                    }
+                }
+
+                if (needs.length === 0) {
+                    this.log("Symbolic: No structural needs identified.", 'info');
+                    return;
+                }
+
+                needs.forEach(need => {
+                    this.log(`Sketch: Entity '${need.entity.archetype}' needs '${need.concept}'`, 'info');
+
+                    // Step 2: Neural Sample (Propose Candidates)
+                    // "What parts feel like this concept?"
+                    // Use DNA entropy to affect K (sampling width)
+                    const k = this.dna ? Math.floor(3 + (this.dna.entropy * 10)) : 5;
+
+                    const candidates = this.graph.neural.sample(need.concept, k);
+
+                    if (candidates.length === 0) {
+                        this.log(`Neural: No candidates found for ${need.concept}`, 'warn');
+                        return;
+                    }
+
+                    this.log(`Neural: Proposed ${candidates.length} candidates (Top: ${candidates[0].file})`, 'info');
+
+                    // Step 3: Symbolic Validate (Check Constraints)
+                    // "Which of these are actually legal?"
+                    const valid = candidates.find(c => {
+                        // Mock validation: "Is it a weapon?"
+                        // In real system: Check grid alignment, collision, connection type
+                        // Also check DNA Palette if available
+                        // if (this.dna) { check if color matches palette... but we assign color later }
+                        return true; // Assume valid for prototype
+                    });
+
+                    if (valid) {
+                        this.log(`Symbolic: Validated candidate ${valid.file}.`, 'success');
+                        // Step 4: Commit (Refine & Add)
+                        this.commit(need.entity, valid);
+                    } else {
+                        this.log(`Symbolic: All candidates rejected.`, 'error');
+                    }
+                });
+            }
+
+            sketchNeeds() {
+                // Check ontology rules to find gaps
+                const needs = [];
+
+                this.graph.symbolic.ontology.rules.forEach(rule => {
+                    const issues = rule.check(this.graph);
+                    issues.forEach(issue => {
+                        needs.push(issue);
+                    });
+                });
+
+                return needs;
+            }
+
+            commit(entity, partDef) {
+                const newId = `gen_${Date.now()}_${Math.floor(Math.random() * 1000)}`;
+                const newX = entity.x + (Math.random() * 40 - 20);
+                const newZ = entity.z + (Math.random() * 40 - 20);
+
+                // Determine color from DNA palette if available
+                let color = entity.color;
+                if (this.dna && this.dna.palette.length > 0) {
+                    // Pick random color from palette
+                    const hex = this.dna.palette[Math.floor(Math.random() * this.dna.palette.length)];
+                    // We need to map hex to LDraw color code... 
+                    // For now, just keep entity color or use a default
+                    // Real mapping is hard without a table.
+                }
+
+                const newNode = {
+                    id: newId,
+                    lineIdx: -1,
+                    type: 'part',
+                    color: color,
+                    x: newX, y: entity.y, z: newZ,
+                    file: partDef.file,
+                    category: 'Generated',
+                    raw: `1 ${color} ${newX} ${entity.y} ${newZ} 1 0 0 0 1 0 0 0 1 ${partDef.file}`
+                };
+
+                this.graph.addNode(newNode);
+                this.graph.addEdge(entity.nodes[0], newId, 'generated', 1);
+                this.log(`Commit: Added ${partDef.file} to graph.`, 'success');
+
+                // Trigger redraw?
+                // In a real app we'd emit an event.
+            }
+        }
+
+        // --- Application Controller ---
+        class App {
+            constructor() {
+                this.graph = new NeuroGraph();
+                this.generator = new Generator(this.graph, this.log.bind(this));
+
+                this.canvas = document.getElementById('graph-canvas');
+                this.ctx = this.canvas.getContext('2d');
+                this.tooltip = document.getElementById('tooltip');
+
+                // Canvas setup
+                this.resizeCanvas();
+                window.addEventListener('resize', () => this.resizeCanvas());
+
+                // Interaction
+                this.isDragging = false;
+                this.lastMouse = { x: 0, y: 0 };
+                this.camera = { x: 0, y: 0, zoom: 1 };
+
+                this.setupInteraction();
+                this.log('System ready. Neurosymbolic Loop initialized.', 'info');
+                this.loop();
+            }
+
+            resizeCanvas() {
+                this.canvas.width = this.canvas.parentElement.clientWidth;
+            }
+
+            setupInteraction() {
+                this.canvas.addEventListener('mousedown', e => {
+                    this.isDragging = true;
+                    this.lastMouse = { x: e.clientX, y: e.clientY };
+                });
+
+                window.addEventListener('mouseup', () => this.isDragging = false);
+
+                this.canvas.addEventListener('mousemove', e => {
+                    if (this.isDragging) {
+                        const dx = e.clientX - this.lastMouse.x;
+                        const dy = e.clientY - this.lastMouse.y;
+                        this.camera.x += dx;
+                        this.camera.y += dy;
+                        this.lastMouse = { x: e.clientX, y: e.clientY };
+                    }
+
+                    // Hover detection (simple)
+                    this.handleHover(e);
+                });
+
+                this.canvas.addEventListener('wheel', e => {
+                    e.preventDefault();
+                    const scale = e.deltaY > 0 ? 0.9 : 1.1;
+                    this.camera.zoom *= scale;
+                });
+            }
+
+            injectDNA() {
+                const input = document.getElementById('dna-input').value;
+                if (!input) return;
+                const success = this.generator.injectDNA(input);
+                if (success) {
+                    document.getElementById('dna-input').value = ''; // Clear
+                }
+            }
+
+            handleHover(e) {
+                const rect = this.canvas.getBoundingClientRect();
+                const mx = (e.clientX - rect.left - this.camera.x - this.canvas.width / 2) / this.camera.zoom;
+                const my = (e.clientY - rect.top - this.camera.y - this.canvas.height / 2) / this.camera.zoom;
+
+                let hovered = null;
+                // Simple hit test
+                for (const node of this.graph.nodes.values()) {
+                    // Project 3D to 2D (Top-down view: X, Z)
+                    // LDraw coords: Y is up/down. We'll map X->ScreenX, Z->ScreenY
+                    const nx = node.x;
+                    const ny = node.z; // Map Z to Y for top-down
+
+                    const dist = Math.sqrt((mx - nx) ** 2 + (my - ny) ** 2);
+                    if (dist < 10 / this.camera.zoom) { // Hit radius
+                        hovered = node;
+                        break;
+                    }
+                }
+
+                if (hovered) {
+                    this.tooltip.style.display = 'block';
+                    this.tooltip.style.left = e.clientX + 10 + 'px';
+                    this.tooltip.style.top = e.clientY + 10 + 'px';
+                    this.tooltip.innerHTML = `
+                        <h3>${hovered.file}</h3>
+                        <p>Type: ${hovered.category}</p>
+                        <p>Color: ${hovered.color}</p>
+                    `;
+                    this.canvas.style.cursor = 'pointer';
+                } else {
+                    this.tooltip.style.display = 'none';
+                    this.canvas.style.cursor = 'default';
+                }
+            }
+
+            loadScene(event) {
+                const file = event.target.files[0];
+                if (!file) return;
+
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    try {
+                        const json = JSON.parse(e.target.result);
+                        const stats = this.graph.ingestGold(json);
+
+                        this.updateStats();
+                        this.log(`Loaded scene: ${json.filename || 'Unknown'}`, 'success');
+                        this.log(`Parsed ${stats.nodes} parts, inferred ${stats.edges} edges.`, 'info');
+
+                        // Center camera
+                        this.centerCamera();
+                        this.analyzeNarrative(); // Auto-analyze
+                    } catch (err) {
+                        this.log('Error parsing JSON: ' + err.message, 'error');
+                    }
+                };
+                reader.readAsText(file);
+            }
+
+            centerCamera() {
+                if (this.graph.nodes.size === 0) return;
+                let minX = Infinity, maxX = -Infinity, minZ = Infinity, maxZ = -Infinity;
+
+                this.graph.nodes.forEach(n => {
+                    if (n.x < minX) minX = n.x;
+                    if (n.x > maxX) maxX = n.x;
+                    if (n.z < minZ) minZ = n.z;
+                    if (n.z > maxZ) maxZ = n.z;
+                });
+
+                const cx = (minX + maxX) / 2;
+                const cz = (minZ + maxZ) / 2;
+
+                // Reset to center
+                this.camera.x = -cx * this.camera.zoom; // Offset
+                this.camera.y = -cz * this.camera.zoom;
+            }
+
+            verifyOntology() {
+                this.log('Verifying ontology constraints...', 'info');
+                // In new architecture, this is implicit in the Symbolic Layer
+                const valid = this.graph.symbolic.ontology.rules.every(r => {
+                    const issues = r.check(this.graph);
+                    return issues.length === 0;
+                });
+                this.log(valid ? 'Ontology valid.' : 'Ontology violations detected.', valid ? 'success' : 'warn');
+            }
+
+            exportMPD() {
+                if (this.graph.nodes.size === 0) {
+                    this.log('No scene to export.', 'warn');
+                    return;
+                }
+
+                const dnaName = this.generator.dna ? this.generator.dna.seed : 'Unknown';
+                const filename = `neuro_${dnaName}_${Date.now()}.mpd`;
+                const content = this.graph.exportMPD(filename, `Neurosymbolic Generator (DNA: ${dnaName})`);
+
+                // Download
+                const blob = new Blob([content], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+
+                this.log(`Exported: ${filename} (${this.graph.nodes.size} parts)`, 'success');
+            }
+
+            updateStats() {
+                document.getElementById('stat-nodes').textContent = this.graph.nodes.size;
+                document.getElementById('stat-edges').textContent = this.graph.edges.length;
+                document.getElementById('stat-entities').textContent = this.graph.entities.length;
+
+                const issues = this.graph.checkConsistency();
+                document.getElementById('stat-conflicts').textContent = issues.length;
+            }
+
+            log(msg, type = 'info') {
+                const el = document.getElementById('log-output');
+                const line = document.createElement('div');
+                line.className = `log-entry ${type}`;
+                line.textContent = `> ${msg}`;
+                el.appendChild(line);
+                el.scrollTop = el.scrollHeight;
+            }
+
+            loop() {
+                this.render();
+                requestAnimationFrame(() => this.loop());
+            }
+
+            render() {
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                // Clear
+                this.ctx.fillStyle = '#050508';
+                this.ctx.fillRect(0, 0, w, h);
+
+                // Grid
+                this.drawGrid();
+
+                // Transform
+                this.ctx.save();
+                this.ctx.translate(w / 2 + this.camera.x, h / 2 + this.camera.y);
+                this.ctx.scale(this.camera.zoom, this.camera.zoom);
+
+                // Draw Edges
+                this.ctx.strokeStyle = 'rgba(100, 116, 139, 0.2)';
+                this.ctx.lineWidth = 1;
+                this.graph.edges.forEach(edge => {
+                    const a = this.graph.nodes.get(edge.source);
+                    const b = this.graph.nodes.get(edge.target);
+                    if (a && b) {
+                        this.ctx.beginPath();
+                        this.ctx.moveTo(a.x, a.z); // Top-down: X, Z
+                        this.ctx.lineTo(b.x, b.z);
+                        this.ctx.stroke();
+                    }
+                });
+
+                // Draw Nodes
+                this.graph.nodes.forEach(node => {
+                    this.ctx.fillStyle = this.getLDrawColor(node.color);
+                    this.ctx.beginPath();
+                    this.ctx.arc(node.x, node.z, 4, 0, Math.PI * 2); // Top-down: X, Z
+                    this.ctx.fill();
+
+                    // Selection/Highlight ring
+                    if (this.graph.entities.some(e => e.nodes.includes(node.id))) {
+                        this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.5)';
+                        this.ctx.stroke();
+                    }
+
+                    if (node.category === 'Generated') {
+                        this.ctx.strokeStyle = '#fff';
+                        this.ctx.lineWidth = 2;
+                        this.ctx.stroke();
+                    }
+                });
+
+                // Draw Entities (Bounding Boxes)
+                this.graph.entities.forEach(entity => {
+                    this.ctx.strokeStyle = this.getLDrawColor(entity.color);
+                    this.ctx.lineWidth = 2;
+                    this.ctx.setLineDash([5, 5]);
+                    this.ctx.beginPath();
+                    this.ctx.arc(entity.x, entity.z, 20, 0, Math.PI * 2);
+                    this.ctx.stroke();
+                    this.ctx.setLineDash([]);
+
+                    // Label
+                    this.ctx.fillStyle = '#fff';
+                    this.ctx.font = '10px monospace';
+                    this.ctx.fillText(entity.archetype, entity.x + 25, entity.z);
+                });
+
+                this.ctx.restore();
+            }
+
+            drawGrid() {
+                // Simple background grid
+                this.ctx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
+                this.ctx.lineWidth = 1;
+                const step = 50 * this.camera.zoom;
+                const w = this.canvas.width;
+                const h = this.canvas.height;
+
+                const offsetX = (this.camera.x + w / 2) % step;
+                const offsetY = (this.camera.y + h / 2) % step;
+
+                for (let x = offsetX; x < w; x += step) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(x, 0);
+                    this.ctx.lineTo(x, h);
+                    this.ctx.stroke();
+                }
+                for (let y = offsetY; y < h; y += step) {
+                    this.ctx.beginPath();
+                    this.ctx.moveTo(0, y);
+                    this.ctx.lineTo(w, y);
+                    this.ctx.stroke();
+                }
+            }
+
+            getLDrawColor(code) {
+                // Basic mapping
+                const colors = {
+                    0: '#05131D', // Black
+                    1: '#0055BF', // Blue
+                    2: '#237841', // Green
+                    4: '#C91A09', // Red
+                    14: '#F2CD37', // Yellow
+                    71: '#A0A5A9', // Light Bluish Grey
+                    72: '#6C6E68', // Dark Bluish Grey
+                    15: '#FFFFFF', // White
+                    19: '#B40000', // Light Red (approx)
+                    25: '#D67923', // Orange
+                    28: '#D9BB7B', // Tan
+                };
+                return colors[code] || '#888888';
+            }
+        }
+
+        const app = new App();
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,692 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>Grid Assembles Reality — 20×20 Mosaic</title>
+    <link rel="icon"
+        href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🐸</text></svg>">
+    <style>
+        :root {
+            /* Swap this to your art URL */
+            --img: url('tutorial_assets/images/city_final.png');
+            --cols: 20;
+            --rows: 20;
+            --size: min(92vmin, 1024px);
+            --grid: rgba(0, 255, 180, .28);
+            --bg: #0b0d10;
+            --ink: #e9e9e9;
+            --accent: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
+        }
+
+        .main {
+            min-height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 20px
+        }
+
+        .panel {
+            width: var(--size)
+        }
+
+        .hdr {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 12px
+        }
+
+        .hdr h1 {
+            font-weight: 700;
+            letter-spacing: .02em;
+            font-size: clamp(16px, 2.6vmin, 24px);
+            margin: 0
+        }
+
+        .hdr .small {
+            opacity: .7;
+            font-size: .9em
+        }
+
+        .controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        button,
+        input,
+        select {
+            background: #12161c;
+            color: var(--ink);
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:hover {
+            border-color: #3a9
+        }
+
+        input.url {
+            min-width: 260px;
+            width: min(48vw, 520px)
+        }
+
+        .stage {
+            position: relative;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, .5), inset 0 0 0 1px #222
+        }
+
+        /* subtle vignette */
+        .stage::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(60% 60% at 50% 45%, transparent 0 60%, rgba(0, 0, 0, .35) 100%);
+            pointer-events: none
+        }
+
+        .grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--cols), 1fr);
+            grid-template-rows: repeat(var(--rows), 1fr)
+        }
+
+        .tile {
+            position: relative;
+            opacity: 0;
+            transform: scale(.96);
+            filter: blur(8px) saturate(.1) brightness(.7);
+            transition: opacity .6s cubic-bezier(.18, .7, .16, 1), transform .6s cubic-bezier(.18, .7, .16, 1), filter .9s ease;
+            background-image: var(--img);
+            background-repeat: no-repeat;
+            background-size: calc(var(--cols)*100%) calc(var(--rows)*100%);
+            outline: 1px solid color-mix(in hsl, var(--grid) 95%, transparent)
+        }
+
+        .tile.on {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0) saturate(1) brightness(1);
+            outline-color: color-mix(in hsl, var(--grid) 0%, transparent)
+        }
+
+        /* heat shimmer (applied globally during build) */
+        @keyframes shimmer {
+            0% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-.7px)
+            }
+
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        .stage.building {
+            filter: contrast(1.02) saturate(1.03)
+        }
+
+        .tile.on.build-wobble {
+            animation: shimmer 1.6s ease-in-out var(--delay) 2
+        }
+
+        /* ember flicker overlay */
+        .flicker {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(100% 65% at 50% 70%, rgba(255, 110, 30, .18), transparent 60%);
+            mix-blend-mode: screen;
+            opacity: .0;
+            transition: opacity .6s ease
+        }
+
+        .stage.ready .flicker {
+            opacity: .6
+        }
+
+        .legend {
+            margin-top: 10px;
+            color: #9aa3ad;
+            font-size: .92em
+        }
+
+        .code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace
+        }
+
+        .badge {
+            background: #11161c;
+            border: 1px solid #2a323a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-right: 6px
+        }
+
+        .controls label.seg {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        /* Segmentation overlay */
+        .segOverlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none
+        }
+
+        .segOverlay .cell {
+            opacity: 0;
+            transition: opacity .6s ease
+        }
+
+        .segOverlay.show .cell {
+            opacity: .22
+        }
+
+        .segOverlay .bound {
+            stroke-width: 3;
+            stroke-linecap: round;
+            opacity: .9
+        }
+
+        .segOverlay .bound.voronoi {
+            stroke-dasharray: 8 8;
+            opacity: .75
+        }
+
+        .legend .swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: -2px
+        }
+
+        /* Self-test panel */
+        .tests {
+            margin-top: 10px;
+            background: #0e131a;
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: #b7c2cc
+        }
+
+        .tests summary {
+            cursor: pointer
+        }
+
+        .tests .pass {
+            color: #63e6be
+        }
+
+        .tests .fail {
+            color: #ff6b6b
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="panel">
+            <div class="hdr">
+                <h1>Grid Assembles Reality</h1>
+                <div class="small">20×20 cells, ripple/edge/segment assembly</div>
+                <div class="controls">
+                    <input class="url" placeholder="Paste image URL (optional)" />
+                    <select id="mode" title="Assembly mode">
+                        <option value="ripple">Ripple</option>
+                        <option value="edges">Edges‑first</option>
+                        <option value="contour" selected>Contour BFS</option>
+                        <option value="segments">Segments (K‑means)</option>
+                    </select>
+                    <label class="seg" title="# of segments for K‑means">k <input id="k" type="number" min="2" max="8"
+                            value="4" /></label>
+                    <button id="rebuild">Reassemble</button>
+                    <button id="exportONYX" title="Export to ONYX narrative format"
+                        style="background: #3a9; border-color: #3a9;">Export to ONYX</button>
+                    <button id="annotate">Annotate</button>
+                    <button id="exportONYX" title="Export to ONYX narrative format"
+                        style="background: #3a9; border-color: #3a9;">Export to ONYX</button>
+                </div>
+            </div>
+
+            <div class="stage" id="stage">
+                <div class="grid" id="grid"></div>
+                <svg class="segOverlay" id="segSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                <div class="flicker"></div>
+            </div>
+
+            <div class="legend code">
+                <span class="badge">Prompt (≈250c)</span>Embers of Ancestry—warm dusk campfire cover. Title fades in;
+                embers flicker/spark; frog breathes + rare blink; smoke drifts; logs parallax; soft bokeh float; “COOL
+                RADIO” slides in; vignette breathes. Cinematic, gentle loop; heat‑shimmer, no hard cuts.
+            </div>
+
+            <details class="tests" open>
+                <summary>Self‑tests</summary>
+                <ul id="test-list" class="code" style="padding-left:18px;margin:6px 0 0"></ul>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        /********************
+         * DOM & CONFIG
+         ********************/
+        const STAGE = document.getElementById('stage');
+        const GRID = document.getElementById('grid');
+        const segSvg = document.getElementById('segSvg');
+        const rebuildBtn = document.getElementById('rebuild');
+        const annotateBtn = document.getElementById('annotate');
+        const urlInput = document.querySelector('.url');
+        const modeSelect = document.getElementById('mode');
+        const kInput = document.getElementById('k');
+        const TEST_LIST = document.getElementById('test-list');
+
+        const COLS = 20, ROWS = 20;                  // grid
+        let ORIGIN = { c: 8, r: 13 };                // default seed (frog-ish)
+        const CELL_DELAY = 90;                       // ms per ring (fallback)
+        const NOISE = 80;                            // random jitter per cell
+        const WOBBLE_PROB = 0.55;                    // some tiles shimmer briefly
+
+        // last segmentation for re-render on resize / annotate
+        let LAST_LABELS = null, LAST_K = null;
+
+        /********************
+         * UTIL
+         ********************/
+        function getCurrentImgURL() {
+            const s = getComputedStyle(document.documentElement).getPropertyValue('--img');
+            const m = s.match(/url\(["']?(.*?)["']?\)/);
+            return m ? m[1] : '';
+        }
+        let IMG_URL = getCurrentImgURL();
+
+        // Offscreen analysis canvas
+        const CANVAS = document.createElement('canvas');
+        const CTX = CANVAS.getContext('2d', { willReadFrequently: true });
+        CANVAS.width = COLS * 16; CANVAS.height = ROWS * 16; // analysis resolution
+
+        function setImage(url) {
+            if (url) {
+                IMG_URL = url;
+                document.documentElement.style.setProperty('--img', `url('${url}')`);
+            }
+        }
+
+        function makeGrid() {
+            GRID.style.setProperty('--cols', COLS);
+            GRID.style.setProperty('--rows', ROWS);
+            GRID.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const t = document.createElement('div');
+                    t.className = 'tile';
+                    const x = (c / (COLS - 1)) * 100, y = (r / (ROWS - 1)) * 100; // slice position
+                    t.style.backgroundPosition = `${x}% ${y}%`;
+                    GRID.appendChild(t);
+                }
+            }
+        }
+
+        function coverDraw(img, ctx, W, H) {
+            const ar = img.width / img.height, stageAR = W / H;
+            let dw = W, dh = H, dx = 0, dy = 0;
+            if (ar > stageAR) { dh = H; dw = dh * ar; dx = -(dw - W) / 2; }
+            else { dw = W; dh = dw / ar; dy = -(dh - H) / 2; }
+            ctx.clearRect(0, 0, W, H);
+            ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        function loadToCanvas(url) {
+            return new Promise(resolve => {
+                const im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.onload = () => { coverDraw(im, CTX, CANVAS.width, CANVAS.height); resolve(true); };
+                im.onerror = () => resolve(false);
+                im.src = url;
+            });
+        }
+
+        /********************
+         * ANALYSIS (edges + features)
+         ********************/
+        function computeFeatures() {
+            try {
+                const w = CANVAS.width, h = CANVAS.height;
+                const { data } = CTX.getImageData(0, 0, w, h);
+                const gray = new Float32Array(w * h);
+                for (let p = 0, i = 0; i < data.length; i += 4, p++) {
+                    const r = data[i], g = data[i + 1], b = data[i + 2];
+                    gray[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+                }
+                const grad = new Float32Array(w * h);
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const p = y * w + x;
+                        const gx = -gray[p - w - 1] + gray[p - w + 1] - 2 * gray[p - 1] + 2 * gray[p + 1] - gray[p + w - 1] + gray[p + w + 1];
+                        const gy = gray[p - w - 1] + 2 * gray[p - w] + gray[p - w + 1] - gray[p + w - 1] - 2 * gray[p + w] - gray[p + w + 1];
+                        grad[p] = Math.hypot(gx, gy);
+                    }
+                }
+                const tw = Math.floor(w / COLS), th = Math.floor(h / ROWS);
+                const edges = [], colors = []; let maxE = 1e-6;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        let sumE = 0, sumR = 0, sumG = 0, sumB = 0, count = 0;
+                        for (let yy = r * th; yy < (r + 1) * th; yy++) {
+                            for (let xx = c * tw; xx < (c + 1) * tw; xx++) {
+                                const p = yy * w + xx; const di = p * 4;
+                                sumE += grad[p];
+                                sumR += data[di]; sumG += data[di + 1]; sumB += data[di + 2];
+                                count++;
+                            }
+                        }
+                        const e = sumE / count; maxE = Math.max(maxE, e);
+                        edges.push(e); colors.push([sumR / count, sumG / count, sumB / count]);
+                    }
+                }
+                const normEdges = edges.map(e => e / maxE);
+                return { ok: true, edges: normEdges, colors };
+            } catch (err) { console.warn('Feature compute failed (tainted image?)', err); return { ok: false } }
+        }
+
+        /********************
+         * CLUSTERING + OVERLAY
+         ********************/
+        function kmeans(points, k = 4, iters = 8) {
+            const n = points.length, dim = points[0].length;
+            const centers = Array.from({ length: k }, _ => points[Math.floor(Math.random() * n)].slice());
+            const labels = new Array(n).fill(0);
+            for (let it = 0; it < iters; it++) {
+                for (let i = 0; i < n; i++) {
+                    let best = 0, bestd = Infinity; const p = points[i];
+                    for (let j = 0; j < k; j++) {
+                        let d = 0; const c = centers[j];
+                        for (let dI = 0; dI < dim; dI++) { const diff = p[dI] - c[dI]; d += diff * diff; }
+                        if (d < bestd) { bestd = d; best = j; }
+                    }
+                    labels[i] = best;
+                }
+                const sums = Array.from({ length: k }, _ => new Array(dim).fill(0));
+                const counts = new Array(k).fill(0);
+                for (let i = 0; i < n; i++) { const l = labels[i]; counts[l]++; const p = points[i]; for (let dI = 0; dI < dim; dI++) sums[l][dI] += p[dI]; }
+                for (let j = 0; j < k; j++) { if (counts[j]) for (let dI = 0; dI < dim; dI++) centers[j][dI] = sums[j][dI] / counts[j]; }
+            }
+            return labels;
+        }
+
+        function goldenColor(i, a = 0.9) { const h = (i * 137.508) % 360; return `hsla(${h} 85% 55% / ${a})`; }
+
+        function renderSegOverlay(labels, k) {
+            const W = STAGE.clientWidth, H = STAGE.clientHeight; // use stage size
+            segSvg.setAttribute('width', W); segSvg.setAttribute('height', H);
+            segSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+            segSvg.innerHTML = '';
+            const gCells = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const gBounds = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const gVor = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            gBounds.setAttribute('fill', 'none'); gVor.setAttribute('fill', 'none');
+
+            const cw = W / COLS, ch = H / ROWS;
+            // centroids in tile coords
+            const cent = Array.from({ length: k }, () => ({ x: 0, y: 0, n: 0 }));
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                const id = r * COLS + c, cl = labels[id]; cent[cl].x += c + 0.5; cent[cl].y += r + 0.5; cent[cl].n++;
+            }
+            for (const c of cent) { if (c.n) { c.x /= c.n; c.y /= c.n; } }
+
+            // nearest centroid (Voronoi-like on grid)
+            const vor = new Array(ROWS * COLS).fill(0);
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                let best = 0, bestd = Infinity;
+                for (let j = 0; j < k; j++) {
+                    const dx = (c + 0.5) - cent[j].x, dy = (r + 0.5) - cent[j].y; const d = dx * dx + dy * dy; if (d < bestd) { bestd = d; best = j; }
+                }
+                vor[r * COLS + c] = best;
+            }
+
+            // draw cells
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const id = r * COLS + c; const cl = labels[id];
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', (c * cw).toFixed(2));
+                    rect.setAttribute('y', (r * ch).toFixed(2));
+                    rect.setAttribute('width', Math.ceil(cw) + 1);
+                    rect.setAttribute('height', Math.ceil(ch) + 1);
+                    rect.setAttribute('fill', goldenColor(cl, 0.22));
+                    rect.setAttribute('class', 'cell');
+                    gCells.appendChild(rect);
+                }
+            }
+
+            function jitter(n, amp) { return n + (Math.random() * 2 - 1) * amp; }
+
+            // cluster boundaries (solid)
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 1; c < COLS; c++) {
+                    const a = labels[r * COLS + c - 1], b = labels[r * COLS + c];
+                    if (a !== b) {
+                        const x = c * cw; let d = ""; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch;
+                        for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.4); d += (i ? " L " : "M ") + jitter(x, 1.2).toFixed(2) + " " + y.toFixed(2); }
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', '#fff'); path.setAttribute('class', 'bound'); gBounds.appendChild(path);
+                    }
+                }
+            }
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 1; r < ROWS; r++) {
+                    const a = labels[(r - 1) * COLS + c], b = labels[r * COLS + c];
+                    if (a !== b) {
+                        const y = r * ch; let d = ""; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw;
+                        for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.4); d += (i ? " L " : "M ") + x.toFixed(2) + " " + jitter(y, 1.2).toFixed(2); }
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', '#fff'); path.setAttribute('class', 'bound'); gBounds.appendChild(path);
+                    }
+                }
+            }
+
+            // voronoi-like boundaries (dashed)
+            const vorColor = '#ffd24a';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 1; c < COLS; c++) {
+                    const a = vor[r * COLS + c - 1], b = vor[r * COLS + c];
+                    if (a !== b) {
+                        const x = c * cw; let d = ""; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch;
+                        for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.6); d += (i ? " L " : "M ") + jitter(x, 1.6).toFixed(2) + " " + y.toFixed(2); }
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', vorColor); path.setAttribute('class', 'bound voronoi'); gVor.appendChild(path);
+                    }
+                }
+            }
+            for (let c = 0; c < COLS; c++) {
+                for (let r = 1; r < ROWS; r++) {
+                    const a = vor[(r - 1) * COLS + c], b = vor[r * COLS + c];
+                    if (a !== b) {
+                        const y = r * ch; let d = ""; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw;
+                        for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.6); d += (i ? " L " : "M ") + x.toFixed(2) + " " + jitter(y, 1.6).toFixed(2); }
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', vorColor); path.setAttribute('class', 'bound voronoi'); gVor.appendChild(path);
+                    }
+                }
+            }
+
+            segSvg.appendChild(gCells); segSvg.appendChild(gBounds); segSvg.appendChild(gVor);
+            segSvg.classList.add('show');
+        }
+
+        /********************
+         * SCHEDULING + ASSEMBLY
+         ********************/
+        function buildSchedule(mode, edges, clusters) {
+            const tiles = [...GRID.children];
+            const idxs = [...Array(tiles.length).keys()];
+            const STEP = 26; // ms
+            if (mode === 'edges') {
+                idxs.sort((a, b) => edges[b] - edges[a]);
+                return idxs.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'contour') {
+                const visited = new Array(ROWS * COLS).fill(false); const order = []; const frontier = [];
+                function push(r, c) { if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return; const id = r * COLS + c; if (visited[id]) return; frontier.push(id); visited[id] = true; }
+                push(ORIGIN.r, ORIGIN.c);
+                while (frontier.length) {
+                    frontier.sort((a, b) => edges[b] - edges[a]);
+                    const id = frontier.shift(); order.push(id);
+                    const r = Math.floor(id / COLS), c = id % COLS;
+                    push(r - 1, c); push(r + 1, c); push(r, c - 1); push(r, c + 1);
+                }
+                return order.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'segments' && clusters) {
+                const groups = {}; idxs.forEach(id => { const cl = clusters[id]; (groups[cl] || (groups[cl] = [])).push(id); });
+                function medianEdge(list) { const s = list.map(i => edges[i]).sort((a, b) => a - b); return s[Math.floor(s.length / 2)] || 0; }
+                const clusterOrder = Object.keys(groups).sort((A, B) => medianEdge(groups[B]) - medianEdge(groups[A]));
+                const order = [];
+                for (const cl of clusterOrder) {
+                    const ids = groups[cl];
+                    // BFS within cluster, edge-prioritized
+                    const vis = new Set();
+                    const q = [];
+                    const start = ORIGIN.r * COLS + ORIGIN.c;
+                    q.push(ids.includes(start) ? start : ids[0]); vis.add(q[0]);
+                    while (q.length) {
+                        q.sort((a, b) => edges[b] - edges[a]);
+                        const id = q.shift(); order.push(id);
+                        const r = Math.floor(id / COLS), c = id % COLS;
+                        const N = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+                        for (const [rr, cc] of N) { const nid = rr * COLS + cc; if (rr >= 0 && cc >= 0 && rr < ROWS && cc < COLS && ids.includes(nid) && !vis.has(nid)) { vis.add(nid); q.push(nid); } }
+                    }
+                    order.push(-1); // gap
+                }
+                const schedule = []; let t = 0; for (const id of order) { if (id == -1) { t += 300; continue; } schedule.push([id, t]); t += STEP; } return schedule;
+            }
+            // fallback ripple
+            const schedule = [];
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const id = r * COLS + c; const ring = Math.abs(c - ORIGIN.c) + Math.abs(r - ORIGIN.r); schedule.push([id, ring * CELL_DELAY + Math.random() * NOISE]); }
+            schedule.sort((a, b) => a[1] - b[1]);
+            return schedule;
+        }
+
+        async function assemble() {
+            STAGE.classList.add('building'); STAGE.classList.remove('ready'); segSvg.classList.remove('show'); segSvg.innerHTML = '';
+            LAST_LABELS = null; LAST_K = null;
+            const tiles = [...GRID.children]; tiles.forEach(t => t.classList.remove('on', 'build-wobble'));
+
+            // analysis pipeline
+            let features = { ok: false };
+            const loaded = await loadToCanvas(IMG_URL);
+            if (loaded) features = computeFeatures();
+
+            if (features.ok) {
+                // refine origin to strongest edge near seed
+                const centerId = Math.floor(ROWS / 2) * COLS + Math.floor(COLS / 2);
+                let best = centerId, bestScore = -1; const rad = 3;
+                for (let rr = ORIGIN.r - rad; rr <= ORIGIN.r + rad; rr++) {
+                    for (let cc = ORIGIN.c - rad; cc <= ORIGIN.c + rad; cc++) {
+                        if (rr < 0 || cc < 0 || rr >= ROWS || cc >= COLS) continue; const id = rr * COLS + cc; const score = features.edges[id]; if (score > bestScore) { bestScore = score; best = id; }
+                    }
+                }
+                ORIGIN = { r: Math.floor(best / COLS), c: best % COLS };
+            }
+
+            let clusters = null; let k = 4;
+            if (features.ok) {
+                const pts = features.colors.map((rgb, i) => [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, features.edges[i]]);
+                k = Math.max(2, Math.min(8, parseInt(kInput.value) || 4));
+                clusters = kmeans(pts, k, 8);
+                LAST_LABELS = clusters; LAST_K = k;
+            }
+
+            const mode = modeSelect.value;
+            const schedule = buildSchedule(mode, features.ok ? features.edges : new Array(COLS * ROWS).fill(0), clusters);
+
+            let maxDelay = 0;
+            for (const [id, t] of schedule) { if (id < 0) continue; maxDelay = Math.max(maxDelay, t); setTimeout(() => { const tile = tiles[id]; tile.classList.add('on'); if (Math.random() < WOBBLE_PROB) tile.classList.add('build-wobble'); }, t); }
+            setTimeout(() => { STAGE.classList.remove('building'); STAGE.classList.add('ready'); if (LAST_LABELS) renderSegOverlay(LAST_LABELS, LAST_K); }, maxDelay + 800);
+        }
+
+        /********************
+         * EVENTS
+         ********************/
+        rebuildBtn.addEventListener('click', () => { setImage(urlInput.value.trim()); assemble(); });
+        annotateBtn.addEventListener('click', () => { if (!segSvg.innerHTML.trim() && LAST_LABELS) { renderSegOverlay(LAST_LABELS, LAST_K); } segSvg.classList.toggle('show'); });
+        window.addEventListener('resize', () => { if (LAST_LABELS && segSvg.classList.contains('show')) renderSegOverlay(LAST_LABELS, LAST_K); });
+        // Optional: click stage to set new origin and reassemble
+        STAGE.addEventListener('click', (e) => {
+            const rect = STAGE.getBoundingClientRect();
+            const x = e.clientX - rect.left, y = e.clientY - rect.top;
+            ORIGIN = { c: Math.max(0, Math.min(COLS - 1, Math.floor(x / (rect.width / COLS)))), r: Math.max(0, Math.min(ROWS - 1, Math.floor(y / (rect.height / ROWS)))) };
+            assemble();
+        });
+
+        /********************
+         * SELF‑TESTS
+         ********************/
+        function test(name, fn) {
+            try { const ok = fn(); const li = document.createElement('li'); li.innerHTML = (ok ? '<span class="pass">PASS</span>' : '<span class="fail">FAIL</span>') + ` — ${name}`; TEST_LIST.appendChild(li); if (!ok) console.warn('Test failed:', name); }
+            catch (err) { const li = document.createElement('li'); li.innerHTML = `<span class="fail">ERROR</span> — ${name}: ${err.message}`; TEST_LIST.appendChild(li); console.error(err); }
+        }
+
+        // K-means sanity
+        (function () {
+            const pts = [[0, 0, 0, 0], [1, 1, 1, 1], [0.1, 0.1, 0.1, 0.2], [0.9, 0.9, 0.9, 0.8]]; const k = 2; const labels = kmeans(pts, k, 4);
+            test('kmeans returns n labels & range 0..k-1', () => labels.length === pts.length && labels.every(v => v === 0 || v === 1));
+        })();
+
+        // Schedule edges mode monotonicity on sample
+        (function () {
+            const edges = [0.1, 0.9, 0.3, 0.7]; const order = buildSchedule('edges', edges, null);
+            const e = order.map(([id]) => edges[id]);
+            test('edges schedule sorts by descending edge strength', () => e.join(',') === e.slice().sort((a, b) => b - a).join(','));
+        })();
+
+        // Overlay minimal render sanity (synthetic labels)
+        (function () {
+            const labels = new Array(ROWS * COLS).fill(0).map((_, i) => (i % COLS < COLS / 2 ? 0 : 1));
+            renderSegOverlay(labels, 2);
+            test('renderSegOverlay populates SVG', () => segSvg.innerHTML.trim().length > 0);
+            segSvg.classList.remove('show'); segSvg.innerHTML = '';
+        })();
+
+        /********************
+         * BOOT
+         ********************/
+        makeGrid();
+        assemble();
+    </script>
+</body>
+
+</html>

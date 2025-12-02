@@ -1,0 +1,795 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Ontological Modeling OS</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Inter:wght@400;600;700&display=swap');
+
+        :root {
+            --os-bg: #0a0e27;
+            --os-panel: rgba(20, 24, 41, 0.8);
+            --os-surface: rgba(30, 36, 57, 0.6);
+            --os-border: rgba(45, 52, 81, 0.5);
+            --os-text: #e2e8f0;
+            --os-muted: #94a3b8;
+            --os-accent: #3b82f6;
+            --os-accent-glow: rgba(59, 130, 246, 0.3);
+            --font-ui: 'Inter', sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            font-family: var(--font-ui);
+            background: var(--os-bg);
+            color: var(--os-text);
+            overflow: hidden;
+            height: 100vh;
+            width: 100vw;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* OS Shell */
+        .os-shell {
+            display: grid;
+            grid-template-rows: 48px 1fr 48px;
+            height: 100%;
+            background: radial-gradient(circle at 50% 50%, #1e2439 0%, #0a0e27 100%);
+        }
+
+        /* Top Bar */
+        .os-topbar {
+            background: var(--os-panel);
+            border-bottom: 1px solid var(--os-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            backdrop-filter: blur(12px);
+            z-index: 50;
+        }
+
+        .os-logo {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--os-text);
+        }
+
+        .os-time {
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            color: var(--os-muted);
+        }
+
+        /* Desktop */
+        .os-desktop {
+            position: relative;
+            overflow: hidden;
+            height: 100%;
+            width: 100%;
+        }
+
+        /* Window System */
+        .window {
+            position: absolute;
+            background: var(--os-panel);
+            border: 1px solid var(--os-border);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5), 0 0 0 1px rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            backdrop-filter: blur(20px);
+            transition: width 0.3s, height 0.3s, border-radius 0.3s;
+            /* Default Desktop Size */
+            top: 5%;
+            left: 10%;
+            width: 80%;
+            height: 85%;
+        }
+
+        /* Mobile Window Override */
+        @media (max-width: 768px) {
+            .window {
+                top: 0 !important;
+                left: 0 !important;
+                width: 100% !important;
+                height: 100% !important;
+                border-radius: 0;
+                border: none;
+            }
+
+            .window-controls {
+                display: none;
+            }
+
+            /* Hide window controls on mobile */
+        }
+
+        .window.maximized {
+            top: 0 !important;
+            left: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
+            border-radius: 0;
+        }
+
+        .window-titlebar {
+            height: 44px;
+            background: rgba(255, 255, 255, 0.03);
+            border-bottom: 1px solid var(--os-border);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            cursor: grab;
+            user-select: none;
+        }
+
+        .window-titlebar:active {
+            cursor: grabbing;
+        }
+
+        .window-title {
+            font-weight: 600;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .window-controls {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .window-btn {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+        }
+
+        .window-btn.close {
+            background: #ef4444;
+        }
+
+        .window-btn.minimize {
+            background: #f59e0b;
+        }
+
+        .window-btn.maximize {
+            background: #10b981;
+        }
+
+        .window-content {
+            flex: 1;
+            overflow-y: auto;
+            overflow-x: hidden;
+            padding: 1.5rem;
+            position: relative;
+        }
+
+        /* Slides */
+        .slide {
+            display: none;
+            animation: fadeIn 0.4s ease-out;
+            height: 100%;
+        }
+
+        .slide.active {
+            display: flex;
+            flex-direction: column;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .slide-header {
+            margin-bottom: 2rem;
+            text-align: center;
+        }
+
+        .slide-title {
+            font-size: 2rem;
+            font-weight: 800;
+            margin-bottom: 0.5rem;
+            background: linear-gradient(135deg, #60a5fa, #c084fc);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .slide-subtitle {
+            font-size: 1rem;
+            color: var(--os-muted);
+        }
+
+        /* Grid & Interactive */
+        .grid-demo {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            gap: 2px;
+            aspect-ratio: 1;
+            max-width: 400px;
+            margin: 0 auto;
+            background: var(--os-surface);
+            padding: 4px;
+            border-radius: 8px;
+        }
+
+        .grid-cell {
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.6rem;
+            color: rgba(255, 255, 255, 0.2);
+            cursor: pointer;
+        }
+
+        .grid-cell.filled {
+            background: var(--os-accent);
+            box-shadow: 0 0 10px var(--os-accent);
+        }
+
+        /* Entity Cards */
+        .entity-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 0.75rem;
+            padding-bottom: 2rem;
+        }
+
+        .entity-card {
+            background: var(--os-surface);
+            border: 1px solid var(--os-border);
+            border-radius: 8px;
+            padding: 1rem;
+            cursor: pointer;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .entity-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--os-accent);
+        }
+
+        .entity-icon {
+            margin-bottom: 0.5rem;
+        }
+
+        .entity-name {
+            font-weight: 700;
+            font-size: 0.9rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .entity-desc {
+            font-size: 0.75rem;
+            color: var(--os-muted);
+            line-height: 1.4;
+        }
+
+        /* Interactive Canvas */
+        .interactive-canvas {
+            position: relative;
+            aspect-ratio: 1;
+            width: 100%;
+            max-width: 500px;
+            margin: 1rem auto;
+            background: rgba(0, 0, 0, 0.2);
+            border: 1px solid var(--os-border);
+            border-radius: 12px;
+            overflow: hidden;
+            touch-action: none;
+            /* Prevent scrolling while dragging */
+        }
+
+        .node {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            cursor: grab;
+            z-index: 10;
+        }
+
+        .node:active {
+            cursor: grabbing;
+        }
+
+        .node-visual {
+            width: 40px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            border: 2px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .node-label {
+            margin-top: 4px;
+            font-size: 0.7rem;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 2px 6px;
+            border-radius: 4px;
+            pointer-events: none;
+        }
+
+        /* Navigation */
+        .slide-nav {
+            margin-top: auto;
+            padding-top: 1rem;
+            border-top: 1px solid var(--os-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: var(--os-surface);
+            border: 1px solid var(--os-border);
+            color: var(--os-text);
+            padding: 0.5rem 1rem;
+            border-radius: 6px;
+            font-size: 0.9rem;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:active {
+            background: var(--os-accent);
+            border-color: var(--os-accent);
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.3;
+            pointer-events: none;
+        }
+
+        /* Taskbar */
+        .os-taskbar {
+            background: var(--os-panel);
+            border-top: 1px solid var(--os-border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 1rem;
+            backdrop-filter: blur(12px);
+            z-index: 50;
+        }
+
+        .dock-item {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            background: rgba(255, 255, 255, 0.1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s;
+            cursor: pointer;
+        }
+
+        .dock-item:hover {
+            transform: scale(1.1);
+            background: rgba(255, 255, 255, 0.2);
+        }
+
+        .dock-item.active {
+            background: var(--os-accent);
+            box-shadow: 0 0 15px var(--os-accent-glow);
+        }
+
+        /* Mobile Typography Adjustments */
+        @media (max-width: 640px) {
+            .slide-title {
+                font-size: 1.5rem;
+            }
+
+            .slide-subtitle {
+                font-size: 0.9rem;
+            }
+
+            .window-content {
+                padding: 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="os-shell">
+        <!-- Top Bar -->
+        <div class="os-topbar">
+            <div class="os-logo">
+                <i data-lucide="hexagon" class="text-blue-500 w-5 h-5"></i>
+                <span class="hidden sm:inline">Ontological Modeling OS</span>
+                <span class="sm:hidden">ONYX OS</span>
+            </div>
+            <div class="os-time" id="os-time">12:00</div>
+        </div>
+
+        <!-- Desktop -->
+        <div class="os-desktop" id="desktop">
+            <div class="window" id="main-window">
+                <div class="window-titlebar" id="titlebar">
+                    <div class="window-title">
+                        <i data-lucide="presentation" class="w-4 h-4 text-blue-400"></i>
+                        Interactive Briefing
+                    </div>
+                    <div class="window-controls">
+                        <div class="window-btn minimize"></div>
+                        <div class="window-btn maximize"></div>
+                        <div class="window-btn close"></div>
+                    </div>
+                </div>
+
+                <div class="window-content">
+                    <!-- SLIDE 1: INTRO -->
+                    <div class="slide active" id="slide-1">
+                        <div class="slide-header">
+                            <div class="flex justify-center mb-6">
+                                <div class="relative w-32 h-32 flex items-center justify-center">
+                                    <div class="absolute inset-0 bg-blue-500 blur-2xl opacity-20 animate-pulse"></div>
+                                    <i data-lucide="network" class="w-16 h-16 text-blue-400 relative z-10"></i>
+                                    <svg class="absolute inset-0 w-full h-full animate-[spin_10s_linear_infinite]"
+                                        viewBox="0 0 100 100">
+                                        <circle cx="50" cy="50" r="48" stroke="rgba(59,130,246,0.3)" stroke-width="1"
+                                            fill="none" stroke-dasharray="10 5" />
+                                    </svg>
+                                </div>
+                            </div>
+                            <h1 class="slide-title">ONYX</h1>
+                            <p class="slide-subtitle">The Ontological Modeling System</p>
+                        </div>
+                        <div class="flex-1 flex items-center justify-center text-center px-4">
+                            <p class="text-[var(--os-muted)] max-w-md leading-relaxed">
+                                A unified framework for modeling complex scenarios, narratives, and systems through
+                                structured atomic relationships.
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 2: ATOMS -->
+                    <div class="slide" id="slide-2">
+                        <div class="slide-header">
+                            <h1 class="slide-title">The Ontology</h1>
+                            <p class="slide-subtitle">Atomic Building Blocks</p>
+                        </div>
+                        <div class="entity-grid">
+                            <div class="entity-card">
+                                <i data-lucide="box" class="text-blue-400 mb-2"></i>
+                                <div class="entity-name text-blue-400">Entity</div>
+                                <div class="entity-desc">The actor, object, or variable.</div>
+                            </div>
+                            <div class="entity-card">
+                                <i data-lucide="hexagon" class="text-yellow-400 mb-2"></i>
+                                <div class="entity-name text-yellow-400">Core</div>
+                                <div class="entity-desc">The central theme or class definition.</div>
+                            </div>
+                            <div class="entity-card">
+                                <i data-lucide="target" class="text-green-400 mb-2"></i>
+                                <div class="entity-name text-green-400">Goal</div>
+                                <div class="entity-desc">A desired state (Entity + Desire).</div>
+                            </div>
+                            <div class="entity-card">
+                                <i data-lucide="shield-alert" class="text-red-400 mb-2"></i>
+                                <div class="entity-name text-red-400">Obstacle</div>
+                                <div class="entity-desc">A blocker (Entity + Conflict).</div>
+                            </div>
+                            <div class="entity-card">
+                                <i data-lucide="arrow-right-left" class="text-cyan-400 mb-2"></i>
+                                <div class="entity-name text-cyan-400">Morphism</div>
+                                <div class="entity-desc">A transformation function.</div>
+                            </div>
+                            <div class="entity-card">
+                                <i data-lucide="map" class="text-purple-400 mb-2"></i>
+                                <div class="entity-name text-purple-400">Location</div>
+                                <div class="entity-desc">Spatial context.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 3: GRID SYSTEM -->
+                    <div class="slide" id="slide-3">
+                        <div class="slide-header">
+                            <h1 class="slide-title">The 9×9 Grid</h1>
+                            <p class="slide-subtitle">Spatial Logic Layer</p>
+                        </div>
+                        <div class="grid-demo" id="grid-demo"></div>
+                        <div class="mt-6 text-center text-xs text-[var(--os-muted)]">
+                            Tap cells to toggle state. The grid provides a coordinate system for all ontological
+                            entities.
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 4: INTERACTIVE DEMO -->
+                    <div class="slide" id="slide-4">
+                        <div class="slide-header">
+                            <h1 class="slide-title">Playground</h1>
+                            <p class="slide-subtitle">Drag & Connect</p>
+                        </div>
+
+                        <div class="interactive-canvas" id="demo-canvas">
+                            <svg id="connections-layer"
+                                class="absolute inset-0 w-full h-full pointer-events-none"></svg>
+                            <!-- Nodes injected by JS -->
+                        </div>
+
+                        <div class="flex justify-center gap-2 mt-4 flex-wrap">
+                            <button onclick="addNode('Entity')"
+                                class="px-3 py-2 bg-blue-500/20 text-blue-400 rounded-lg text-xs font-bold border border-blue-500/50">+
+                                Entity</button>
+                            <button onclick="addNode('Goal')"
+                                class="px-3 py-2 bg-green-500/20 text-green-400 rounded-lg text-xs font-bold border border-green-500/50">+
+                                Goal</button>
+                            <button onclick="addNode('Obstacle')"
+                                class="px-3 py-2 bg-red-500/20 text-red-400 rounded-lg text-xs font-bold border border-red-500/50">+
+                                Obstacle</button>
+                            <button onclick="clearCanvas()"
+                                class="px-3 py-2 bg-white/10 text-white rounded-lg text-xs font-bold border border-white/20">Clear</button>
+                        </div>
+                    </div>
+
+                    <!-- SLIDE 5: SCENARIOS -->
+                    <div class="slide" id="slide-5">
+                        <div class="slide-header">
+                            <h1 class="slide-title">Scenarios</h1>
+                            <p class="slide-subtitle">Operational Logic</p>
+                        </div>
+                        <div class="space-y-4 max-w-lg mx-auto">
+                            <div class="p-4 rounded-lg bg-white/5 border border-white/10">
+                                <h3 class="text-blue-400 font-bold mb-2">Vignette</h3>
+                                <p class="text-sm text-gray-400">Micro-moments. A single interaction between two
+                                    entities.</p>
+                            </div>
+                            <div class="p-4 rounded-lg bg-white/5 border border-white/10">
+                                <h3 class="text-purple-400 font-bold mb-2">Situation</h3>
+                                <p class="text-sm text-gray-400">Complex context. Multiple actors, competing goals, and
+                                    systemic constraints.</p>
+                            </div>
+                            <div class="p-4 rounded-lg bg-white/5 border border-white/10">
+                                <h3 class="text-yellow-400 font-bold mb-2">Speculation</h3>
+                                <p class="text-sm text-gray-400">Future modeling. "What if" scenarios that challenge
+                                    assumptions.</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NAVIGATION -->
+                    <div class="slide-nav">
+                        <button class="nav-btn" onclick="changeSlide(-1)">
+                            <i data-lucide="arrow-left" class="w-4 h-4"></i>
+                        </button>
+                        <div class="flex gap-1" id="dots"></div>
+                        <button class="nav-btn" onclick="changeSlide(1)">
+                            <i data-lucide="arrow-right" class="w-4 h-4"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Taskbar -->
+        <div class="os-taskbar">
+            <div class="dock-item active"><i data-lucide="presentation" class="w-5 h-5 text-blue-400"></i></div>
+            <div class="dock-item" onclick="window.location.href='onyx-unified.html'"><i data-lucide="box"
+                    class="w-5 h-5 text-white"></i></div>
+            <div class="dock-item"><i data-lucide="settings" class="w-5 h-5 text-gray-400"></i></div>
+        </div>
+    </div>
+
+    <script>
+        // Init Icons
+        lucide.createIcons();
+
+        // Time
+        setInterval(() => {
+            const now = new Date();
+            document.getElementById('os-time').innerText = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+        }, 1000);
+
+        // Slides
+        let currentSlide = 0;
+        const slides = document.querySelectorAll('.slide');
+        const dotsContainer = document.getElementById('dots');
+
+        // Init Dots
+        slides.forEach((_, i) => {
+            const dot = document.createElement('div');
+            dot.className = `w-2 h-2 rounded-full ${i === 0 ? 'bg-blue-500' : 'bg-white/20'}`;
+            dotsContainer.appendChild(dot);
+        });
+
+        function changeSlide(dir) {
+            slides[currentSlide].classList.remove('active');
+            dotsContainer.children[currentSlide].className = 'w-2 h-2 rounded-full bg-white/20';
+
+            currentSlide = (currentSlide + dir + slides.length) % slides.length;
+
+            slides[currentSlide].classList.add('active');
+            dotsContainer.children[currentSlide].className = 'w-2 h-2 rounded-full bg-blue-500';
+
+            if (currentSlide === 2) initGrid();
+        }
+
+        // Grid Demo
+        function initGrid() {
+            const grid = document.getElementById('grid-demo');
+            if (grid.children.length > 0) return;
+            for (let i = 0; i < 81; i++) {
+                const cell = document.createElement('div');
+                cell.className = 'grid-cell';
+                cell.onclick = () => cell.classList.toggle('filled');
+                if (i === 40) cell.classList.add('filled'); // Center
+                grid.appendChild(cell);
+            }
+        }
+
+        // Interactive Canvas
+        const canvas = document.getElementById('demo-canvas');
+        const svgLayer = document.getElementById('connections-layer');
+        let nodes = [];
+        let draggedNode = null;
+
+        function addNode(type) {
+            const id = Date.now();
+            const el = document.createElement('div');
+            el.className = 'node';
+
+            let color = 'bg-blue-500';
+            let icon = 'box';
+            if (type === 'Goal') { color = 'bg-green-500'; icon = 'target'; }
+            if (type === 'Obstacle') { color = 'bg-red-500'; icon = 'shield-alert'; }
+
+            el.innerHTML = `
+                <div class="node-visual ${color}">
+                    <i data-lucide="${icon}" class="text-white w-5 h-5"></i>
+                </div>
+                <div class="node-label">${type}</div>
+            `;
+
+            // Random pos near center
+            const x = 50 + (Math.random() * 40 - 20);
+            const y = 50 + (Math.random() * 40 - 20);
+            el.style.left = `${x}%`;
+            el.style.top = `${y}%`;
+
+            canvas.appendChild(el);
+            lucide.createIcons();
+
+            const nodeObj = { id, el, x, y, type };
+            nodes.push(nodeObj);
+
+            // Drag Logic (Mouse + Touch)
+            const startDrag = (e) => {
+                e.preventDefault();
+                draggedNode = nodeObj;
+                const moveHandler = (ev) => {
+                    const clientX = ev.touches ? ev.touches[0].clientX : ev.clientX;
+                    const clientY = ev.touches ? ev.touches[0].clientY : ev.clientY;
+                    const rect = canvas.getBoundingClientRect();
+
+                    let nx = ((clientX - rect.left) / rect.width) * 100;
+                    let ny = ((clientY - rect.top) / rect.height) * 100;
+
+                    // Clamp
+                    nx = Math.max(5, Math.min(95, nx));
+                    ny = Math.max(5, Math.min(95, ny));
+
+                    draggedNode.x = nx;
+                    draggedNode.y = ny;
+                    draggedNode.el.style.left = `${nx}%`;
+                    draggedNode.el.style.top = `${ny}%`;
+
+                    drawConnections();
+                };
+
+                const endHandler = () => {
+                    document.removeEventListener('mousemove', moveHandler);
+                    document.removeEventListener('mouseup', endHandler);
+                    document.removeEventListener('touchmove', moveHandler);
+                    document.removeEventListener('touchend', endHandler);
+                    draggedNode = null;
+                };
+
+                document.addEventListener('mousemove', moveHandler);
+                document.addEventListener('mouseup', endHandler);
+                document.addEventListener('touchmove', moveHandler, { passive: false });
+                document.addEventListener('touchend', endHandler);
+            };
+
+            el.addEventListener('mousedown', startDrag);
+            el.addEventListener('touchstart', startDrag, { passive: false });
+
+            drawConnections();
+        }
+
+        function drawConnections() {
+            svgLayer.innerHTML = '';
+            // Simple chain for demo
+            for (let i = 0; i < nodes.length - 1; i++) {
+                const n1 = nodes[i];
+                const n2 = nodes[i + 1];
+
+                const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                line.setAttribute('x1', `${n1.x}%`);
+                line.setAttribute('y1', `${n1.y}%`);
+                line.setAttribute('x2', `${n2.x}%`);
+                line.setAttribute('y2', `${n2.y}%`);
+                line.setAttribute('stroke', 'rgba(255,255,255,0.3)');
+                line.setAttribute('stroke-width', '2');
+                svgLayer.appendChild(line);
+            }
+        }
+
+        function clearCanvas() {
+            nodes.forEach(n => n.el.remove());
+            nodes = [];
+            svgLayer.innerHTML = '';
+        }
+
+        // Draggable Window (Desktop Only)
+        const win = document.getElementById('main-window');
+        const titlebar = document.getElementById('titlebar');
+        let isDraggingWin = false;
+        let startX, startY, initLeft, initTop;
+
+        titlebar.addEventListener('mousedown', (e) => {
+            if (window.innerWidth < 768) return; // Disable on mobile
+            isDraggingWin = true;
+            startX = e.clientX;
+            startY = e.clientY;
+            initLeft = win.offsetLeft;
+            initTop = win.offsetTop;
+
+            const onMove = (ev) => {
+                if (!isDraggingWin) return;
+                win.style.left = `${initLeft + (ev.clientX - startX)}px`;
+                win.style.top = `${initTop + (ev.clientY - startY)}px`;
+            };
+
+            const onUp = () => {
+                isDraggingWin = false;
+                document.removeEventListener('mousemove', onMove);
+                document.removeEventListener('mouseup', onUp);
+            };
+
+            document.addEventListener('mousemove', onMove);
+            document.addEventListener('mouseup', onUp);
+        });
+
+    </script>
+</body>
+
+</html>

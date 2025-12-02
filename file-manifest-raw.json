@@ -1,0 +1,471 @@
+[
+  {
+    "name": "./stud-skeleton-binding-demo.html",
+    "size": 23750,
+    "modified": "2025-11-21 20:51:37",
+    "created": "2025-11-21 20:50:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag-yark.html",
+    "size": 26086,
+    "modified": "2025-11-19 17:29:41",
+    "created": "2025-11-19 17:29:41",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mpd-data-explorer.html",
+    "size": 36129,
+    "modified": "2025-11-22 00:39:22",
+    "created": "2025-11-21 21:44:56",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./multi-move.html",
+    "size": 26549,
+    "modified": "2025-11-19 08:08:04",
+    "created": "2025-11-19 08:08:03",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./brick-haven-central.html",
+    "size": 19353,
+    "modified": "2025-11-20 02:19:17",
+    "created": "2025-11-20 02:19:16",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./timber-master.html",
+    "size": 51016,
+    "modified": "2025-11-20 03:38:17",
+    "created": "2025-11-20 02:30:08",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./pathology-report-verification.md",
+    "size": 3708,
+    "modified": "2025-11-22 00:19:31",
+    "created": "2025-11-22 00:19:31",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag-grid-walk.html",
+    "size": 109062,
+    "modified": "2025-11-19 04:28:53",
+    "created": "2025-11-19 02:25:27",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./skeleton-control-room.html",
+    "size": 29427,
+    "modified": "2025-11-22 02:17:59",
+    "created": "2025-11-22 02:17:59",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./skeleton-ontology-explorer.html",
+    "size": 46524,
+    "modified": "2025-11-22 03:14:42",
+    "created": "2025-11-22 02:00:04",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./brick_haven_tutorial.html",
+    "size": 39154,
+    "modified": "2025-11-20 01:58:40",
+    "created": "2025-11-20 01:50:30",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag-brave.html",
+    "size": 111122,
+    "modified": "2025-11-19 04:20:56",
+    "created": "2025-11-19 03:30:30",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./brick-haven-previs.html",
+    "size": 26093,
+    "modified": "2025-11-20 02:08:34",
+    "created": "2025-11-20 02:08:33",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./pathology-report-schema.md",
+    "size": 3223,
+    "modified": "2025-11-22 00:12:26",
+    "created": "2025-11-22 00:12:26",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./.DS_Store",
+    "size": 10244,
+    "modified": "2025-11-20 17:22:25",
+    "created": "2025-11-19 01:59:09",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag-were-twilight.html",
+    "size": 54481,
+    "modified": "2025-11-19 19:42:46",
+    "created": "2025-11-19 16:44:34",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./disentangling-strategy.html",
+    "size": 22508,
+    "modified": "2025-11-22 18:10:04",
+    "created": "2025-11-22 18:10:03",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag_courage_calibration_compass.mpd",
+    "size": 1646,
+    "modified": "2025-11-19 08:54:26",
+    "created": "2025-11-18 21:04:15",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./LEGOS-tutorial-primal.html",
+    "size": 57269,
+    "modified": "2025-11-21 00:58:06",
+    "created": "2025-11-21 00:57:58",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag_gold_scene_1_2025-11-22_20-09-17 (1).json",
+    "size": 300605,
+    "modified": "2025-11-21 20:12:39",
+    "created": "2025-11-21 20:09:18",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./skeleton-pathology-diagnosis.md",
+    "size": 6350,
+    "modified": "2025-11-22 04:17:21",
+    "created": "2025-11-22 04:17:21",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./architecture-decision-matrix.html",
+    "size": 25530,
+    "modified": "2025-11-22 18:03:57",
+    "created": "2025-11-22 18:03:56",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./gold-nba.json",
+    "size": 380892,
+    "modified": "2025-11-19 09:19:25",
+    "created": "2025-11-19 09:19:24",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./sticker_gallery_v2.mpd",
+    "size": 2235,
+    "modified": "2025-11-20 01:27:00",
+    "created": "2025-11-20 01:27:00",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag_gold_other_563_2025-11-21_16-21-42.json",
+    "size": 172126,
+    "modified": "2025-11-21 16:23:09",
+    "created": "2025-11-21 16:21:42",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./test.mpd",
+    "size": 17544,
+    "modified": "2025-11-21 16:25:35",
+    "created": "2025-11-21 16:25:33",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./sticker_gallery.mpd",
+    "size": 1664,
+    "modified": "2025-11-20 01:10:16",
+    "created": "2025-11-20 01:10:16",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mesh-primitive-breakdown.md",
+    "size": 10080,
+    "modified": "2025-11-22 04:37:03",
+    "created": "2025-11-22 04:37:03",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./assembly-line-single-mesh.html",
+    "size": 19643,
+    "modified": "2025-11-22 04:56:22",
+    "created": "2025-11-22 04:56:21",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./tbon.mpd",
+    "size": 17610,
+    "modified": "2025-11-19 17:06:17",
+    "created": "2025-11-19 17:06:16",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./test-bon.mpd",
+    "size": 17455,
+    "modified": "2025-11-19 16:58:56",
+    "created": "2025-11-19 16:58:55",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./multi-good.html",
+    "size": 52136,
+    "modified": "2025-11-19 23:37:21",
+    "created": "2025-11-19 08:16:42",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mesh-compilation-data-flow.md",
+    "size": 6350,
+    "modified": "2025-11-22 04:35:12",
+    "created": "2025-11-22 04:35:12",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./assembly-line.html",
+    "size": 99583,
+    "modified": "2025-11-22 04:25:14",
+    "created": "2025-11-22 04:24:25",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./timber-master-v2.html",
+    "size": 64862,
+    "modified": "2025-11-21 20:27:30",
+    "created": "2025-11-20 03:44:33",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./lab-hub.html",
+    "size": 9048,
+    "modified": "2025-11-22 22:12:58",
+    "created": "2025-11-22 22:12:58",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./minifig_family (17).mpd",
+    "size": 1846,
+    "modified": "2025-11-21 20:53:56",
+    "created": "2025-11-21 20:53:50",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./test_frank.mpd",
+    "size": 805,
+    "modified": "2025-11-21 19:06:48",
+    "created": "2025-11-21 19:06:48",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./gold_test.json",
+    "size": 25294,
+    "modified": "2025-11-20 04:57:25",
+    "created": "2025-11-20 04:57:25",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mfs.html",
+    "size": 33720,
+    "modified": "2025-11-18 22:46:34",
+    "created": "2025-11-18 22:46:33",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./courage_annotated.html",
+    "size": 474939,
+    "modified": "2025-11-18 23:55:20",
+    "created": "2025-11-18 23:55:09",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./multimanual.html",
+    "size": 59390,
+    "modified": "2025-11-19 04:44:36",
+    "created": "2025-11-19 04:31:57",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./skeleton-pathology-studio.html",
+    "size": 6030,
+    "modified": "2025-11-22 00:34:17",
+    "created": "2025-11-22 00:34:16",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./line-22-autopsy.html",
+    "size": 24969,
+    "modified": "2025-11-22 17:53:03",
+    "created": "2025-11-22 17:53:03",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./TIMBER-tutorial.html",
+    "size": 28436,
+    "modified": "2025-11-21 01:07:52",
+    "created": "2025-11-21 01:01:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag_gold_scene_1_2025-11-19_04-52-50 (1).json",
+    "size": 294540,
+    "modified": "2025-11-21 16:18:09",
+    "created": "2025-11-19 04:52:50",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mfr.html",
+    "size": 58787,
+    "modified": "2025-11-18 22:47:10",
+    "created": "2025-11-18 22:47:08",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./multi-move-bones.html",
+    "size": 19869,
+    "modified": "2025-11-19 08:20:29",
+    "created": "2025-11-19 08:11:01",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./knowledge-hub.html",
+    "size": 11314,
+    "modified": "2025-11-22 22:13:13",
+    "created": "2025-11-22 19:39:08",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./pathology-report-viewer.html",
+    "size": 14385,
+    "modified": "2025-11-22 00:22:13",
+    "created": "2025-11-22 00:22:13",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./file-manifest-raw.json",
+    "size": 0,
+    "modified": "2025-11-22 22:28:06",
+    "created": "2025-11-22 22:28:06",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./temporal-mesh-lab.html",
+    "size": 21958,
+    "modified": "2025-11-22 05:16:25",
+    "created": "2025-11-22 05:16:24",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./stud-skeleton-binding-enhanced.html",
+    "size": 31317,
+    "modified": "2025-11-21 21:00:43",
+    "created": "2025-11-21 20:59:18",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./dna.html",
+    "size": 39311,
+    "modified": "2025-11-18 22:47:31",
+    "created": "2025-11-18 22:47:30",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./lim.html",
+    "size": 35007,
+    "modified": "2025-11-18 22:46:07",
+    "created": "2025-11-18 22:46:05",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./test-wag-gold.json",
+    "size": 453876,
+    "modified": "2025-11-21 16:26:54",
+    "created": "2025-11-21 16:26:53",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./courage.html",
+    "size": 467180,
+    "modified": "2025-11-21 16:41:35",
+    "created": "2025-11-18 22:51:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./manual.html",
+    "size": 57867,
+    "modified": "2025-11-19 00:37:59",
+    "created": "2025-11-18 22:51:05",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./brick_haven_city.mpd",
+    "size": 10455,
+    "modified": "2025-11-19 22:31:30",
+    "created": "2025-11-19 22:31:30",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./line-aware-scene-graph.md",
+    "size": 12513,
+    "modified": "2025-11-22 05:00:36",
+    "created": "2025-11-22 05:00:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./lim-base.html",
+    "size": 55150,
+    "modified": "2025-11-18 22:48:04",
+    "created": "2025-11-18 22:48:02",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./temporal-mesh-encoding.md",
+    "size": 9684,
+    "modified": "2025-11-22 04:41:53",
+    "created": "2025-11-22 04:41:53",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./grid-walk.html",
+    "size": 86537,
+    "modified": "2025-11-19 02:18:30",
+    "created": "2025-11-19 00:36:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./mpd-line-grid-viewer.html",
+    "size": 24611,
+    "modified": "2025-11-21 21:26:24",
+    "created": "2025-11-21 21:12:37",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./wag-gold-scene.json",
+    "size": 380892,
+    "modified": "2025-11-19 08:09:35",
+    "created": "2025-11-19 08:09:34",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./grid-walk copy.html",
+    "size": 86537,
+    "modified": "2025-11-19 02:18:30",
+    "created": "2025-11-19 00:36:36",
+    "permissions": "-rw-r--r--"
+  },
+  {
+    "name": "./temporal-mesh-instrumentation.md",
+    "size": 12727,
+    "modified": "2025-11-22 05:04:52",
+    "created": "2025-11-22 05:04:52",
+    "permissions": "-rw-r--r--"
+  }
+]

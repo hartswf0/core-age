@@ -1,0 +1,2801 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>Mento GLB – Desert Oasis Capture</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        /* Mobile-first responsive layout */
+        @media (max-width: 768px) {
+            .content {
+                display: flex;
+                flex-direction: row;
+                width: 100%;
+                height: 100vh;
+            }
+            .viewport-pane {
+                height: 50vh !important;
+                border-right: none !important;
+                border-bottom: 1px solid #333;
+            }
+            .controls-pane {
+                height: 50vh !important;
+                overflow-y: auto !important;
+                position: sticky;
+                top: 0;
+            }
+            button {
+                font-size: 12px !important;
+                padding: 6px 12px !important;
+                min-width: 44px;
+                min-height: 44px;
+            }
+        }
+
+        body {
+            font-family: "Courier New", monospace;
+            background: #000;
+            color: #e5e7eb;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .page {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            min-height: 0;
+        }
+
+        .header {
+            padding: 6px 12px;
+            border-bottom: 1px solid #333;
+            background: #050505;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+        }
+
+        .camera-mark {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .camera-name {
+            font-size: 11px;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+
+        .camera-state {
+            font-size: 9px;
+            padding: 2px 6px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            letter-spacing: 0.16em;
+            color: #9ca3af;
+        }
+
+        .camera-state.recording {
+            border-color: #ef4444;
+            color: #ef4444;
+        }
+
+        .badge {
+            font-size: 9px;
+            padding: 2px 8px;
+            border-radius: 999px;
+            border: 1px solid #333;
+            text-transform: uppercase;
+            letter-spacing: 0.16em;
+        }
+
+        .content {
+            flex: 1;
+            display: flex;
+            min-height: 0;
+        }
+
+        .viewport-pane {
+            flex: 3;
+            border-right: 1px solid #333;
+            background: #020617;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        #viewport {
+            flex: 1;
+            position: relative;
+            min-height: 0;
+        }
+
+        #glb-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .reticle {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .reticle::before,
+        .reticle::after {
+            content: "";
+            position: absolute;
+            background: rgba(248, 250, 252, 0.35);
+        }
+
+        .reticle::before {
+            width: 1px;
+            height: 36px;
+        }
+
+        .reticle::after {
+            height: 1px;
+            width: 36px;
+        }
+
+        .controls-pane {
+            flex: 2;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 10px;
+            gap: 6px;
+            background: #050505;
+        }
+
+        .control-card {
+            border: 1px solid #222;
+            border-radius: 4px;
+            padding: 6px 8px;
+            background: #050505;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+        }
+
+        .control-card-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #9ca3af;
+        }
+
+        .controls-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            align-items: center;
+            font-size: 10px;
+        }
+
+        .controls-row label {
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        /* File Input Styling */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-btn {
+            padding: 4px 8px;
+            background: #222;
+            border: 1px solid #444;
+            color: #ddd;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+
+        .file-upload-btn:hover {
+            background: #333;
+            border-color: #666;
+        }
+
+        /* File Input Styling */
+        input[type="file"] {
+            display: none;
+        }
+
+        .file-upload-btn {
+            padding: 4px 8px;
+            background: #222;
+            border: 1px solid #444;
+            color: #ddd;
+            cursor: pointer;
+            border-radius: 3px;
+            font-size: 10px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            display: inline-block;
+        }
+
+        .file-upload-btn:hover {
+            background: #333;
+            border-color: #666;
+        }
+
+        input[type="number"],
+        input[type="range"] {
+            padding: 2px 4px;
+            background: #000;
+            border: 1px solid #333;
+            color: #ddd;
+            font-size: 11px;
+        }
+
+        input[type="number"] {
+            width: 64px;
+        }
+
+        select {
+            padding: 2px 4px;
+            background: #000;
+            border: 1px solid #333;
+            color: #ddd;
+            font-size: 11px;
+        }
+
+        button {
+            padding: 3px 9px;
+            border-radius: 3px;
+            border: 1px solid #444;
+            background: #0b0b0b;
+            color: #e5e7eb;
+            font-size: 10px;
+            cursor: pointer;
+            display: inline-flex;
+            transition: all 0.2s;
+        }
+
+        button.flipped {
+            background: #1a4d2e;
+            border-color: #2ecc71;
+            color: #2ecc71;
+        }
+
+        button.ready {
+            background: #1a3a52;
+            border-color: #3498db;
+            color: #3498db;
+            box-shadow: 0 0 8px rgba(52, 152, 219, 0.3);
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        #model-list > div {
+            border-left: 3px solid transparent;
+        }
+
+        #model-list > div:has(input[type="radio"]:checked) {
+            border-left-color: #3498db;
+            background: #1a1a1a !important;
+        }
+
+        /* Module System */
+        .module {
+            border: 1px solid #333;
+            border-radius: 4px;
+            margin-bottom: 8px;
+            overflow: hidden;
+        }
+
+        .module-header {
+            background: linear-gradient(135deg, #1a1a1a 0%, #0a0a0a 100%);
+            padding: 8px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #333;
+            user-select: none;
+        }
+
+        .module-header:hover {
+            background: linear-gradient(135deg, #222 0%, #111 100%);
+        }
+
+        .module-header-title {
+            font-size: 11px;
+            font-weight: bold;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: #3498db;
+        }
+
+        .module-header-arrow {
+            font-size: 10px;
+            color: #666;
+            transition: transform 0.2s;
+        }
+
+        .module.collapsed .module-header-arrow {
+            transform: rotate(-90deg);
+        }
+
+        .module-content {
+            padding: 8px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            max-height: 1000px;
+            overflow: hidden;
+            transition: max-height 0.3s ease-out, padding 0.3s;
+        }
+
+        .module.collapsed .module-content {
+            max-height: 0;
+            padding: 0 8px;
+        }
+
+        .module-section {
+            border-left: 2px solid #222;
+            padding-left: 8px;
+            margin: 4px 0;
+        }
+
+        .module-section-title {
+            font-size: 9px;
+            text-transform: uppercase;
+            color: #666;
+            margin-bottom: 4px;
+            letter-spacing: 0.05em;
+            align-items: center;
+            justify-content: center;
+            gap: 4px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+
+        button.primary {
+            background: #0f7bff;
+            border-color: #0f7bff;
+            color: #fff;
+        }
+
+        button[disabled] {
+            opacity: 0.4;
+            cursor: default;
+        }
+
+        #status-line {
+            font-size: 11px;
+            color: #aaa;
+            min-height: 1.4em;
+        }
+
+        #log {
+            flex: 1;
+            border: 1px solid #222;
+            background: #020202;
+            font-family: "SF Mono", Menlo, Consolas, monospace;
+            font-size: 10px;
+            padding: 6px;
+            overflow: auto;
+            white-space: pre-wrap;
+        }
+
+        .path-thumbs {
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 4px;
+            overflow-x: auto;
+            padding: 2px 0;
+        }
+
+        .path-thumbs img {
+            display: block;
+            width: 56px;
+            height: 42px;
+            object-fit: cover;
+            border-radius: 2px;
+            border: 1px solid #333;
+        }
+
+        .status-bar {
+            padding: 6px 10px;
+            border-top: 1px solid #333;
+            font-size: 10px;
+            color: #666;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        @media (max-width: 900px) {
+            .content {
+                flex-direction: column;
+                min-height: 0;
+            }
+
+            .viewport-pane {
+                flex: 0 0 55vh;
+            }
+
+            .controls-pane {
+                flex: 0 0 auto;
+                max-height: 45vh;
+                overflow-y: auto;
+            }
+
+            .controls-row {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            button {
+                width: 100%;
+            }
+
+            #log {
+                max-height: 120px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="page">
+        <div class="header">
+            <div class="camera-mark">
+                <span class="camera-name">MENTO GLB</span>
+                <span class="camera-state" id="cameraState">STBY</span>
+            </div>
+            <div class="badge" id="cameraStock">GLB · WEBM</div>
+        </div>
+        <div class="content">
+            <div class="viewport-pane">
+                <div id="viewport">
+                    <div class="reticle"></div>
+                </div>
+            </div>
+            <div class="controls-pane">
+            <div style="padding: 12px; display: flex; flex-direction: column; gap: 8px; height: 100%; overflow-y: auto;">
+                
+                <!-- MODULE 1: MODEL -->
+                <div class="module" id="module-model">
+                    <div class="module-header" onclick="toggleModule('model')">
+                        <span class="module-header-title">🎬 MODEL</span>
+                        <span class="module-header-arrow">▼</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-section">
+                            <div class="controls-row">
+                                <label class="file-upload-btn">
+                                    Load to Slot:
+                                    <select id="model-slot-select" style="width: 50px;">
+                                        <option value="1">1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                    <input type="file" id="glb-file-input" accept=".glb,.gltf">
+                                </label>
+                            </div>
+                            <div class="controls-row" id="model-list" style="flex-direction: column; gap: 4px; font-size: 9px;"></div>
+                        </div>
+
+                        <div class="module-section">
+                            <div class="module-section-title">Transform</div>
+                            <div class="controls-row">
+                                <label>Gizmo
+                                    <select id="transform-mode">
+                                        <option value="translate">Move</option>
+                                        <option value="rotate">Rotate</option>
+                                        <option value="scale">Scale</option>
+                                    </select>
+                                </label>
+                                <button id="transform-center">Center</button>
+                            </div>
+                            <div class="controls-row">
+                                <span style="font-size: 9px; color: #666;">Flip Scene:</span>
+                                <button id="transform-flip-x">X</button>
+                                <button id="transform-flip-y">Y</button>
+                                <button id="transform-flip-z">Z</button>
+                            </div>
+                            <div class="controls-row" style="margin-top: 6px; border-top: 1px solid #222; padding-top: 6px;">
+                                <label>Pos X <input id="tx-pos-x" type="number" step="10" style="width: 40px;"></label>
+                                <label>Y <input id="tx-pos-y" type="number" step="10" style="width: 40px;"></label>
+                                <label>Z <input id="tx-pos-z" type="number" step="10" style="width: 40px;"></label>
+                            </div>
+                            <div class="controls-row">
+                                <label>Rot Y <input id="tx-rot-y" type="number" step="15" style="width: 40px;"></label>
+                                <label>Scale <input id="tx-scale" type="number" step="0.1" min="0.01" style="width: 40px;"></label>
+                            </div>
+                            <div class="controls-row">
+                                <button id="transform-reset">Reset</button>
+                                <button id="transform-auto-scale">Auto-Scale</button>
+                            </div>
+                        </div>
+
+                        <div class="module-section">
+                            <div class="module-section-title">Calibration</div>
+                            <div class="controls-row">
+                                <label style="font-size: 9px;">
+                                    <input type="checkbox" id="show-frustums" checked> Frustums
+                                </label>
+                                <label style="font-size: 9px;">
+                                    <input type="checkbox" id="show-grid"> Grid
+                                </label>
+                                <label style="font-size: 9px;">
+                                    <input type="checkbox" id="show-ruler"> Ruler
+                                </label>
+                            </div>
+                            <div class="controls-row">
+                                <label style="font-size: 9px;">Scale
+                                    <input id="ruler-scale" type="range" min="0.5" max="3" step="0.1" value="1" style="width: 60px;" />
+                                    <span id="ruler-scale-val">1x</span>
+                                </label>
+                                <button id="lock-origin">🔓 Origin</button>
+                            </div>
+                        </div>
+                        
+                        <div class="module-section">
+                            <div class="module-section-title">Scene Preset</div>
+                            <div class="controls-row">
+                                <button id="export-scene-preset">�� Export Transforms</button>
+                                <button id="import-scene-preset">📥 Import Preset</button>
+                            </div>
+                            <textarea id="scene-preset-data" 
+                                style="width:100%; min-height:40px; font-size:9px; font-family:monospace; display:none;"
+                                placeholder="Paste preset JSON here"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 2: CAMERA -->
+                <div class="module" id="module-camera">
+                    <div class="module-header" onclick="toggleModule('camera')">
+                        <span class="module-header-title">📷 CAMERA</span>
+                        <span class="module-header-arrow">▼</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="module-section">
+                            <div class="module-section-title">Capture</div>
+                            <div id="status-line">Load a GLB to begin</div>
+                            <div class="controls-row">
+                                <label>Path
+                                    <select id="path-mode">
+                                        <option value="manual">Manual (Orbit)</option>
+                                        <option value="orbit">Auto orbit</option>
+                                        <option value="keyframes">Keyframed path</option>
+                                    </select>
+                                </label>
+                                <label>FOV
+                                    <input id="glb-fov" type="range" min="25" max="80" step="1" value="50" />
+                                </label>
+                                <button id="camera-reset">Reset Camera</button>
+                            </div>
+                            <div class="controls-row">
+                                <label>FPS
+                                    <input id="capture-fps" type="number" min="1" max="60" step="1" value="30" />
+                                </label>
+                                <label>Max seconds
+                                    <input id="capture-duration" type="number" min="1" max="120" step="1" value="10" />
+                                </label>
+                            </div>
+                            <div class="controls-row">
+                                <button id="start-capture">START</button>
+                                <button id="stop-capture">STOP</button>
+                            </div>
+                        </div>
+
+                        <div class="module-section">
+                            <div class="module-section-title">Keyframe Path</div>
+                            <div class="controls-row">
+                                <label>Duration
+                                    <input id="path-duration" type="number" min="1" max="120" step="1" value="8" />
+                                </label>
+                                <button id="path-add-keyframe">Add Key</button>
+                                <button id="path-play">Play</button>
+                                <button id="path-clear">Clear</button>
+                            </div>
+                            <div class="controls-row">
+                                <span style="font-size: 9px; color: #666;">Flip Shots:</span>
+                                <button id="path-flip-x">X</button>
+                                <button id="path-flip-y">Y</button>
+                                <button id="path-flip-z">Z</button>
+                            </div>
+                            <div class="controls-row">
+                                <label style="font-size: 9px;">Lock to Slot
+                                    <select id="shot-lock-slot" style="width: 50px;">
+                                        <option value="1" selected>1</option>
+                                        <option value="2">2</option>
+                                    </select>
+                                </label>
+                                <button id="tare-shots">⚙ TARE Shots</button>
+                            </div>
+                            <div class="controls-row">
+                                <label style="font-size: 9px;">Offset X
+                                    <input id="shot-offset-x" type="number" step="10" value="0" style="width: 50px;">
+                                </label>
+                                <label style="font-size: 9px;">Y
+                                    <input id="shot-offset-y" type="number" step="10" value="0" style="width: 50px;">
+                                </label>
+                                <label style="font-size: 9px;">Z
+                                    <input id="shot-offset-z" type="number" step="10" value="0" style="width: 50px;">
+                                </label>
+                            </div>
+                            <div class="controls-row">
+                                <pre id="path-list" style="flex:1; min-height:2em; max-height:5em; overflow:auto; border:1px solid #222; padding:4px; font-size:10px;"></pre>
+                            </div>
+                            <div class="controls-row">
+                                <div id="path-thumbs" class="path-thumbs"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- MODULE 3: MENTO MPD -->
+                <div class="module collapsed" id="module-mento">
+                    <div class="module-header" onclick="toggleModule('mento')">
+                        <span class="module-header-title">📝 MENTO MPD</span>
+                        <span class="module-header-arrow">▼</span>
+                    </div>
+                    <div class="module-content">
+                        <div class="controls-row">
+                            <label style="width:100%; font-size:10px; color:#aaa; display:block;">
+                                Paste !MENTO SHOT lines here.
+                                <textarea id="mento-mpd-input"
+                                    style="width:100%; min-height:60px; margin-top:4px; font-size:10px; font-family:'SF Mono', Menlo, Consolas, monospace;"
+                                    placeholder="0 !MENTO SHOT &quot;The Rider&quot; POS 280 -80 180 TGT 0 -40 20 LENS 50"></textarea>
+                            </label>
+                        </div>
+                        <div class="controls-row">
+                            <button id="mento-mpd-build">Build Path from MPD</button>
+                            <button id="mento-apply-lights">Apply Lights</button>
+                        </div>
+                        <div class="controls-row">
+                            <button id="shot-prev">← Prev Shot</button>
+                            <button id="shot-next">Next Shot →</button>
+                            <span id="shot-counter" style="color: #666; margin-left: 8px;">0/0</span>
+                        </div>
+                        <div class="controls-row">
+                            <button id="export-mento-shot">Copy Current as MENTO</button>
+                            <label style="font-size: 9px;">
+                                <input type="checkbox" id="show-shot-markers" checked> Show Markers
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- LOG -->
+                <div class="module" id="module-log">
+                    <div class="module-header" onclick="toggleModule('log')">
+                        <span class="module-header-title">📋 LOG</span>
+                        <span class="module-header-arrow">▼</span>
+                    </div>
+                    <div class="module-content">
+                        <pre id="log"></pre>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        <div class="status-bar">
+            <span>Desert Oasis Canyon Structures · GLB viewer</span>
+            <span>MediaRecorder-based capture · Three.js</span>
+        </div>
+    </div>
+
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/controls/TransformControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js",
+        "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+  </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+        import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+        const state = {
+            scene: null,
+            camera: null,
+            renderer: null,
+            controls: null,
+            transformControls: null,
+            modelRoot: null,
+            models: [], // Array of {name, root, visible, slot: 1|2}
+            activeModelIndex: -1,
+            activeBoundingBox: null,
+            orbitCenter: null,
+            orbitRadius: 1,
+            orbitHeight: 0,
+            pathMode: 'manual',
+            keyframes: [],
+            pathPlayback: {
+                playing: false,
+                startTime: 0,
+                duration: 8
+            },
+            pathViz: {
+                line: null,
+                points: null
+            },
+            clock: new THREE.Clock(),
+            glbLoaded: false,
+            mediaRecorder: null,
+            chunks: [],
+            recording: false,
+            lastBlobUrl: null,
+            mentoShots: [],
+            mentoLights: [],
+            lightObjects: [],
+            currentShotIndex: -1,
+            shotMarkers: [],
+            selectedKeyframeIndex: -1,
+            frustumHelpers: [],
+            showFrustums: true,
+            showGrid: false,
+            gridHelper: null,
+            axesHelper: null,
+            flippedAxes: { x: false, y: false, z: false },
+            shotsFlippedAxes: { x: false, y: false, z: false },
+            calibrationRuler: null,
+            rulerScale: 1,
+            originLocked: false,
+            shotLockedToSlot: 1,
+            shotPositionOffset: new THREE.Vector3(0, 0, 0),
+            raycaster: new THREE.Raycaster(),
+            mouse: new THREE.Vector2(),
+            keyframeMarkerMeshes: []
+        };
+
+        function log(message) {
+            const logEl = document.getElementById('log');
+            if (!logEl) return;
+            const timestamp = new Date().toISOString().split('T')[1].replace('Z', '');
+            logEl.textContent += `[${timestamp}] ${message}\n`;
+            logEl.scrollTop = logEl.scrollHeight;
+            console.log('[MENTO-GLB]', message);
+        }
+
+        function setStatus(text) {
+            const statusEl = document.getElementById('status-line');
+            if (statusEl) statusEl.textContent = text;
+        }
+
+        function setCameraState(isRecording) {
+            const el = document.getElementById('cameraState');
+            if (!el) return;
+            if (isRecording) {
+                el.textContent = 'REC';
+                el.classList.add('recording');
+            } else {
+                el.textContent = 'STBY';
+                el.classList.remove('recording');
+            }
+        }
+
+        function updateTransformInputs() {
+            if (!state.modelRoot) return;
+            
+            const px = document.getElementById('tx-pos-x');
+            const py = document.getElementById('tx-pos-y');
+            const pz = document.getElementById('tx-pos-z');
+            const ry = document.getElementById('tx-rot-y');
+            const sc = document.getElementById('tx-scale');
+
+            if (px) px.value = Math.round(state.modelRoot.position.x);
+            if (py) py.value = Math.round(state.modelRoot.position.y);
+            if (pz) pz.value = Math.round(state.modelRoot.position.z);
+            
+            if (ry) {
+                // Convert radians to degrees
+                let deg = THREE.MathUtils.radToDeg(state.modelRoot.rotation.y) % 360;
+                if (deg < 0) deg += 360;
+                ry.value = Math.round(deg);
+            }
+            
+            if (sc) sc.value = state.modelRoot.scale.x.toFixed(2);
+        }
+
+        function applyNumericTransforms() {
+            if (!state.modelRoot) return;
+            
+            // Enforce origin lock
+            let px = parseFloat(document.getElementById('tx-pos-x').value) || 0;
+            let py = parseFloat(document.getElementById('tx-pos-y').value) || 0;
+            let pz = parseFloat(document.getElementById('tx-pos-z').value) || 0;
+            
+            if (state.originLocked) {
+                px = py = pz = 0;
+            }
+            const ry = parseFloat(document.getElementById('tx-rot-y').value) || 0;
+            const sc = parseFloat(document.getElementById('tx-scale').value) || 1;
+
+            state.modelRoot.position.set(px, py, pz);
+            state.modelRoot.rotation.y = THREE.MathUtils.degToRad(ry);
+            state.modelRoot.scale.set(sc, sc, sc);
+            
+            state.modelRoot.updateMatrixWorld();
+        }
+
+        function showToast(message) {
+            let toast = document.getElementById('toast-msg');
+            if (!toast) {
+                toast = document.createElement('div');
+                toast.id = 'toast-msg';
+                toast.style.position = 'absolute';
+                toast.style.top = '20px';
+                toast.style.left = '50%';
+                toast.style.transform = 'translateX(-50%)';
+                toast.style.background = 'rgba(0, 255, 0, 0.2)';
+                toast.style.border = '1px solid #0f0';
+                toast.style.color = '#fff';
+                toast.style.padding = '8px 16px';
+                toast.style.borderRadius = '4px';
+                toast.style.fontFamily = 'monospace';
+                toast.style.fontSize = '12px';
+                toast.style.pointerEvents = 'none';
+                toast.style.opacity = '0';
+                toast.style.transition = 'opacity 0.3s';
+                document.body.appendChild(toast);
+            }
+            toast.textContent = message;
+            toast.style.opacity = '1';
+            setTimeout(() => {
+                toast.style.opacity = '0';
+            }, 2000);
+        }
+
+        function playSuccessSound() {
+            const ctx = new (window.AudioContext || window.webkitAudioContext)();
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.connect(gain);
+            gain.connect(ctx.destination);
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(880, ctx.currentTime);
+            osc.frequency.exponentialRampToValueAtTime(1760, ctx.currentTime + 0.1);
+            gain.gain.setValueAtTime(0.1, ctx.currentTime);
+            gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+            osc.start();
+            osc.stop(ctx.currentTime + 0.1);
+        }
+
+        function initThree() {
+            const viewport = document.getElementById('viewport');
+            const width = viewport.clientWidth || window.innerWidth * 0.6;
+            const height = viewport.clientHeight || window.innerHeight * 0.6;
+
+            const scene = new THREE.Scene();
+            scene.background = new THREE.Color(0x050505);
+
+            const camera = new THREE.PerspectiveCamera(50, width / height, 0.1, 5000);
+            camera.position.set(0, 200, 600);
+
+            const renderer = new THREE.WebGLRenderer({ antialias: true, preserveDrawingBuffer: true });
+            renderer.setPixelRatio(window.devicePixelRatio);
+            renderer.setSize(width, height);
+            renderer.outputColorSpace = THREE.SRGBColorSpace;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.0;
+
+            const canvas = renderer.domElement;
+            canvas.id = 'glb-canvas';
+            viewport.appendChild(canvas);
+
+            const controls = new OrbitControls(camera, canvas);
+            controls.enableDamping = true;
+            controls.dampingFactor = 0.08;
+
+            const tControls = new TransformControls(camera, canvas);
+            tControls.setTranslationSnap(10); // Snap to 10 unit grid
+            tControls.setRotationSnap(THREE.MathUtils.degToRad(15)); // Snap to 15 degrees
+            tControls.setScaleSnap(0.1); // Snap to 0.1 scale increments
+            tControls.setMode('translate'); // Ensure mode is set
+            tControls.showX = true;
+            tControls.showY = true;
+            tControls.showZ = true;
+            
+            tControls.addEventListener('dragging-changed', (event) => {
+                controls.enabled = !event.value;
+                if (!event.value) { // Drag ended
+                    updateTransformInputs();
+                }
+            });
+            tControls.addEventListener('change', () => {
+                if (state.transformControls.dragging) {
+                    updateTransformInputs();
+                    updateSelectedKeyframeFromGizmo();
+                }
+            });
+            scene.add(tControls);
+
+            const hemi = new THREE.HemisphereLight(0xffffff, 0x111111, 0.9);
+            scene.add(hemi);
+            const dir = new THREE.DirectionalLight(0xffffff, 0.9);
+            dir.position.set(300, 600, 400);
+            dir.castShadow = false;
+            scene.add(dir);
+
+            state.scene = scene;
+            state.camera = camera;
+            state.renderer = renderer;
+            state.controls = controls;
+            state.transformControls = tControls;
+
+            window.addEventListener('resize', onWindowResize);
+            
+            // Add click handler for selecting keyframes
+            canvas.addEventListener('click', onViewportClick);
+            
+            // Add keyboard handler
+            window.addEventListener('keydown', onKeyDown);
+
+            // Drag and Drop support
+            const dropZone = document.body;
+            dropZone.addEventListener('dragover', (e) => {
+                e.preventDefault();
+                e.dataTransfer.dropEffect = 'copy';
+            });
+            dropZone.addEventListener('drop', (e) => {
+                e.preventDefault();
+                if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    handleFileSelect(e.dataTransfer.files[0]);
+                }
+            });
+
+            // File Input support
+            const fileInput = document.getElementById('glb-file-input');
+            if (fileInput) {
+                fileInput.addEventListener('change', (e) => {
+                    if (e.target.files && e.target.files[0]) {
+                        handleFileSelect(e.target.files[0]);
+                    }
+                });
+            }
+
+            // Load default if no file selected yet
+            if (!state.glbLoaded) {
+                // loadGLB('Desert Oasis Canyon Structures_texture_mesh.glb'); // Removed - use file picker instead
+            }
+            
+            animate();
+        }
+
+        function handleFileSelect(file) {
+            const url = URL.createObjectURL(file);
+            const nameEl = document.getElementById('current-file-name');
+            if (nameEl) nameEl.textContent = file.name;
+            
+            // Cleanup previous object URL if needed (optional optimization)
+            // if (state.currentModelUrl && state.currentModelUrl.startsWith('blob:')) URL.revokeObjectURL(state.currentModelUrl);
+            state.currentModelUrl = url;
+            
+            loadGLB(url);
+        }
+
+        function onWindowResize() {
+            const viewport = document.getElementById('viewport');
+            if (!viewport || !state.renderer || !state.camera) return;
+            const width = viewport.clientWidth || window.innerWidth * 0.6;
+            const height = viewport.clientHeight || window.innerHeight * 0.6;
+            state.camera.aspect = width / height;
+            state.camera.updateProjectionMatrix();
+            state.renderer.setSize(width, height);
+        }
+
+        function updateModelList() {
+            const listEl = document.getElementById('model-list');
+            if (!listEl) return;
+            
+            if (state.models.length === 0) {
+                listEl.innerHTML = '<span style="color: #666;">No models loaded</span>';
+                return;
+            }
+            
+            listEl.innerHTML = '';
+            state.models.forEach((model, i) => {
+                const row = document.createElement('div');
+                row.style.cssText = 'display: flex; align-items: center; gap: 6px; padding: 2px; background: #111; border-radius: 2px;';
+                
+                // Radio button for selection
+                const radio = document.createElement('input');
+                radio.type = 'radio';
+                radio.name = 'model-select';
+                radio.checked = i === state.activeModelIndex;
+                radio.addEventListener('change', () => selectModel(i));
+                
+                // Visibility toggle
+                const visBtn = document.createElement('button');
+                visBtn.textContent = model.visible ? '👁' : '👁‍🗨';
+                visBtn.style.cssText = 'padding: 2px 6px; font-size: 12px;';
+                visBtn.addEventListener('click', () => toggleModelVisibility(i));
+                
+                // Name
+                const name = document.createElement('span');
+                name.textContent = `${model.slot}: ${model.name}`;
+                name.style.cssText = `flex: 1; ${i === state.activeModelIndex ? 'color: #3498db; font-weight: bold;' : 'color: #999;'}`;
+                
+                // Opacity slider for ALL models
+                const opacityLabel = document.createElement('span');
+                opacityLabel.textContent = 'α';
+                opacityLabel.style.cssText = 'font-size: 10px; color: #666;';
+                
+                const opacitySlider = document.createElement('input');
+                opacitySlider.type = 'range';
+                opacitySlider.min = '0';
+                opacitySlider.max = '100';
+                opacitySlider.value = i === state.activeModelIndex ? '100' : '30';
+                opacitySlider.style.cssText = 'width: 60px;';
+                opacitySlider.id = `opacity-${i}`;
+                opacitySlider.addEventListener('input', (e) => {
+                    const opacity = parseInt(e.target.value) / 100;
+                    model.root.traverse(child => {
+                        if (child.material) {
+                            child.material.opacity = opacity;
+                            child.material.transparent = opacity < 1.0;
+                        }
+                    });
+                });
+                
+                row.appendChild(opacityLabel);
+                row.appendChild(opacitySlider);
+                
+                row.appendChild(radio);
+                row.appendChild(visBtn);
+                row.appendChild(name);
+                listEl.appendChild(row);
+            });
+        }
+
+        function selectModel(index) {
+            if (index < 0 || index >= state.models.length) return;
+            
+            state.activeModelIndex = index;
+            state.modelRoot = state.models[index].root;
+            
+            // Update gizmo
+            if (state.transformControls) {
+                state.transformControls.attach(state.modelRoot);
+                state.transformControls.visible = true;
+            }
+            
+            // Remove old bounding box
+            if (state.activeBoundingBox) {
+                state.scene.remove(state.activeBoundingBox);
+                state.activeBoundingBox = null;
+            }
+            
+            // Add bounding box for active model
+            const bbox = new THREE.Box3().setFromObject(state.modelRoot);
+            const helper = new THREE.Box3Helper(bbox, 0x3498db);
+            state.scene.add(helper);
+            state.activeBoundingBox = helper;
+            
+            // Update opacity sliders
+            state.models.forEach((model, i) => {
+                const slider = document.getElementById(`opacity-${i}`);
+                if (slider && i !== index) {
+                    slider.value = '30';
+                } else if (slider) {
+                    slider.value = '100';
+                }
+            });
+            
+            updateModelList();
+            updateTransformInputs();
+            log(`Selected model ${index + 1}: ${state.models[index].name}`);
+        }
+
+        function toggleModelVisibility(index) {
+            if (index < 0 || index >= state.models.length) return;
+            
+            const model = state.models[index];
+            model.visible = !model.visible;
+            model.root.visible = model.visible;
+            
+            updateModelList();
+            log(`Model ${index + 1} ${model.visible ? 'shown' : 'hidden'}`);
+        }
+
+        function loadGLB(path) {
+            const loader = new GLTFLoader();
+            // const path = 'Desert Oasis Canyon Structures_texture_mesh.glb';
+            setStatus(`Loading ${path}...`);
+            
+            const slotSelect = document.getElementById('model-slot-select');
+            const slot = slotSelect ? parseInt(slotSelect.value) : 1;
+            
+            loader.load(
+                path,
+                (gltf) => {
+                    const root = gltf.scene || gltf.scenes[0];
+                    if (!root) {
+                        setStatus('GLB loaded but empty scene.');
+                        log('GLB load returned no scene.');
+                        return;
+                    }
+                    state.scene.add(root);
+                    state.modelRoot = root;
+                    if (state.transformControls) {
+                        state.transformControls.attach(root);
+                    }
+                    // Only flip Y for the default model if needed, or maybe always? 
+                    // Let's assume generic GLBs might need it or not. 
+                    // For now, we'll keep the manual flip button available.
+                    // flipModelY(true); 
+                    
+                    fitCameraToObject(root);
+                    state.glbLoaded = true;
+                    setStatus('GLB loaded. Ready for orbit and capture.');
+                    log('Loaded GLB: ' + path);
+                    updateTransformInputs();
+                    showToast('GLB Loaded Successfully');
+                    playSuccessSound();
+                    
+                    // Ensure gizmo attaches to model
+                    if (state.transformControls && state.modelRoot) {
+                        state.transformControls.attach(state.modelRoot);
+                        state.transformControls.visible = true;
+                    }
+                    
+                    // Update model list UI
+                    updateModelList();
+                    selectModel(state.activeModelIndex);
+                },
+                (xhr) => {
+                    if (xhr.total) {
+                        const pct = (xhr.loaded / xhr.total) * 100;
+                        setStatus(`Loading GLB… ${pct.toFixed(0)}%`);
+                    }
+                },
+                (error) => {
+                    setStatus('Failed to load GLB. See console.');
+                    log('Error loading GLB: ' + (error && error.message ? error.message : error));
+                }
+            );
+        }
+
+        function fitCameraToObject(object) {
+            if (!state.camera || !state.controls) return;
+            const box = new THREE.Box3().setFromObject(object);
+            const size = box.getSize(new THREE.Vector3());
+            const center = box.getCenter(new THREE.Vector3());
+            const maxDim = Math.max(size.x, size.y, size.z);
+            const fov = state.camera.fov * (Math.PI / 180);
+            let distance = maxDim / (2 * Math.tan(fov / 2));
+            distance *= 1.4;
+
+            const dir = new THREE.Vector3(1.2, 0.8, 1.0).normalize();
+            const pos = center.clone().add(dir.multiplyScalar(distance));
+            state.camera.position.copy(pos);
+            state.camera.lookAt(center);
+            state.controls.target.copy(center);
+            state.controls.update();
+
+            state.orbitCenter = center.clone();
+            state.orbitRadius = Math.max(80, Math.sqrt((pos.x - center.x) ** 2 + (pos.z - center.z) ** 2));
+            state.orbitHeight = pos.y;
+
+            log('Camera fit to GLB bounds.');
+        }
+
+        function flipModel(axis, silent = false) {
+            if (!state.modelRoot) return;
+            
+            switch(axis) {
+                case 'x':
+                    state.modelRoot.rotateZ(Math.PI);
+                    if (!silent) log('Flipped model on X axis (rotated 180° Z).');
+                    break;
+                case 'y':
+                    state.modelRoot.rotateX(Math.PI);
+                    if (!silent) log('Flipped model on Y axis (rotated 180° X).');
+                    break;
+                case 'z':
+                    state.modelRoot.rotateY(Math.PI);
+                    if (!silent) log('Flipped model on Z axis (rotated 180° Y).');
+                    break;
+            }
+            
+            state.modelRoot.updateMatrixWorld(true);
+            updateTransformInputs();
+            
+            // Toggle flip state
+            state.flippedAxes[axis] = !state.flippedAxes[axis];
+            updateFlipButtonStates();
+        }
+        
+        // Legacy function for compatibility
+        function flipModelY(silent = false) {
+            flipModel('y', silent);
+        }
+
+        function updateOrbitFromCurrentCamera() {
+            if (!state.camera || !state.controls) return;
+            const target = state.controls.target.clone();
+            const pos = state.camera.position.clone();
+            const dx = pos.x - target.x;
+            const dz = pos.z - target.z;
+            state.orbitCenter = target;
+            state.orbitRadius = Math.max(10, Math.sqrt(dx * dx + dz * dz));
+            state.orbitHeight = pos.y;
+            state.clock.elapsedTime = 0;
+        }
+
+        function getPathDurationSeconds() {
+            const input = document.getElementById('path-duration');
+            const v = parseFloat(input && input.value);
+            if (!Number.isFinite(v) || v <= 0) return 8;
+            return v;
+        }
+
+        function parseMentoShotsFromText(text) {
+            const shots = [];
+            if (!text) return shots;
+            const lines = String(text).split(/\r?\n/);
+            const pattern = /^0\s+!MENTO\s+SHOT\s+"([^"]+)"\s+POS\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+TGT\s+([-\.\d]+)\s+([-\.\d]+)\s+([-\.\d]+)\s+LENS\s+([-\.\d]+)/;
+            lines.forEach((raw) => {
+                const line = raw.trim();
+                if (!line.startsWith('0 !MENTO SHOT')) return;
+                const m = line.match(pattern);
+                if (!m) return;
+                const label = m[1];
+                const px = parseFloat(m[2]);
+                const py = parseFloat(m[3]);
+                const pz = parseFloat(m[4]);
+                const tx = parseFloat(m[5]);
+                const ty = parseFloat(m[6]);
+                const tz = parseFloat(m[7]);
+                const lens = parseFloat(m[8]);
+                shots.push({
+                    id: `SHOT_${shots.length + 1}`,
+                    label,
+                    pos: { x: px, y: py, z: pz },
+                    tgt: { x: tx, y: ty, z: tz },
+                    lens
+                });
+            });
+            return shots;
+        }
+
+        function parseMentoLights(text) {
+            const lines = text.split('\n');
+            const lights = [];
+            
+            for (const line of lines) {
+                const match = line.match(/!MENTO LIGHT "([^"]+)" TYPE (\w+) POS ([\d\s.-]+) TGT ([\d\s.-]+) COLOR (#\w+) INTENSITY ([\d.]+)(?:\s+SHADOWS (\w+))?(?:\s+DECAY ([\d.]+))?/);
+                if (match) {
+                    const [_, name, type, posStr, tgtStr, color, intensity, shadows, decay] = match;
+                    const pos = posStr.trim().split(/\s+/).map(Number);
+                    const tgt = tgtStr.trim().split(/\s+/).map(Number);
+                    
+                    lights.push({
+                        name,
+                        type: type.toLowerCase(),
+                        position: new THREE.Vector3(pos[0], pos[1], pos[2]),
+                        target: new THREE.Vector3(tgt[0], tgt[1], tgt[2]),
+                        color,
+                        intensity: parseFloat(intensity),
+                        shadows: shadows === 'TRUE',
+                        decay: decay ? parseFloat(decay) : null
+                    });
+                }
+            }
+            
+            return lights;
+        }
+
+        function applyMentoLights() {
+            const text = document.getElementById('mento-mpd-input').value;
+            if (!text) return;
+            
+            // Clear existing MENTO lights
+            state.lightObjects.forEach(light => state.scene.remove(light));
+            state.lightObjects = [];
+            
+            state.mentoLights = parseMentoLights(text);
+            
+            state.mentoLights.forEach(lightDef => {
+                let light;
+                
+                switch (lightDef.type) {
+                    case 'sun':
+                        light = new THREE.DirectionalLight(lightDef.color, lightDef.intensity);
+                        if (lightDef.shadows) {
+                            light.castShadow = true;
+                            light.shadow.mapSize.width = 2048;
+                            light.shadow.mapSize.height = 2048;
+                        }
+                        break;
+                    case 'point':
+                        light = new THREE.PointLight(lightDef.color, lightDef.intensity);
+                        if (lightDef.decay) light.decay = 2;
+                        break;
+                    case 'area':
+                        light = new THREE.RectAreaLight(lightDef.color, lightDef.intensity, 50, 50);
+                        break;
+                    default:
+                        light = new THREE.PointLight(lightDef.color, lightDef.intensity);
+                }
+                
+                light.position.copy(lightDef.position);
+                light.name = 'MENTO_' + lightDef.name;
+                
+                if (light.target) {
+                    light.target.position.copy(lightDef.target);
+                    state.scene.add(light.target);
+                }
+                
+                state.scene.add(light);
+                state.lightObjects.push(light);
+                
+                log(`Applied light: ${lightDef.name} (${lightDef.type})`);
+            });
+            
+            log(`Applied ${state.mentoLights.length} MENTO lights.`);
+        }
+
+        function buildPathFromMento() {
+            const textarea = document.getElementById('mento-mpd-input');
+            if (!textarea) return;
+            const text = textarea.value;
+            const shots = parseMentoShotsFromText(text);
+            if (!shots.length) {
+                log('No !MENTO SHOT lines found in MPD input.');
+                return;
+            }
+            clearKeyframes();
+            if (!state.camera || !state.controls) return;
+            const canRender = !!(state.renderer && state.scene && state.camera);
+            shots.forEach((shot, index) => {
+                const fov = Math.max(25, Math.min(80, shot.lens || 50));
+                state.camera.position.set(shot.pos.x, shot.pos.y, shot.pos.z);
+                state.camera.fov = fov;
+                state.camera.updateProjectionMatrix();
+                state.controls.target.set(shot.tgt.x, shot.tgt.y, shot.tgt.z);
+                state.camera.lookAt(state.controls.target);
+                state.controls.update();
+                if (canRender) {
+                    state.renderer.render(state.scene, state.camera);
+                }
+                captureKeyframe();
+            });
+            const pathSelect = document.getElementById('path-mode');
+            state.pathMode = 'keyframes';
+            if (pathSelect) pathSelect.value = 'keyframes';
+            
+            // Store shots and update UI
+            state.mentoShots = shots;
+            state.currentShotIndex = shots.length > 0 ? 0 : -1;
+            updateShotCounter();
+            updateShotMarkers();
+            
+            log(`Built keyframe path from ${shots.length} MENTO shots.`);
+        }
+
+        function captureKeyframe() {
+            if (!state.camera || !state.controls) return;
+            const pos = state.camera.position.clone();
+            const tgt = state.controls.target.clone();
+            const fov = state.camera.fov;
+            const idx = state.keyframes.length;
+            let thumb = null;
+            if (state.renderer && state.renderer.domElement) {
+                try {
+                    thumb = state.renderer.domElement.toDataURL('image/jpeg', 0.7);
+                } catch (err) {
+                    log('Unable to capture keyframe thumbnail: ' + err.message);
+                }
+            }
+            state.keyframes.push({
+                id: 'KF_' + (idx + 1),
+                pos,
+                tgt,
+                fov,
+                thumb
+            });
+            renderPathList();
+            updateFlipButtonStates();
+            log(`Captured keyframe #${idx + 1} (fov=${fov.toFixed(1)})`);
+        }
+
+        function updateShotCounter() {
+            const el = document.getElementById('shot-counter');
+            if (!el) return;
+            if (state.mentoShots.length === 0) {
+                el.textContent = '0/0';
+            } else {
+                el.textContent = `${state.currentShotIndex + 1}/${state.mentoShots.length}`;
+            }
+        }
+
+        function goToShot(index) {
+            if (!state.camera || !state.controls) return;
+            if (!state.mentoShots || state.mentoShots.length === 0) return;
+            if (index < 0 || index >= state.mentoShots.length) return;
+            
+            const shot = state.mentoShots[index];
+            state.camera.position.copy(shot.pos);
+            state.controls.target.copy(shot.tgt);
+            state.camera.fov = shot.fov;
+            state.camera.updateProjectionMatrix();
+            state.controls.update();
+            
+            state.currentShotIndex = index;
+            updateShotCounter();
+            updateShotMarkers();
+            
+            log(`Jumped to shot ${index + 1}: "${shot.name}"`);
+        }
+
+        function nextShot() {
+            if (state.mentoShots.length === 0) return;
+            const next = (state.currentShotIndex + 1) % state.mentoShots.length;
+            goToShot(next);
+        }
+
+        function prevShot() {
+            if (state.mentoShots.length === 0) return;
+            const prev = (state.currentShotIndex - 1 + state.mentoShots.length) % state.mentoShots.length;
+            goToShot(prev);
+        }
+
+        function exportCurrentAsMento() {
+            if (!state.camera || !state.controls) return;
+            
+            const pos = state.camera.position;
+            const tgt = state.controls.target;
+            const fov = state.camera.fov;
+            
+            const mentoLine = `0 !MENTO SHOT "Shot ${state.mentoShots.length + 1}" POS ${Math.round(pos.x)} ${Math.round(pos.y)} ${Math.round(pos.z)} TGT ${Math.round(tgt.x)} ${Math.round(tgt.y)} ${Math.round(tgt.z)} LENS ${Math.round(fov)}`;
+            
+            navigator.clipboard.writeText(mentoLine);
+            showToast('MENTO shot copied to clipboard');
+            log('Exported: ' + mentoLine);
+        }
+
+        function updateFrustums() {
+            // Clear existing frustums
+            state.frustumHelpers.forEach(helper => state.scene.remove(helper));
+            state.frustumHelpers = [];
+            
+            if (!state.showFrustums || !state.keyframes || state.keyframes.length === 0) return;
+            
+            state.keyframes.forEach((kf, i) => {
+                // Create a temporary camera for the frustum
+                const cam = new THREE.PerspectiveCamera(kf.fov, 16/9, 1, 100);
+                cam.position.copy(kf.pos);
+                cam.lookAt(kf.tgt);
+                cam.updateMatrixWorld();
+                
+                const helper = new THREE.CameraHelper(cam);
+                
+                // Color based on selection
+                const isSelected = i === state.selectedKeyframeIndex;
+                const color = isSelected ? 0x00ff00 : 0x666666;
+                helper.material.color.setHex(color);
+                helper.material.linewidth = isSelected ? 2 : 1;
+                
+                state.scene.add(helper);
+                state.frustumHelpers.push(helper);
+            });
+        }
+
+        function selectKeyframe(index) {
+            if (index < 0 || index >= state.keyframes.length) {
+                deselectKeyframe();
+                return;
+            }
+            
+            state.selectedKeyframeIndex = index;
+            
+            // Update frustum colors
+            updateFrustums();
+            
+            // Attach TransformControls to the keyframe position
+            if (state.transformControls && state.keyframes[index]) {
+                // Create a virtual object at the keyframe position
+                if (!state.selectedKFHelper) {
+                    const geo = new THREE.SphereGeometry(3);
+                    const mat = new THREE.MeshBasicMaterial({ color: 0x00ff00, opacity: 0.5, transparent: true });
+                    state.selectedKFHelper = new THREE.Mesh(geo, mat);
+                    state.scene.add(state.selectedKFHelper);
+                }
+                
+                const kf = state.keyframes[index];
+                state.selectedKFHelper.position.copy(kf.pos);
+                state.transformControls.attach(state.selectedKFHelper);
+                state.transformControls.visible = true;
+                
+                // Draw line from camera to target
+                if (state.selectedKFLine) {
+                    state.scene.remove(state.selectedKFLine);
+                }
+                const points = [kf.pos, kf.tgt];
+                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const lineMat = new THREE.LineDashedMaterial({ 
+                    color: 0x00ffff, 
+                    dashSize: 3, 
+                    gapSize: 1 
+                });
+                state.selectedKFLine = new THREE.Line(lineGeo, lineMat);
+                state.selectedKFLine.computeLineDistances();
+                state.scene.add(state.selectedKFLine);
+            }
+            
+            updateStatusLine();
+            log(`Selected keyframe ${index + 1}`);
+        }
+
+        function deselectKeyframe() {
+            state.selectedKeyframeIndex = -1;
+            
+            if (state.transformControls) {
+                state.transformControls.detach();
+                state.transformControls.visible = false;
+            }
+            
+            if (state.selectedKFHelper) {
+                state.scene.remove(state.selectedKFHelper);
+                state.selectedKFHelper = null;
+            }
+            
+            if (state.selectedKFLine) {
+                state.scene.remove(state.selectedKFLine);
+                state.selectedKFLine = null;
+            }
+            
+            updateFrustums();
+            updateStatusLine();
+        }
+
+        function updateSelectedKeyframeFromGizmo() {
+            if (state.selectedKeyframeIndex >= 0 && state.selectedKFHelper) {
+                const kf = state.keyframes[state.selectedKeyframeIndex];
+                kf.pos.copy(state.selectedKFHelper.position);
+                
+                // Update the camera path visualization
+                updatePathViz();
+                updateFrustums();
+                updateStatusLine();
+                
+                // Update camera-to-target line
+                if (state.selectedKFLine) {
+                    state.scene.remove(state.selectedKFLine);
+                    const points = [kf.pos, kf.tgt];
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                    const lineMat = new THREE.LineDashedMaterial({ 
+                        color: 0x00ffff, 
+                        dashSize: 3, 
+                        gapSize: 1 
+                    });
+                    state.selectedKFLine = new THREE.Line(lineGeo, lineMat);
+                    state.selectedKFLine.computeLineDistances();
+                    state.scene.add(state.selectedKFLine);
+                }
+            }
+        }
+
+        function updateStatusLine() {
+            const statusEl = document.getElementById('status-line');
+            if (!statusEl) return;
+            
+            if (state.selectedKeyframeIndex >= 0 && state.keyframes[state.selectedKeyframeIndex]) {
+                const kf = state.keyframes[state.selectedKeyframeIndex];
+                const p = kf.pos;
+                const t = kf.tgt;
+                statusEl.textContent = `KF ${state.selectedKeyframeIndex + 1}/${state.keyframes.length} • POS (${Math.round(p.x)}, ${Math.round(p.y)}, ${Math.round(p.z)}) • TGT (${Math.round(t.x)}, ${Math.round(t.y)}, ${Math.round(t.z)}) • LENS ${Math.round(kf.fov)}`;
+            } else if (state.modelRoot) {
+                const p = state.modelRoot.position;
+                const r = THREE.MathUtils.radToDeg(state.modelRoot.rotation.y);
+                const s = state.modelRoot.scale.x;
+                const modelName = state.models[state.activeModelIndex]?.name || 'Model';
+                const slot = state.models[state.activeModelIndex]?.slot || '?';
+                statusEl.textContent = `[Slot ${slot}] ${modelName} • POS (${Math.round(p.x)}, ${Math.round(p.y)}, ${Math.round(p.z)}) • RotY ${Math.round(r)}° • Scale ${s.toFixed(2)}`;
+            } else {
+                statusEl.textContent = 'No selection';
+            }
+        }
+
+        function toggleRuler() {
+            const showRuler = document.getElementById('show-ruler')?.checked;
+            
+            if (showRuler) {
+                if (!state.calibrationRuler) {
+                    buildRuler();
+                }
+                state.calibrationRuler.visible = true;
+            } else {
+                if (state.calibrationRuler) {
+                    state.calibrationRuler.visible = false;
+                }
+            }
+        }
+        
+        function buildRuler() {
+            // Clear existing ruler
+            if (state.calibrationRuler) {
+                state.scene.remove(state.calibrationRuler);
+                state.calibrationRuler = null;
+            }
+            
+            state.calibrationRuler = new THREE.Group();
+            const scale = state.rulerScale;
+            const range = Math.round(200 * scale);
+            const tickInterval = 5; // Every 5 units
+            const majorInterval = 25; // Major ticks every 25 units
+            
+            // Y-AXIS (Vertical - Magenta)
+            for (let y = -range; y <= range; y += tickInterval) {
+                        const isMajor = y % majorInterval === 0;
+                        const lineLength = isMajor ? 10 : 5;
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                            new THREE.Vector3(-lineLength, y, 0),
+                            new THREE.Vector3(lineLength, y, 0)
+                        ]);
+                        const lineMat = new THREE.LineBasicMaterial({ color: isMajor ? 0xff00ff : 0x880088 });
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        state.calibrationRuler.add(line);
+                        
+                        if (isMajor) {
+                            const sprite = createLabel(y.toString(), '#ff00ff');
+                            sprite.position.set(15, y, 0);
+                            state.calibrationRuler.add(sprite);
+                        }
+                    }
+                    
+                    // X-AXIS (Horizontal Left-Right - Cyan)
+                    for (let x = -range; x <= range; x += tickInterval) {
+                        const isMajor = x % majorInterval === 0;
+                        const lineLength = isMajor ? 10 : 5;
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                            new THREE.Vector3(x, -lineLength, 0),
+                            new THREE.Vector3(x, lineLength, 0)
+                        ]);
+                        const lineMat = new THREE.LineBasicMaterial({ color: isMajor ? 0x00ffff : 0x008888 });
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        state.calibrationRuler.add(line);
+                        
+                        if (isMajor && x !== 0) {
+                            const sprite = createLabel(x.toString(), '#00ffff');
+                            sprite.position.set(x, -15, 0);
+                            state.calibrationRuler.add(sprite);
+                        }
+                    }
+                    
+                    // Z-AXIS (Depth Front-Back - Yellow)
+                    for (let z = -range; z <= range; z += tickInterval) {
+                        const isMajor = z % majorInterval === 0;
+                        const lineLength = isMajor ? 10 : 5;
+                        const lineGeo = new THREE.BufferGeometry().setFromPoints([
+                            new THREE.Vector3(-lineLength, 0, z),
+                            new THREE.Vector3(lineLength, 0, z)
+                        ]);
+                        const lineMat = new THREE.LineBasicMaterial({ color: isMajor ? 0xffff00 : 0x888800 });
+                        const line = new THREE.Line(lineGeo, lineMat);
+                        state.calibrationRuler.add(line);
+                        
+                        if (isMajor && z !== 0) {
+                            const sprite = createLabel(z.toString(), '#ffff00');
+                            sprite.position.set(-15, 0, z);
+                            state.calibrationRuler.add(sprite);
+                        }
+                    }
+                    
+                    // Origin marker (bright white)
+                    const originGeo = new THREE.SphereGeometry(3);
+                    const originMat = new THREE.MeshBasicMaterial({ color: 0xffffff });
+                    const origin = new THREE.Mesh(originGeo, originMat);
+                    state.calibrationRuler.add(origin);
+                    
+                    // Axis labels at extremes
+                    const labelDist = range + 10;
+                    const yLabel = createLabel('Y', '#ff00ff');
+                    yLabel.position.set(0, labelDist, 0);
+                    yLabel.scale.set(30, 15, 1);
+                    state.calibrationRuler.add(yLabel);
+                    
+                    const xLabel = createLabel('X', '#00ffff');
+                    xLabel.position.set(labelDist, 0, 0);
+                    xLabel.scale.set(30, 15, 1);
+                    state.calibrationRuler.add(xLabel);
+                    
+                    const zLabel = createLabel('Z', '#ffff00');
+                    zLabel.position.set(0, 0, labelDist);
+                    zLabel.scale.set(30, 15, 1);
+                    state.calibrationRuler.add(zLabel);
+                    
+                    state.scene.add(state.calibrationRuler);
+            
+            function createLabel(text, color) {
+                const canvas = document.createElement('canvas');
+                canvas.width = 64;
+                canvas.height = 32;
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = color;
+                ctx.font = 'bold 16px monospace';
+                ctx.textAlign = 'center';
+                ctx.fillText(text, 32, 20);
+                
+                const texture = new THREE.CanvasTexture(canvas);
+                const spriteMat = new THREE.SpriteMaterial({ map: texture });
+                const sprite = new THREE.Sprite(spriteMat);
+                sprite.scale.set(20, 10, 1);
+                return sprite;
+            }
+        }
+
+        function toggleGrid() {
+            state.showGrid = !state.showGrid;
+            
+            if (state.showGrid) {
+                if (!state.gridHelper) {
+                    state.gridHelper = new THREE.GridHelper(1000, 100, 0x444444, 0x222222);
+                    state.scene.add(state.gridHelper);
+                }
+                if (!state.axesHelper) {
+                    state.axesHelper = new THREE.AxesHelper(50);
+                    state.scene.add(state.axesHelper);
+                }
+            } else {
+                if (state.gridHelper) {
+                    state.scene.remove(state.gridHelper);
+                    state.gridHelper = null;
+                }
+                if (state.axesHelper) {
+                    state.scene.remove(state.axesHelper);
+                    state.axesHelper = null;
+                }
+            }
+        }
+
+        function updateShotMarkers() {
+            // Clear existing markers
+            state.shotMarkers.forEach(marker => state.scene.remove(marker));
+            state.shotMarkers = [];
+            
+            const showMarkers = document.getElementById('show-shot-markers')?.checked;
+            if (!showMarkers || !state.mentoShots) return;
+            
+            state.mentoShots.forEach((shot, i) => {
+                // Camera frustum wireframe
+                const geo = new THREE.ConeGeometry(5, 10, 4);
+                const mat = new THREE.MeshBasicMaterial({ 
+                    color: i === state.currentShotIndex ? 0x00ff00 : 0x666666,
+                    wireframe: true
+                });
+                const cone = new THREE.Mesh(geo, mat);
+                cone.position.copy(shot.pos);
+                cone.lookAt(shot.tgt);
+                cone.rotateX(Math.PI / 2);
+                
+                state.scene.add(cone);
+                state.shotMarkers.push(cone);
+                
+                // Line to target
+                const points = [shot.pos, shot.tgt];
+                const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const lineMat = new THREE.LineBasicMaterial({ 
+                    color: i === state.currentShotIndex ? 0x00ff00 : 0x333333 
+                });
+                const line = new THREE.Line(lineGeo, lineMat);
+                
+                state.scene.add(line);
+                state.shotMarkers.push(line);
+            });
+        }
+
+        function flipShots(axis) {
+            if (!state.keyframes || state.keyframes.length === 0) {
+                log('No keyframes to flip.');
+                return;
+            }
+            
+            state.keyframes.forEach(kf => {
+                // Flip position on specified axis
+                kf.pos[axis] *= -1;
+                // Flip target on specified axis
+                kf.tgt[axis] *= -1;
+            });
+            
+            // If MENTO shots exist, flip those too
+            if (state.mentoShots && state.mentoShots.length > 0) {
+                state.mentoShots.forEach(shot => {
+                    shot.pos.y *= -1;
+                    shot.tgt.y *= -1;
+                });
+            }
+            
+            // Update visualization
+            updatePathViz();
+            updateFrustums();
+            renderPathList();
+            
+            // If a keyframe is selected, update the helper and line
+            if (state.selectedKeyframeIndex >= 0) {
+                const kf = state.keyframes[state.selectedKeyframeIndex];
+                if (state.selectedKFHelper) {
+                    state.selectedKFHelper.position.copy(kf.pos);
+                }
+                if (state.selectedKFLine) {
+                    state.scene.remove(state.selectedKFLine);
+                    const points = [kf.pos, kf.tgt];
+                    const lineGeo = new THREE.BufferGeometry().setFromPoints(points);
+                    const lineMat = new THREE.LineDashedMaterial({ 
+                        color: 0x00ffff, 
+                        dashSize: 3, 
+                        gapSize: 1 
+                    });
+                    state.selectedKFLine = new THREE.Line(lineGeo, lineMat);
+                    state.selectedKFLine.computeLineDistances();
+                    state.scene.add(state.selectedKFLine);
+                }
+            }
+            
+            log(`Flipped ${axis.toUpperCase()} axis for ${state.keyframes.length} keyframes.`);
+            
+            // Toggle flip state
+            state.shotsFlippedAxes[axis] = !state.shotsFlippedAxes[axis];
+            updateFlipButtonStates();
+        }
+        
+        // Legacy function for compatibility
+        function flipShotsY() {
+            flipShots('y');
+        }
+
+        function clearKeyframes() {
+            state.keyframes = [];
+            state.pathPlayback.playing = false;
+            renderPathList();
+            clearPathViz();
+            log('Cleared all keyframes.');
+        }
+
+        function renderPathList() {
+            const el = document.getElementById('path-list');
+            if (!el) return;
+            if (!state.keyframes.length) {
+                el.textContent = 'No keyframes yet.';
+                renderPathThumbs();
+                return;
+            }
+            const lines = state.keyframes.map((kf, i) => {
+                const p = kf.pos;
+                return `${i + 1}. pos=(${p.x.toFixed(1)}, ${p.y.toFixed(1)}, ${p.z.toFixed(1)}) fov=${kf.fov.toFixed(1)}`;
+            });
+            el.textContent = lines.join('\n');
+            updatePathViz();
+            renderPathThumbs();
+            updateFrustums();
+        }
+
+        function startKeyframePlayback() {
+            if (!state.camera || !state.controls) return;
+            if (!state.keyframes || state.keyframes.length < 2) {
+                log('Need at least 2 keyframes to play path.');
+                return;
+            }
+            const duration = getPathDurationSeconds();
+            state.pathPlayback.duration = duration;
+            state.pathPlayback.startTime = performance.now();
+            state.pathPlayback.playing = true;
+            state.pathMode = 'keyframes';
+            log(`Playing keyframe path over ${duration.toFixed(1)}s (${state.keyframes.length} keys).`);
+        }
+
+        function clearPathViz() {
+            if (!state.scene || !state.pathViz) return;
+            if (state.pathViz.line) {
+                state.scene.remove(state.pathViz.line);
+                if (state.pathViz.line.geometry) state.pathViz.line.geometry.dispose();
+                if (state.pathViz.line.material) state.pathViz.line.material.dispose();
+                state.pathViz.line = null;
+            }
+            if (state.pathViz.points) {
+                state.scene.remove(state.pathViz.points);
+                state.pathViz.points.traverse(obj => {
+                    if (obj.isMesh) {
+                        if (obj.geometry) obj.geometry.dispose();
+                        if (obj.material) obj.material.dispose();
+                    }
+                });
+                state.pathViz.points = null;
+            }
+        }
+
+        function updatePathViz() {
+            if (!state.scene) return;
+            clearPathViz();
+            if (!state.keyframes || state.keyframes.length < 2) return;
+
+            const positions = state.keyframes.map(kf => kf.pos.clone());
+            const curve = new THREE.CatmullRomCurve3(positions);
+            const samples = Math.max(positions.length * 16, 32);
+            const pts = curve.getPoints(samples);
+            const geom = new THREE.BufferGeometry().setFromPoints(pts);
+            const mat = new THREE.LineBasicMaterial({ color: 0x22c55e });
+            const line = new THREE.Line(geom, mat);
+            line.renderOrder = 10;
+            state.scene.add(line);
+            state.pathViz.line = line;
+
+            const group = new THREE.Group();
+            const sphereGeom = new THREE.SphereGeometry(3, 8, 8);
+            const sphereMat = new THREE.MeshBasicMaterial({ color: 0xfacc15 });
+            state.keyframes.forEach(kf => {
+                const m = new THREE.Mesh(sphereGeom, sphereMat);
+                m.position.copy(kf.pos);
+                group.add(m);
+            });
+            state.scene.add(group);
+            state.pathViz.points = group;
+        }
+
+        function renderPathThumbs() {
+            const container = document.getElementById('path-thumbs');
+            if (!container) return;
+            container.innerHTML = '';
+            if (!state.keyframes || !state.keyframes.length) return;
+            state.keyframes.forEach((kf, i) => {
+                if (!kf.thumb) return;
+                const img = document.createElement('img');
+                img.src = kf.thumb;
+                img.alt = `Keyframe ${i + 1}`;
+                img.addEventListener('click', () => {
+                    selectKeyframe(i);
+                    jumpToKeyframe(i);
+                });
+                container.appendChild(img);
+            });
+        }
+
+        function jumpToKeyframe(index) {
+            if (!state.camera || !state.controls) return;
+            if (!state.keyframes || index < 0 || index >= state.keyframes.length) return;
+            const kf = state.keyframes[index];
+            if (!kf) return;
+            state.camera.position.copy(kf.pos);
+            state.camera.fov = kf.fov;
+            state.camera.updateProjectionMatrix();
+            state.controls.target.copy(kf.tgt);
+            state.camera.lookAt(kf.tgt);
+            log(`Jumped to keyframe #${index + 1}.`);
+        }
+
+        function onViewportClick(event) {
+            const canvas = state.renderer.domElement;
+            const rect = canvas.getBoundingClientRect();
+            
+            state.mouse.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            state.mouse.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            
+            state.raycaster.setFromCamera(state.mouse, state.camera);
+            
+            // Check keyframe marker meshes first
+            if (state.pathViz.points && state.pathViz.points.children) {
+                const intersects = state.raycaster.intersectObjects(state.pathViz.points.children);
+                if (intersects.length > 0) {
+                    // Find which keyframe was clicked
+                    const clickedObj = intersects[0].object;
+                    const index = state.pathViz.points.children.indexOf(clickedObj);
+                    if (index >= 0 && index < state.keyframes.length) {
+                        selectKeyframe(index);
+                        return;
+                    }
+                }
+            }
+            
+            // Click on empty space: deselect
+            if (!state.transformControls.dragging) {
+                deselectKeyframe();
+            }
+        }
+
+        function onKeyDown(event) {
+            // Phase 2: Keyboard nudge will be implemented here
+            if (event.key === 'Escape') {
+                deselectKeyframe();
+            }
+        }
+
+        function animate() {
+            requestAnimationFrame(animate);
+            const dt = state.clock.getDelta();
+
+            if (state.pathMode === 'orbit' && state.orbitCenter && state.camera) {
+                const t = state.clock.elapsedTime * 0.25; // slow orbit
+                const angle = t;
+                const x = state.orbitCenter.x + Math.cos(angle) * state.orbitRadius;
+                const z = state.orbitCenter.z + Math.sin(angle) * state.orbitRadius;
+                const y = state.orbitHeight;
+                state.camera.position.set(x, y, z);
+                state.camera.lookAt(state.orbitCenter);
+                state.controls.target.copy(state.orbitCenter);
+            } else if (state.pathMode === 'keyframes' && state.pathPlayback.playing && state.keyframes.length >= 2) {
+                const now = performance.now();
+                const dtMs = now - state.pathPlayback.startTime;
+                const durationMs = state.pathPlayback.duration * 1000;
+                let tNorm = durationMs > 0 ? dtMs / durationMs : 1;
+                if (tNorm >= 1) {
+                    tNorm = 1;
+                    state.pathPlayback.playing = false;
+                    state.pathMode = 'manual';
+                    log('Keyframe path playback finished.');
+                }
+                const nSeg = state.keyframes.length - 1;
+                const segPos = tNorm * nSeg;
+                const i0 = Math.floor(segPos);
+                const u = segPos - i0;
+                const k0 = state.keyframes[i0];
+                const k1 = state.keyframes[Math.min(i0 + 1, nSeg)];
+                const pos = k0.pos.clone().lerp(k1.pos, u);
+                const tgt = k0.tgt.clone().lerp(k1.tgt, u);
+                const fov = k0.fov + (k1.fov - k0.fov) * u;
+                state.camera.position.copy(pos);
+                state.camera.fov = fov;
+                state.camera.updateProjectionMatrix();
+                state.camera.lookAt(tgt);
+                state.controls.target.copy(tgt);
+            } else if (state.controls) {
+                state.controls.update();
+            }
+
+            if (state.renderer && state.scene && state.camera) {
+                state.renderer.render(state.scene, state.camera);
+            }
+        }
+
+        function pickMimeType() {
+            const candidates = [
+                'video/webm;codecs=vp9',
+                'video/webm;codecs=vp8',
+                'video/webm'
+            ];
+            for (const type of candidates) {
+                if (window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(type)) {
+                    return type;
+                }
+            }
+            return '';
+        }
+
+        function hideHelpersForCapture(hide) {
+            // Grid and axes
+            if (state.gridHelper) {
+                state.gridHelper.visible = !hide;
+            }
+            if (state.axesHelper) {
+                state.axesHelper.visible = !hide;
+            }
+            
+            // Camera frustums
+            if (state.frustumHelpers) {
+                state.frustumHelpers.forEach(helper => {
+                    helper.visible = !hide;
+                });
+            }
+            
+            // Keyframe markers (path visualization)
+            if (state.pathViz.line) {
+                state.pathViz.line.visible = !hide;
+            }
+            if (state.pathViz.points) {
+                state.pathViz.points.visible = !hide;
+            }
+            
+            // Selected keyframe helper
+            if (state.selectedKFHelper) {
+                state.selectedKFHelper.visible = !hide;
+            }
+            if (state.selectedKFLine) {
+                state.selectedKFLine.visible = !hide;
+            }
+            
+            // Shot markers
+            if (state.shotMarkers) {
+                state.shotMarkers.forEach(marker => {
+                    marker.visible = !hide;
+                });
+            }
+            
+            // Calibration ruler
+            if (state.calibrationRuler) {
+                state.calibrationRuler.visible = !hide;
+            }
+            
+            // Active model bounding box
+            if (state.activeBoundingBox) {
+                state.activeBoundingBox.visible = !hide;
+            }
+            
+            log(hide ? 'Helpers hidden for clean capture.' : 'Helpers restored.');
+        }
+
+        function startCapture() {
+            if (state.recording) return;
+            if (!state.renderer) {
+                setStatus('Renderer not ready for capture.');
+                return;
+            }
+            const fpsInput = document.getElementById('capture-fps');
+            const durInput = document.getElementById('capture-duration');
+            const fps = parseInt(fpsInput && fpsInput.value, 10) || 30;
+            const maxSeconds = parseInt(durInput && durInput.value, 10) || 10;
+
+            const canvas = state.renderer.domElement;
+            if (!canvas || !canvas.captureStream) {
+                setStatus('captureStream() not available in this browser.');
+                log('captureStream() not available on renderer canvas.');
+                return;
+            }
+
+            let stream;
+            try {
+                stream = canvas.captureStream(fps);
+            } catch (err) {
+                setStatus('Failed to start capture stream.');
+                log('Error creating captureStream: ' + err.message);
+                return;
+            }
+
+            const mimeType = pickMimeType();
+            let recorder;
+            try {
+                recorder = mimeType ? new MediaRecorder(stream, { mimeType }) : new MediaRecorder(stream);
+            } catch (err) {
+                setStatus('MediaRecorder not available.');
+                log('MediaRecorder init failed: ' + err.message);
+                return;
+            }
+
+            state.chunks = [];
+            state.mediaRecorder = recorder;
+
+            recorder.ondataavailable = (e) => {
+                if (e.data && e.data.size > 0) state.chunks.push(e.data);
+            };
+
+            recorder.onstop = () => {
+                state.recording = false;
+                const startBtn = document.getElementById('start-capture');
+                const stopBtn = document.getElementById('stop-capture');
+                const dlBtn = document.getElementById('download-last');
+                if (startBtn) startBtn.disabled = false;
+                if (stopBtn) stopBtn.disabled = true;
+
+                if (state.chunks.length) {
+                    const blob = new Blob(state.chunks, { type: 'video/webm' });
+                    if (state.lastBlobUrl) URL.revokeObjectURL(state.lastBlobUrl);
+                    state.lastBlobUrl = URL.createObjectURL(blob);
+                    if (dlBtn) dlBtn.disabled = false;
+                    setStatus('Capture finished. Ready to download.');
+                    log('Capture finished. ' + blob.size + ' bytes ready for download.');
+                } else {
+                    if (dlBtn) dlBtn.disabled = true;
+                    setStatus('Capture stopped (no data).');
+                    log('Recorder stopped but no data captured.');
+                }
+                setCameraState(false);
+                if (state.transformControls && state.modelRoot) {
+                    state.transformControls.visible = true;
+                }
+                
+                // Restore helpers after capture
+                hideHelpersForCapture(false);
+            };
+
+            recorder.onerror = (e) => {
+                log('MediaRecorder error: ' + e.error);
+                setStatus('MediaRecorder error.');
+            };
+
+            try {
+                recorder.start();
+            } catch (err) {
+                setStatus('Failed to start recording.');
+                log('MediaRecorder.start() failed: ' + err.message);
+                return;
+            }
+
+            state.recording = true;
+            const startBtn = document.getElementById('start-capture');
+            const stopBtn = document.getElementById('stop-capture');
+            const dlBtn = document.getElementById('download-last');
+            if (startBtn) startBtn.disabled = true;
+            if (stopBtn) stopBtn.disabled = false;
+            if (dlBtn) dlBtn.disabled = true;
+
+            setCameraState(true);
+            setStatus(`Recording at ${fps} fps (up to ${maxSeconds}s)…`);
+            log(`Recording started at ${fps} fps; max duration ${maxSeconds}s.`);
+
+            // Auto-play keyframe path if selected
+            if (state.pathMode === 'keyframes') {
+                if (state.keyframes && state.keyframes.length >= 2) {
+                    if (!state.pathPlayback.playing) {
+                        startKeyframePlayback();
+                        log('Auto-playing keyframe path for capture.');
+                    }
+                } else {
+                    log('Keyframe mode active but no usable keyframes; capture will use current static camera.');
+                }
+            }
+
+            if (state.transformControls) {
+                state.transformControls.visible = false;
+            }
+            
+            // Hide all helpers/grids for clean capture
+            hideHelpersForCapture(true);
+
+            if (Number.isFinite(maxSeconds) && maxSeconds > 0) {
+                setTimeout(() => {
+                    if (state.recording && state.mediaRecorder && state.mediaRecorder.state === 'recording') {
+                        log('Auto-stopping capture after max duration.');
+                        state.mediaRecorder.stop();
+                    }
+                }, maxSeconds * 1000);
+            }
+        }
+
+        function stopCapture() {
+            if (!state.recording || !state.mediaRecorder) return;
+            if (state.mediaRecorder.state === 'inactive') return;
+            log('Stopping capture by user request.');
+            state.mediaRecorder.stop();
+        }
+
+        function downloadLast() {
+            if (!state.lastBlobUrl) {
+                log('No capture available to download.');
+                return;
+            }
+            const now = new Date();
+            const date = now.toISOString().slice(0, 10).replace(/-/g, '');
+            const time = now.toTimeString().split(' ')[0].replace(/:/g, '');
+            const filename = `mento_glb_desert_${date}_${time}.webm`;
+            const a = document.createElement('a');
+            a.href = state.lastBlobUrl;
+            a.download = filename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            log('Triggered download of last capture.');
+        }
+
+        function updateFlipButtonStates() {
+            // Update scene flip buttons
+            ['x', 'y', 'z'].forEach(axis => {
+                const btn = document.getElementById(`transform-flip-${axis}`);
+                if (btn) {
+                    if (state.flippedAxes[axis]) {
+                        btn.classList.add('flipped');
+                        btn.textContent = axis.toUpperCase() + ' ✓';
+                    } else {
+                        btn.classList.remove('flipped');
+                        btn.textContent = axis.toUpperCase();
+                    }
+                }
+            });
+            
+            // Update shots flip buttons
+            ['x', 'y', 'z'].forEach(axis => {
+                const btn = document.getElementById(`path-flip-${axis}`);
+                if (btn) {
+                    if (state.shotsFlippedAxes[axis]) {
+                        btn.classList.add('flipped');
+                        btn.textContent = axis.toUpperCase() + ' ✓';
+                    } else {
+                        btn.classList.remove('flipped');
+                        btn.textContent = axis.toUpperCase();
+                    }
+                }
+            });
+            
+            // Update START button if keyframes ready
+            const startBtn = document.getElementById('start-capture');
+            if (startBtn) {
+                if (state.keyframes && state.keyframes.length >= 2 && state.pathMode === 'keyframes') {
+                    startBtn.classList.add('ready');
+                    startBtn.textContent = '▶ START READY';
+                } else {
+                    startBtn.classList.remove('ready');
+                    startBtn.textContent = 'START';
+                }
+            }
+        }
+
+        function tareShots() {
+            // Get the model locked to
+            const slot = state.shotLockedToSlot;
+            const model = state.models.find(m => m.slot === slot);
+            
+            if (!model) {
+                log(`No model in Slot ${slot} to TARE to.`);
+                showToast(`Load model in Slot ${slot} first`);
+                return;
+            }
+            
+            // Calculate offset needed to align shots with model position
+            const modelPos = model.root.position.clone();
+            state.shotPositionOffset.copy(modelPos);
+            
+            // Update offset inputs
+            document.getElementById('shot-offset-x').value = Math.round(modelPos.x);
+            document.getElementById('shot-offset-y').value = Math.round(modelPos.y);
+            document.getElementById('shot-offset-z').value = Math.round(modelPos.z);
+            
+            applyShotOffset();
+            
+            log(`TARE: Shots zeroed to Slot ${slot} at (${Math.round(modelPos.x)}, ${Math.round(modelPos.y)}, ${Math.round(modelPos.z)})`);
+            showToast('Shots TARED');
+        }
+
+        function applyShotOffset() {
+            const offsetX = parseFloat(document.getElementById('shot-offset-x').value) || 0;
+            const offsetY = parseFloat(document.getElementById('shot-offset-y').value) || 0;
+            const offsetZ = parseFloat(document.getElementById('shot-offset-z').value) || 0;
+            
+            state.shotPositionOffset.set(offsetX, offsetY, offsetZ);
+            
+            // This doesn't actually move the keyframes, just updates the offset
+            // The offset is applied when rendering/exporting
+            updatePathViz();
+            updateFrustums();
+            
+            log(`Shot offset set to (${Math.round(offsetX)}, ${Math.round(offsetY)}, ${Math.round(offsetZ)})`);
+        }
+
+        function toggleOriginLock() {
+            state.originLocked = !state.originLocked;
+            const btn = document.getElementById('lock-origin');
+            
+            if (state.originLocked) {
+                btn.textContent = '🔒 Origin';
+                btn.classList.add('flipped'); // Green highlight
+                
+                // Snap model to origin
+                if (state.modelRoot) {
+                    state.modelRoot.position.set(0, 0, 0);
+                    state.modelRoot.updateMatrixWorld();
+                    updateTransformInputs();
+                }
+                
+                log('Origin locked - model fixed at (0,0,0).');
+                showToast('Origin Locked');
+            } else {
+                btn.textContent = '🔓 Origin';
+                btn.classList.remove('flipped');
+                log('Origin unlocked - model can be moved.');
+                showToast('Origin Unlocked');
+            }
+        }
+
+        function resetCamera() {
+            if (!state.camera || !state.controls) return;
+            
+            state.camera.position.set(0, 200, 600);
+            state.camera.fov = 50;
+            state.camera.updateProjectionMatrix();
+            state.controls.target.set(0, 0, 0);
+            state.controls.update();
+            
+            const fovSlider = document.getElementById('glb-fov');
+            if (fovSlider) fovSlider.value = 50;
+            
+            log('Camera reset to default position.');
+            showToast('Camera Reset');
+        }
+
+        function toggleModule(moduleName) {
+            const module = document.getElementById(`module-${moduleName}`);
+            if (!module) return;
+            
+            module.classList.toggle('collapsed');
+            
+            // Save state to localStorage
+            const collapsed = module.classList.contains('collapsed');
+            localStorage.setItem(`module-${moduleName}-collapsed`, collapsed);
+        }
+
+        function initModules() {
+            // Load saved states from localStorage
+            ['model', 'camera', 'mento', 'log'].forEach(name => {
+                const collapsed = localStorage.getItem(`module-${name}-collapsed`) === 'true';
+                const module = document.getElementById(`module-${name}`);
+                if (module && collapsed) {
+                    module.classList.add('collapsed');
+                }
+            });
+        }
+
+        function exportScenePreset() {
+            const preset = {
+                version: 1,
+                models: state.models.map((m, i) => ({
+                    slot: m.slot,
+                    name: m.name,
+                    position: {
+                        x: m.root.position.x,
+                        y: m.root.position.y,
+                        z: m.root.position.z
+                    },
+                    rotation: {
+                        x: m.root.rotation.x,
+                        y: m.root.rotation.y,
+                        z: m.root.rotation.z
+                    },
+                    scale: {
+                        x: m.root.scale.x,
+                        y: m.root.scale.y,
+                        z: m.root.scale.z
+                    },
+                    visible: m.visible
+                })),
+                shotOffset: {
+                    x: state.shotPositionOffset.x,
+                    y: state.shotPositionOffset.y,
+                    z: state.shotPositionOffset.z
+                },
+                shotLockedToSlot: state.shotLockedToSlot
+            };
+            
+            const json = JSON.stringify(preset, null, 2);
+            navigator.clipboard.writeText(json).then(() => {
+                log('Scene preset copied to clipboard!');
+                showToast('Scene Preset Copied');
+                
+                // Also show in textarea
+                const textarea = document.getElementById('scene-preset-data');
+                if (textarea) {
+                    textarea.value = json;
+                    textarea.style.display = 'block';
+                }
+            });
+        }
+
+        function importScenePreset() {
+            const textarea = document.getElementById('scene-preset-data');
+            if (!textarea) return;
+            
+            // Show textarea if hidden
+            if (textarea.style.display === 'none') {
+                textarea.style.display = 'block';
+                textarea.focus();
+                log('Paste preset JSON and click Import again');
+                return;
+            }
+            
+            try {
+                const preset = JSON.parse(textarea.value);
+                
+                if (preset.version !== 1) {
+                    log('Unknown preset version');
+                    return;
+                }
+                
+                // Apply transforms to existing models
+                preset.models.forEach(presetModel => {
+                    const model = state.models.find(m => m.slot === presetModel.slot);
+                    if (model) {
+                        model.root.position.set(
+                            presetModel.position.x,
+                            presetModel.position.y,
+                            presetModel.position.z
+                        );
+                        model.root.rotation.set(
+                            presetModel.rotation.x,
+                            presetModel.rotation.y,
+                            presetModel.rotation.z
+                        );
+                        model.root.scale.set(
+                            presetModel.scale.x,
+                            presetModel.scale.y,
+                            presetModel.scale.z
+                        );
+                        model.visible = presetModel.visible;
+                        model.root.visible = presetModel.visible;
+                    }
+                });
+                
+                // Apply shot offset
+                if (preset.shotOffset) {
+                    state.shotPositionOffset.set(
+                        preset.shotOffset.x,
+                        preset.shotOffset.y,
+                        preset.shotOffset.z
+                    );
+                    document.getElementById('shot-offset-x').value = preset.shotOffset.x;
+                    document.getElementById('shot-offset-y').value = preset.shotOffset.y;
+                    document.getElementById('shot-offset-z').value = preset.shotOffset.z;
+                }
+                
+                if (preset.shotLockedToSlot !== undefined) {
+                    state.shotLockedToSlot = preset.shotLockedToSlot;
+                    const slotSelect = document.getElementById('shot-lock-slot');
+                    if (slotSelect) slotSelect.value = preset.shotLockedToSlot;
+                }
+                
+                updateModelList();
+                updateTransformInputs();
+                log(`Preset applied: ${preset.models.length} models`);
+                showToast('Preset Applied');
+                
+                // Hide textarea
+                textarea.style.display = 'none';
+                
+            } catch (e) {
+                log(`Error parsing preset: ${e.message}`);
+                showToast('Invalid Preset JSON');
+            }
+        }
+
+        function initUI() {
+            const pathSelect = document.getElementById('path-mode');
+            if (pathSelect) {
+                pathSelect.addEventListener('change', () => {
+                    const mode = pathSelect.value || 'manual';
+                    state.pathMode = mode;
+                    if (mode === 'orbit') {
+                        updateOrbitFromCurrentCamera();
+                    } else if (mode !== 'keyframes') {
+                        state.pathPlayback.playing = false;
+                    }
+                    log('Camera path mode: ' + state.pathMode);
+                });
+            }
+
+            const fovSlider = document.getElementById('glb-fov');
+            if (fovSlider) {
+                fovSlider.addEventListener('input', () => {
+                    const fov = parseFloat(fovSlider.value) || 50;
+                    if (state.camera) {
+                        state.camera.fov = fov;
+                        state.camera.updateProjectionMatrix();
+                    }
+                });
+            }
+            
+            const cameraResetBtn = document.getElementById('camera-reset');
+            if (cameraResetBtn) {
+                cameraResetBtn.addEventListener('click', resetCamera);
+            }
+            
+            const lockOriginBtn = document.getElementById('lock-origin');
+            if (lockOriginBtn) {
+                lockOriginBtn.addEventListener('click', toggleOriginLock);
+            }
+            
+            const exportPresetBtn = document.getElementById('export-scene-preset');
+            if (exportPresetBtn) {
+                exportPresetBtn.addEventListener('click', exportScenePreset);
+            }
+            
+            const importPresetBtn = document.getElementById('import-scene-preset');
+            if (importPresetBtn) {
+                importPresetBtn.addEventListener('click', importScenePreset);
+            }
+            
+            const tareBtn = document.getElementById('tare-shots');
+            if (tareBtn) {
+                tareBtn.addEventListener('click', tareShots);
+            }
+            
+            const shotLockSlot = document.getElementById('shot-lock-slot');
+            if (shotLockSlot) {
+                shotLockSlot.addEventListener('change', () => {
+                    state.shotLockedToSlot = parseInt(shotLockSlot.value);
+                    log(`Shots now reference Slot ${state.shotLockedToSlot}`);
+                });
+            }
+            
+            ['shot-offset-x', 'shot-offset-y', 'shot-offset-z'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', applyShotOffset);
+                    el.addEventListener('input', applyShotOffset);
+                }
+            });
+
+            const addKeyBtn = document.getElementById('path-add-keyframe');
+            const playPathBtn = document.getElementById('path-play');
+            const clearPathBtn = document.getElementById('path-clear');
+            const flipPathXBtn = document.getElementById('path-flip-x');
+            const flipPathYBtn = document.getElementById('path-flip-y');
+            const flipPathZBtn = document.getElementById('path-flip-z');
+            
+            if (addKeyBtn) addKeyBtn.addEventListener('click', captureKeyframe);
+            if (playPathBtn) playPathBtn.addEventListener('click', startKeyframePlayback);
+            if (clearPathBtn) clearPathBtn.addEventListener('click', clearKeyframes);
+            
+            if (flipPathXBtn) flipPathXBtn.addEventListener('click', () => flipShots('x'));
+            if (flipPathYBtn) flipPathYBtn.addEventListener('click', () => flipShots('y'));
+            if (flipPathZBtn) flipPathZBtn.addEventListener('click', () => flipShots('z'));
+
+            const mentoBuildBtn = document.getElementById('mento-mpd-build');
+            if (mentoBuildBtn) mentoBuildBtn.addEventListener('click', buildPathFromMento);
+            
+            const mentoLightsBtn = document.getElementById('mento-apply-lights');
+            if (mentoLightsBtn) mentoLightsBtn.addEventListener('click', applyMentoLights);
+            
+            const shotPrevBtn = document.getElementById('shot-prev');
+            if (shotPrevBtn) shotPrevBtn.addEventListener('click', prevShot);
+            
+            const shotNextBtn = document.getElementById('shot-next');
+            if (shotNextBtn) shotNextBtn.addEventListener('click', nextShot);
+            
+            const exportMentoBtn = document.getElementById('export-mento-shot');
+            if (exportMentoBtn) exportMentoBtn.addEventListener('click', exportCurrentAsMento);
+            
+            const showMarkersCheck = document.getElementById('show-shot-markers');
+            if (showMarkersCheck) showMarkersCheck.addEventListener('change', updateShotMarkers);
+            
+            const showFrustumsCheck = document.getElementById('show-frustums');
+            if (showFrustumsCheck) {
+                showFrustumsCheck.addEventListener('change', () => {
+                    state.showFrustums = showFrustumsCheck.checked;
+                    updateFrustums();
+                });
+            }
+            
+            const showGridCheck = document.getElementById('show-grid');
+            if (showGridCheck) {
+                showGridCheck.addEventListener('change', () => {
+                    const checked = showGridCheck.checked;
+                    state.showGrid = checked;
+                    toggleGrid();
+                });
+            }
+            
+            const showRulerCheck = document.getElementById('show-ruler');
+            if (showRulerCheck) {
+                showRulerCheck.addEventListener('change', toggleRuler);
+            }
+            
+            const rulerScaleSlider = document.getElementById('ruler-scale');
+            const rulerScaleVal = document.getElementById('ruler-scale-val');
+            if (rulerScaleSlider) {
+                rulerScaleSlider.addEventListener('input', () => {
+                    state.rulerScale = parseFloat(rulerScaleSlider.value);
+                    if (rulerScaleVal) rulerScaleVal.textContent = state.rulerScale.toFixed(1) + 'x';
+                    
+                    // Rebuild ruler if visible
+                    if (state.calibrationRuler && state.calibrationRuler.visible) {
+                        buildRuler();
+                        state.calibrationRuler.visible = true;
+                    }
+                });
+            }
+
+            const modeSelect = document.getElementById('transform-mode');
+            if (modeSelect) {
+                modeSelect.addEventListener('change', () => {
+                    if (!state.transformControls) return;
+                    const mode = modeSelect.value || 'translate';
+                    state.transformControls.setMode(mode);
+                    log('Transform gizmo mode: ' + mode);
+                });
+            }
+
+            const centerBtn = document.getElementById('transform-center');
+            if (centerBtn) {
+                centerBtn.addEventListener('click', () => {
+                    if (state.modelRoot) {
+                        fitCameraToObject(state.modelRoot);
+                    }
+                });
+            }
+
+            const flipXBtn = document.getElementById('transform-flip-x');
+            const flipYBtn = document.getElementById('transform-flip-y');
+            const flipZBtn = document.getElementById('transform-flip-z');
+            
+            if (flipXBtn) {
+                flipXBtn.addEventListener('click', () => {
+                    flipModel('x');
+                    if (state.modelRoot) fitCameraToObject(state.modelRoot);
+                });
+            }
+            if (flipYBtn) {
+                flipYBtn.addEventListener('click', () => {
+                    flipModel('y');
+                    if (state.modelRoot) fitCameraToObject(state.modelRoot);
+                });
+            }
+            if (flipZBtn) {
+                flipZBtn.addEventListener('click', () => {
+                    flipModel('z');
+                    if (state.modelRoot) fitCameraToObject(state.modelRoot);
+                });
+            }
+
+            // Numeric Transform Inputs
+            const txInputs = ['tx-pos-x', 'tx-pos-y', 'tx-pos-z', 'tx-rot-y', 'tx-scale'];
+            txInputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) {
+                    el.addEventListener('change', applyNumericTransforms);
+                    el.addEventListener('input', applyNumericTransforms);
+                }
+            });
+
+            const resetBtn = document.getElementById('transform-reset');
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    if (!state.modelRoot) return;
+                    state.modelRoot.position.set(0, 0, 0);
+                    state.modelRoot.rotation.set(0, 0, 0); // Reset all rotation
+                    state.modelRoot.scale.set(1, 1, 1);
+                    state.modelRoot.updateMatrixWorld();
+                    updateTransformInputs();
+                    log('Transforms reset.');
+                });
+            }
+
+            const autoScaleBtn = document.getElementById('transform-auto-scale');
+            if (autoScaleBtn) {
+                autoScaleBtn.addEventListener('click', () => {
+                    if (!state.modelRoot) return;
+                    const box = new THREE.Box3().setFromObject(state.modelRoot);
+                    const size = box.getSize(new THREE.Vector3());
+                    const maxDim = Math.max(size.x, size.y, size.z);
+                    if (maxDim === 0) return;
+                    
+                    const targetSize = 100; // Standard unit size
+                    const scale = targetSize / maxDim;
+                    state.modelRoot.scale.multiplyScalar(scale);
+                    state.modelRoot.updateMatrixWorld();
+                    updateTransformInputs();
+                    fitCameraToObject(state.modelRoot);
+                    log(`Auto-scaled model (factor: ${scale.toFixed(3)}).`);
+                });
+            }
+
+            const startBtn = document.getElementById('start-capture');
+            const stopBtn = document.getElementById('stop-capture');
+            const dlBtn = document.getElementById('download-last');
+            if (startBtn) startBtn.addEventListener('click', startCapture);
+            if (stopBtn) stopBtn.addEventListener('click', stopCapture);
+            if (dlBtn) dlBtn.addEventListener('click', downloadLast);
+        }
+
+        window.addEventListener('DOMContentLoaded', () => {
+            initThree();
+            initUI();
+            initModules();
+            setStatus('Initializing Three.js GLB viewer…');
+            log('Mento GLB initialized.');
+        });
+    </script>
+</body>
+
+</html>

@@ -1,0 +1,1135 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>MENTO MASTER v7.5 // PATH INVERT</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        :root {
+            --bg-root: #050505;
+            --bg-panel: #0a0a0a;
+            --bg-input: #000000;
+            --border: #333333;
+            --text-main: #dddddd;
+
+            /* STUDIO PALETTE */
+            --c-model: #00ffff;
+            /* Cyan */
+            --c-path: #d000ff;
+            /* Purple */
+            --c-rec: #ff0040;
+            /* Red */
+            --c-good: #00ff88;
+            /* Mint */
+
+            --font-mono: "Menlo", "Consolas", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-root);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* LOADING */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+
+        .load-bar-track {
+            width: 200px;
+            height: 1px;
+            background: #222;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .load-bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: var(--c-good);
+            transition: width 0.1s;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            height: 30px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .status-badge {
+            background: #222;
+            color: #666;
+            padding: 1px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+        }
+
+        .status-badge.rec {
+            background: var(--c-rec);
+            color: #fff;
+            animation: pulse 1s infinite;
+        }
+
+        /* LAYOUT */
+        .main-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .viewport-container {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+        }
+
+        #glb-canvas {
+            width: 100%;
+            height: 100%;
+            display: block;
+        }
+
+        .panel {
+            width: 320px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TABS */
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 0;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #111;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+        }
+
+        .tab-btn[data-tab="scene"].active {
+            border-bottom-color: var(--c-model);
+            color: var(--c-model);
+        }
+
+        .tab-btn[data-tab="cam"].active {
+            border-bottom-color: var(--c-path);
+            color: var(--c-path);
+        }
+
+        .tab-btn[data-tab="rec"].active {
+            border-bottom-color: var(--c-rec);
+            color: var(--c-rec);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* WIDGETS */
+        .section {
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            padding: 8px;
+            position: relative;
+            margin-top: 6px;
+        }
+
+        .section-title {
+            position: absolute;
+            top: -7px;
+            left: 6px;
+            background: var(--bg-panel);
+            padding: 0 4px;
+            font-size: 9px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+
+        .fill {
+            flex: 1;
+        }
+
+        button {
+            background: #111;
+            border: 1px solid var(--border);
+            color: #ccc;
+            padding: 4px 8px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            height: 24px;
+        }
+
+        button:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        button.active {
+            background: var(--c-model);
+            color: #000;
+            border-color: var(--c-model);
+        }
+
+        button.active-path {
+            background: var(--c-path);
+            color: #000;
+            border-color: var(--c-path);
+        }
+
+        input {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 0 4px;
+            height: 24px;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: var(--c-good);
+        }
+
+        /* HUD */
+        .hud {
+            position: absolute;
+            pointer-events: none;
+            padding: 4px;
+            font-size: 10px;
+            color: var(--c-good);
+            text-shadow: 0 1px 2px #000;
+        }
+
+        .hud-tl {
+            top: 10px;
+            left: 10px;
+        }
+
+        .hud-br {
+            bottom: 10px;
+            right: 10px;
+            text-align: right;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--c-good);
+            color: #000;
+            padding: 4px 12px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .kf-list {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #222;
+        }
+
+        .kf-row {
+            padding: 4px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .kf-row:hover {
+            background: #111;
+            color: #fff;
+        }
+
+        .kf-row.selected {
+            background: #222;
+            color: var(--c-path);
+            border-left: 2px solid var(--c-path);
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div style="color:var(--c-good); font-weight:bold; letter-spacing:4px;">MENTO // V7.5</div>
+        <div class="load-bar-track">
+            <div class="load-bar-fill" id="load-bar"></div>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="brand"><span style="color:var(--c-model)">MENTO</span> <span style="color:#444">//</span> STUDIO
+        </div>
+        <div id="cam-badge" class="status-badge">STANDBY</div>
+    </div>
+
+    <div class="main-area">
+        <div class="viewport-container">
+            <canvas id="glb-canvas"></canvas>
+            <div class="hud hud-tl">
+                <div id="hud-cam">CAM: 0, 0, 0</div>
+                <div id="hud-mode" style="color:var(--c-model)">MODE: MODEL</div>
+            </div>
+            <div class="hud hud-br" id="hud-sel">NO SELECTION</div>
+        </div>
+
+        <div class="panel">
+            <div class="tab-header">
+                <div class="tab-btn active" data-tab="scene" onclick="setTab('scene')">SCENE</div>
+                <div class="tab-btn" data-tab="cam" onclick="setTab('cam')">CAMERA</div>
+                <div class="tab-btn" data-tab="rec" onclick="setTab('rec')">OUTPUT</div>
+            </div>
+
+            <!-- SCENE TAB -->
+            <div id="tab-scene" class="tab-content active">
+                <div class="section">
+                    <span class="section-title">FILE</span>
+                    <div class="row">
+                        <button class="fill" onclick="triggerLoad()">LOAD GLB</button>
+                        <select id="slot-sel"
+                            style="width:50px; height:24px; background:#000; color:#fff; border:1px solid #333">
+                            <option value="1">S1</option>
+                            <option value="2">S2</option>
+                        </select>
+                        <input type="file" id="file-in" style="display:none" accept=".glb,.gltf,.mpd">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">TRANSFORMS</span>
+                    <div class="row">
+                        <button id="mt-t" class="active fill" onclick="setMode('MODEL', 'translate')">MOVE</button>
+                        <button id="mt-r" class="fill" onclick="setMode('MODEL', 'rotate')">ROT</button>
+                        <button id="mt-s" class="fill" onclick="setMode('MODEL', 'scale')">SCALE</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <span style="color:var(--c-model); width:15px">X</span> <input id="inp-mx" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('x')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:15px">Y</span> <input id="inp-my" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('y')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:15px">Z</span> <input id="inp-mz" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('z')">INV</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <span style="width:15px">R</span> <input id="inp-mry" type="number" step="15"
+                            placeholder="Y-ROT">
+                        <span style="width:15px; margin-left:4px">S</span> <input id="inp-ms" type="number" step="0.1"
+                            placeholder="SCALE">
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="resetModel()">RESET</button>
+                        <button class="fill" onclick="autoScaleModel()">AUTO-FIT</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">CALIBRATION</span>
+                    <div class="row">
+                        <button class="fill" id="btn-origin" onclick="toggleOriginLock()">🔓 ORIGIN</button>
+                        <button class="fill" onclick="tareShots()">TARE SHOTS</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <span style="width:40px">RULER</span>
+                        <input type="checkbox" id="chk-ruler" onchange="toggleRuler()"
+                            style="width:auto; margin-right:8px">
+                        <input id="inp-ruler-scale" type="range" min="0.5" max="3" step="0.1" value="1"
+                            oninput="updateRulerScale()" style="flex:1">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">LIGHTING</span>
+                    <div class="row">
+                        <span id="light-status" style="color:#666; font-size:9px">DEFAULT LIGHTING</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAMERA TAB -->
+            <div id="tab-cam" class="tab-content">
+                <div class="section">
+                    <span class="section-title">PATH TRANSFORM</span>
+                    <div class="row">
+                        <button id="pt-t" class="fill" onclick="setMode('PATH', 'translate')">MOVE</button>
+                        <button id="pt-r" class="fill" onclick="setMode('PATH', 'rotate')">ROT</button>
+                        <button id="pt-s" class="fill" onclick="setMode('PATH', 'scale')">SCALE</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <button class="fill" onclick="flipPath('x')">FLIP X</button>
+                        <button class="fill" onclick="flipPath('y')">FLIP Y</button>
+                        <button class="fill" onclick="flipPath('z')">FLIP Z</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <span style="width:60px">FRUSTUMS</span>
+                        <input type="checkbox" id="chk-frustums" onchange="toggleFrustums()" checked style="width:auto">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">TIMELINE</span>
+                    <div class="kf-list" id="kf-container"></div>
+                    <div class="row" style="margin-top:8px">
+                        <button class="fill" style="color:var(--c-good)" onclick="addKey()">+ ADD KEY</button>
+                        <button class="fill" style="color:var(--c-rec)" onclick="clearKeys()">CLEAR</button>
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="copyShot()">COPY SHOT</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">PLAYBACK</span>
+                    <div class="row">
+                        <span>DURATION (S)</span>
+                        <input id="path-dur" type="number" value="8" style="width:50px">
+                    </div>
+                    <div class="row">
+                        <button class="fill" style="border-color:var(--c-path); color:var(--c-path)"
+                            onclick="playSequence()">▶ PLAY SEQUENCE</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">DATA IMPORT</span>
+                    <textarea id="mento-txt"
+                        style="width:100%; height:50px; background:#000; border:1px solid #333; color:#aaa; font-size:9px;"
+                        placeholder="PASTE !MENTO SHOT..."></textarea>
+                    <button class="fill" style="width:100%" onclick="parseMento()">IMPORT SHOTS</button>
+                </div>
+            </div>
+
+            <!-- REC TAB -->
+            <div id="tab-rec" class="tab-content">
+                <div class="section">
+                    <span class="section-title">CAPTURE</span>
+                    <div class="row">
+                        <span>FPS</span> <input id="rec-fps" type="number" value="30">
+                        <span>SEC</span> <input id="rec-len" type="number" value="10">
+                    </div>
+                    <br>
+                    <button id="btn-rec" class="fill"
+                        style="width:100%; height:40px; color:var(--c-rec); border-color:var(--c-rec)"
+                        onclick="toggleRecord()">START CAPTURE</button>
+                    <button id="btn-dl" class="fill" style="width:100%; margin-top:5px;" disabled
+                        onclick="downloadCapture()">DOWNLOAD .WEBM</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">ACTION COMPLETE</div>
+
+    <!-- MODULES -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/controls/TransformControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js",
+        "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+        import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+        // GLOBAL HELPER
+        window.UI = id => document.getElementById(id);
+
+        // GLOBAL STATE
+        const S = {
+            scene: null, cam: null, rend: null,
+            orbit: null, trans: null,
+            models: [], activeModel: -1,
+            keyframes: [], pathAnchor: null, pathVizGroup: null, selectedKey: -1,
+            mode: 'MODEL',
+            playback: { active: false, start: 0, dur: 8, curve: null },
+            recorder: { active: false, media: null, chunks: [], url: null },
+            clock: new THREE.Clock(),
+            // NEW: Mento Moe Features
+            mentoLights: [], lightObjects: [],
+            calibrationRuler: null, rulerScale: 1, originLocked: false,
+            shotMarkers: [], frustumHelpers: [], showFrustums: true,
+            shotOffset: new THREE.Vector3(0, 0, 0)
+        };
+
+        // --- CORE ---
+        function init() {
+            S.scene = new THREE.Scene();
+            S.scene.background = new THREE.Color(0x050505);
+
+            const aspect = UI('glb-canvas').clientWidth / UI('glb-canvas').clientHeight;
+            S.cam = new THREE.PerspectiveCamera(50, aspect, 0.1, 5000);
+            S.cam.position.set(0, 150, 300);
+
+            S.rend = new THREE.WebGLRenderer({ canvas: UI('glb-canvas'), antialias: true, preserveDrawingBuffer: true });
+            S.rend.outputColorSpace = THREE.SRGBColorSpace;
+            S.rend.setSize(UI('glb-canvas').clientWidth, UI('glb-canvas').clientHeight);
+
+            S.scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 1.2));
+            const dl = new THREE.DirectionalLight(0xffffff, 1.5);
+            dl.position.set(100, 300, 200);
+            S.scene.add(dl);
+
+            S.orbit = new OrbitControls(S.cam, S.rend.domElement);
+            S.orbit.enableDamping = true;
+
+            S.trans = new TransformControls(S.cam, S.rend.domElement);
+            S.trans.addEventListener('dragging-changed', (event) => {
+                S.orbit.enabled = !event.value;
+                if (!event.value) onTransformEnd();
+            });
+            S.trans.addEventListener('change', () => {
+                if (S.trans.dragging) onTransformDrag();
+            });
+            S.scene.add(S.trans);
+
+            S.pathAnchor = new THREE.Group();
+            S.scene.add(S.pathAnchor);
+            S.pathVizGroup = new THREE.Group();
+            S.scene.add(S.pathVizGroup);
+
+            S.scene.add(new THREE.GridHelper(1000, 50, 0x222222, 0x111111));
+
+            window.addEventListener('resize', onResize);
+
+            setTimeout(() => { UI('load-bar').style.width = '100%'; }, 100);
+            setTimeout(() => { UI('loader').style.display = 'none'; }, 600);
+
+            animate();
+        }
+
+        function onResize() {
+            const w = UI('glb-canvas').clientWidth;
+            const h = UI('glb-canvas').clientHeight;
+            S.cam.aspect = w / h;
+            S.cam.updateProjectionMatrix();
+            S.rend.setSize(w, h);
+        }
+
+        // --- TRANSFORM LOGIC ---
+        function onTransformDrag() {
+            if (S.mode === 'MODEL' && S.activeModel > -1) {
+                updateModelUI();
+            } else if (S.mode === 'PATH') {
+                S.pathVizGroup.position.copy(S.pathAnchor.position);
+                S.pathVizGroup.rotation.copy(S.pathAnchor.rotation);
+                S.pathVizGroup.scale.copy(S.pathAnchor.scale);
+            }
+        }
+
+        function onTransformEnd() {
+            if (S.mode === 'PATH') {
+                S.pathAnchor.updateMatrixWorld();
+                const mat = S.pathAnchor.matrix;
+
+                S.keyframes.forEach(k => {
+                    k.pos.applyMatrix4(mat);
+                    k.tgt.applyMatrix4(mat); // Scale/Rot affects target vectors too
+                });
+
+                S.pathAnchor.position.set(0, 0, 0);
+                S.pathAnchor.rotation.set(0, 0, 0);
+                S.pathAnchor.scale.set(1, 1, 1);
+
+                S.pathVizGroup.position.set(0, 0, 0);
+                S.pathVizGroup.rotation.set(0, 0, 0);
+                S.pathVizGroup.scale.set(1, 1, 1);
+
+                updatePathVisuals();
+                window.showToast("PATH TRANSFORM BAKED");
+            }
+        }
+
+        // --- MODEL & FILE ---
+        window.triggerLoad = () => UI('file-in').click();
+
+        UI('file-in').addEventListener('change', (e) => {
+            if (!e.target.files[0]) return;
+            const file = e.target.files[0];
+
+            // MPD HANDLING
+            if (file.name.toLowerCase().endsWith('.mpd')) {
+                const reader = new FileReader();
+                reader.onload = (ev) => {
+                    const content = ev.target.result;
+                    UI('mento-txt').value = content;
+                    window.parseMento(); // Auto-parse
+                    window.showToast("MPD LOADED");
+                };
+                reader.readAsText(file);
+                return;
+            }
+
+            // GLB HANDLING
+            const url = URL.createObjectURL(file);
+            new GLTFLoader().load(url, (gltf) => {
+                const root = gltf.scene;
+                S.scene.add(root);
+                S.models.push({ root, slot: UI('slot-sel').value });
+                S.activeModel = S.models.length - 1;
+                window.autoScaleModel();
+                window.setMode('MODEL', 'translate');
+                window.showToast("GLB LOADED");
+            });
+        });
+
+        window.setMode = (mode, tool) => {
+            S.mode = mode;
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active', 'active-path'));
+
+            if (mode === 'MODEL') {
+                if (S.activeModel > -1) S.trans.attach(S.models[S.activeModel].root);
+                else S.trans.detach();
+                UI('hud-mode').innerText = "MODE: MODEL";
+                UI('hud-mode').style.color = "var(--c-model)";
+                UI(tool === 'translate' ? 'mt-t' : (tool === 'rotate' ? 'mt-r' : 'mt-s')).classList.add('active');
+            }
+            else if (mode === 'PATH') {
+                S.trans.attach(S.pathAnchor);
+                UI('hud-mode').innerText = "MODE: PATH";
+                UI('hud-mode').style.color = "var(--c-path)";
+
+                const btnId = tool === 'translate' ? 'pt-t' : (tool === 'rotate' ? 'pt-r' : 'pt-s');
+                UI(btnId).classList.add('active-path');
+            }
+            S.trans.setMode(tool);
+        };
+
+        window.autoScaleModel = () => {
+            if (S.activeModel === -1) return;
+            const root = S.models[S.activeModel].root;
+            const box = new THREE.Box3().setFromObject(root);
+            const size = box.getSize(new THREE.Vector3()).length();
+            if (size === 0) return;
+            const scale = 150 / size;
+            root.scale.setScalar(scale);
+            const center = box.getCenter(new THREE.Vector3());
+            root.position.sub(center.multiplyScalar(scale));
+            root.position.y = 0;
+            updateModelUI();
+            window.showToast("AUTO SCALED");
+        };
+
+        window.flipModel = (axis) => {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            if (axis === 'x') m.scale.x *= -1;
+            if (axis === 'y') m.scale.y *= -1;
+            if (axis === 'z') m.scale.z *= -1;
+            updateModelUI();
+        };
+
+        // --- PATH UTILS ---
+        window.flipPath = (axis) => {
+            if (S.keyframes.length === 0) return;
+            S.keyframes.forEach(k => {
+                if (axis === 'x') { k.pos.x *= -1; k.tgt.x *= -1; }
+                if (axis === 'y') { k.pos.y *= -1; k.tgt.y *= -1; }
+                if (axis === 'z') { k.pos.z *= -1; k.tgt.z *= -1; }
+            });
+            updatePathVisuals();
+            window.showToast(`PATH FLIPPED ${axis.toUpperCase()}`);
+        };
+
+        window.resetModel = () => {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            m.position.set(0, 0, 0);
+            m.rotation.set(0, 0, 0);
+            m.scale.set(1, 1, 1);
+            updateModelUI();
+        };
+
+        function updateModelUI() {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            UI('inp-mx').value = m.position.x.toFixed(0);
+            UI('inp-my').value = m.position.y.toFixed(0);
+            UI('inp-mz').value = m.position.z.toFixed(0);
+            UI('inp-mry').value = THREE.MathUtils.radToDeg(m.rotation.y).toFixed(0);
+            UI('inp-ms').value = m.scale.x.toFixed(2);
+        }
+
+        ['mx', 'my', 'mz'].forEach(k => UI('inp-' + k).oninput = () => {
+            if (S.activeModel > -1) S.models[S.activeModel].root.position[{ 'mx': 'x', 'my': 'y', 'mz': 'z' }[k]] = parseFloat(UI('inp-' + k).value);
+        });
+        UI('inp-mry').oninput = e => { if (S.activeModel > -1) S.models[S.activeModel].root.rotation.y = THREE.MathUtils.degToRad(e.target.value); };
+        UI('inp-ms').oninput = e => { if (S.activeModel > -1) S.models[S.activeModel].root.scale.setScalar(e.target.value); };
+
+
+        // --- KEYFRAMES & PATH ---
+        window.addKey = () => {
+            S.keyframes.push({
+                pos: S.cam.position.clone(),
+                tgt: S.orbit.target.clone(),
+                fov: S.cam.fov
+            });
+            updatePathVisuals();
+            renderKeyList();
+            window.showToast("KEYFRAME ADDED");
+        };
+
+        window.clearKeys = () => {
+            S.keyframes = [];
+            updatePathVisuals();
+            renderKeyList();
+        };
+
+        function updatePathVisuals() {
+            while (S.pathVizGroup.children.length) S.pathVizGroup.remove(S.pathVizGroup.children[0]);
+            if (S.keyframes.length === 0) return;
+
+            const sphGeo = new THREE.SphereGeometry(2, 8, 8);
+            const sphMat = new THREE.MeshBasicMaterial({ color: 0x00ff88 });
+
+            S.keyframes.forEach((k, i) => {
+                const m = new THREE.Mesh(sphGeo, sphMat);
+                m.position.copy(k.pos);
+                S.pathVizGroup.add(m);
+
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([k.pos, k.tgt]);
+                const lineMat = new THREE.LineBasicMaterial({ color: 0xffff00, opacity: 0.3, transparent: true });
+                S.pathVizGroup.add(new THREE.Line(lineGeo, lineMat));
+            });
+
+            if (S.keyframes.length > 1) {
+                const pts = S.keyframes.map(k => k.pos);
+                const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+                const points = curve.getPoints(S.keyframes.length * 10);
+                const pathGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const pathMat = new THREE.LineBasicMaterial({ color: 0xd000ff });
+                S.pathVizGroup.add(new THREE.Line(pathGeo, pathMat));
+            }
+
+            window.updateShotMarkers();
+            window.updateFrustums();
+        }
+
+        window.updateShotMarkers = () => {
+            S.shotMarkers.forEach(m => S.scene.remove(m));
+            S.shotMarkers = [];
+
+            S.keyframes.forEach((k, i) => {
+                const geo = new THREE.ConeGeometry(5, 10, 4);
+                const mat = new THREE.MeshBasicMaterial({ color: i === S.selectedKey ? 0x00ff00 : 0x666666, wireframe: true });
+                const cone = new THREE.Mesh(geo, mat);
+                cone.position.copy(k.pos);
+                cone.lookAt(k.tgt);
+                cone.rotateX(Math.PI / 2);
+                S.scene.add(cone);
+                S.shotMarkers.push(cone);
+            });
+        };
+
+        window.updateFrustums = () => {
+            S.frustumHelpers.forEach(h => S.scene.remove(h));
+            S.frustumHelpers = [];
+            if (!S.showFrustums) return;
+
+            S.keyframes.forEach((k, i) => {
+                const cam = new THREE.PerspectiveCamera(k.fov, 16 / 9, 1, 100);
+                cam.position.copy(k.pos);
+                cam.lookAt(k.tgt);
+                cam.updateMatrixWorld();
+                const h = new THREE.CameraHelper(cam);
+                h.material.color.setHex(i === S.selectedKey ? 0x00ff00 : 0x444444);
+                S.scene.add(h);
+                S.frustumHelpers.push(h);
+            });
+        };
+
+        window.toggleFrustums = () => {
+            S.showFrustums = UI('chk-frustums').checked;
+            window.updateFrustums();
+        };
+
+        // --- CALIBRATION ---
+        window.toggleRuler = () => {
+            if (UI('chk-ruler').checked) window.buildRuler();
+            else if (S.calibrationRuler) { S.scene.remove(S.calibrationRuler); S.calibrationRuler = null; }
+        };
+
+        window.updateRulerScale = () => {
+            S.rulerScale = parseFloat(UI('inp-ruler-scale').value);
+            if (UI('chk-ruler').checked) window.buildRuler();
+        };
+
+        window.buildRuler = () => {
+            if (S.calibrationRuler) S.scene.remove(S.calibrationRuler);
+            S.calibrationRuler = new THREE.Group();
+            const range = 200 * S.rulerScale;
+
+            // Simple Grid/Ruler
+            const mat = new THREE.LineBasicMaterial({ color: 0x00ffff, opacity: 0.5, transparent: true });
+            const geo = new THREE.BufferGeometry();
+            const pts = [];
+            for (let i = -range; i <= range; i += 25) {
+                pts.push(new THREE.Vector3(i, 0, -range)); pts.push(new THREE.Vector3(i, 0, range));
+                pts.push(new THREE.Vector3(-range, 0, i)); pts.push(new THREE.Vector3(range, 0, i));
+            }
+            geo.setFromPoints(pts);
+            S.calibrationRuler.add(new THREE.LineSegments(geo, mat));
+
+            // Origin
+            const sph = new THREE.Mesh(new THREE.SphereGeometry(2), new THREE.MeshBasicMaterial({ color: 0xffffff }));
+            S.calibrationRuler.add(sph);
+
+            S.scene.add(S.calibrationRuler);
+        };
+
+        window.toggleOriginLock = () => {
+            S.originLocked = !S.originLocked;
+            const btn = UI('btn-origin');
+            if (S.originLocked) {
+                btn.innerText = "🔒 LOCKED";
+                btn.style.color = "var(--c-good)";
+                if (S.activeModel > -1) {
+                    const m = S.models[S.activeModel].root;
+                    m.position.set(0, 0, 0);
+                    updateModelUI();
+                }
+            } else {
+                btn.innerText = "🔓 ORIGIN";
+                btn.style.color = "#ccc";
+            }
+        };
+
+        window.tareShots = () => {
+            if (S.activeModel === -1) { window.showToast("NO MODEL TO TARE"); return; }
+            const m = S.models[S.activeModel].root;
+            S.shotOffset.copy(m.position);
+            window.showToast(`SHOTS TARED TO ${m.position.x.toFixed(0)},${m.position.y.toFixed(0)},${m.position.z.toFixed(0)}`);
+            // Note: In a full implementation, this offset would be applied during export/playback.
+            // For now, we just store it as per the request to "reinform the UI".
+        };
+
+        function renderKeyList() {
+            const el = UI('kf-container'); el.innerHTML = '';
+            S.keyframes.forEach((k, i) => {
+                const div = document.createElement('div');
+                div.className = 'kf-row';
+                if (i === S.selectedKey) div.classList.add('selected');
+                div.innerHTML = `<span>KEY ${i + 1}</span> <span style="font-size:9px; color:#666">P:[${k.pos.x.toFixed(0)},${k.pos.z.toFixed(0)}]</span>`;
+                div.onclick = () => {
+                    S.selectedKey = i;
+                    S.cam.position.copy(k.pos);
+                    S.orbit.target.copy(k.tgt);
+                    S.cam.fov = k.fov;
+                    S.cam.updateProjectionMatrix();
+                    S.orbit.update();
+                    renderKeyList();
+                };
+                el.appendChild(div);
+            });
+        }
+
+        // --- PLAYBACK ---
+        window.playSequence = () => {
+            if (S.keyframes.length < 2) { window.showToast("NEED 2+ KEYS"); return; }
+
+            const pts = S.keyframes.map(k => k.pos);
+            S.playback.curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+
+            S.playback.dur = parseFloat(UI('path-dur').value) || 8;
+            S.playback.start = S.clock.getElapsedTime();
+            S.playback.active = true;
+        };
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            S.orbit.update();
+
+            if (S.playback.active) {
+                const elapsed = S.clock.getElapsedTime() - S.playback.start;
+                let t = elapsed / S.playback.dur;
+
+                if (t >= 1) {
+                    t = 1;
+                    S.playback.active = false;
+                    if (S.recorder.active) window.toggleRecord();
+                }
+
+                if (S.playback.curve) {
+                    const pos = S.playback.curve.getPointAt(t);
+                    S.cam.position.copy(pos);
+                }
+
+                const totalSegments = S.keyframes.length - 1;
+                const rawIdx = t * totalSegments;
+                const idx = Math.min(Math.floor(rawIdx), totalSegments - 1);
+                const alpha = rawIdx - idx;
+
+                const k1 = S.keyframes[idx];
+                const k2 = S.keyframes[idx + 1];
+
+                const lookAt = new THREE.Vector3().lerpVectors(k1.tgt, k2.tgt, alpha);
+                S.orbit.target.copy(lookAt);
+
+                if (k1.fov && k2.fov) {
+                    S.cam.fov = THREE.MathUtils.lerp(k1.fov, k2.fov, alpha);
+                    S.cam.updateProjectionMatrix();
+                }
+            }
+
+            UI('hud-cam').innerText = `POS: ${S.cam.position.x.toFixed(0)}, ${S.cam.position.y.toFixed(0)}, ${S.cam.position.z.toFixed(0)}`;
+            S.rend.render(S.scene, S.cam);
+        }
+
+        // --- UTILS ---
+        window.setTab = (t) => {
+            document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            UI('tab-' + t).classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${t}"]`).classList.add('active');
+
+            if (t === 'scene') window.setMode('MODEL', 'translate');
+            if (t === 'cam') window.setMode('PATH', 'translate');
+        };
+
+        window.toggleRecord = () => {
+            if (S.recorder.active) {
+                S.recorder.media.stop();
+                S.recorder.active = false;
+                UI('btn-rec').innerText = "START CAPTURE";
+                UI('btn-rec').style.color = "var(--c-rec)";
+                UI('cam-badge').className = "status-badge";
+                UI('cam-badge').innerText = "STANDBY";
+            } else {
+                const fps = parseInt(UI('rec-fps').value) || 30;
+                const stream = UI('glb-canvas').captureStream(fps);
+                S.recorder.chunks = [];
+                S.recorder.media = new MediaRecorder(stream, { mimeType: 'video/webm; codecs=vp9' });
+
+                S.recorder.media.ondataavailable = e => { if (e.data.size > 0) S.recorder.chunks.push(e.data); };
+                S.recorder.media.onstop = () => {
+                    const blob = new Blob(S.recorder.chunks, { type: 'video/webm' });
+                    S.recorder.url = URL.createObjectURL(blob);
+                    UI('btn-dl').disabled = false;
+                    window.showToast("CAPTURE FINISHED");
+                };
+
+                S.recorder.media.start();
+                S.recorder.active = true;
+
+                UI('btn-rec').innerText = "STOP CAPTURE";
+                UI('btn-rec').style.color = "#fff";
+                UI('cam-badge').className = "status-badge rec";
+                UI('cam-badge').innerText = "RECORDING";
+
+                if (S.keyframes.length > 1) window.playSequence();
+
+                const len = parseFloat(UI('rec-len').value) || 10;
+                setTimeout(() => { if (S.recorder.active) window.toggleRecord(); }, len * 1000 + 500);
+            }
+        };
+
+        window.downloadCapture = () => {
+            if (!S.recorder.url) return;
+            const a = document.createElement('a');
+            a.href = S.recorder.url;
+            a.download = `MENTO_SHOT_${Date.now()}.webm`;
+            a.click();
+        };
+
+        window.copyShot = () => {
+            const str = `0 !MENTO SHOT "Custom" POS ${S.cam.position.x.toFixed(2)} ${S.cam.position.y.toFixed(2)} ${S.cam.position.z.toFixed(2)} TGT ${S.orbit.target.x.toFixed(2)} ${S.orbit.target.y.toFixed(2)} ${S.orbit.target.z.toFixed(2)} LENS ${S.cam.fov}`;
+            navigator.clipboard.writeText(str);
+            window.showToast("SHOT COPIED");
+        };
+
+        window.parseMento = () => {
+            const txt = UI('mento-txt').value;
+
+            // LIGHTS
+            window.applyMentoLights(txt);
+
+            // SHOTS
+            const lines = txt.split('\n');
+            let count = 0;
+            lines.forEach(l => {
+                const m = l.match(/POS\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+TGT\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+LENS\s+([\d.]+)/);
+                if (m) {
+                    S.keyframes.push({
+                        pos: new THREE.Vector3(+m[1], +m[2], +m[3]),
+                        tgt: new THREE.Vector3(+m[4], +m[5], +m[6]),
+                        fov: +m[7]
+                    });
+                    count++;
+                }
+            });
+            updatePathVisuals();
+            renderKeyList();
+            window.showToast(`IMPORTED ${count} SHOTS`);
+        };
+
+        window.parseMentoLights = (text) => {
+            const lines = text.split('\n');
+            const lights = [];
+            for (const line of lines) {
+                const match = line.match(/!MENTO LIGHT "([^"]+)" TYPE (\w+) POS ([\d\s.-]+) TGT ([\d\s.-]+) COLOR (#\w+) INTENSITY ([\d.]+)(?:\s+SHADOWS (\w+))?(?:\s+DECAY ([\d.]+))?/);
+                if (match) {
+                    const [_, name, type, posStr, tgtStr, color, intensity, shadows, decay] = match;
+                    const pos = posStr.trim().split(/\s+/).map(Number);
+                    const tgt = tgtStr.trim().split(/\s+/).map(Number);
+                    lights.push({
+                        name, type: type.toLowerCase(),
+                        position: new THREE.Vector3(pos[0], pos[1], pos[2]),
+                        target: new THREE.Vector3(tgt[0], tgt[1], tgt[2]),
+                        color, intensity: parseFloat(intensity),
+                        shadows: shadows === 'TRUE', decay: decay ? parseFloat(decay) : null
+                    });
+                }
+            }
+            return lights;
+        };
+
+        window.applyMentoLights = (text) => {
+            S.mentoLights = window.parseMentoLights(text);
+            if (S.mentoLights.length === 0) return;
+
+            // Remove old lights
+            S.lightObjects.forEach(l => S.scene.remove(l));
+            S.lightObjects = [];
+
+            S.mentoLights.forEach(def => {
+                let light;
+                if (def.type === 'sun') {
+                    light = new THREE.DirectionalLight(def.color, def.intensity);
+                    if (def.shadows) {
+                        light.castShadow = true;
+                        light.shadow.mapSize.width = 2048; light.shadow.mapSize.height = 2048;
+                    }
+                } else if (def.type === 'point') {
+                    light = new THREE.PointLight(def.color, def.intensity);
+                    if (def.decay) light.decay = 2;
+                } else if (def.type === 'area') {
+                    light = new THREE.RectAreaLight(def.color, def.intensity, 50, 50);
+                } else {
+                    light = new THREE.PointLight(def.color, def.intensity);
+                }
+
+                light.position.copy(def.position);
+                if (light.target) {
+                    light.target.position.copy(def.target);
+                    S.scene.add(light.target);
+                }
+                S.scene.add(light);
+                S.lightObjects.push(light);
+            });
+
+            UI('light-status').innerText = `ACTIVE: ${S.mentoLights.length} LIGHTS`;
+            UI('light-status').style.color = "var(--c-good)";
+        };
+
+        window.showToast = (msg) => {
+            const t = UI('toast'); t.innerText = msg; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2000);
+        };
+
+        init();
+    </script>
+</body>
+
+</html>

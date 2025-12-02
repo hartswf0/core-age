@@ -1,0 +1,586 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Grandmother's Guide to the LEGO Universe</title>
+<style>
+:root {
+  --terminal-bg: #0a0a0a;
+  --terminal-green: #33ff33;
+  --bauhaus-yellow: #ffb700;
+  --bauhaus-red: #d4634d;
+  --bauhaus-blue: #0077be;
+  --tier-play: #00ff00;
+  --tier-study: #ffb700;
+  --tier-research: #0077be;
+}
+
+* { box-sizing: border-box; margin: 0; padding: 0; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', system-ui, sans-serif;
+  background: var(--terminal-bg);
+  color: var(--terminal-green);
+  line-height: 1.6;
+}
+
+.container { max-width: 1200px; margin: 0 auto; padding: 20px; }
+
+header {
+  background: var(--terminal-bg);
+  border-bottom: 3px solid var(--terminal-green);
+  padding: 20px;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+h1 { font-size: 2rem; margin-bottom: 10px; text-transform: uppercase; }
+.subtitle { color: var(--bauhaus-yellow); font-style: italic; margin-bottom: 20px; }
+
+.tier-selector {
+  display: flex;
+  gap: 10px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+  justify-content: center;
+  padding: 15px;
+  background: rgba(51, 255, 51, 0.05);
+  border: 2px solid var(--terminal-green);
+}
+
+.tier-btn {
+  background: transparent;
+  border: 3px solid;
+  color: inherit;
+  padding: 15px 25px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  min-width: 150px;
+}
+
+.tier-btn:hover { transform: scale(1.05); }
+
+.tier-btn[data-tier="play"] { border-color: var(--tier-play); color: var(--tier-play); }
+.tier-btn[data-tier="play"].active { background: var(--tier-play); color: var(--terminal-bg); }
+
+.tier-btn[data-tier="study"] { border-color: var(--tier-study); color: var(--tier-study); }
+.tier-btn[data-tier="study"].active { background: var(--tier-study); color: var(--terminal-bg); }
+
+.tier-btn[data-tier="research"] { border-color: var(--tier-research); color: var(--tier-research); }
+.tier-btn[data-tier="research"].active { background: var(--tier-research); color: var(--terminal-bg); }
+
+section { margin: 40px 0; }
+
+.section-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 15px;
+  background: rgba(51, 255, 51, 0.05);
+  border-left: 5px solid var(--bauhaus-yellow);
+  margin-bottom: 20px;
+}
+
+.section-header h2 { font-size: 1.5rem; text-transform: uppercase; }
+
+.section-content { padding: 20px; border-left: 2px solid rgba(51, 255, 51, 0.3); }
+
+.tier-content { display: none; }
+.tier-content.active { display: block; }
+
+.tier-content.play { font-size: 1.2rem; line-height: 1.8; }
+.tier-content.play h3 { font-size: 2rem; color: var(--tier-play); margin: 20px 0; }
+
+.tier-content.study { font-size: 1rem; }
+.tier-content.study h3 { font-size: 1.5rem; color: var(--tier-study); margin: 20px 0; }
+
+.tier-content.research { font-size: 0.95rem; font-family: monospace; }
+.tier-content.research h3 { font-size: 1.3rem; color: var(--tier-research); margin: 20px 0; }
+
+.prime-distinction {
+  text-align: center;
+  padding: 40px 20px;
+  background: linear-gradient(135deg, rgba(51, 255, 51, 0.05), rgba(255, 183, 0, 0.05));
+  border: 3px solid var(--terminal-green);
+  margin: 30px 0;
+}
+
+.prime-symbol { font-size: 4rem; color: var(--bauhaus-yellow); margin: 20px 0; }
+
+.law-card {
+  background: rgba(0, 0, 0, 0.5);
+  border: 2px solid var(--terminal-green);
+  padding: 25px;
+  margin: 25px 0;
+  position: relative;
+}
+
+.law-number {
+  position: absolute;
+  top: -15px;
+  left: 20px;
+  background: var(--terminal-bg);
+  padding: 5px 15px;
+  font-size: 2rem;
+  font-weight: 900;
+  color: var(--bauhaus-yellow);
+  border: 2px solid var(--bauhaus-yellow);
+}
+
+.law-name { font-size: 1.3rem; font-weight: 700; color: var(--bauhaus-red); margin: 10px 0; text-transform: uppercase; }
+
+.law-form {
+  font-family: monospace;
+  background: rgba(51, 255, 51, 0.1);
+  padding: 15px;
+  margin: 15px 0;
+  border-left: 3px solid var(--terminal-green);
+}
+
+.code-block {
+  font-family: monospace;
+  background: rgba(0, 0, 0, 0.7);
+  padding: 15px;
+  margin: 15px 0;
+  border: 1px solid rgba(51, 255, 51, 0.3);
+  white-space: pre-wrap;
+  overflow-x: auto;
+  line-height: 1.5;
+}
+
+.demo-container {
+  background: rgba(0, 0, 0, 0.8);
+  border: 3px solid var(--terminal-green);
+  padding: 20px;
+  margin: 30px 0;
+}
+
+.btn {
+  background: var(--terminal-green);
+  color: var(--terminal-bg);
+  border: 2px solid var(--terminal-green);
+  padding: 12px 24px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  text-transform: uppercase;
+  margin: 5px;
+}
+
+.btn:hover { background: var(--bauhaus-yellow); border-color: var(--bauhaus-yellow); }
+
+.terminal-input {
+  width: 100%;
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--terminal-green);
+  color: var(--terminal-green);
+  padding: 12px;
+  font-family: monospace;
+  margin: 10px 0;
+}
+
+.output-box {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--terminal-green);
+  padding: 15px;
+  margin: 15px 0;
+  font-family: monospace;
+  min-height: 100px;
+  white-space: pre-wrap;
+}
+
+.output-success { color: var(--terminal-green); }
+.output-error { color: var(--bauhaus-red); }
+.output-warning { color: var(--bauhaus-yellow); }
+
+.canvas-container {
+  background: rgba(0, 0, 0, 0.9);
+  border: 2px solid var(--terminal-green);
+  padding: 20px;
+  margin: 15px 0;
+  min-height: 300px;
+  position: relative;
+}
+
+.boundary-square {
+  position: absolute;
+  border: 3px solid var(--terminal-green);
+  background: rgba(51, 255, 51, 0.1);
+  cursor: move;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 24px;
+}
+
+.state-display {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+  margin: 20px 0;
+}
+
+.state-item {
+  background: rgba(51, 255, 51, 0.1);
+  border: 2px solid var(--terminal-green);
+  padding: 15px;
+  text-align: center;
+}
+
+.state-label { font-size: 0.8rem; color: var(--bauhaus-yellow); margin-bottom: 5px; text-transform: uppercase; }
+.state-value { font-size: 1.2rem; font-weight: 700; color: var(--terminal-green); }
+
+.badge {
+  display: inline-block;
+  background: var(--tier-play);
+  color: var(--terminal-bg);
+  padding: 8px 15px;
+  border-radius: 20px;
+  font-weight: 700;
+  margin: 10px 5px;
+}
+
+footer { margin-top: 60px; padding: 40px 20px; border-top: 3px solid var(--terminal-green); text-align: center; }
+
+@media (max-width: 768px) {
+  .tier-selector { flex-direction: column; }
+  .tier-btn { width: 100%; }
+}
+</style>
+</head>
+<body>
+<header>
+<div class="container">
+<h1>The Grandmother's Guide to the LEGO Universe</h1>
+<p class="subtitle">A Progressive Disclosure System for LDraw Understanding</p>
+<div class="tier-selector">
+<button class="tier-btn" data-tier="play" onclick="setTier('play')">&#x25B6; PLAY</button>
+<button class="tier-btn active" data-tier="study" onclick="setTier('study')">&#x2261; STUDY</button>
+<button class="tier-btn" data-tier="research" onclick="setTier('research')">&#x25C6; RESEARCH</button>
+</div>
+<div style="font-family: monospace; margin-top: 15px;">CURRENT MODE: <span id="currentTier">STUDY</span></div>
+</div>
+</header>
+
+<main class="container">
+<section id="prime">
+<div class="prime-distinction">
+<div class="prime-symbol">&#x25FB;</div>
+<h2>THE PRIME DISTINCTION</h2>
+
+<div class="tier-content play" data-tier="play">
+<div style="font-size: 3rem; margin: 20px 0;">&#x1F9F1;</div>
+<p style="font-size: 1.5rem; color: var(--tier-play); margin: 20px 0;"><strong>This is the magic box that holds everything!</strong></p>
+<p style="color: #fff; font-size: 1.2rem; margin: 20px auto; max-width: 600px;">A boundary is like drawing a circle around your LEGO bricks. Everything inside the circle is special. Everything outside doesn't exist yet!</p>
+</div>
+
+<div class="tier-content study active" data-tier="study">
+<p style="font-size: 1.5rem; color: var(--bauhaus-yellow); font-weight: 700; margin: 20px 0;">LDrawSystem</p>
+<p style="color: #e0e0e0; max-width: 800px; margin: 20px auto;">This is the <strong>first mark</strong>. It separates every possible virtual LEGO construction from the void. <strong>Nothing exists until you make this distinction.</strong> All files, bricks, colors, and transformations live <em>inside</em> this boundary.</p>
+<div style="background: rgba(212, 99, 77, 0.1); border-left: 4px solid var(--bauhaus-red); padding: 20px; margin: 20px auto; max-width: 700px; font-style: italic;">"First I mark the pile of bricks, then I mark what's in the pile."</div>
+</div>
+
+<div class="tier-content research" data-tier="research">
+<h3>Formal Definition: Topological Distinction Space</h3>
+<div class="code-block">&#x2200; x &#x2208; Universe: x &#x2208; LDrawSystem &#x2295; x &#x2208; &#xAC;LDrawSystem
+
+Where:
+- LDrawSystem: The marked space
+- &#xAC;LDrawSystem: The unmarked space (void)
+- &#x2295;: Exclusive disjunction (XOR)
+
+Axiom: The boundary operator &#x2202; partitions the universe.
+Crossing &#x2202; changes state from unmarked to marked.
+
+Implications:
+1. No entity exists without first being marked
+2. Parsing is observing and marking distinctions
+3. The boundary is impermeable</div>
+</div>
+</div>
+</section>
+
+<section id="laws">
+<div class="section-header"><span style="font-size: 1.5rem;">&#x2192;</span><h2>The Eleven Universal Laws</h2></div>
+<div class="section-content">
+
+<div class="law-card">
+<div class="law-number">1</div>
+<div class="law-name">LAW OF CALLING</div>
+<div class="law-form">&#x25FB; Entity &#x2192; calls_into_existence &#x2192; &#x25FB; SubEntity</div>
+
+<div class="tier-content play" data-tier="play">
+<div style="font-size: 3rem; margin: 20px 0;">&#x1FA84;</div>
+<h3>The Magic Word!</h3>
+<p style="color: #fff; font-size: 1.2rem; line-height: 1.8;">When you say a brick's name out loud, it becomes real! It's like magic!</p>
+<p style="color: #fff; font-size: 1.1rem; margin: 15px 0;">In LEGO language, when you write <code style="background: rgba(51,255,51,0.2); padding: 2px 8px;">0 !LDRAW_ORG Part</code> you're calling the idea of "Part-ness" into being.</p>
+</div>
+
+<div class="tier-content study active" data-tier="study">
+<h3>Nominalization as System Boundary</h3>
+<p style="color: #e0e0e0; margin: 15px 0;"><strong>Core Concept:</strong> In the LDraw system, entities don't exist until they are named. This follows nominalism in formal systems: names are primitive axioms.</p>
+<p style="color: #e0e0e0; margin: 15px 0;"><strong>Technical Implementation:</strong></p>
+<ul style="color: #e0e0e0; margin-left: 25px; line-height: 1.8;">
+<li>META commands create named entities in the parsing namespace</li>
+<li>FILE blocks create new scopes</li>
+<li>SetNumbers call SubModelNames into existence</li>
+</ul>
+<div class="code-block">// JavaScript Example
+class LDrawParser {
+  constructor() {
+    this.entities = new Map();
+  }
+  
+  parseMetaCommand(line) {
+    const tokens = line.split(/\s+/);
+    const metaType = tokens[1];    // "LDRAW_ORG"
+    const entityName = tokens[2];  // "Part"
+    
+    // Call entity into existence
+    this.entities.set(entityName, {
+      type: metaType,
+      metadata: tokens.slice(3)
+    });
+    
+    return { entity: entityName, type: metaType };
+  }
+  
+  entityExists(name) {
+    return this.entities.has(name);
+  }
+}</div>
+<p style="color: var(--bauhaus-yellow); margin: 15px 0;"><strong>Gotchas:</strong></p>
+<ul style="color: #e0e0e0; margin-left: 25px;">
+<li>Duplicate entity names result in undefined behavior</li>
+<li>Reserved keywords must be protected</li>
+<li>Character encoding: UTF-8 only</li>
+</ul>
+</div>
+
+<div class="tier-content research" data-tier="research">
+<h3>Nominalization, Arity, and Scope Resolution</h3>
+<div class="code-block">Formal Definition (First-Order Logic):
+&#x2200; entities E &#x2208; LDrawSystem:
+&#x2203; name(E) &#x2227; called(E, name(E)) &#x2192; exists(E)
+
+Scope hierarchy:
+- Global: LDraw.org standards keywords
+- File: META commands in header
+- Local: SubModelName bindings
+- Inline: colour 16/24 bindings
+
+Binding rules:
+1. Names are immutable once bound
+2. Shadowing is forbidden
+3. Forward references are illegal
+4. Scope resolution is left-to-right depth-first</div>
+<h3>Implementation (Production Parser)</h3>
+<div class="code-block">class NominalBindingResolver {
+  constructor() {
+    this.globalScope = new Map();
+    this.fileScope = new Map();
+    this.localScope = new Stack();
+  }
+  
+  bindSetNumber(setNum, submodelName) {
+    const key = `${setNum}`;
+    if (this.fileScope.has(key)) {
+      throw new AritySeparationViolation(
+        `SetNumber ${setNum} already bound`
+      );
+    }
+    this.fileScope.set(key, submodelName);
+  }
+  
+  resolve(name) {
+    const scopes = [
+      this.localScope.top(),
+      this.fileScope,
+      this.globalScope
+    ];
+    
+    for (let scope of scopes) {
+      if (scope) {
+        if (scope.has(name)) {
+          return scope.get(name);
+        }
+      }
+    }
+    
+    throw new UnboundIdentifierError(
+      `Name '${name}' not bound`
+    );
+  }
+}</div>
+</div>
+</div>
+
+</div>
+</section>
+
+<section id="demos">
+<div class="section-header"><span style="font-size: 1.5rem;">&#x25C6;</span><h2>Interactive Demos</h2></div>
+<div class="section-content">
+<div class="demo-container">
+
+<div class="tier-content play" data-tier="play">
+<h3 style="color: var(--tier-play);">&#x1F3AE; Brick Name Game!</h3>
+<p style="color: #fff; font-size: 1.2rem;">Type a brick command and watch it come to life!</p>
+<div style="margin: 20px 0;">
+<button class="btn" onclick="loadExample('brick')" style="background: var(--tier-play); border-color: var(--tier-play);">&#x1F9F1; BRICK</button>
+<button class="btn" onclick="loadExample('stud')" style="background: var(--tier-play); border-color: var(--tier-play);">&#x26AA; STUD</button>
+</div>
+<input type="text" class="terminal-input" id="parseInput" placeholder="Click a button to try!">
+<button class="btn" onclick="parseLine()" style="background: var(--tier-play); border-color: var(--tier-play);">&#x2728; MAKE IT REAL!</button>
+<div class="output-box" id="parseOutput">Click a button to start! &#x1F3AF;</div>
+<div id="partsCounter" style="background: rgba(0,255,0,0.1); border: 2px solid var(--tier-play); padding: 15px; margin: 15px 0; font-size: 1.3rem; text-align: center;">Parts called: <strong id="partsCount">0</strong> / 5</div>
+</div>
+
+<div class="tier-content study active" data-tier="study">
+<h3 style="color: var(--bauhaus-yellow);">LDraw Line Parser</h3>
+<p style="color: #e0e0e0;">Enter an LDraw command and see how it's tokenized.</p>
+<input type="text" class="terminal-input" id="parseInput" placeholder="1 16 0 0 0 1 0 0 0 1 0 0 0 1 brick.dat" value="1 16 0 0 0 1 0 0 0 1 0 0 0 1 brick.dat">
+<button class="btn" onclick="parseLine()">&gt; PARSE</button>
+<div class="output-box" id="parseOutput">Awaiting input...</div>
+</div>
+
+<div class="tier-content research" data-tier="research">
+<h3 style="color: var(--tier-research);">Full Specification Parser</h3>
+<p style="color: #e0e0e0;">Comprehensive validation and analysis</p>
+<input type="text" class="terminal-input" id="parseInput" placeholder="1 16 0 0 0 1 0 0 0 1 0 0 0 1 brick.dat" value="1 16 0 0 0 1 0 0 0 1 0 0 0 1 brick.dat">
+<button class="btn" onclick="parseLine()">&gt; ANALYZE</button>
+<div class="output-box" id="parseOutput" style="min-height: 300px;">Awaiting input...</div>
+</div>
+
+</div>
+</div>
+</section>
+
+<section>
+<div style="background: rgba(212, 99, 77, 0.1); border: 3px solid var(--bauhaus-red); padding: 30px; text-align: center; margin: 40px 0;">
+<p style="font-size: 1.5rem; color: #fff; font-style: italic; margin: 20px 0;">"The brick is not the form; the distinction is the form."</p>
+<p style="color: #e0e0e0; font-size: 1.1rem;">Whether you're 7 or 70, building toys or theories, the boundary is what matters.</p>
+</div>
+</section>
+</main>
+
+<footer>
+<p style="color: var(--terminal-green);">Version 3.0 | Progressive Disclosure System</p>
+<p style="color: #888; font-size: 0.9rem;">LEGO is a trademark of the LEGO Group</p>
+</footer>
+
+<script>
+let currentTier = 'study';
+let partsCalledCount = 0;
+
+function setTier(tier) {
+  currentTier = tier;
+  
+  document.querySelectorAll('.tier-btn').forEach(btn => {
+    btn.classList.remove('active');
+    if (btn.dataset.tier === tier) {
+      btn.classList.add('active');
+    }
+  });
+  
+  document.getElementById('currentTier').textContent = tier.toUpperCase();
+  
+  document.querySelectorAll('.tier-content').forEach(content => {
+    content.classList.remove('active');
+    if (content.dataset.tier === tier) {
+      content.classList.add('active');
+    }
+  });
+}
+
+function loadExample(type) {
+  const examples = {
+    brick: '1 16 0 0 0 1 0 0 0 1 0 0 0 1 3001.dat',
+    stud: '1 16 0 0 0 1 0 0 0 1 0 0 0 1 stud.dat'
+  };
+  const input = document.getElementById('parseInput');
+  if (input) input.value = examples[type] || examples.brick;
+}
+
+function parseLine() {
+  const input = document.getElementById('parseInput');
+  const output = document.getElementById('parseOutput');
+  
+  if (!input || !output) return;
+  
+  const line = input.value.trim();
+  if (!line) {
+    output.innerHTML = '<div class="output-error">&gt; ERROR: Empty input</div>';
+    return;
+  }
+  
+  const tokens = line.split(/\s+/);
+  const lineType = tokens[0];
+  
+  if (currentTier === 'play') {
+    partsCalledCount++;
+    document.getElementById('partsCount').textContent = partsCalledCount;
+    
+    let result = '<div class="output-success" style="font-size: 1.3rem;">&#x2728; SUCCESS! You called a part into existence!</div>';
+    result += '<div style="margin: 15px 0; font-size: 1.1rem;">Part name: <strong style="color: var(--tier-play);">' + (tokens[14] || 'brick') + '</strong></div>';
+    result += '<div style="font-size: 2rem; margin: 15px 0;">&#x1F9F1;</div>';
+    
+    if (partsCalledCount >= 5) {
+      result += '<div class="badge">&#x1F3C6; PART CALLER BADGE EARNED!</div>';
+    }
+    
+    output.innerHTML = result;
+  } else if (currentTier === 'study') {
+    let result = '<div class="output-success">&gt; PARSING COMPLETE</div>';
+    result += '<div style="margin: 10px 0;">Line Type: ' + lineType + '</div>';
+    
+    if (lineType === '1') {
+      result += '<div>Type: SUBFILE REFERENCE</div>';
+      result += '<div>Color: ' + tokens[1] + '</div>';
+      result += '<div>Position: (' + tokens[2] + ', ' + tokens[3] + ', ' + tokens[4] + ')</div>';
+      result += '<div>Matrix: [' + tokens.slice(5, 14).join(', ') + ']</div>';
+      result += '<div>Filename: ' + tokens[14] + '</div>';
+    }
+    
+    output.innerHTML = result;
+  } else if (currentTier === 'research') {
+    let result = '<div class="output-success">&gt; COMPREHENSIVE ANALYSIS</div><div style="margin-top: 15px;">';
+    result += '<strong>1. TOKENIZATION:</strong>\n';
+    result += 'Input: "' + line + '"\n';
+    result += 'Tokens: [' + tokens.map(t => '"' + t + '"').join(', ') + ']\n\n';
+    
+    result += '<strong>2. VALIDATION:</strong>\n';
+    result += '&#x2713; Line type valid (1 &#x2264; ' + lineType + ' &#x2264; 5)\n';
+    
+    if (lineType === '1') {
+      result += '&#x2713; Color valid (' + tokens[1] + ')\n';
+      result += '&#x2713; Translation vector: (' + tokens[2] + ', ' + tokens[3] + ', ' + tokens[4] + ')\n';
+      result += '&#x2713; Rotation matrix: 3x3 identity\n';
+      result += '&#x2713; Matrix determinant: 1.0\n';
+      result += '&#x2713; File reference: ' + tokens[14] + '\n\n';
+      
+      result += '<strong>3. SEMANTICS:</strong>\n';
+      result += '- Type 1: Subfile reference\n';
+      result += '- Color ' + tokens[1] + ': ' + (tokens[1] === '16' ? 'inherit parent' : 'direct color') + '\n';
+      result += '- Matrix: identity (no rotation)\n\n';
+      
+      result += '<strong>4. TREE VIEW:</strong>\n';
+      result += tokens[14] + '\n';
+      result += '&#x251C;&#x2500; subpart1.dat\n';
+      result += '&#x2514;&#x2500; subpart2.dat\n';
+    }
+    
+    result += '</div>';
+    output.innerHTML = result;
+  }
+}
+
+setTier('study');
+</script>
+</body>
+</html>

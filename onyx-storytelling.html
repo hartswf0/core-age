@@ -1,0 +1,1061 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ONYX Storytelling System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link
+        href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&family=Playfair+Display:wght@400;500;600;700&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --theme-bg: #0b1121;
+            --theme-panel: #0f172a;
+            --theme-surface: #1e293b;
+            --theme-border: #334155;
+            --theme-text-main: #e2e8f0;
+            --theme-text-muted: #64748b;
+            --theme-entity: #60a5fa;
+            --theme-core: #fbbf24;
+            --theme-goal: #4ade80;
+            --theme-obstacle: #f87171;
+            --theme-morphism: #22d3ee;
+            --theme-scene: #c084fc;
+            --theme-story: #e879f9;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--theme-bg);
+            color: var(--theme-text-main);
+            overscroll-behavior: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        .theme-dark {
+            --theme-bg: #0b1121;
+            --theme-panel: #0f172a;
+            --theme-surface: #1e293b;
+            --theme-border: #334155;
+            --theme-text-main: #e2e8f0;
+            --theme-text-muted: #64748b;
+        }
+
+        .theme-parchment {
+            --theme-bg: #fefce8;
+            --theme-panel: #fef9c3;
+            --theme-surface: #fde047;
+            --theme-border: #facc15;
+            --theme-text-main: #713f12;
+            --theme-text-muted: #ca8a04;
+        }
+
+        .theme-terminal {
+            --theme-bg: #0a0a0a;
+            --theme-panel: #171717;
+            --theme-surface: #262626;
+            --theme-border: #404040;
+            --theme-text-main: #86efac;
+            --theme-text-muted: #525252;
+        }
+
+        @keyframes slideInRight {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes fadeUp {
+            from {
+                transform: translateY(20px);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes grid-fade {
+            0% {
+                opacity: 0.05;
+            }
+
+            100% {
+                opacity: 0.15;
+            }
+        }
+
+        .animate-slide-in-right {
+            animation: slideInRight 0.3s var(--ease) forwards;
+        }
+
+        .animate-fade-up {
+            animation: fadeUp 0.3s var(--ease) forwards;
+        }
+
+        .animate-grid-fade {
+            animation: grid-fade 2s ease-in-out infinite alternate;
+        }
+
+        .grid-overlay {
+            background-image: linear-gradient(var(--theme-border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--theme-border) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+        }
+
+        .node-instance {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            cursor: grab;
+            z-index: 20;
+            transition: all 0.2s var(--ease);
+        }
+
+        .node-instance:active {
+            cursor: grabbing;
+        }
+
+        .node-instance.selected {
+            filter: drop-shadow(0 0 20px var(--theme-core));
+        }
+
+        .node-halo {
+            position: absolute;
+            inset: -10px;
+            border-radius: 50%;
+            background: radial-gradient(circle, var(--theme-core) 0%, transparent 70%);
+            opacity: 0;
+            transition: opacity 0.3s var(--ease);
+            pointer-events: none;
+        }
+
+        .node-instance:hover .node-halo {
+            opacity: 0.3;
+        }
+
+        .node-instance.selected .node-halo {
+            opacity: 0.6;
+            animation: pulse 2s ease-in-out infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                transform: scale(1);
+                opacity: 0.6;
+            }
+
+            50% {
+                transform: scale(1.1);
+                opacity: 0.3;
+            }
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.75rem;
+            border: 1px solid var(--theme-border);
+            border-radius: 0.5rem;
+            background: var(--theme-surface);
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+
+        .tool-item:hover {
+            background: var(--theme-panel);
+            border-color: var(--theme-core);
+            transform: translateX(4px);
+        }
+
+        .nav-tab {
+            transition: all 0.2s var(--ease);
+        }
+
+        .nav-tab.active {
+            background: var(--theme-core);
+            color: var(--theme-bg);
+        }
+
+        .theme-btn.active {
+            background: var(--theme-core);
+            color: var(--theme-bg);
+        }
+
+        .toast {
+            background: var(--theme-surface);
+            border: 1px solid var(--theme-border);
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            display: flex;
+            align-items: center;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            transition: opacity 0.3s var(--ease);
+        }
+
+        .grid-cell {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.2s var(--ease);
+        }
+
+        .grid-cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .grid-cell.focus {
+            background: rgba(59, 130, 246, 0.1);
+            border-color: rgba(59, 130, 246, 0.3);
+        }
+
+        .log-entry {
+            font-size: 0.75rem;
+            padding: 0.5rem;
+            border-bottom: 1px solid var(--theme-border);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .log-success {
+            color: #22c55e;
+        }
+
+        .log-info {
+            color: #60a5fa;
+        }
+
+        .log-warn {
+            color: #fbbf24;
+        }
+
+        .log-error {
+            color: #f87171;
+        }
+    </style>
+</head>
+
+<body class="theme-dark grid grid-cols-[288px_1fr_320px] grid-rows-[64px_1fr_200px] h-screen w-screen overflow-hidden">
+
+    <!-- Toast Notifications -->
+    <div id="toast-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 w-80">
+    </div>
+
+    <!-- Header -->
+    <header
+        class="col-span-3 bg-[var(--theme-panel)] border-b border-[var(--theme-border)] flex items-center justify-between px-4">
+        <div class="flex gap-2 bg-[var(--theme-surface)] p-1 rounded-lg">
+            <button class="nav-tab active px-3 py-2 rounded-md text-sm font-medium transition-all"
+                data-view="system">SYSTEM</button>
+            <button
+                class="nav-tab px-3 py-2 rounded-md text-sm font-medium text-[var(--theme-text-muted)] transition-all"
+                data-view="story">STORY</button>
+            <button
+                class="nav-tab px-3 py-2 rounded-md text-sm font-medium text-[var(--theme-text-muted)] transition-all"
+                data-view="preview">PREVIEW</button>
+        </div>
+        <div class="flex items-center gap-4">
+            <div class="flex gap-1 p-1 bg-[var(--theme-surface)] rounded-md">
+                <button class="theme-btn active px-2 py-1 rounded text-xs font-medium" data-theme="dark">DARK</button>
+                <button class="theme-btn px-2 py-1 rounded text-xs font-medium text-[var(--theme-text-muted)]"
+                    data-theme="parchment">PARCH</button>
+                <button class="theme-btn px-2 py-1 rounded text-xs font-medium text-[var(--theme-text-muted)]"
+                    data-theme="terminal">TERM</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside
+        class="bg-[var(--theme-panel)] border-r border-[var(--theme-border)] flex flex-col transition-all duration-300 overflow-y-auto">
+        <div class="h-16 border-b border-[var(--theme-border)] flex items-center px-4">
+            <div class="flex flex-col">
+                <span class="font-bold text-lg text-[var(--theme-text-main)]">ONYX</span>
+                <span class="text-[10px] text-[var(--theme-core)] uppercase tracking-wider">Storytelling System</span>
+            </div>
+        </div>
+
+        <div class="p-4 border-b border-[var(--theme-border)]">
+            <div class="text-xs text-[var(--theme-text-muted)] uppercase tracking-wide mb-2">Natural Language</div>
+            <input id="narrative-input" type="text"
+                class="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded-md p-2 text-xs text-[var(--theme-text-main)] font-mono"
+                placeholder="Alice wants Wonderland">
+            <div class="mt-2 flex gap-2">
+                <button onclick="COMPILER.commit()"
+                    class="flex-1 px-2 py-1 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-xs hover:border-[var(--theme-core)]">
+                    <i class="fas fa-play w-3 h-3 mr-1"></i>Compile
+                </button>
+            </div>
+        </div>
+
+        <div class="p-2">
+            <div class="text-xs text-[var(--theme-text-muted)] uppercase tracking-wide mb-2 px-2">Entity Palette</div>
+            <div id="tools-list" class="flex flex-col gap-2"></div>
+        </div>
+
+        <div class="mt-auto p-4 border-t border-[var(--theme-border)]">
+            <div class="text-xs text-[var(--theme-text-muted)] uppercase tracking-wide mb-2">Scenarios</div>
+            <button onclick="COMPILER.loadScenario('heist')" class="tool-item w-full justify-center mb-2">
+                <i class="fas fa-gem w-4 h-4"></i>
+                <span>Heist</span>
+            </button>
+            <button onclick="COMPILER.loadScenario('romance')" class="tool-item w-full justify-center">
+                <i class="fas fa-heart w-4 h-4"></i>
+                <span>Romance</span>
+            </button>
+        </div>
+    </aside>
+
+    <!-- Canvas -->
+    <main class="relative bg-[var(--theme-bg)] overflow-hidden">
+        <div id="grid-shell" class="absolute inset-0">
+            <div class="absolute inset-0 animate-grid-fade opacity-10 pointer-events-none grid-overlay"></div>
+            <div id="grid-lock" class="absolute inset-0 grid grid-cols-9 grid-rows-9 gap-0 p-0"></div>
+            <div id="nodes-layer" class="absolute inset-0 z-10 pointer-events-none"></div>
+            <svg id="connections-layer" class="absolute inset-0 pointer-events-none z-5"></svg>
+            <div id="preview-content" class="absolute inset-0 hidden p-8 overflow-y-auto"></div>
+            <div class="absolute bottom-4 left-4 text-[10px] text-cyan-500/60 font-mono">
+                NODES: <span id="node-count">0</span> | LINKS: <span id="link-count">0</span>
+            </div>
+        </div>
+    </main>
+
+    <!-- Inspector -->
+    <aside
+        class="bg-[var(--theme-panel)] border-l border-[var(--theme-border)] flex flex-col transition-all duration-300 overflow-y-auto">
+        <div class="h-12 border-b border-[var(--theme-border)] flex items-center justify-between px-4">
+            <div class="flex items-center gap-2">
+                <div class="w-2 h-2 bg-cyan-400 rounded-full animate-pulse"></div>
+                <span class="font-bold text-sm text-[var(--theme-text-main)]">Inspector</span>
+            </div>
+            <button onclick="INSPECTOR.close()" class="text-[var(--theme-text-muted)] hover:text-white">
+                <i class="fas fa-times w-4 h-4"></i>
+            </button>
+        </div>
+        <div id="inspector-content" class="flex-1 p-4">
+            <div class="text-sm text-[var(--theme-text-muted)] text-center py-8">
+                Select a node to inspect
+            </div>
+        </div>
+        <div class="p-4 border-t border-[var(--theme-border)]">
+            <button onclick="INSPECTOR.delete()"
+                class="w-full py-3 bg-red-500/20 text-red-500 border border-red-500 rounded-md text-xs font-bold uppercase">
+                DELETE ENTITY
+            </button>
+        </div>
+    </aside>
+
+    <!-- Console -->
+    <div class="col-span-3 bg-[var(--theme-panel)] border-t border-[var(--theme-border)] transition-all duration-300">
+        <div id="console-header"
+            class="h-8 bg-[var(--theme-surface)] flex items-center justify-between px-4 cursor-pointer"
+            onclick="CONSOLE.toggle()">
+            <div class="flex items-center gap-2 text-xs text-[var(--theme-text-muted)] font-bold">
+                <i class="fas fa-terminal w-3 h-3"></i>
+                <span>SYSTEM CONSOLE</span>
+            </div>
+            <i id="console-toggle-icon" class="fas fa-chevron-down w-3 h-3 text-slate-400"></i>
+        </div>
+        <div id="console-content" class="h-[calc(100%-2rem)] overflow-y-auto p-2"></div>
+    </div>
+
+    <script>
+        // =========================================
+        // STATE MANAGEMENT
+        // =========================================
+        const STATE = {
+            nodes: [],
+            links: [],
+            selectedNodeId: null,
+            viewMode: 'system',
+            theme: 'dark',
+            draggedNodeId: null,
+            lastX: 0,
+            lastY: 0
+        };
+
+        // =========================================
+        // GRID HELPERS
+        // =========================================
+        const GRID = {
+            center(col, row) {
+                const step = 100 / 9;
+                const x = (col + 0.5) * step;
+                const y = (row + 0.5) * step;
+                return { x, y, row, col, cellIndex: row * 9 + col };
+            },
+            snap(x, y) {
+                const step = 100 / 9;
+                const col = Math.max(0, Math.min(8, Math.round(x / step - 0.5)));
+                const row = Math.max(0, Math.min(8, Math.round(y / step - 0.5)));
+                return this.center(col, row);
+            }
+        };
+
+        // =========================================
+        // ICONS
+        // =========================================
+        const ICONS = {
+            getIsoCube(color = "blue", opacity = 1) {
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                    red: { top: '#f87171', left: '#ef4444', right: '#dc2626' }
+                };
+                const c = colors[color] || colors.blue;
+                return `
+                <svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-lg" style="opacity: ${opacity}">
+                    <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1" />
+                </svg>`;
+            },
+
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('green')}<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-yellow-400 animate-pulse"><i class="fas fa-bullseye"></i></div></div>`,
+            Obstacle: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('red')}<div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-full bg-red-400"></div></div>`,
+            Morphism: () => `<div class="relative w-full h-full flex items-center justify-between px-1"><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div><div class="flex-1 h-0.5 bg-cyan-400 mx-1 relative"><div class="absolute right-0 -top-1 w-0 h-0 border-l-4 border-l-cyan-400 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div></div><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div><div class="absolute z-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"><i class="fas fa-bolt w-5 h-5 fill-current"></i></div><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><svg class="absolute inset-0 w-full h-full pointer-events-none"><path d="M14 26 C 14 26, 20 20, 26 14" stroke="#c084fc" stroke-width="2" fill="none" stroke-linecap="round" /><polygon points="26 14, 22 15, 25 18" fill="#c084fc" /></svg></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4">${ICONS.getIsoCube('cyan')}</div><div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[#0f172a] rounded-full border border-cyan-500 flex items-center justify-center"><i class="fas fa-clock w-3 h-3 text-cyan-400"></i></div></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center p-1"><div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-purple-400"></div><div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-purple-400"></div><div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-purple-400"></div><div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-purple-400"></div><div class="flex gap-0.5"><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div></div></div>`,
+            Story: () => `<div class="relative w-full h-full flex flex-col items-center justify-start pt-1"><div class="w-4 h-4 z-10">${ICONS.getIsoCube('purple')}</div><div class="w-0.5 h-2 bg-purple-500/50"></div><div class="w-full h-0.5 bg-purple-500/50 relative"><div class="absolute left-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute right-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute left-1/2 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full -translate-x-1/2"></div></div><div class="flex gap-1 mt-2"><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div></div></div>`
+        };
+
+        // =========================================
+        // COMPILER
+        // =========================================
+        const COMPILER = {
+            commit() {
+                const input = document.getElementById('narrative-input');
+                const cmd = input.value.trim();
+                if (!cmd) return;
+
+                // Parse natural language: "A wants B" / "A opposes B" / "A becomes B"
+                const regex = /(.+?)\s+(wants|opposes|becomes|is inside)\s+(.+)/i;
+                const match = cmd.match(regex);
+
+                if (match) {
+                    const [_, subject, relation, object] = match;
+                    this.decompose(subject, relation, object);
+                } else {
+                    // Fallback: spawn entity
+                    this.spawnNode('Entity', cmd);
+                }
+
+                input.value = '';
+            },
+
+            decompose(subName, rel, objName) {
+                const subId = this.findOrSpawn(subName, 'Entity');
+
+                let objType = 'Entity';
+                if (rel === 'wants') objType = 'Goal';
+                if (rel === 'opposes') objType = 'Obstacle';
+
+                const objId = this.findOrSpawn(objName, objType);
+
+                // Create link
+                let type = 'morphism';
+                if (rel === 'wants') type = 'desire';
+                if (rel === 'opposes') type = 'conflict';
+
+                if (!STATE.links.find(l => l.from === subId && l.to === objId)) {
+                    STATE.links.push({ from: subId, to: objId, type });
+                }
+
+                RENDERER.connections();
+                PERSISTENCE.save();
+                LOG.info(`Linked: ${subName} → ${objName}`);
+            },
+
+            findOrSpawn(name, type) {
+                const existing = STATE.nodes.find(n => n.label.toLowerCase() === name.toLowerCase());
+                if (existing) return existing.id;
+                return this.spawnNode(type, name);
+            },
+
+            spawnNode(type, label) {
+                const id = Date.now() + Math.random();
+
+                // Smart placement: find non-overlapping position
+                let attempts = 0;
+                let snapped;
+                do {
+                    const jitterX = 50 + (Math.random() * 40 - 20);
+                    const jitterY = 50 + (Math.random() * 40 - 20);
+                    snapped = GRID.snap(jitterX, jitterY);
+                    attempts++;
+                } while (this.hasCollision(snapped) && attempts < 50);
+
+                const newNode = {
+                    id,
+                    type: type.toLowerCase(),
+                    icon: type,
+                    label: label || type,
+                    x: snapped.x,
+                    y: snapped.y
+                };
+
+                STATE.nodes.push(newNode);
+                RENDERER.nodes();
+                RENDERER.connections();
+                PERSISTENCE.save();
+
+                return id;
+            },
+
+            hasCollision(pos) {
+                // Check if position is occupied (within same grid cell)
+                return STATE.nodes.some(node => {
+                    const nodeCellX = Math.round(node.x / (100 / 9));
+                    const nodeCellY = Math.round(node.y / (100 / 9));
+                    const posCellX = Math.round(pos.x / (100 / 9));
+                    const posCellY = Math.round(pos.y / (100 / 9));
+                    return nodeCellX === posCellX && nodeCellY === posCellY;
+                });
+            },
+
+            loadScenario(type) {
+                STATE.nodes = [];
+                STATE.links = [];
+
+                if (type === 'heist') {
+                    this.decompose('The Crew', 'wants', 'The Diamond');
+                    this.decompose('The Guards', 'opposes', 'The Crew');
+                    this.decompose('The Vault', 'is inside', 'The Bank');
+                } else if (type === 'romance') {
+                    this.decompose('Romeo', 'wants', 'Juliet');
+                    this.decompose('Tybalt', 'opposes', 'Romeo');
+                    this.decompose('Fate', 'opposes', 'Romeo');
+                }
+
+                if (STATE.viewMode === 'story') {
+                    VIEW_MODE.arrangeAsTree();
+                }
+
+                LOG.success(`Loaded ${type} scenario`);
+            }
+        };
+
+        // =========================================
+        // RENDERER
+        // =========================================
+        const RENDERER = {
+            nodes() {
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = STATE.nodes.map(node => {
+                    const isSelected = STATE.selectedNodeId === node.id;
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance ${isSelected ? 'selected' : ''}" 
+                         style="left: ${node.x}%; top: ${node.y}%; pointer-events: auto;"
+                         data-node-id="${node.id}"
+                         onmousedown="EVENTS.startDrag(event, ${node.id})"
+                         ontouchstart="EVENTS.startDrag(event, ${node.id})"
+                         onclick="INSPECTOR.select(${node.id})">
+                        <div class="node-halo"></div>
+                        <div class="w-16 h-16 drop-shadow-2xl">
+                            ${iconFn()}
+                        </div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-[var(--theme-panel)]/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 pointer-events-none">
+                            ${node.label}
+                        </div>
+                    </div>`;
+                }).join('');
+
+                document.getElementById('node-count').textContent = STATE.nodes.length;
+                document.getElementById('link-count').textContent = STATE.links.length;
+            },
+
+            connections() {
+                const svg = document.getElementById('connections-layer');
+                if (!svg) return;
+
+                svg.innerHTML = '';
+
+                STATE.links.forEach(link => {
+                    const n1 = STATE.nodes.find(n => n.id === link.from);
+                    const n2 = STATE.nodes.find(n => n.id === link.to);
+                    if (!n1 || n2) {
+                        const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+
+                        const cx = (n1.x + n2.x) / 2;
+                        const cy = (n1.y + n2.y) / 2 - 10;
+                        const d = `M ${n1.x} ${n1.y} Q ${cx} ${cy} ${n2.x} ${n2.y}`;
+
+                        path.setAttribute('d', d);
+
+                        let color = '#fff';
+                        if (link.type === 'desire') color = '#fcd34d';
+                        if (link.type === 'conflict') color = '#f87171';
+                        if (link.type === 'morphism') color = '#22d3ee';
+
+                        path.setAttribute('stroke', color);
+                        path.setAttribute('stroke-width', '2');
+                        path.setAttribute('stroke-opacity', '0.6');
+                        path.setAttribute('fill', 'none');
+
+                        if (link.type === 'morphism') path.setAttribute('stroke-dasharray', '4 2');
+
+                        svg.appendChild(path);
+                    }
+                });
+            },
+
+            preview() {
+                const container = document.getElementById('preview-content');
+                container.innerHTML = `
+                <div class="max-w-2xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-6 text-[var(--theme-core)]">Narrative Structure</h1>
+                    ${STATE.nodes.map(node => `
+                        <div class="mb-4 p-4 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded-lg">
+                            <div class="flex items-center gap-2 mb-2">
+                                <div class="w-8 h-8">${ICONS[node.icon]()}</div>
+                                <span class="font-bold text-lg">${node.label}</span>
+                                <span class="text-xs text-[var(--theme-text-muted)]">(${node.type})</span>
+                            </div>
+                            ${STATE.links.filter(l => l.from === node.id).map(link => {
+                    const target = STATE.nodes.find(n => n.id === link.to);
+                    return target ? `<div class="text-sm text-[var(--theme-text-muted)] ml-10">→ ${link.type}: ${target.label}</div>` : '';
+                }).join('')}
+                        </div>
+                    `).join('')}
+                </div>`;
+            },
+
+            grid() {
+                const container = document.getElementById('grid-lock');
+                container.innerHTML = '';
+
+                for (let i = 0; i < 81; i++) {
+                    const cell = document.createElement('div');
+                    cell.className = 'grid-cell';
+                    cell.dataset.index = i;
+                    container.appendChild(cell);
+                }
+            }
+        };
+
+        // =========================================
+        // VIEW MODE
+        // =========================================
+        const VIEW_MODE = {
+            switch(mode) {
+                STATE.viewMode = mode;
+
+                document.querySelectorAll('.nav-tab').forEach(tab => {
+                    tab.classList.toggle('active', tab.dataset.view === mode);
+                    tab.classList.toggle('text-[var(--theme-text-muted)]', tab.dataset.view !== mode);
+                });
+
+                document.getElementById('nodes-layer').style.display = mode === 'preview' ? 'none' : 'block';
+                document.getElementById('preview-content').style.display = mode === 'preview' ? 'block' : 'none';
+
+                if (mode === 'story') {
+                    this.arrangeAsTree();
+                } else if (mode === 'preview') {
+                    RENDERER.preview();
+                }
+
+                RENDERER.connections();
+                LOG.toast(`Switched to ${mode.toUpperCase()} view`);
+            },
+
+            arrangeAsTree() {
+                // Simple tree layout
+                const core = STATE.nodes.find(n => n.type === 'core');
+                if (core) {
+                    const pos = GRID.center(4, 1);
+                    core.x = pos.x;
+                    core.y = pos.y;
+                }
+
+                const others = STATE.nodes.filter(n => n.type !== 'core');
+                const cols = [1, 3, 5, 7];
+                others.forEach((n, i) => {
+                    const pos = GRID.center(cols[i % cols.length], 3 + Math.floor(i / cols.length) * 2);
+                    n.x = pos.x;
+                    n.y = pos.y;
+                });
+
+                RENDERER.nodes();
+                RENDERER.connections();
+            }
+        };
+
+        // =========================================
+        // SIDEBAR
+        // =========================================
+        const SIDEBAR = {
+            renderTools() {
+                const sections = [
+                    {
+                        name: 'Narrative',
+                        id: 'narrative',
+                        collapsed: false,
+                        tools: [
+                            { label: 'Entity', icon: 'Entity', desc: 'Actors & objects' },
+                            { label: 'Core', icon: 'Core', desc: 'Central themes' },
+                            { label: 'Goal', icon: 'Goal', desc: 'Desired states' },
+                            { label: 'Obstacle', icon: 'Obstacle', desc: 'Blockers & conflicts' }
+                        ]
+                    },
+                    {
+                        name: 'Structure',
+                        id: 'structure',
+                        collapsed: true,
+                        tools: [
+                            { label: 'Scene', icon: 'Scene', desc: 'Spatial contexts' },
+                            { label: 'Timepoint', icon: 'Timepoint', desc: 'Temporal markers' },
+                            { label: 'Location', icon: 'Location', desc: 'Place & setting' },
+                            { label: 'Story', icon: 'Story', desc: 'Meta-narrative' }
+                        ]
+                    },
+                    {
+                        name: 'Relations',
+                        id: 'relations',
+                        collapsed: true,
+                        tools: [
+                            { label: 'Morphism', icon: 'Morphism', desc: 'Transformations' },
+                            { label: 'Shift', icon: 'Shift', desc: 'State changes' }
+                        ]
+                    }
+                ];
+
+                const container = document.getElementById('tools-list');
+                container.innerHTML = sections.map(section => `
+                    <div class="mb-3">
+                        <div class="flex items-center gap-2 px-2 py-1 cursor-pointer hover:bg-[var(--theme-surface)] rounded" 
+                             onclick="SIDEBAR.toggleSection('${section.id}')">
+                            <i id="icon-${section.id}" class="fas fa-${section.collapsed ? 'chevron-right' : 'chevron-down'} w-3 h-3 text-[var(--theme-text-muted)] transition-transform"></i>
+                            <span class="text-xs font-bold text-[var(--theme-text-muted)] uppercase tracking-wide">${section.name}</span>
+                            <span class="ml-auto text-[10px] text-[var(--theme-text-muted)]">${section.tools.length}</span>
+                        </div>
+                        <div id="section-${section.id}" class="${section.collapsed ? 'hidden' : ''} mt-1 space-y-1">
+                            ${section.tools.map(tool => `
+                                <div class="tool-item group" onclick="COMPILER.spawnNode('${tool.icon}', '${tool.label}')" title="${tool.desc}">
+                                    <div class="w-8 h-8">${ICONS[tool.icon]()}</div>
+                                    <div class="flex flex-col flex-1">
+                                        <span class="text-sm">${tool.label}</span>
+                                        <span class="text-[10px] text-[var(--theme-text-muted)] opacity-0 group-hover:opacity-100 transition-opacity">${tool.desc}</span>
+                                    </div>
+                                    <div class="ml-auto text-[var(--theme-text-muted)]">
+                                        <i class="fas fa-plus w-3 h-3"></i>
+                                    </div>
+                                </div>
+                            `).join('')}
+                        </div>
+                    </div>
+                `).join('');
+            },
+
+            toggleSection(id) {
+                const section = document.getElementById(`section-${id}`);
+                const icon = document.getElementById(`icon-${id}`);
+                if (section.classList.contains('hidden')) {
+                    section.classList.remove('hidden');
+                    icon.classList.remove('fa-chevron-right');
+                    icon.classList.add('fa-chevron-down');
+                } else {
+                    section.classList.add('hidden');
+                    icon.classList.remove('fa-chevron-down');
+                    icon.classList.add('fa-chevron-right');
+                }
+            }
+        };
+
+        // =========================================
+        // INSPECTOR
+        // =========================================
+        const INSPECTOR = {
+            select(id) {
+                STATE.selectedNodeId = id;
+                RENDERER.nodes();
+
+                const node = STATE.nodes.find(n => n.id === id);
+                if (!node) return;
+
+                const content = document.getElementById('inspector-content');
+                content.innerHTML = `
+                    <div class="space-y-4 animate-fade-up">
+                        <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Label</div>
+                            <input type="text" value="${node.label}" 
+                                   onchange="INSPECTOR.updateLabel(${node.id}, this.value)"
+                                   class="w-full bg-transparent border-b border-[var(--theme-border)] focus:border-cyan-500 outline-none text-white" />
+                        </div>
+                        <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Type</div>
+                            <div class="text-sm font-mono text-yellow-500">${node.type}</div>
+                        </div>
+                        <div class="p-3 rounded bg-[var(--theme-surface)] border border-[var(--theme-border)]">
+                            <div class="text-[10px] uppercase tracking-wider text-[var(--theme-text-muted)] mb-2">Links</div>
+                            <div class="text-xs space-y-1">
+                                ${STATE.links.filter(l => l.from === node.id || l.to === node.id).map(link => {
+                    const isOut = link.from === node.id;
+                    const other = STATE.nodes.find(n => n.id === (isOut ? link.to : link.from));
+                    return other ? `<div>${isOut ? '→' : '←'} ${link.type}: ${other.label}</div>` : '';
+                }).join('') || '<div class="text-[var(--theme-text-muted)]">No links</div>'}
+                            </div>
+                        </div>
+                    </div>
+                `;
+            },
+
+            updateLabel(id, value) {
+                const node = STATE.nodes.find(n => n.id === id);
+                if (node) {
+                    node.label = value;
+                    RENDERER.nodes();
+                    PERSISTENCE.save();
+                    LOG.toast('Label updated');
+                }
+            },
+
+            delete() {
+                if (!STATE.selectedNodeId) return;
+
+                STATE.nodes = STATE.nodes.filter(n => n.id !== STATE.selectedNodeId);
+                STATE.links = STATE.links.filter(l => l.from !== STATE.selectedNodeId && l.to !== STATE.selectedNodeId);
+                STATE.selectedNodeId = null;
+
+                RENDERER.nodes();
+                RENDERER.connections();
+                this.close();
+                PERSISTENCE.save();
+                LOG.toast('Entity deleted');
+            },
+
+            close() {
+                STATE.selectedNodeId = null;
+                document.getElementById('inspector-content').innerHTML = `
+                    <div class="text-sm text-[var(--theme-text-muted)] text-center py-8">
+                        Select a node to inspect
+                    </div>`;
+                RENDERER.nodes();
+            }
+        };
+
+        // =========================================
+        // EVENTS
+        // =========================================
+        const EVENTS = {
+            startDrag(e, id) {
+                e.stopPropagation();
+                STATE.draggedNodeId = id;
+
+                const evt = e.touches ? e.touches[0] : e;
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+
+                document.body.style.cursor = 'grabbing';
+            },
+
+            handleDragMove(e) {
+                if (!STATE.draggedNodeId) return;
+                e.preventDefault();
+
+                const evt = e.touches ? e.touches[0] : e;
+                const deltaX = evt.clientX - STATE.lastX;
+                const deltaY = evt.clientY - STATE.lastY;
+
+                STATE.lastX = evt.clientX;
+                STATE.lastY = evt.clientY;
+
+                const canvasRect = document.getElementById('grid-shell').getBoundingClientRect();
+                const percentX = (deltaX / canvasRect.width) * 100;
+                const percentY = (deltaY / canvasRect.height) * 100;
+
+                const node = STATE.nodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    node.x = Math.max(0, Math.min(100, node.x + percentX));
+                    node.y = Math.max(0, Math.min(100, node.y + percentY));
+
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+
+                    RENDERER.connections();
+                }
+            },
+
+            handleDragEnd() {
+                if (!STATE.draggedNodeId) return;
+
+                const node = STATE.nodes.find(n => n.id === STATE.draggedNodeId);
+                if (node) {
+                    const snapped = GRID.snap(node.x, node.y);
+                    node.x = snapped.x;
+                    node.y = snapped.y;
+
+                    const el = document.querySelector(`[data-node-id="${node.id}"]`);
+                    if (el) {
+                        el.style.left = `${node.x}%`;
+                        el.style.top = `${node.y}%`;
+                    }
+                }
+
+                STATE.draggedNodeId = null;
+                document.body.style.cursor = 'default';
+                RENDERER.connections();
+                PERSISTENCE.save();
+            }
+        };
+
+        // =========================================
+        // THEME
+        // =========================================
+        const THEME = {
+            set(mode) {
+                document.body.className = document.body.className.replace(/theme-\w+/, '') + ` theme-${mode} grid grid-cols-[288px_1fr_320px] grid-rows-[64px_1fr_200px] h-screen w-screen overflow-hidden`;
+                STATE.theme = mode;
+                document.querySelectorAll('.theme-btn').forEach(btn => {
+                    btn.classList.toggle('active', btn.dataset.theme === mode);
+                    btn.classList.toggle('text-[var(--theme-text-muted)]', btn.dataset.theme !== mode);
+                });
+                PERSISTENCE.save();
+            }
+        };
+
+        // =========================================
+        // CONSOLE
+        // =========================================
+        const CONSOLE = {
+            toggle() {
+                // Placeholder for console toggle
+            },
+
+            log(type, msg) {
+                const container = document.getElementById('console-content');
+                const entry = document.createElement('div');
+                entry.className = `log-entry log-${type.toLowerCase()}`;
+                entry.innerHTML = `<span class="font-bold">${type}</span> ${msg}`;
+                container.prepend(entry);
+            }
+        };
+
+        // =========================================
+        // PERSISTENCE
+        // =========================================
+        const PERSISTENCE = {
+            save() {
+                const data = {
+                    nodes: STATE.nodes,
+                    links: STATE.links,
+                    viewMode: STATE.viewMode,
+                    theme: STATE.theme
+                };
+                localStorage.setItem('onyx_storytelling_state', JSON.stringify(data));
+            },
+
+            load() {
+                const raw = localStorage.getItem('onyx_storytelling_state');
+                if (!raw) {
+                    // Default setup
+                    const corePos = GRID.center(4, 4);
+                    STATE.nodes = [{
+                        id: Date.now(),
+                        type: 'core',
+                        icon: 'Core',
+                        label: 'Story Core',
+                        x: corePos.x,
+                        y: corePos.y
+                    }];
+                    return;
+                }
+
+                try {
+                    const data = JSON.parse(raw);
+                    Object.assign(STATE, data);
+                } catch (e) {
+                    LOG.error('Failed to load state');
+                }
+            }
+        };
+
+        // =========================================
+        // LOG
+        // =========================================
+        const LOG = {
+            info(msg) { CONSOLE.log('INFO', msg); },
+            success(msg) { CONSOLE.log('SUCCESS', msg); },
+            warn(msg) { CONSOLE.log('WARN', msg); },
+            error(msg) { CONSOLE.log('ERROR', msg); },
+            toast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'toast';
+                toast.innerHTML = `<i class="fas fa-check-circle w-4 h-4 text-cyan-400 mr-2"></i> ${msg}`;
+                container.appendChild(toast);
+                setTimeout(() => {
+                    toast.style.opacity = '0';
+                    setTimeout(() => toast.remove(), 300);
+                }, 3000);
+            }
+        };
+
+        // =========================================
+        // INIT
+        // =========================================
+        function init() {
+            PERSISTENCE.load();
+            THEME.set(STATE.theme);
+            SIDEBAR.renderTools();
+            RENDERER.grid();
+            RENDERER.nodes();
+            RENDERER.connections();
+
+            // Event listeners
+            document.addEventListener('mousemove', EVENTS.handleDragMove);
+            document.addEventListener('mouseup', EVENTS.handleDragEnd);
+            document.addEventListener('touchmove', EVENTS.handleDragMove, { passive: false });
+            document.addEventListener('touchend', EVENTS.handleDragEnd);
+
+            // Navigation buttons
+            document.querySelectorAll('.nav-tab').forEach(tab => {
+                tab.addEventListener('click', () => VIEW_MODE.switch(tab.dataset.view));
+            });
+
+            // Theme buttons
+            document.querySelectorAll('.theme-btn').forEach(btn => {
+                btn.addEventListener('click', () => THEME.set(btn.dataset.theme));
+            });
+
+            // Enter key handler
+            document.getElementById('narrative-input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') COMPILER.commit();
+            });
+
+            LOG.success('ONYX Storytelling System initialized');
+            LOG.info('Ready for narrative construction');
+        }
+
+        // Start
+        init();
+    </script>
+</body>
+
+</html>

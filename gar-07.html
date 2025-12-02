@@ -1,0 +1,1134 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>Grid Assembles Reality — 20×20 Mosaic (Transforms)</title>
+    <style>
+        :root {
+            --img: url('tutorial_assets/images/city_final.png');
+            --cols: 20;
+            --rows: 20;
+            --size: min(92vmin, 1024px);
+            --grid: rgba(0, 255, 180, .28);
+            --bg: #0b0d10;
+            --ink: #e9e9e9;
+            --accent: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif
+        }
+
+        .main {
+            min-height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 20px
+        }
+
+        .panel {
+            width: var(--size)
+        }
+
+        .hdr {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 12px
+        }
+
+        .hdr h1 {
+            font-weight: 700;
+            letter-spacing: .02em;
+            font-size: clamp(16px, 2.6vmin, 24px);
+            margin: 0
+        }
+
+        .hdr .small {
+            opacity: .7;
+            font-size: .9em
+        }
+
+        .controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        button,
+        input,
+        select {
+            background: #12161c;
+            color: var(--ink);
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:hover {
+            border-color: #3a9
+        }
+
+        input.url {
+            min-width: 220px;
+            width: min(40vw, 460px)
+        }
+
+        label.chk {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 4px 8px;
+            border: 1px solid #2a323a;
+            border-radius: 10px
+        }
+
+        label.range {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 4px 8px;
+            border: 1px solid #2a323a;
+            border-radius: 10px
+        }
+
+        input[type="range"] {
+            accent-color: #ffd24a
+        }
+
+        .stage {
+            position: relative;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, .5), inset 0 0 0 1px #222;
+            isolation: isolate
+        }
+
+        .stage::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(60% 60% at 50% 45%, transparent 0 60%, rgba(0, 0, 0, .35) 100%);
+            pointer-events: none
+        }
+
+        .grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--cols), 1fr);
+            grid-template-rows: repeat(var(--rows), 1fr)
+        }
+
+        .tile {
+            position: relative;
+            opacity: 0;
+            transform: scale(.96);
+            filter: blur(8px) saturate(.1) brightness(.7);
+            transition: opacity .6s cubic-bezier(.18, .7, .16, 1), transform .6s cubic-bezier(.18, .7, .16, 1), filter .9s ease;
+            background-image: var(--img);
+            background-repeat: no-repeat;
+            background-size: calc(var(--cols)*100%) calc(var(--rows)*100%);
+            outline: 1px solid color-mix(in hsl, var(--grid) 95%, transparent)
+        }
+
+        .tile.on {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0) saturate(1) brightness(1);
+            outline-color: color-mix(in hsl, var(--grid) 0%, transparent)
+        }
+
+        @keyframes shimmer {
+            0% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-.7px)
+            }
+
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        .stage.building {
+            filter: contrast(1.02) saturate(1.03)
+        }
+
+        .tile.on.build-wobble {
+            animation: shimmer 1.6s ease-in-out var(--delay) 2
+        }
+
+        .flicker {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(100% 65% at 50% 70%, rgba(255, 110, 30, .18), transparent 60%);
+            mix-blend-mode: screen;
+            opacity: .0;
+            transition: opacity .6s ease
+        }
+
+        .stage.ready .flicker {
+            opacity: .6
+        }
+
+        .legend {
+            margin-top: 10px;
+            color: #9aa3ad;
+            font-size: .92em
+        }
+
+        .code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace
+        }
+
+        .badge {
+            background: #11161c;
+            border: 1px solid #2a323a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-right: 6px
+        }
+
+        .controls label.seg {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+
+        /* Segmentation overlay */
+        .segOverlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none
+        }
+
+        .segOverlay .cell {
+            opacity: 0;
+            transition: opacity .6s ease
+        }
+
+        .segOverlay.show .cell {
+            opacity: var(--overlay-alpha, .22)
+        }
+
+        .segOverlay .bound {
+            stroke-width: 3;
+            stroke-linecap: round;
+            opacity: .95
+        }
+
+        .segOverlay .bound.voronoi {
+            stroke-dasharray: 8 8;
+            opacity: .85
+        }
+
+        .segOverlay text {
+            font: 600 13px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace;
+            fill: #fff;
+            paint-order: stroke;
+            stroke: #000;
+            stroke-width: 3px
+        }
+
+        .legend .swatch {
+            display: inline-block;
+            width: 14px;
+            height: 14px;
+            border-radius: 3px;
+            margin-right: 6px;
+            vertical-align: -2px
+        }
+
+        .tests {
+            margin-top: 10px;
+            background: #0e131a;
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px;
+            color: #b7c2cc
+        }
+
+        .tests summary {
+            cursor: pointer
+        }
+
+        .tests .pass {
+            color: #63e6be
+        }
+
+        .tests .fail {
+            color: #ff6b6b
+        }
+
+        /* Legend for segments */
+        .seg-legend {
+            margin-top: 8px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px
+        }
+
+        .seg-legend .item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #0e131a;
+            border: 1px solid #2a323a;
+            padding: 4px 8px;
+            border-radius: 8px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="panel">
+            <div class="hdr">
+                <h1>Grid Assembles Reality</h1>
+                <div class="small">20×20 cells, ripple/edge/segment assembly + transforms</div>
+                <div class="controls">
+                    <input class="url" placeholder="Paste image URL (optional)" />
+                    <select id="mode" title="Assembly mode">
+                        <option value="ripple">Ripple</option>
+                        <option value="edges">Edges‑first</option>
+                        <option value="contour" selected>Contour BFS</option>
+                        <option value="segments">Segments (K‑means)</option>
+                    </select>
+                    <label class="seg" title="# of segments for K‑means">k <input id="k" type="number" min="2" max="8"
+                            value="4" /></label>
+
+                    <label class="seg" title="Stylization transform">
+                        Transform
+                        <select id="transform">
+                            <option value="none" selected>None</option>
+                            <option value="halftone">Halftone</option>
+                            <option value="quadtree">Quadtree</option>
+                            <option value="both">Halftone + Quadtree</option>
+                        </select>
+                    </label>
+                    <label class="range" title="Halftone step (px on stage)">HT <input type="range" id="htStep" min="8"
+                            max="28" value="16" /></label>
+                    <label class="range" title="Quadtree variance threshold">QT <input type="range" id="qtVar" min="5"
+                            max="45" value="18" /></label>
+
+                    <label class="seg" title="Blend mode for colored cells">
+                        Cells Blend
+                        <select id="blendMode">
+                            <option value="normal" selected>Normal</option>
+                            <option value="multiply">Multiply</option>
+                            <option value="screen">Screen</option>
+                            <option value="overlay">Overlay</option>
+                            <option value="soft-light">Soft Light</option>
+                            <option value="hard-light">Hard Light</option>
+                            <option value="darken">Darken</option>
+                            <option value="lighten">Lighten</option>
+                            <option value="color-dodge">Color Dodge</option>
+                            <option value="color-burn">Color Burn</option>
+                            <option value="difference">Difference</option>
+                            <option value="exclusion">Exclusion</option>
+                            <option value="hue">Hue</option>
+                            <option value="saturation">Saturation</option>
+                            <option value="color">Color</option>
+                            <option value="luminosity">Luminosity</option>
+                        </select>
+                    </label>
+                    <label class="seg" title="Blend for lines/boundaries">
+                        Lines Blend
+                        <select id="lineBlend">
+                            <option value="normal" selected>Normal</option>
+                            <option value="multiply">Multiply</option>
+                            <option value="screen">Screen</option>
+                            <option value="overlay">Overlay</option>
+                            <option value="soft-light">Soft Light</option>
+                            <option value="hard-light">Hard Light</option>
+                            <option value="darken">Darken</option>
+                            <option value="lighten">Lighten</option>
+                            <option value="color-dodge">Color Dodge</option>
+                            <option value="color-burn">Color Burn</option>
+                            <option value="difference">Difference</option>
+                            <option value="exclusion">Exclusion</option>
+                        </select>
+                    </label>
+
+                    <label class="chk"><input type="checkbox" id="chkLabels" checked /> Labels</label>
+                    <label class="chk"><input type="checkbox" id="chkBounds" checked /> Boundaries</label>
+                    <label class="chk"><input type="checkbox" id="chkVoronoi" checked /> Voronoi</label>
+                    <label class="range">α <input type="range" id="alpha" min="0" max="100" value="22" /></label>
+
+                    <label class="seg" title="Export scale">
+                        Scale
+                        <select id="expScale">
+                            <option value="1" selected>1×</option>
+                            <option value="2">2×</option>
+                            <option value="4">4×</option>
+                        </select>
+                    </label>
+                    <button id="rebuild">Reassemble</button>
+                    <button id="annotate">Annotate</button>
+                    <button id="exportAnn" title="Export base image + annotations">Export PNG</button>
+                    <button id="exportOverlay" title="Export only the overlay">Export Overlay</button>
+                    <button id="exportSVG" title="Export SVG overlay only">Export SVG</button>
+                    <button id="exportONYX" title="Export to ONYX narrative format"
+                        style="background: #3a9; border-color: #3a9;">Export to ONYX</button>
+                </div>
+            </div>
+
+            <div class="stage" id="stage">
+                <div class="grid" id="grid"></div>
+                <svg class="segOverlay" id="segSvg" xmlns="http://www.w3.org/2000/svg" aria-hidden="true"></svg>
+                <div class="flicker"></div>
+            </div>
+
+            <div class="legend code">
+                <span class="badge">Prompt (≈250c)</span>Embers of Ancestry—warm dusk campfire cover. Title fades in;
+                embers flicker/spark; frog breathes + rare blink; smoke drifts; logs parallax; soft bokeh float; “COOL
+                RADIO” slides in; vignette breathes. Cinematic, gentle loop; heat‑shimmer, no hard cuts. <span
+                    class="badge">Tip</span>Try <b>Difference</b> for contrast mapping, <b>Lighten</b> to preserve
+                highlights, <b>Overlay</b> for punchy segmentation.
+            </div>
+
+            <div class="seg-legend code" id="segLegend"></div>
+
+            <details class="tests" open>
+                <summary>Self‑tests</summary>
+                <ul id="test-list" class="code" style="padding-left:18px;margin:6px 0 0"></ul>
+            </details>
+        </div>
+    </div>
+
+    <script>
+        /********************
+         * DOM & CONFIG
+         ********************/
+        const STAGE = document.getElementById('stage');
+        const GRID = document.getElementById('grid');
+        const segSvg = document.getElementById('segSvg');
+        const rebuildBtn = document.getElementById('rebuild');
+        const annotateBtn = document.getElementById('annotate');
+        const exportAnnBtn = document.getElementById('exportAnn');
+        const exportOverlayBtn = document.getElementById('exportOverlay');
+        const exportSVGBtn = document.getElementById('exportSVG');
+        const urlInput = document.querySelector('.url');
+        const modeSelect = document.getElementById('mode');
+        const kInput = document.getElementById('k');
+        const alphaInput = document.getElementById('alpha');
+        const chkLabels = document.getElementById('chkLabels');
+        const chkBounds = document.getElementById('chkBounds');
+        const chkVoronoi = document.getElementById('chkVoronoi');
+        const blendSelect = document.getElementById('blendMode');
+        const lineBlendSelect = document.getElementById('lineBlend');
+        const transformSelect = document.getElementById('transform');
+        const htStepInput = document.getElementById('htStep');
+        const qtVarInput = document.getElementById('qtVar');
+        const expScaleSelect = document.getElementById('expScale');
+        const SEG_LEGEND = document.getElementById('segLegend');
+        const TEST_LIST = document.getElementById('test-list');
+
+        const COLS = 20, ROWS = 20;                  // grid
+        let ORIGIN = { c: 8, r: 13 };                // default seed (frog-ish)
+        const CELL_DELAY = 90;                       // ms per ring (fallback)
+        const NOISE = 80;                            // random jitter per cell
+        const WOBBLE_PROB = 0.55;                    // some tiles shimmer briefly
+
+        let LAST_LABELS = null, LAST_K = null, LAST_CENTROIDS = null, LAST_AREAS = null;
+        let LAST_IMG = null; // ImageData for transforms
+
+        /********************
+         * UTIL
+         ********************/
+        function getCurrentImgURL() {
+            const s = getComputedStyle(document.documentElement).getPropertyValue('--img');
+            const m = s.match(/url\(["']?(.*?)["']?\)/);
+            return m ? m[1] : '';
+        }
+        let IMG_URL = getCurrentImgURL();
+
+        // Offscreen analysis canvas
+        const CANVAS = document.createElement('canvas');
+        const CTX = CANVAS.getContext('2d', { willReadFrequently: true });
+        CANVAS.width = COLS * 16; CANVAS.height = ROWS * 16; // analysis resolution
+
+        function setImage(url) {
+            if (url) {
+                IMG_URL = url;
+                document.documentElement.style.setProperty('--img', `url('${url}')`);
+            }
+        }
+
+        function makeGrid() {
+            GRID.style.setProperty('--cols', COLS);
+            GRID.style.setProperty('--rows', ROWS);
+            GRID.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const t = document.createElement('div');
+                    t.className = 'tile';
+                    const x = (c / (COLS - 1)) * 100, y = (r / (ROWS - 1)) * 100; // slice position
+                    t.style.backgroundPosition = `${x}% ${y}%`;
+                    GRID.appendChild(t);
+                }
+            }
+        }
+
+        function coverDraw(img, ctx, W, H) {
+            const ar = img.width / img.height, stageAR = W / H;
+            let dw = W, dh = H, dx = 0, dy = 0;
+            if (ar > stageAR) { dh = H; dw = dh * ar; dx = -(dw - W) / 2; }
+            else { dw = W; dh = dw / ar; dy = -(dh - H) / 2; }
+            ctx.clearRect(0, 0, W, H);
+            ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        function loadToCanvas(url) {
+            return new Promise(resolve => {
+                const im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.onload = () => { coverDraw(im, CTX, CANVAS.width, CANVAS.height); LAST_IMG = CTX.getImageData(0, 0, CANVAS.width, CANVAS.height); resolve({ ok: true, img: im }); };
+                im.onerror = () => resolve({ ok: false });
+                im.src = url;
+            });
+        }
+
+        /********************
+         * ANALYSIS (edges + features)
+         ********************/
+        function computeFeatures() {
+            try {
+                const w = CANVAS.width, h = CANVAS.height;
+                const data = (LAST_IMG ? LAST_IMG : CTX.getImageData(0, 0, w, h)).data;
+                const gray = new Float32Array(w * h);
+                for (let p = 0, i = 0; i < data.length; i += 4, p++) {
+                    const r = data[i], g = data[i + 1], b = data[i + 2];
+                    gray[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+                }
+                const grad = new Float32Array(w * h);
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const p = y * w + x;
+                        const gx = -gray[p - w - 1] + gray[p - w + 1] - 2 * gray[p - 1] + 2 * gray[p + 1] - gray[p + w - 1] + gray[p + w + 1];
+                        const gy = gray[p - w - 1] + 2 * gray[p - w] + gray[p - w + 1] - gray[p + w - 1] - 2 * gray[p + w] - gray[p + w + 1];
+                        grad[p] = Math.hypot(gx, gy);
+                    }
+                }
+                const tw = Math.floor(w / COLS), th = Math.floor(h / ROWS);
+                const edges = [], colors = []; let maxE = 1e-6;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        let sumE = 0, sumR = 0, sumG = 0, sumB = 0, count = 0;
+                        for (let yy = r * th; yy < (r + 1) * th; yy++) {
+                            for (let xx = c * tw; xx < (c + 1) * tw; xx++) {
+                                const p = yy * w + xx; const di = p * 4;
+                                sumE += grad[p];
+                                sumR += data[di]; sumG += data[di + 1]; sumB += data[di + 2];
+                                count++;
+                            }
+                        }
+                        const e = sumE / count; maxE = Math.max(maxE, e);
+                        edges.push(e); colors.push([sumR / count, sumG / count, sumB / count]);
+                    }
+                }
+                const normEdges = edges.map(e => e / maxE);
+                return { ok: true, edges: normEdges, colors };
+            } catch (err) { console.warn('Feature compute failed (tainted image?)', err); return { ok: false } }
+        }
+
+        /********************
+         * CLUSTERING + OVERLAY
+         ********************/
+        function kmeans(points, k = 4, iters = 8) {
+            const n = points.length, dim = points[0].length;
+            const centers = Array.from({ length: k }, _ => points[Math.floor(Math.random() * n)].slice());
+            const labels = new Array(n).fill(0);
+            for (let it = 0; it < iters; it++) {
+                for (let i = 0; i < n; i++) {
+                    let best = 0, bestd = Infinity; const p = points[i];
+                    for (let j = 0; j < k; j++) {
+                        let d = 0; const c = centers[j];
+                        for (let dI = 0; dI < dim; dI++) { const diff = p[dI] - c[dI]; d += diff * diff; }
+                        if (d < bestd) { bestd = d; best = j; }
+                    }
+                    labels[i] = best;
+                }
+                const sums = Array.from({ length: k }, _ => new Array(dim).fill(0));
+                const counts = new Array(k).fill(0);
+                for (let i = 0; i < n; i++) { const l = labels[i]; counts[l]++; const p = points[i]; for (let dI = 0; dI < dim; dI++) sums[l][dI] += p[dI]; }
+                for (let j = 0; j < k; j++) { if (counts[j]) for (let dI = 0; dI < dim; dI++) centers[j][dI] = sums[j][dI] / counts[j]; }
+            }
+            return labels;
+        }
+
+        function goldenColor(i, a = 0.9) { const h = (i * 137.508) % 360; return `hsla(${h} 85% 55% / ${a})`; }
+
+        function computeCentroidsAndAreas(labels, k) {
+            const cent = Array.from({ length: k }, () => ({ x: 0, y: 0, n: 0 }));
+            const areas = new Array(k).fill(0);
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                const id = r * COLS + c, cl = labels[id];
+                cent[cl].x += c + 0.5; cent[cl].y += r + 0.5; cent[cl].n++;
+                areas[cl]++;
+            }
+            for (const c of cent) { if (c.n) { c.x /= c.n; c.y /= c.n; } }
+            return { cent, areas };
+        }
+
+        /********************
+         * TRANSFORM HELPERS (Halftone / Quadtree)
+         ********************/
+        function sampleLumaStage(x, y) {
+            if (!LAST_IMG) return 0.5;
+            const W = STAGE.clientWidth, H = STAGE.clientHeight;
+            const sx = Math.max(0, Math.min(LAST_IMG.width - 1, Math.floor(x * LAST_IMG.width / W)));
+            const sy = Math.max(0, Math.min(LAST_IMG.height - 1, Math.floor(y * LAST_IMG.height / H)));
+            const i = (sy * LAST_IMG.width + sx) * 4; const d = LAST_IMG.data; return (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255;
+        }
+
+        function renderHalftoneGroup(W, H) {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('data-layer', 'halftone');
+            g.style.mixBlendMode = blendSelect.value;
+            const step = parseInt(htStepInput.value) || 16;
+            const minR = 0.4, maxR = step * 0.45;
+            for (let y = step / 2; y < H; y += step) {
+                for (let x = step / 2; x < W; x += step) {
+                    const L = sampleLumaStage(x, y); // 0..1 (light)
+                    const r = (1 - L) * (maxR - minR) + minR;
+                    const c = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+                    c.setAttribute('cx', x.toFixed(2)); c.setAttribute('cy', y.toFixed(2)); c.setAttribute('r', r.toFixed(2));
+                    c.setAttribute('fill', '#000'); c.setAttribute('opacity', Math.max(0.15, Math.min(0.85, (1 - L) * 0.9)).toFixed(2));
+                    g.appendChild(c);
+                }
+            }
+            return g;
+        }
+
+        function rectStats(x0, y0, x1, y1) {
+            if (!LAST_IMG) return { mean: 0.5, var: 0 };
+            const W = STAGE.clientWidth, H = STAGE.clientHeight;
+            const sx0 = Math.max(0, Math.floor(x0 * LAST_IMG.width / W));
+            const sy0 = Math.max(0, Math.floor(y0 * LAST_IMG.height / H));
+            const sx1 = Math.max(0, Math.min(LAST_IMG.width, Math.floor(x1 * LAST_IMG.width / W)));
+            const sy1 = Math.max(0, Math.min(LAST_IMG.height, Math.floor(y1 * LAST_IMG.height / H)));
+            const d = LAST_IMG.data; let sum = 0, sum2 = 0, n = 0; const stride = 2; // skip sampling for speed
+            for (let yy = sy0; yy < sy1; yy += stride) {
+                for (let xx = sx0; xx < sx1; xx += stride) {
+                    const i = (yy * LAST_IMG.width + xx) * 4; const L = (0.299 * d[i] + 0.587 * d[i + 1] + 0.114 * d[i + 2]) / 255; sum += L; sum2 += L * L; n++;
+                }
+            }
+            if (n === 0) return { mean: 0.5, var: 0 };
+            const mean = sum / n; const variance = Math.max(0, sum2 / n - mean * mean);
+            return { mean, var: variance };
+        }
+
+        function renderQuadtreeGroup(W, H) {
+            const g = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            g.setAttribute('data-layer', 'quadtree');
+            g.style.mixBlendMode = blendSelect.value;
+            const threshold = (parseInt(qtVarInput.value) || 18) / 255; // normalized-ish
+            const minSize = Math.max(12, (parseInt(htStepInput.value) || 16));
+            const maxDepth = 6;
+            const cw = W / COLS, ch = H / ROWS;
+
+            function bestClusterAt(x, y) {
+                if (!LAST_LABELS) return 0; const c = Math.max(0, Math.min(COLS - 1, Math.floor(x / cw))); const r = Math.max(0, Math.min(ROWS - 1, Math.floor(y / ch)));
+                return LAST_LABELS[r * COLS + c] || 0;
+            }
+
+            function split(x0, y0, x1, y1, depth) {
+                const w = x1 - x0, h = y1 - y0; if (w <= minSize || h <= minSize || depth >= maxDepth) {
+                    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; const cl = bestClusterAt(cx, cy);
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', x0.toFixed(1)); rect.setAttribute('y', y0.toFixed(1));
+                    rect.setAttribute('width', Math.ceil(w) + 0.5); rect.setAttribute('height', Math.ceil(h) + 0.5);
+                    rect.setAttribute('fill', goldenColor(cl, Math.max(0.12, Math.min(0.5, parseInt(alphaInput.value) / 100))));
+                    rect.setAttribute('stroke', '#fff'); rect.setAttribute('stroke-opacity', '.3'); rect.setAttribute('stroke-width', '0.8');
+                    g.appendChild(rect); return;
+                }
+                const s = rectStats(x0, y0, x1, y1); if (s.var < threshold) {
+                    const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; const cl = bestClusterAt(cx, cy);
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', x0.toFixed(1)); rect.setAttribute('y', y0.toFixed(1));
+                    rect.setAttribute('width', Math.ceil(w) + 0.5); rect.setAttribute('height', Math.ceil(h) + 0.5);
+                    rect.setAttribute('fill', goldenColor(cl, Math.max(0.12, Math.min(0.5, parseInt(alphaInput.value) / 100))));
+                    rect.setAttribute('stroke', '#fff'); rect.setAttribute('stroke-opacity', '.25'); rect.setAttribute('stroke-width', '0.7');
+                    g.appendChild(rect); return;
+                }
+                const mx = (x0 + x1) / 2, my = (y0 + y1) / 2; const d2 = depth + 1; split(x0, y0, mx, my, d2); split(mx, y0, x1, my, d2); split(x0, my, mx, x1, d2); split(mx, my, x1, y1, d2);
+            }
+
+            split(0, 0, W, H, 0);
+            return g;
+        }
+
+        /********************
+         * CORE OVERLAY RENDER
+         ********************/
+        function renderSegOverlay(labels, k) {
+            const W = STAGE.clientWidth, H = STAGE.clientHeight; // use stage size
+            segSvg.setAttribute('width', W); segSvg.setAttribute('height', H);
+            segSvg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+            segSvg.innerHTML = '';
+            const gCells = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const gBounds = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const gVor = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            const gLabels = document.createElementNS('http://www.w3.org/2000/svg', 'g');
+            gBounds.setAttribute('fill', 'none'); gVor.setAttribute('fill', 'none');
+
+            // apply CSS blend to colored cells only (lines/labels stay crisp)
+            gCells.style.mixBlendMode = blendSelect.value;
+            gBounds.style.mixBlendMode = lineBlendSelect.value;
+            gVor.style.mixBlendMode = lineBlendSelect.value;
+
+            const cw = W / COLS, ch = H / ROWS;
+            // centroids/areas
+            const { cent, areas } = computeCentroidsAndAreas(labels, k);
+            LAST_CENTROIDS = cent; LAST_AREAS = areas;
+
+            // nearest centroid (Voronoi-like on grid)
+            const vor = new Array(ROWS * COLS).fill(0);
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                let best = 0, bestd = Infinity;
+                for (let j = 0; j < k; j++) {
+                    const dx = (c + 0.5) - cent[j].x, dy = (r + 0.5) - cent[j].y; const d = dx * dx + dy * dy; if (d < bestd) { bestd = d; best = j; }
+                }
+                vor[r * COLS + c] = best;
+            }
+
+            // set overlay alpha from UI
+            const overlayAlpha = Math.max(0, Math.min(1, parseInt(alphaInput.value) / 100));
+            segSvg.style.setProperty('--overlay-alpha', overlayAlpha);
+
+            // draw cells
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const id = r * COLS + c; const cl = labels[id];
+                    const rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
+                    rect.setAttribute('x', (c * cw).toFixed(2));
+                    rect.setAttribute('y', (r * ch).toFixed(2));
+                    rect.setAttribute('width', Math.ceil(cw) + 1);
+                    rect.setAttribute('height', Math.ceil(ch) + 1);
+                    rect.setAttribute('fill', goldenColor(cl, overlayAlpha));
+                    rect.setAttribute('class', 'cell');
+                    gCells.appendChild(rect);
+                }
+            }
+
+            function jitter(n, amp) { return n + (Math.random() * 2 - 1) * amp; }
+
+            // cluster boundaries (solid)
+            if (chkBounds.checked) {
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 1; c < COLS; c++) {
+                        const aL = labels[r * COLS + c - 1], bL = labels[r * COLS + c];
+                        if (aL !== bL) {
+                            const x = c * cw; let d = ""; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch;
+                            for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.4); d += (i ? " L " : "M ") + jitter(x, 1.2).toFixed(2) + " " + y.toFixed(2); }
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', '#fff'); path.setAttribute('class', 'bound'); gBounds.appendChild(path);
+                        }
+                    }
+                }
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 1; r < ROWS; r++) {
+                        const aT = labels[(r - 1) * COLS + c], bT = labels[r * COLS + c];
+                        if (aT !== bT) {
+                            const y = r * ch; let d = ""; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw;
+                            for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.4); d += (i ? " L " : "M ") + x.toFixed(2) + " " + jitter(y, 1.2).toFixed(2); }
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', '#fff'); path.setAttribute('class', 'bound'); gBounds.appendChild(path);
+                        }
+                    }
+                }
+            }
+
+            // voronoi-like boundaries (dashed)
+            if (chkVoronoi.checked) {
+                const vorColor = '#ffd24a';
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 1; c < COLS; c++) {
+                        const aV = vor[r * COLS + c - 1], bV = vor[r * COLS + c];
+                        if (aV !== bV) {
+                            const x = c * cw; let d = ""; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch;
+                            for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.6); d += (i ? " L " : "M ") + jitter(x, 1.6).toFixed(2) + " " + y.toFixed(2); }
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', vorColor); path.setAttribute('class', 'bound voronoi'); gVor.appendChild(path);
+                        }
+                    }
+                }
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 1; r < ROWS; r++) {
+                        const aV2 = vor[(r - 1) * COLS + c], bV2 = vor[r * COLS + c];
+                        if (aV2 !== bV2) {
+                            const y = r * ch; let d = ""; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw;
+                            for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.6); d += (i ? " L " : "M ") + x.toFixed(2) + " " + jitter(y, 1.6).toFixed(2); }
+                            const path = document.createElementNS('http://www.w3.org/2000/svg', 'path'); path.setAttribute('d', d); path.setAttribute('stroke', vorColor); path.setAttribute('class', 'bound voronoi'); gVor.appendChild(path);
+                        }
+                    }
+                }
+            }
+
+            // labels at centroids
+            if (chkLabels.checked) {
+                for (let i = 0; i < k; i++) {
+                    const cx = cent[i].x * cw, cy = cent[i].y * ch;
+                    const txt = document.createElementNS('http://www.w3.org/2000/svg', 'text');
+                    txt.setAttribute('x', cx.toFixed(1));
+                    txt.setAttribute('y', cy.toFixed(1));
+                    txt.setAttribute('text-anchor', 'middle');
+                    txt.setAttribute('dominant-baseline', 'middle');
+                    const pct = ((areas[i] / (ROWS * COLS)) * 100).toFixed(1);
+                    txt.textContent = `#${i} — ${pct}%`;
+                    gLabels.appendChild(txt);
+                }
+            }
+
+            // append base layers
+            segSvg.appendChild(gCells);
+            if (chkBounds.checked) segSvg.appendChild(gBounds);
+            if (chkVoronoi.checked) segSvg.appendChild(gVor);
+            if (chkLabels.checked) segSvg.appendChild(gLabels);
+
+            // transforms layer(s)
+            const tmode = transformSelect.value;
+            if (tmode === 'halftone' || tmode === 'both') segSvg.appendChild(renderHalftoneGroup(W, H));
+            if (tmode === 'quadtree' || tmode === 'both') segSvg.appendChild(renderQuadtreeGroup(W, H));
+
+            segSvg.classList.add('show');
+
+            // legend UI
+            SEG_LEGEND.innerHTML = '';
+            for (let i = 0; i < k; i++) {
+                const pct = ((areas[i] / (ROWS * COLS)) * 100).toFixed(1);
+                const item = document.createElement('div'); item.className = 'item';
+                const sw = document.createElement('span'); sw.className = 'swatch'; sw.style.background = goldenColor(i, 1);
+                const label = document.createElement('span'); label.textContent = `#${i} — ${pct}%`;
+                item.appendChild(sw); item.appendChild(label); SEG_LEGEND.appendChild(item);
+            }
+        }
+
+        /********************
+         * SCHEDULING + ASSEMBLY
+         ********************/
+        function buildSchedule(mode, edges, clusters) {
+            const tiles = [...GRID.children];
+            const idxs = [...Array(tiles.length).keys()];
+            const STEP = 26; // ms
+            if (mode === 'edges') {
+                idxs.sort((a, b) => edges[b] - edges[a]);
+                return idxs.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'contour') {
+                const visited = new Array(ROWS * COLS).fill(false); const order = []; const frontier = [];
+                function push(r, c) { if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return; const id = r * COLS + c; if (visited[id]) return; frontier.push(id); visited[id] = true; }
+                push(ORIGIN.r, ORIGIN.c);
+                while (frontier.length) {
+                    frontier.sort((a, b) => edges[b] - edges[a]);
+                    const id = frontier.shift(); order.push(id);
+                    const r = Math.floor(id / COLS), c = id % COLS;
+                    push(r - 1, c); push(r + 1, c); push(r, c - 1); push(r, c + 1);
+                }
+                return order.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'segments' && clusters) {
+                const groups = {}; idxs.forEach(id => { const cl = clusters[id]; (groups[cl] || (groups[cl] = [])).push(id); });
+                function medianEdge(list) { const s = list.map(i => edges[i]).sort((a, b) => a - b); return s[Math.floor(s.length / 2)] || 0; }
+                const clusterOrder = Object.keys(groups).sort((A, B) => medianEdge(groups[B]) - medianEdge(groups[A]));
+                const order = [];
+                for (const cl of clusterOrder) {
+                    const ids = groups[cl];
+                    const vis = new Set();
+                    const q = [];
+                    const start = ORIGIN.r * COLS + ORIGIN.c;
+                    q.push(ids.includes(start) ? start : ids[0]); vis.add(q[0]);
+                    while (q.length) {
+                        q.sort((a, b) => edges[b] - edges[a]);
+                        const id = q.shift(); order.push(id);
+                        const r = Math.floor(id / COLS), c = id % COLS;
+                        const N = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+                        for (const [rr, cc] of N) { const nid = rr * COLS + cc; if (rr >= 0 && cc >= 0 && rr < ROWS && cc < COLS && ids.includes(nid) && !vis.has(nid)) { vis.add(nid); q.push(nid); } }
+                    }
+                    order.push(-1); // gap
+                }
+                const schedule = []; let t = 0; for (const id of order) { if (id == -1) { t += 300; continue; } schedule.push([id, t]); t += STEP; } return schedule;
+            }
+            const schedule = [];
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const id = r * COLS + c; const ring = Math.abs(c - ORIGIN.c) + Math.abs(r - ORIGIN.r); schedule.push([id, ring * CELL_DELAY + Math.random() * NOISE]); }
+            schedule.sort((a, b) => a[1] - b[1]);
+            return schedule;
+        }
+
+        async function assemble() {
+            segSvg.classList.remove('show'); segSvg.innerHTML = ''; SEG_LEGEND.innerHTML = '';
+            STAGE.classList.add('building'); STAGE.classList.remove('ready');
+            LAST_LABELS = LAST_K = LAST_CENTROIDS = LAST_AREAS = null;
+            const tiles = [...GRID.children]; tiles.forEach(t => t.classList.remove('on', 'build-wobble'));
+
+            const loaded = await loadToCanvas(IMG_URL);
+            const features = loaded.ok ? computeFeatures() : { ok: false };
+
+            if (features.ok) {
+                let best = Math.floor(ROWS / 2) * COLS + Math.floor(COLS / 2), bestScore = -1; const rad = 3;
+                for (let rr = ORIGIN.r - rad; rr <= ORIGIN.r + rad; rr++) {
+                    for (let cc = ORIGIN.c - rad; cc <= ORIGIN.c + rad; cc++) {
+                        if (rr < 0 || cc < 0 || rr >= ROWS || cc >= COLS) continue; const id = rr * COLS + cc; const score = features.edges[id]; if (score > bestScore) { bestScore = score; best = id; }
+                    }
+                }
+                ORIGIN = { r: Math.floor(best / COLS), c: best % COLS };
+            }
+
+            let clusters = null; let k = 4;
+            if (features.ok) {
+                const pts = features.colors.map((rgb, i) => [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, features.edges[i]]);
+                k = Math.max(2, Math.min(8, parseInt(kInput.value) || 4));
+                clusters = kmeans(pts, k, 8);
+                LAST_LABELS = clusters; LAST_K = k;
+            }
+
+            const mode = modeSelect.value;
+            const schedule = buildSchedule(mode, features.ok ? features.edges : new Array(COLS * ROWS).fill(0), clusters);
+
+            let maxDelay = 0;
+            for (const [id, t] of schedule) { if (id < 0) continue; maxDelay = Math.max(maxDelay, t); setTimeout(() => { const tile = tiles[id]; tile.classList.add('on'); if (Math.random() < WOBBLE_PROB) tile.classList.add('build-wobble'); }, t); }
+            setTimeout(() => { STAGE.classList.remove('building'); STAGE.classList.add('ready'); if (LAST_LABELS) renderSegOverlay(LAST_LABELS, LAST_K); }, maxDelay + 800);
+        }
+
+        /********************
+         * EXPORT (PNG + SVG)
+         ********************/
+        async function exportPNG(includeImage = true) {
+            const W = STAGE.clientWidth, H = STAGE.clientHeight; const scale = parseInt(expScaleSelect.value) || 1;
+            const canvas = document.createElement('canvas');
+            canvas.width = W * scale; canvas.height = H * scale; const ctx = canvas.getContext('2d');
+            ctx.scale(scale, scale);
+
+            // draw base image
+            let drewImage = false;
+            if (includeImage) {
+                const load = await new Promise(res => { const im = new Image(); im.crossOrigin = 'anonymous'; im.onload = () => res({ ok: true, im }); im.onerror = () => res({ ok: false }); im.src = IMG_URL; });
+                if (load.ok) {
+                    const im = load.im; const ar = im.width / im.height, stageAR = W / H; let dw = W, dh = H, dx = 0, dy = 0; if (ar > stageAR) { dh = H; dw = dh * ar; dx = -(dw - W) / 2; } else { dw = W; dh = dw / ar; dy = -(dh - H) / 2; }
+                    ctx.drawImage(im, dx, dy, dw, dh); drewImage = true;
+                }
+            }
+
+            // overlay (cells) with blend mode
+            if (!LAST_LABELS || LAST_K == null) {
+                LAST_LABELS = new Array(ROWS * COLS).fill(0); LAST_K = 1; const tmp = computeCentroidsAndAreas(LAST_LABELS, LAST_K); LAST_CENTROIDS = tmp.cent; LAST_AREAS = tmp.areas;
+            }
+            const cw = W / COLS, ch = H / ROWS; const overlayAlpha = Math.max(0, Math.min(1, parseInt(alphaInput.value) / 100));
+
+            // cells tint
+            ctx.save();
+            const cellBlend = blendSelect.value === 'normal' ? 'source-over' : blendSelect.value;
+            ctx.globalCompositeOperation = cellBlend;
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const id = r * COLS + c, cl = LAST_LABELS[id]; ctx.fillStyle = goldenColor(cl, overlayAlpha); ctx.fillRect(c * cw, r * ch, Math.ceil(cw) + 1, Math.ceil(ch) + 1);
+                }
+            }
+            ctx.restore();
+
+            // boundaries (optionally blended)
+            const lineBlend = lineBlendSelect.value === 'normal' ? 'source-over' : lineBlendSelect.value;
+            function jitter(n, amp) { return n + (Math.random() * 2 - 1) * amp; }
+            if (chkBounds.checked) {
+                ctx.save(); ctx.globalCompositeOperation = lineBlend; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 1; c < COLS; c++) {
+                        const aL = LAST_LABELS[r * COLS + c - 1], bL = LAST_LABELS[r * COLS + c]; if (aL !== bL) {
+                            const x = c * cw; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch; ctx.beginPath(); for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.4); const xx = jitter(x, 1.2); if (i === 0) ctx.moveTo(xx, y); else ctx.lineTo(xx, y); } ctx.stroke();
+                        }
+                    }
+                }
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 1; r < ROWS; r++) {
+                        const aT = LAST_LABELS[(r - 1) * COLS + c], bT = LAST_LABELS[r * COLS + c]; if (aT !== bT) {
+                            const y = r * ch; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw; ctx.beginPath(); for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.4); const yy = jitter(y, 1.2); if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); } ctx.stroke();
+                        }
+                    }
+                }
+                ctx.restore();
+            }
+            if (chkVoronoi.checked) {
+                ctx.save(); ctx.globalCompositeOperation = lineBlend; ctx.setLineDash([8, 8]); ctx.strokeStyle = '#ffd24a'; ctx.lineWidth = 3; ctx.lineCap = 'round';
+                const vor = new Array(ROWS * COLS).fill(0);
+                for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) {
+                    let best = 0, bestd = Infinity; for (let j = 0; j < LAST_K; j++) { const dx = (c + 0.5) - LAST_CENTROIDS[j].x, dy = (r + 0.5) - LAST_CENTROIDS[j].y; const d = dx * dx + dy * dy; if (d < bestd) { bestd = d; best = j; } } vor[r * COLS + c] = best;
+                }
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 1; c < COLS; c++) {
+                        const aV = vor[r * COLS + c - 1], bV = vor[r * COLS + c]; if (aV !== bV) { const x = c * cw; const steps = 8, y0 = r * ch, y1 = (r + 1) * ch; ctx.beginPath(); for (let i = 0; i <= steps; i++) { const t = i / steps; const y = jitter(y0 + t * (y1 - y0), 1.6); const xx = jitter(x, 1.6); if (i === 0) ctx.moveTo(xx, y); else ctx.lineTo(xx, y); } ctx.stroke(); }
+                    }
+                }
+                for (let c = 0; c < COLS; c++) {
+                    for (let r = 1; r < ROWS; r++) {
+                        const aV2 = vor[(r - 1) * COLS + c], bV2 = vor[r * COLS + c]; if (aV2 !== bV2) { const y = r * ch; const steps = 8, x0 = c * cw, x1 = (c + 1) * cw; ctx.beginPath(); for (let i = 0; i <= steps; i++) { const t = i / steps; const x = jitter(x0 + t * (x1 - x0), 1.6); const yy = jitter(y, 1.6); if (i === 0) ctx.moveTo(x, yy); else ctx.lineTo(x, yy); } ctx.stroke(); }
+                    }
+                }
+                ctx.restore();
+            }
+            if (chkLabels.checked) {
+                ctx.save(); ctx.globalCompositeOperation = 'source-over';
+                ctx.font = '600 14px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace';
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                for (let i = 0; i < LAST_K; i++) {
+                    const cx = LAST_CENTROIDS[i].x * cw, cy = LAST_CENTROIDS[i].y * ch; const pct = ((LAST_AREAS[i] / (ROWS * COLS)) * 100).toFixed(1);
+                    ctx.lineWidth = 3; ctx.strokeStyle = '#000'; ctx.strokeText(`#${i} — ${pct}%`, cx, cy);
+                    ctx.fillStyle = '#fff'; ctx.fillText(`#${i} — ${pct}%`, cx, cy);
+                }
+                ctx.restore();
+            }
+
+            // transforms into export (canvas version)
+            const tmode = transformSelect.value;
+            if (tmode === 'halftone' || tmode === 'both') {
+                const step = parseInt(htStepInput.value) || 16; const minR = 0.4, maxR = step * 0.45;
+                ctx.save(); ctx.globalCompositeOperation = cellBlend; ctx.fillStyle = '#000';
+                for (let y = step / 2; y < H; y += step) {
+                    for (let x = step / 2; x < W; x += step) {
+                        const L = sampleLumaStage(x, y); const r = (1 - L) * (maxR - minR) + minR; ctx.globalAlpha = Math.max(0.15, Math.min(0.85, (1 - L) * 0.9)); ctx.beginPath(); ctx.arc(x, y, r, 0, Math.PI * 2); ctx.fill();
+                    }
+                }
+                ctx.restore();
+            }
+            if (tmode === 'quadtree' || tmode === 'both') {
+                const threshold = (parseInt(qtVarInput.value) || 18) / 255; const minSize = Math.max(12, (parseInt(htStepInput.value) || 16)); const maxDepth = 6;
+                function split(x0, y0, x1, y1, depth) {
+                    const w = x1 - x0, h = y1 - y0; if (w <= minSize || h <= minSize || depth >= maxDepth) {
+                        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; const cw = W / COLS, ch = H / ROWS; const cl = LAST_LABELS ? LAST_LABELS[Math.max(0, Math.min(ROWS - 1, Math.floor(cy / ch))) * COLS + Math.max(0, Math.min(COLS - 1, Math.floor(cx / cw)))] : 0;
+                        ctx.save(); ctx.globalCompositeOperation = cellBlend; ctx.fillStyle = goldenColor(cl, Math.max(0.12, Math.min(0.5, parseInt(alphaInput.value) / 100))); ctx.fillRect(x0, y0, w + 0.5, h + 0.5); ctx.restore();
+                        ctx.save(); ctx.globalCompositeOperation = lineBlend; ctx.strokeStyle = 'rgba(255,255,255,.3)'; ctx.lineWidth = 0.8; ctx.strokeRect(x0 + 0.3, y0 + 0.3, w - 0.6, h - 0.6); ctx.restore(); return;
+                    }
+                    const stats = rectStats(x0, y0, x1, y1); if (stats.var < threshold) {
+                        const cx = (x0 + x1) / 2, cy = (y0 + y1) / 2; const cw = W / COLS, ch = H / ROWS; const cl = LAST_LABELS ? LAST_LABELS[Math.max(0, Math.min(ROWS - 1, Math.floor(cy / ch))) * COLS + Math.max(0, Math.min(COLS - 1, Math.floor(cx / cw)))] : 0;
+                        ctx.save(); ctx.globalCompositeOperation = cellBlend; ctx.fillStyle = goldenColor(cl, Math.max(0.12, Math.min(0.5, parseInt(alphaInput.value) / 100))); ctx.fillRect(x0, y0, (x1 - x0) + 0.5, (y1 - y0) + 0.5); ctx.restore();
+                        ctx.save(); ctx.globalCompositeOperation = lineBlend; ctx.strokeStyle = 'rgba(255,255,255,.25)'; ctx.lineWidth = 0.7; ctx.strokeRect(x0 + 0.3, y0 + 0.3, (x1 - x0) - 0.6, (y1 - y0) - 0.6); ctx.restore(); return;
+                    }
+                    const mx = (x0 + x1) / 2, my = (y0 + y1) / 2; const d2 = depth + 1; split(x0, y0, mx, my, d2); split(mx, y0, x1, my, d2); split(x0, my, mx, y1, d2); split(mx, my, x1, y1, d2);
+                }
+                split(0, 0, W, H, 0);
+            }
+
+            // CORS warning if needed
+            if (includeImage && !drewImage) {
+                ctx.fillStyle = 'rgba(20,20,20,.85)'; ctx.fillRect(8, 8, 420, 62);
+                ctx.fillStyle = '#ffd24a'; ctx.font = '700 13px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono"';
+                ctx.fillText('BASE IMAGE OMITTED DUE TO CORS', 22, 30);
+                ctx.fillStyle = '#e0e0e0'; ctx.font = '12px ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono"';
+                ctx.fillText('Use a CORS-enabled URL, a local file input, or data URL to include it.', 22, 48);
+            }
+
+            const url = canvas.toDataURL('image/png');
+            const link = document.createElement('a'); link.href = url; link.download = includeImage ? `grid_annotated_${scale}x.png` : `grid_overlay_${scale}x.png`; link.click();
+        }
+
+        function exportSVG() {
+            // Serialize the current overlay SVG
+            const clone = segSvg.cloneNode(true);
+            // ensure width/height attributes are set
+            const W = STAGE.clientWidth, H = STAGE.clientHeight;
+            clone.setAttribute('width', W); clone.setAttribute('height', H);
+            clone.setAttribute('viewBox', `0 0 ${W} ${H}`);
+            const svgText = new XMLSerializer().serializeToString(clone);
+            const blob = new Blob([svgText], { type: 'image/svg+xml' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a'); link.href = url; link.download = 'grid_overlay.svg'; document.body.appendChild(link); link.click(); URL.revokeObjectURL(url); link.remove();
+        }
+
+        function exportONYX() {
+            if (!LAST_LABELS || !LAST_CENTROIDS || !LAST_AREAS) {
+                alert('Please annotate/segment the image first!');
+                return;
+            }
+
+            // Load the bridge if not already loaded
+            if (!window.GAR_ONYX_BRIDGE) {
+                const script = document.createElement('script');
+                script.src = 'gar-onyx-bridge.js';
+                script.onload = () => exportONYX(); // Retry after load
+                script.onerror = () => alert('Failed to load gar-onyx-bridge.js!');
+                document.head.appendChild(script);
+                return;
+            }
+
+            // Prepare GAR state for export
+            const garState = {
+                labels: LAST_LABELS,
+                centroids: LAST_CENTROIDS,
+                colors: computeFeatures().colors || [],
+                areas: LAST_AREAS,
+                k: LAST_K || parseInt(kInput.value)
+            };
+
+            // Convert to ONYX format
+            const onyxData = window.GAR_ONYX_BRIDGE.garToOnyx(garState);
+
+            // Create ONYX channel structure
+            const onyxChannel = {
+                id: `gar-${Date.now()}`,
+                name: `GAR Scene`,
+                symbolicId: `GAR${String(Date.now()).slice(-6)}`,
+                channelColor: '#3a9',
+                scenario: 'blank',
+                systemInstruction: `This scene was imported from GAR (Grid Assembles Reality) visual segmentation. ${garState.k} segments were mapped to narrative ontology.`,
+                grid: onyxData.grid,
+                cells: onyxData.cells,
+                messages: [
+                    {
+                        id: 'GAR_IMPORT',
+                        role: 'system',
+                        text: `Imported from GAR: ${garState.k} visual segments → ONYX ontology. Source image: ${IMG_URL || 'embedded'}`,
+                        timestamp: new Date().toISOString()
+                    }
+                ],
+                observer: {},
+                scorecard: {},
+                tetrad: {},
+                lastScene: null,
+                ledger: [],
+                snapshots: []
+            };
+
+            // Download as JSON
+            const json = JSON.stringify({ exportedAt: new Date().toISOString(), channels: [onyxChannel] }, null, 2);
+            const blob = new Blob([json], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `gar-to-onyx-${Date.now()}.json`;
+            document.body.appendChild(link);
+            link.click();
+            URL.revokeObjectURL(url);
+            link.remove();
+
+            // Show success message
+            alert(`✓ Exported ${garState.k} GAR segments as ONYX scene!\n\nOpen this file in onyx-scenes.html to visualize.`);
+        }
+
+        /********************
+         * EVENTS
+         ********************/
+
+        // Get button reference
+        const exportONYXBtn = document.getElementById('exportONYX');
+        rebuildBtn.addEventListener('click', () => { setImage(urlInput.value.trim()); assemble(); });
+        annotateBtn.addEventListener('click', () => { if (!segSvg.innerHTML.trim() && LAST_LABELS) { renderSegOverlay(LAST_LABELS, LAST_K); } segSvg.classList.toggle('show'); });
+        exportONYXBtn.addEventListener('click', exportONYX);

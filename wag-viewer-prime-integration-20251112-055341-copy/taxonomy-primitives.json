@@ -1,0 +1,561 @@
+{
+  "generated": "2025-11-17T04:41:33.761Z",
+  "sourceTaxonomy": "wag-viewer-prime-integration-20251112-055341 copy/parts-taxonomy.json",
+  "totalPartsVisited": 20685,
+  "primitiveThreshold": 30,
+  "primitiveCount": 54,
+  "primitives": [
+    {
+      "head": "sticker",
+      "count": 2428,
+      "domain": "misc"
+    },
+    {
+      "head": "tile",
+      "count": 1867,
+      "domain": "misc"
+    },
+    {
+      "head": "brick",
+      "count": 1180,
+      "domain": "misc"
+    },
+    {
+      "head": "slope brick",
+      "count": 502,
+      "domain": "misc"
+    },
+    {
+      "head": "plate",
+      "count": 449,
+      "domain": "misc"
+    },
+    {
+      "head": "panel",
+      "count": 287,
+      "domain": "misc"
+    },
+    {
+      "head": "slope brick curved",
+      "count": 265,
+      "domain": "misc"
+    },
+    {
+      "head": "ring",
+      "count": 240,
+      "domain": "misc"
+    },
+    {
+      "head": "duplo brick",
+      "count": 209,
+      "domain": "misc"
+    },
+    {
+      "head": "door",
+      "count": 206,
+      "domain": "misc"
+    },
+    {
+      "head": "windscreen",
+      "count": 190,
+      "domain": "vehicle"
+    },
+    {
+      "head": "baseplate",
+      "count": 184,
+      "domain": "misc"
+    },
+    {
+      "head": "cone",
+      "count": 176,
+      "domain": "misc"
+    },
+    {
+      "head": "wheel rim",
+      "count": 164,
+      "domain": "vehicle"
+    },
+    {
+      "head": "dish",
+      "count": 138,
+      "domain": "misc"
+    },
+    {
+      "head": "wedge",
+      "count": 124,
+      "domain": "misc"
+    },
+    {
+      "head": "technic beam",
+      "count": 106,
+      "domain": "technic"
+    },
+    {
+      "head": "window",
+      "count": 98,
+      "domain": "misc"
+    },
+    {
+      "head": "wheel",
+      "count": 91,
+      "domain": "vehicle"
+    },
+    {
+      "head": "train track",
+      "count": 91,
+      "domain": "vehicle-train"
+    },
+    {
+      "head": "tyre",
+      "count": 87,
+      "domain": "vehicle"
+    },
+    {
+      "head": "cylinder",
+      "count": 87,
+      "domain": "misc"
+    },
+    {
+      "head": "flag on flagpole type",
+      "count": 80,
+      "domain": "misc"
+    },
+    {
+      "head": "torus outside",
+      "count": 80,
+      "domain": "misc"
+    },
+    {
+      "head": "bar",
+      "count": 71,
+      "domain": "misc"
+    },
+    {
+      "head": "technic pneumatic tube",
+      "count": 69,
+      "domain": "technic"
+    },
+    {
+      "head": "flag",
+      "count": 66,
+      "domain": "misc"
+    },
+    {
+      "head": "train door",
+      "count": 61,
+      "domain": "vehicle-train"
+    },
+    {
+      "head": "technic shock absorber",
+      "count": 57,
+      "domain": "technic"
+    },
+    {
+      "head": "wing",
+      "count": 57,
+      "domain": "misc"
+    },
+    {
+      "head": "hinge plate",
+      "count": 55,
+      "domain": "misc"
+    },
+    {
+      "head": "sail",
+      "count": 55,
+      "domain": "misc"
+    },
+    {
+      "head": "torus inside",
+      "count": 52,
+      "domain": "misc"
+    },
+    {
+      "head": "glass for window",
+      "count": 50,
+      "domain": "misc"
+    },
+    {
+      "head": "technic panel",
+      "count": 50,
+      "domain": "technic"
+    },
+    {
+      "head": "container",
+      "count": 49,
+      "domain": "misc"
+    },
+    {
+      "head": "boat hull floating",
+      "count": 49,
+      "domain": "vehicle-ship"
+    },
+    {
+      "head": "arch",
+      "count": 48,
+      "domain": "misc"
+    },
+    {
+      "head": "duplo tile",
+      "count": 48,
+      "domain": "misc"
+    },
+    {
+      "head": "technic brick",
+      "count": 47,
+      "domain": "technic"
+    },
+    {
+      "head": "technic gear",
+      "count": 45,
+      "domain": "technic"
+    },
+    {
+      "head": "bracket",
+      "count": 44,
+      "domain": "misc"
+    },
+    {
+      "head": "roadsign clip-on",
+      "count": 40,
+      "domain": "misc"
+    },
+    {
+      "head": "type swiss",
+      "count": 40,
+      "domain": "misc"
+    },
+    {
+      "head": "electric",
+      "count": 38,
+      "domain": "misc"
+    },
+    {
+      "head": "car base",
+      "count": 38,
+      "domain": "misc"
+    },
+    {
+      "head": "box with",
+      "count": 38,
+      "domain": "misc"
+    },
+    {
+      "head": "technic flex-system hose",
+      "count": 36,
+      "domain": "technic"
+    },
+    {
+      "head": "electric brick",
+      "count": 36,
+      "domain": "misc"
+    },
+    {
+      "head": "stud group",
+      "count": 35,
+      "domain": "misc"
+    },
+    {
+      "head": "hinge brick",
+      "count": 35,
+      "domain": "misc"
+    },
+    {
+      "head": "container box",
+      "count": 34,
+      "domain": "misc"
+    },
+    {
+      "head": "torus tube",
+      "count": 34,
+      "domain": "misc"
+    },
+    {
+      "head": "mursten brick",
+      "count": 31,
+      "domain": "misc"
+    }
+  ],
+  "bucketsByDomain": {
+    "misc": [
+      {
+        "head": "sticker",
+        "count": 2428,
+        "domain": "misc"
+      },
+      {
+        "head": "tile",
+        "count": 1867,
+        "domain": "misc"
+      },
+      {
+        "head": "brick",
+        "count": 1180,
+        "domain": "misc"
+      },
+      {
+        "head": "slope brick",
+        "count": 502,
+        "domain": "misc"
+      },
+      {
+        "head": "plate",
+        "count": 449,
+        "domain": "misc"
+      },
+      {
+        "head": "panel",
+        "count": 287,
+        "domain": "misc"
+      },
+      {
+        "head": "slope brick curved",
+        "count": 265,
+        "domain": "misc"
+      },
+      {
+        "head": "ring",
+        "count": 240,
+        "domain": "misc"
+      },
+      {
+        "head": "duplo brick",
+        "count": 209,
+        "domain": "misc"
+      },
+      {
+        "head": "door",
+        "count": 206,
+        "domain": "misc"
+      },
+      {
+        "head": "baseplate",
+        "count": 184,
+        "domain": "misc"
+      },
+      {
+        "head": "cone",
+        "count": 176,
+        "domain": "misc"
+      },
+      {
+        "head": "dish",
+        "count": 138,
+        "domain": "misc"
+      },
+      {
+        "head": "wedge",
+        "count": 124,
+        "domain": "misc"
+      },
+      {
+        "head": "window",
+        "count": 98,
+        "domain": "misc"
+      },
+      {
+        "head": "cylinder",
+        "count": 87,
+        "domain": "misc"
+      },
+      {
+        "head": "flag on flagpole type",
+        "count": 80,
+        "domain": "misc"
+      },
+      {
+        "head": "torus outside",
+        "count": 80,
+        "domain": "misc"
+      },
+      {
+        "head": "bar",
+        "count": 71,
+        "domain": "misc"
+      },
+      {
+        "head": "flag",
+        "count": 66,
+        "domain": "misc"
+      },
+      {
+        "head": "wing",
+        "count": 57,
+        "domain": "misc"
+      },
+      {
+        "head": "hinge plate",
+        "count": 55,
+        "domain": "misc"
+      },
+      {
+        "head": "sail",
+        "count": 55,
+        "domain": "misc"
+      },
+      {
+        "head": "torus inside",
+        "count": 52,
+        "domain": "misc"
+      },
+      {
+        "head": "glass for window",
+        "count": 50,
+        "domain": "misc"
+      },
+      {
+        "head": "container",
+        "count": 49,
+        "domain": "misc"
+      },
+      {
+        "head": "arch",
+        "count": 48,
+        "domain": "misc"
+      },
+      {
+        "head": "duplo tile",
+        "count": 48,
+        "domain": "misc"
+      },
+      {
+        "head": "bracket",
+        "count": 44,
+        "domain": "misc"
+      },
+      {
+        "head": "roadsign clip-on",
+        "count": 40,
+        "domain": "misc"
+      },
+      {
+        "head": "type swiss",
+        "count": 40,
+        "domain": "misc"
+      },
+      {
+        "head": "electric",
+        "count": 38,
+        "domain": "misc"
+      },
+      {
+        "head": "car base",
+        "count": 38,
+        "domain": "misc"
+      },
+      {
+        "head": "box with",
+        "count": 38,
+        "domain": "misc"
+      },
+      {
+        "head": "electric brick",
+        "count": 36,
+        "domain": "misc"
+      },
+      {
+        "head": "stud group",
+        "count": 35,
+        "domain": "misc"
+      },
+      {
+        "head": "hinge brick",
+        "count": 35,
+        "domain": "misc"
+      },
+      {
+        "head": "container box",
+        "count": 34,
+        "domain": "misc"
+      },
+      {
+        "head": "torus tube",
+        "count": 34,
+        "domain": "misc"
+      },
+      {
+        "head": "mursten brick",
+        "count": 31,
+        "domain": "misc"
+      }
+    ],
+    "vehicle": [
+      {
+        "head": "windscreen",
+        "count": 190,
+        "domain": "vehicle"
+      },
+      {
+        "head": "wheel rim",
+        "count": 164,
+        "domain": "vehicle"
+      },
+      {
+        "head": "wheel",
+        "count": 91,
+        "domain": "vehicle"
+      },
+      {
+        "head": "tyre",
+        "count": 87,
+        "domain": "vehicle"
+      }
+    ],
+    "technic": [
+      {
+        "head": "technic beam",
+        "count": 106,
+        "domain": "technic"
+      },
+      {
+        "head": "technic pneumatic tube",
+        "count": 69,
+        "domain": "technic"
+      },
+      {
+        "head": "technic shock absorber",
+        "count": 57,
+        "domain": "technic"
+      },
+      {
+        "head": "technic panel",
+        "count": 50,
+        "domain": "technic"
+      },
+      {
+        "head": "technic brick",
+        "count": 47,
+        "domain": "technic"
+      },
+      {
+        "head": "technic gear",
+        "count": 45,
+        "domain": "technic"
+      },
+      {
+        "head": "technic flex-system hose",
+        "count": 36,
+        "domain": "technic"
+      }
+    ],
+    "vehicle-train": [
+      {
+        "head": "train track",
+        "count": 91,
+        "domain": "vehicle-train"
+      },
+      {
+        "head": "train door",
+        "count": 61,
+        "domain": "vehicle-train"
+      }
+    ],
+    "vehicle-ship": [
+      {
+        "head": "boat hull floating",
+        "count": 49,
+        "domain": "vehicle-ship"
+      }
+    ]
+  }
+}

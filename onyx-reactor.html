@@ -1,0 +1,1021 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>INTERACTIVE_CODE_ENVIRONMENT // OLOG_ANCESTOR</title>
+    <style>
+        /* ◻[APP_ROOT] Common Ancestor ThemeSystem (from UI_SUBSTRATE) */
+        :root {
+            /* CORE TOKENS */
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --surface: #111;
+            --border: #222;
+            --text-main: #e5e5e5;
+            --text-muted: #525252;
+            --func: #f43f5e;
+            --var: #2dd4bf;
+            --tag: #8b5cf6;
+            --ctrl: #fbbf24;
+            --style: #ec4899;
+            --focus: #fff;
+            --up: #3b82f6;
+            --down: #10b981;
+            --wire-base: #222;
+            --font: 'JetBrains Mono', monospace;
+            --ease: cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f5;
+            --panel: #fafafa;
+            --surface: #fff;
+            --border: #ddd;
+            --text-main: #1a1a1a;
+            --text-muted: #a0a0a0;
+            --func: #e11d48;
+            --var: #0d9488;
+            --tag: #7c3aed;
+            --ctrl: #f59e0b;
+            --style: #db2777;
+            --focus: #000;
+            --wire-base: #ccc;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: var(--font);
+            background: var(--bg);
+            color: var(--text-main);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        /* ◻[NAV] NavigationDeck Entity (from HUD_SYSTEM) */
+        #nav-deck {
+            flex: 0 0 48px;
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 16px;
+            gap: 12px;
+            font-size: 11px;
+        }
+
+        .nav-group {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .nav-label {
+            color: var(--text-muted);
+            font-weight: bold;
+        }
+
+        .chip {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            padding: 2px 6px;
+            border-radius: 3px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+        }
+
+        .chip:hover {
+            border-color: var(--focus);
+            color: var(--focus);
+        }
+
+        .chip.up {
+            border-color: var(--up);
+            color: var(--up);
+        }
+
+        .chip.down {
+            border-color: var(--down);
+            color: var(--down);
+        }
+
+        /* ◻[BLD] Sideblade Entity (from MODAL_SYSTEM) */
+        .sideblade {
+            position: fixed;
+            top: 0;
+            right: -300px;
+            width: 300px;
+            height: 100vh;
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            transition: transform 0.3s var(--ease);
+            z-index: 200;
+            display: flex;
+            flex-direction: column;
+            padding: 16px;
+            gap: 12px;
+        }
+
+        .sideblade.open {
+            transform: translateX(-300px);
+        }
+
+        .blade-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            display: none;
+            z-index: 199;
+        }
+
+        .blade-overlay.open {
+            display: block;
+        }
+
+        .tool-btn {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 10px;
+        }
+
+        .tool-btn.active {
+            border-color: var(--focus);
+        }
+
+        #paste-input {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 8px;
+            font-family: var(--font);
+            font-size: 9px;
+            resize: none;
+        }
+
+        /* ◻[BLD] Component: System Stats (from STATE_ENGINE) */
+        .stats {
+            display: flex;
+            gap: 12px;
+            font-size: 9px;
+            color: var(--text-muted);
+        }
+
+        .stat {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .stat-value {
+            color: var(--focus);
+            font-weight: bold;
+        }
+
+        /* ◻[GRD] GridSystem Entity (from BLOCK_ENTITY spatialization) */
+        #viewport {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+        }
+
+        #grid-view {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+        }
+
+        .grid-lock {
+            flex: 1;
+            position: relative;
+            overflow: hidden;
+            padding: 20px;
+        }
+
+        #grid {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+            width: 100%;
+            height: 100%;
+            max-width: min(100%, 60vh);
+            aspect-ratio: 1/1;
+            margin: 0 auto;
+            position: relative;
+        }
+
+        .block {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            transition: transform 0.15s, opacity 0.2s;
+        }
+
+        .block[data-type="function"] {
+            border-top: 2px solid var(--func);
+        }
+
+        .block[data-type="variable"] {
+            border-top: 2px solid var(--var);
+        }
+
+        .block[data-type="tag"] {
+            border-top: 2px solid var(--tag);
+        }
+
+        .block[data-type="control"] {
+            border-top: 2px solid var(--ctrl);
+        }
+
+        .block[data-type="style"] {
+            border-top: 2px solid var(--style);
+        }
+
+        .block:hover {
+            transform: scale(1.1);
+            z-index: 50;
+            border-color: var(--focus);
+        }
+
+        .block.focus {
+            transform: scale(1.2);
+            border-color: var(--focus);
+            box-shadow: 0 0 20px var(--focus);
+            z-index: 60;
+        }
+
+        .block.muted {
+            opacity: 0.1;
+            filter: grayscale(1);
+            transform: scale(0.95);
+        }
+
+        .block.up {
+            border-color: var(--up);
+            opacity: 1;
+        }
+
+        .block.down {
+            border-color: var(--down);
+            opacity: 1;
+        }
+
+        .icon {
+            font-size: 10px;
+            margin-bottom: 2px;
+        }
+
+        .label {
+            font-size: 7px;
+            white-space: nowrap;
+            overflow: hidden;
+            max-width: 90%;
+        }
+
+        /* ◻[WRS] WireSystem Entity (from CONNECTION_ENTITY) */
+        #wires {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .cable {
+            fill: none;
+            stroke: var(--wire-base);
+            stroke-width: 1;
+            opacity: 0.15;
+            transition: opacity 0.3s, stroke-width 0.3s;
+        }
+
+        .cable.active {
+            stroke: var(--focus);
+            opacity: 1;
+            stroke-width: 2;
+        }
+
+        .cable.up {
+            stroke: var(--up);
+            opacity: 1;
+            stroke-width: 1.5;
+            stroke-dasharray: 4;
+            animation: flow 1s linear infinite;
+        }
+
+        .cable.down {
+            stroke: var(--down);
+            opacity: 1;
+            stroke-width: 1.5;
+            stroke-dasharray: 4;
+            animation: flow 1s linear infinite;
+        }
+
+        @keyframes flow {
+            to {
+                stroke-dashoffset: -8;
+            }
+        }
+
+        /* ◻[EDT] EditorSystem Entity (from LINE_ENTITY) */
+        #editor-view {
+            flex: 0 0 400px;
+            max-width: 40%;
+            display: flex;
+            flex-direction: column;
+            border-left: 1px solid var(--border);
+        }
+
+        #scroller {
+            flex: 1;
+            overflow-y: auto;
+            padding: 20px 0;
+            scroll-behavior: smooth;
+        }
+
+        .line {
+            display: flex;
+            padding: 0 12px;
+            font-size: 11px;
+            line-height: 18px;
+            cursor: pointer;
+            color: var(--text-muted);
+            border-left: 3px solid transparent;
+            transition: all 0.2s;
+        }
+
+        .line:hover {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .line.active {
+            border-left-color: var(--focus);
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .line.up {
+            border-left-color: var(--up);
+            background: rgba(59, 130, 246, 0.05);
+        }
+
+        .line.down {
+            border-left-color: var(--down);
+            background: rgba(16, 185, 129, 0.05);
+        }
+
+        .ln {
+            width: 30px;
+            text-align: right;
+            margin-right: 12px;
+            opacity: 0.3;
+        }
+
+        .kwd {
+            color: var(--func);
+        }
+
+        .def {
+            color: var(--text-main);
+            font-weight: bold;
+        }
+
+        .var {
+            color: var(--var);
+        }
+
+        .tag {
+            color: var(--tag);
+        }
+
+        /* ◻[RSZ] ResizerSystem Entity */
+        #resizer {
+            flex: 0 0 4px;
+            background: var(--panel);
+            cursor: ns-resize;
+            position: relative;
+            border-top: 1px solid var(--border);
+        }
+
+        #resizer:hover {
+            background: var(--func);
+        }
+
+        .grip {
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 40px;
+            height: 2px;
+            background: var(--border);
+            transition: width 0.2s;
+        }
+
+        #resizer:hover .grip {
+            width: 60px;
+            background: var(--func);
+        }
+
+        /* ◻[MMP] MinimapSystem Entity */
+        #minimap-container {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            width: 150px;
+            height: 100px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            z-index: 50;
+        }
+
+        #minimap {
+            width: 100%;
+            height: 100%;
+            image-rendering: pixelated;
+        }
+
+        #mm-view {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background: rgba(255, 255, 255, 0.1);
+            pointer-events: none;
+            border: 1px solid var(--focus);
+        }
+
+        @media (max-width: 768px) {
+            #viewport {
+                flex-direction: column;
+            }
+
+            #editor-view {
+                flex: 1;
+                max-width: 100%;
+                border-left: none;
+                border-top: 1px solid var(--border);
+            }
+        }
+    </style>
+    <base target="_blank">
+</head>
+
+<body>
+    <!-- ◻[APP_ROOT] Root Container Entity -->
+    <!-- OLOG_ANCESTOR: Unified container for HYPER_GRID and LIVE_DAEMON ontologies -->
+
+    <!-- ◻[NAV] NavigationDeck Entity -->
+    <!-- OLOG_1 Component: HUD_SYSTEM focus chip display -->
+    <!-- OLOG_2 Component: Live status indicator -->
+    <header id="nav-deck">
+        <div class="nav-group">
+            <span class="nav-label">FOCUS:</span>
+            <div class="chip" id="nav-focus" style="color:var(--focus); border-color:var(--focus)">--</div>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label" style="color:var(--up)">CALLERS:</span>
+            <div id="nav-up"></div>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label" style="color:var(--down)">DEPS:</span>
+            <div id="nav-down"></div>
+        </div>
+        <div class="nav-group">
+            <span class="nav-label">LIVE:</span>
+            <div class="chip" id="live-status">DISCONNECTED</div>
+        </div>
+    </header>
+
+    <!-- ◻[BLD] Sideblade Entity -->
+    <!-- OLOG_1 Feature: MODAL_SYSTEM toggle -->
+    <!-- OLOG_2 Feature: Live reload daemon config -->
+    <div class="sideblade" id="sideblade">
+        <div style="font-size: 10px; color: var(--text-muted); margin-bottom: 4px;">SYSTEM CONTROLS</div>
+        <button class="tool-btn" id="btn-theme" onclick="toggleTheme()">🌓 THEME</button>
+        <button class="tool-btn" id="btn-audio" onclick="Audio.toggle()">🔊 AUDIO</button>
+        <button class="tool-btn" id="btn-parse" onclick="ingest()">📥 INGEST CODE</button>
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="stat-nodes">0</div>
+                <div>NODES</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-wires">0</div>
+                <div>WIRES</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="stat-lines">0</div>
+                <div>LINES</div>
+            </div>
+        </div>
+        <div style="font-size: 10px; color: var(--text-muted); margin-top: 12px; margin-bottom: 4px;">LIVE DAEMON</div>
+        <button class="tool-btn" onclick="LiveDaemon.connect()">🔗 CONNECT</button>
+        <button class="tool-btn" onclick="LiveDaemon.disconnect()">🔌 DISCONNECT</button>
+        <textarea id="paste-input" placeholder="// Paste source code here..."></textarea>
+    </div>
+    <div class="blade-overlay" id="blade-overlay" onclick="toggleBlade()"></div>
+
+    <!-- ◻[RSZ] ResizerSystem Entity -->
+    <!-- OLOG_1 Feature: Boundary negotiation between panels -->
+    <div id="resizer" onmousedown="Resizer.start(event)">
+        <div class="grip"></div>
+    </div>
+
+    <!-- ◻[GRD] GridSystem Entity -->
+    <!-- OLOG_1 Component: BLOCK_ENTITY spatialization -->
+    <main id="viewport">
+        <div id="grid-view">
+            <div class="grid-lock">
+                <div id="grid"></div>
+                <svg id="wires"></svg>
+            </div>
+        </div>
+
+        <!-- ◻[EDT] EditorSystem Entity -->
+        <!-- OLOG_1 Component: LINE_ENTITY rendering -->
+        <div id="editor-view">
+            <div id="scroller">
+                <div id="code-content"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- ◻[MMP] MinimapSystem Entity -->
+    <!-- OLOG_1 Feature: Topographical code summary -->
+    <div id="minimap-container">
+        <canvas id="minimap"></canvas>
+        <div id="mm-view"></div>
+    </div>
+
+    <!-- OLOG_DATASTRUCTURE: Ontological Log for Forensic Reconstruction -->
+    <script id="olog-metadata" type="application/json">
+    {
+        "OLOG_1_HYPER_GRID": {
+            "entities": {
+                "APP_HYPER_GRID": { "id": "APP_ROOT", "components": ["CORE_STATE", "PARSER_ENGINE", "RENDER_ENGINE", "INTERACTION_ENGINE", "AUDIO_ENGINE", "UI_SUBSTRATE", "MODAL_SYSTEM"] },
+                "CORE_STATE": { "components": ["lines", "blocks", "conns", "audio", "sound", "playing", "filename"] },
+                "BLOCK_ENTITY": { "components": ["idx", "type", "name", "matchKey", "line", "pri", "callers", "deps"] },
+                "CONNECTION_ENTITY": { "components": ["from", "to", "svgPath"] },
+                "LINE_ENTITY": { "components": ["index", "content", "blockRef", "highlightState"] },
+                "HUD_SYSTEM": { "components": ["focusChip", "callersContainer", "depsContainer", "chipRegistry"] }
+            },
+            "features": {
+                "CODE_PARSE": "parse() → two-pass analysis, chunking, priority resolution",
+                "VISUAL_RENDER": "render() → grid population, syntax highlighting, wire generation",
+                "BLOCK_ACTIVATE": "activate() → focus state, CSS propagation, scroll sync",
+                "DEPENDENCY_TRACE": "trace() → classList manipulation, wire filtering, chip generation",
+                "AUDIO_SYNTHESIS": "sfx() → oscillator creation, gain envelope, frequency mapping",
+                "FLOW_PLAYBACK": "playFlow() → interval iteration, pulse animation, sequential activation"
+            }
+        },
+        "OLOG_2_LIVE_DAEMON": {
+            "entities": {
+                "APP_DAEMON": { "id": "LIVE_ROOT", "components": ["WS_SYSTEM", "FILE_WATCHER", "CSS_REFRESHER", "LOGGER"] },
+                "WS_SYSTEM": { "components": ["socket", "address", "protocol", "messageHandler"] },
+                "FILE_WATCHER": { "components": ["watchList", "changeDetector", "debounceTimer"] },
+                "CSS_REFRESHER": { "components": ["styleSheets", "cacheBuster"] }
+            },
+            "features": {
+                "CONNECTION": "WebSocket instantiation, message routing, state persistence",
+                "CSS_REFRESH": "Link href manipulation, cache override, DOM reinsertion",
+                "FULL_RELOAD": "window.location.reload() on non-CSS changes"
+            }
+        },
+        "ANCESTOR_MAPPINGS": {
+            "APP_ROOT": { "dom": "document.body", "css": ":root variables", "js": "State object" },
+            "NAV": { "dom": "#nav-deck", "js": "updateNav()", "features": ["HUD_SYSTEM", "Live status"] },
+            "BLD": { "dom": ".sideblade", "js": "toggleBlade(), ingest()", "features": ["MODAL_SYSTEM", "CSS_REFRESHER config"] },
+            "GRD": { "dom": "#grid", "js": "render()", "features": ["BLOCK_ENTITY visualization"] },
+            "WRS": { "dom": "#wires", "js": "drawWires()", "features": ["CONNECTION_ENTITY rendering"] },
+            "EDT": { "dom": "#scroller", "js": "render()", "features": ["LINE_ENTITY rendering"] },
+            "MMP": { "dom": "#minimap", "js": "renderMinimap()", "features": ["Topographical summary"] },
+            "RSZ": { "dom": "#resizer", "js": "Resizer.start()", "features": ["Boundary negotiation"] }
+        }
+    }
+    </script>
+
+    <script>
+        // ◻[APP_ROOT] Common Ancestor State Engine
+        // OLOG_1 Component: CORE_STATE (lines, blocks, conns, audio, sound, playing, filename)
+        // OLOG_2 Component: WS_SYSTEM (socket, address)
+        const State = {
+            lines: [], blocks: Array(81).fill(null), conns: [], lineData: [],
+            audio: null, sound: true, activeIdx: -1,
+            wsSocket: null, wsAddress: null,
+            filename: 'ANCESTOR_ENVIRONMENT'
+        };
+
+        // ◻[APP_ROOT] DOM Registry (from RENDER_ENGINE)
+        const DOM = {
+            grid: document.getElementById('grid'),
+            wires: document.getElementById('wires'),
+            scroller: document.getElementById('scroller'),
+            codeContent: document.getElementById('code-content'),
+            navFocus: document.getElementById('nav-focus'),
+            navUp: document.getElementById('nav-up'),
+            navDown: document.getElementById('nav-down'),
+            minimap: document.getElementById('minimap'),
+            mmView: document.getElementById('mm-view'),
+            liveStatus: document.getElementById('live-status'),
+            blade: document.getElementById('sideblade'),
+            overlay: document.getElementById('blade-overlay'),
+            statNodes: document.getElementById('stat-nodes'),
+            statWires: document.getElementById('stat-wires'),
+            statLines: document.getElementById('stat-lines')
+        };
+
+        // ◻[PAR] Parser Engine (from PARSER_ENGINE)
+        // Feature: CODE_PARSE → parse()
+        function parse(source) {
+            State.lines = source.split('\n');
+            State.blocks = Array(81).fill(null);
+            State.conns = [];
+            State.lineData = State.lines.map((text, i) => {
+                const t = text.trim();
+                let type = null, name = null;
+                if (!t) return { text, type: null, index: i };
+                if (/(?:function|class)\s+(\w+)/.test(t)) { type = 'function'; name = RegExp.$1; }
+                else if (/(?:const|let|var)\s+(\w+)/.test(t)) { type = 'variable'; name = RegExp.$1; }
+                else if (/^(if|for|while|return)/.test(t)) { type = 'control'; name = RegExp.$1; }
+                else if (/^<(\w+)/.test(t)) { type = 'tag'; name = RegExp.$1.toUpperCase(); }
+                else if (/^([.#][\w-]+)\s*\{/.test(t)) { type = 'style'; name = RegExp.$1; }
+                return { text, type, name, index: i };
+            });
+
+            const lpc = Math.ceil(State.lines.length / 81);
+            State.lineData.forEach((line, i) => {
+                if (!line.type || !line.name) return;
+                const idx = Math.floor(i / lpc);
+                const pri = line.type === 'function' ? 5 : line.type === 'tag' ? 4 : line.type === 'style' ? 3 : line.type === 'control' ? 2 : 1;
+                if (!State.blocks[idx] || State.blocks[idx].pri < pri) {
+                    State.blocks[idx] = { idx, type: line.type, name: line.name, line: i, pri, deps: [], callers: [] };
+                }
+            });
+
+            const defs = State.blocks.map((b, i) => b ? { [b.name]: i } : {}).reduce((a, c) => ({ ...a, ...c }), {});
+            State.lineData.forEach((line, i) => {
+                const from = Math.floor(i / lpc);
+                Object.keys(defs).forEach(key => {
+                    if (line.text.includes(key) && defs[key] !== from) {
+                        const to = defs[key];
+                        if (State.blocks[from]) State.blocks[from].deps.push(to);
+                        if (State.blocks[to]) State.blocks[to].callers.push(from);
+                        State.conns.push({ from, to });
+                    }
+                });
+            });
+
+            State.blocks.forEach(b => {
+                if (b) {
+                    b.deps = [...new Set(b.deps)];
+                    b.callers = [...new Set(b.callers)];
+                }
+            });
+
+            DOM.statNodes.textContent = State.blocks.filter(b => b).length;
+            DOM.statWires.textContent = State.conns.length;
+            DOM.statLines.textContent = State.lines.length;
+        }
+
+        // ◻[RENDER_ENGINE] Visual Render Feature
+        // Feature: VISUAL_RENDER → render()
+        function render() {
+            DOM.grid.innerHTML = '';
+            DOM.wires.innerHTML = '';
+            DOM.codeContent.innerHTML = '';
+
+            // Grid rendering (from GRID_SYSTEM)
+            for (let i = 0; i < 81; i++) {
+                const b = State.blocks[i];
+                const cell = document.createElement('div');
+                cell.className = 'block';
+                cell.id = `blk-${i}`;
+                cell.dataset.index = i;
+                if (b) {
+                    cell.dataset.type = b.type;
+                    cell.innerHTML = `<div class="icon">${b.type === 'function' ? 'ƒ' : b.type === 'tag' ? '<>' : b.type === 'style' ? '#' : '='}</div><div class="label">${b.name}</div>`;
+                    cell.onmouseenter = () => { if (!State.playing) Audio.tick(200, 0.05); };
+                    cell.onclick = () => { if (!State.playing) { activate(i); Audio.tick(800, 0.1); } };
+                } else {
+                    cell.style.opacity = '0.05'; cell.innerHTML = '·';
+                    cell.onclick = () => clearFocus();
+                }
+                DOM.grid.appendChild(cell);
+            }
+
+            // Editor rendering (from EDITOR_SYSTEM)
+            State.lineData.forEach(line => {
+                const div = document.createElement('div');
+                div.className = 'line';
+                div.id = `L${line.index}`;
+                let html = line.text.replace(/</g, '&lt;')
+                    .replace(/(function|class|const|let|var)/g, '<span class="kwd">$1</span>')
+                    .replace(/(if|for|while|return)/g, '<span class="kwd">$1</span>');
+                if (line.name) html = html.replace(line.name, `<span class="def">${line.name}</span>`);
+                div.innerHTML = `<div class="ln">${line.index}</div>${html}`;
+                div.onclick = () => {
+                    const bIdx = Math.floor(line.index / Math.ceil(State.lines.length / 81));
+                    if (State.blocks[bIdx]) activate(bIdx);
+                };
+                DOM.codeContent.appendChild(div);
+            });
+
+            drawWires();
+            renderMinimap();
+        }
+
+        // ◻[WRS] WireSystem Feature: drawWires()
+        // Feature: DEPENDENCY_TRACE visualization
+        function drawWires() {
+            DOM.wires.innerHTML = '';
+            if (State.activeIdx === -1) return;
+            const rect = DOM.grid.getBoundingClientRect();
+            const w = rect.width / 9; const h = rect.height / 9;
+
+            // Unique edges
+            const unique = [...new Set(State.conns.map(JSON.stringify))].map(JSON.parse);
+            unique.forEach(e => {
+                const x1 = (e.from % 9) * w + w / 2; const y1 = Math.floor(e.from / 9) * h + h / 2;
+                const x2 = (e.to % 9) * w + w / 2; const y2 = Math.floor(e.to / 9) * h + h / 2;
+                const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                path.classList.add('cable');
+                path.setAttribute('d', `M ${x1} ${y1} C ${x1} ${y1 + 20}, ${x2} ${y2 - 20}, ${x2} ${y2}`);
+                path.dataset.from = e.from; path.dataset.to = e.to;
+
+                // State-based styling
+                if (State.activeIdx === e.from || State.activeIdx === e.to) path.classList.add('active');
+                if (State.blocks[State.activeIdx] && State.blocks[State.activeIdx].callers.includes(e.from)) path.classList.add('up');
+                if (State.blocks[State.activeIdx] && State.blocks[State.activeIdx].deps.includes(e.to)) path.classList.add('down');
+
+                DOM.wires.appendChild(path);
+            });
+        }
+
+        // ◻[EDT] MinimapSystem Feature: renderMinimap()
+        // Feature: Topographical summary
+        function renderMinimap() {
+            const canvas = DOM.minimap;
+            const ctx = canvas.getContext('2d');
+            const dpr = window.devicePixelRatio || 1;
+            canvas.width = 150 * dpr; canvas.height = 100 * dpr;
+            ctx.scale(dpr, dpr);
+
+            const lh = 100 / State.lineData.length;
+            State.lineData.forEach((line, i) => {
+                ctx.fillStyle = line.type ? (line.type === 'function' ? getComputedStyle(document.documentElement).getPropertyValue('--func').trim() : '#333') : '#111';
+                ctx.fillRect(0, i * lh, 150, lh);
+            });
+        }
+
+        // ◻[INTERACTION_ENGINE] Block activation morphism
+        // Feature: BLOCK_ACTIVATE → activate()
+        function activate(idx) {
+            if (State.playing) return;
+            clearFocus();
+            State.activeIdx = idx;
+            const b = State.blocks[idx];
+            if (!b) return;
+
+            DOM.navFocus.textContent = b.name;
+            DOM.navFocus.style.color = `var(--${b.type})`;
+            DOM.navFocus.style.borderColor = `var(--${b.type})`;
+
+            const el = document.getElementById(`blk-${idx}`);
+            el.classList.add('focus');
+            document.getElementById(`L${b.line}`).classList.add('active');
+            document.getElementById(`L${b.line}`).scrollIntoView({ block: 'center' });
+
+            // Dependency tracing
+            updateNav({ focus: b.name, type: b.type, callers: b.callers, deps: b.deps });
+            b.callers.forEach(ci => document.getElementById(`blk-${ci}`)?.classList.add('up'));
+            b.deps.forEach(ci => document.getElementById(`blk-${ci}`)?.classList.add('down'));
+
+            drawWires();
+            Audio.hum('hover');
+        }
+
+        function clearFocus() {
+            State.activeIdx = -1;
+            document.querySelectorAll('.block').forEach(el => el.classList.remove('focus', 'up', 'down'));
+            document.querySelectorAll('.line').forEach(el => el.classList.remove('active', 'up', 'down'));
+            DOM.navFocus.textContent = '--';
+            DOM.navFocus.style.color = 'var(--focus)';
+            DOM.navFocus.style.borderColor = 'var(--focus)';
+            updateNav({ focus: '--', callers: [], deps: [] });
+            drawWires();
+        }
+
+        function updateNav(data) {
+            DOM.navUp.innerHTML = '';
+            DOM.navDown.innerHTML = '';
+            if (data.callers) data.callers.forEach(ci => {
+                const b = State.blocks[ci];
+                if (b) DOM.navUp.appendChild(mkChip(b, 'up'));
+            });
+            if (data.deps) data.deps.forEach(ci => {
+                const b = State.blocks[ci];
+                if (b) DOM.navDown.appendChild(mkChip(b, 'down'));
+            });
+        }
+
+        function mkChip(block, cls) {
+            const chip = document.createElement('div');
+            chip.className = `chip ${cls}`;
+            chip.innerHTML = `${block.type === 'function' ? 'ƒ' : block.type === 'tag' ? '<>' : '='} ${block.name}`;
+            chip.onclick = () => activate(block.idx);
+            return chip;
+        }
+
+        // ◻[BLD] Sideblade control morphisms
+        function toggleTheme() {
+            document.documentElement.dataset.theme = document.documentElement.dataset.theme === 'dark' ? 'light' : 'dark';
+            setTimeout(drawWires, 100);
+        }
+        function toggleBlade() {
+            DOM.blade.classList.toggle('open');
+            DOM.overlay.classList.toggle('open');
+        }
+        function ingest() {
+            const code = document.getElementById('paste-input').value;
+            if (code.trim()) {
+                State.filename = 'INGESTED_SOURCE';
+                parse(code);
+                render();
+                toggleBlade();
+            }
+        }
+
+        // ◻[RSZ] ResizerSystem morphisms
+        const Resizer = {
+            isResizing: false, startY: 0, startH: 0,
+            start(e) {
+                this.isResizing = true;
+                this.startY = e.clientY;
+                this.startH = parseInt(getComputedStyle(DOM.scroller.parentElement).height);
+                document.addEventListener('mousemove', this.move);
+                document.addEventListener('mouseup', this.stop);
+            },
+            move: (e) => {
+                if (!Resizer.isResizing) return;
+                const delta = e.clientY - Resizer.startY;
+                const newH = Math.max(200, Math.min(window.innerHeight * 0.7, Resizer.startH - delta));
+                DOM.scroller.parentElement.style.flex = `0 0 ${newH}px`;
+                drawWires();
+            },
+            stop: () => {
+                Resizer.isResizing = false;
+                document.removeEventListener('mousemove', Resizer.move);
+                document.removeEventListener('mouseup', Resizer.stop);
+            }
+        };
+
+        // ◻[AUD] AudioSystem Entity
+        // OLOG_1 Feature: AUDIO_SYNTHESIS
+        // OLOG_2 Component: Sonic feedback for live reload events
+        const Audio = {
+            ctx: null, gain: null, active: true,
+            init() {
+                this.ctx = new (window.AudioContext || window.webkitAudioContext)();
+                this.gain = this.ctx.createGain();
+                this.gain.connect(this.ctx.destination);
+                this.gain.gain.value = 0.1;
+            },
+            tick(freq, dur = 0.05) {
+                if (!this.active || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                osc.connect(this.gain);
+                osc.type = 'sine';
+                osc.frequency.value = freq;
+                this.gain.gain.setValueAtTime(0.1, this.ctx.currentTime);
+                this.gain.gain.exponentialRampToValueAtTime(0.001, this.ctx.currentTime + dur);
+                osc.start();
+                osc.stop(this.ctx.currentTime + dur);
+            },
+            hum(type) {
+                if (!this.active || !this.ctx) return;
+                const osc = this.ctx.createOscillator();
+                const g = this.ctx.createGain();
+                osc.connect(g); g.connect(this.ctx.destination);
+                osc.type = 'triangle';
+                osc.frequency.value = type === 'up' ? 300 : 800;
+                g.gain.setValueAtTime(0.05, this.ctx.currentTime);
+                g.gain.linearRampToValueAtTime(0.001, this.ctx.currentTime + 0.4);
+                osc.start();
+                osc.stop(this.ctx.currentTime + 0.4);
+            },
+            toggle() {
+                this.active = !this.active;
+                document.getElementById('btn-audio').classList.toggle('active', this.active);
+            }
+        };
+
+        // ◻[LIVE_DAEMON] WS_SYSTEM Entity (from OLOG_2)
+        // OLOG_2 Feature: CONNECTION, CSS_REFRESH
+        const LiveDaemon = {
+            socket: null,
+            connect() {
+                if (this.socket) this.disconnect();
+                const protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+                this.socket = new WebSocket(protocol + window.location.host + window.location.pathname + '/ws');
+                DOM.liveStatus.textContent = 'CONNECTING';
+                this.socket.onopen = () => DOM.liveStatus.textContent = 'CONNECTED';
+                this.socket.onmessage = (msg) => {
+                    if (msg.data === 'reload') location.reload();
+                    else if (msg.data === 'refreshcss') this.refreshCSS();
+                };
+                this.socket.onerror = () => DOM.liveStatus.textContent = 'ERROR';
+                this.socket.onclose = () => DOM.liveStatus.textContent = 'DISCONNECTED';
+            },
+            disconnect() {
+                if (this.socket) { this.socket.close(); this.socket = null; }
+                DOM.liveStatus.textContent = 'DISCONNECTED';
+            },
+            refreshCSS() {
+                document.querySelectorAll('link[rel="stylesheet"]').forEach(link => {
+                    const url = new URL(link.href);
+                    url.searchParams.set('_cacheOverride', Date.now());
+                    link.href = url.toString();
+                });
+            }
+        };
+
+        // ◻[APP_ROOT] Feature: Global Event Binding
+        document.body.onclick = () => clearFocus();
+        new ResizeObserver(() => drawWires()).observe(DOM.grid);
+
+        // ◻[APP_ROOT] Initialization sequence
+        window.addEventListener('load', () => {
+            Audio.init();
+            parse(document.documentElement.outerHTML);
+            render();
+            renderMinimap();
+        });
+
+        // ◻[APP_ROOT] Feature: Scroll synchronization (EDITOR_SYSTEM ↔ MINIMAP)
+        DOM.scroller.addEventListener('scroll', () => {
+            const st = DOM.scroller.scrollTop;
+            const sh = DOM.scroller.scrollHeight - DOM.scroller.clientHeight;
+            const perc = st / sh;
+            const mmh = DOM.minimap.clientHeight - DOM.mmView.clientHeight;
+            DOM.mmView.style.top = `${perc * mmh}px`;
+        });
+    </script>
+
+    <!-- ◻[LIVE_DAEMON] LIVE_RELOAD snippet inherited from OLOG_2 -->
+    <script>
+        if ('WebSocket' in window) {
+            (function () {
+                function refreshCSS() {
+                    var sheets = [].slice.call(document.getElementsByTagName("link"));
+                    var head = document.getElementsByTagName("head")[0];
+                    for (var i = 0; i < sheets.length; ++i) {
+                        var elem = sheets[i];
+                        var parent = elem.parentElement || head;
+                        parent.removeChild(elem);
+                        var rel = elem.rel;
+                        if (elem.href && typeof rel != "string" || rel.length == 0 || rel.toLowerCase() == "stylesheet") {
+                            var url = elem.href.replace(/(&|\?)_cacheOverride=\d+/, '');
+                            elem.href = url + (url.indexOf('?') >= 0 ? '&' : '?') + '_cacheOverride=' + (new Date().valueOf());
+                        }
+                        parent.appendChild(elem);
+                    }
+                }
+                var protocol = window.location.protocol === 'http:' ? 'ws://' : 'wss://';
+                var address = protocol + window.location.host + window.location.pathname + '/ws';
+                var socket = new WebSocket(address);
+                socket.onmessage = function (msg) {
+                    if (msg.data == 'reload') window.location.reload();
+                    else if (msg.data == 'refreshcss') refreshCSS();
+                };
+            })();
+        }
+    </script>
+</body>
+
+</html>

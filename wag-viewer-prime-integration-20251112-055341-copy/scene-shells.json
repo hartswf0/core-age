@@ -1,0 +1,2206 @@
+{
+  "generated": "2025-11-17T05:02:02.651Z",
+  "source": "wag-viewer-prime-integration-20251112-055341 copy/large-ready-mades.json",
+  "totalShells": 116,
+  "shells": [
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6136p01.dat",
+      "path": "parts/6136p01.dat",
+      "description": "Baseplate 32 x 32 with Craters with Studs Underwater Pattern",
+      "category": "Parts",
+      "author": "Chris Böhnke [KnightOfTarenta]",
+      "faceCount": 7675,
+      "triCount": 6276,
+      "quadCount": 1399,
+      "sizeBytes": 570356,
+      "sceneType": "space_crater",
+      "tags": [
+        "baseplate",
+        "crater"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3947.dat",
+      "path": "parts/3947.dat",
+      "description": "Baseplate 32 x 32 with Craters",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 5360,
+      "triCount": 5142,
+      "quadCount": 218,
+      "sizeBytes": 401178,
+      "sceneType": "space_crater",
+      "tags": [
+        "baseplate",
+        "crater"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "53588.dat",
+      "path": "parts/53588.dat",
+      "description": "Baseplate 16 x 16 Raised with Shaped 10 x 10 Hole and 4 Pegholes",
+      "category": "Parts",
+      "author": "Magnus Forsberg [MagFors]",
+      "faceCount": 5346,
+      "triCount": 5060,
+      "quadCount": 286,
+      "sizeBytes": 948012,
+      "sceneType": "raised_terrain",
+      "tags": [
+        "baseplate",
+        "raised"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2359p04.dat",
+      "path": "parts/2359p04.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Curve with Rocks and Ruts Pattern",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 2351,
+      "triCount": 389,
+      "quadCount": 1962,
+      "sizeBytes": 187933,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2359p03.dat",
+      "path": "parts/2359p03.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Curve with River Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 1099,
+      "triCount": 406,
+      "quadCount": 693,
+      "sizeBytes": 61067,
+      "sceneType": "water_terrain",
+      "tags": [
+        "baseplate",
+        "road",
+        "river"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "309p02.dat",
+      "path": "parts/309p02.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Refuge with River Pattern",
+      "category": "Parts",
+      "author": "Imre Papp [ampi]",
+      "faceCount": 1075,
+      "triCount": 177,
+      "quadCount": 898,
+      "sizeBytes": 83667,
+      "sceneType": "water_terrain",
+      "tags": [
+        "baseplate",
+        "road",
+        "river"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6024p02.dat",
+      "path": "parts/6024p02.dat",
+      "description": "Baseplate 32 x 32 Canyon with Island with Blue and Yellow Stream Pattern",
+      "category": "Parts",
+      "author": "Mikkel Bech Jensen [gaia]",
+      "faceCount": 971,
+      "triCount": 289,
+      "quadCount": 682,
+      "sizeBytes": 88757,
+      "sceneType": "canyon_terrain",
+      "tags": [
+        "baseplate",
+        "stream",
+        "canyon",
+        "island"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2359p02.dat",
+      "path": "parts/2359p02.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Curve with Lagoon Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 454,
+      "triCount": 91,
+      "quadCount": 363,
+      "sizeBytes": 21868,
+      "sceneType": "water_terrain",
+      "tags": [
+        "baseplate",
+        "road",
+        "lagoon"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p03.dat",
+      "path": "parts/6099p03.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad Type 1 (Yellow) Pattern",
+      "category": "Parts",
+      "author": "Steve Bliss [sbliss]",
+      "faceCount": 351,
+      "triCount": 60,
+      "quadCount": 291,
+      "sizeBytes": 21861,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p04.dat",
+      "path": "parts/6099p04.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad Type 1 (Orange) Pattern",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 351,
+      "triCount": 60,
+      "quadCount": 291,
+      "sizeBytes": 21778,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p05.dat",
+      "path": "parts/6099p05.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad Type 2 (Orange) Pattern",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 349,
+      "triCount": 80,
+      "quadCount": 269,
+      "sizeBytes": 21624,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p07.dat",
+      "path": "parts/6099p07.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad Type 2 (Yellow) Pattern",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": 349,
+      "triCount": 80,
+      "quadCount": 269,
+      "sizeBytes": 21473,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p06.dat",
+      "path": "parts/6099p06.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad Type 3 (Orange) Pattern",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 337,
+      "triCount": 68,
+      "quadCount": 269,
+      "sizeBytes": 21069,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3857p02.dat",
+      "path": "parts/3857p02.dat",
+      "description": "Baseplate 16 x 32 with Square Corners with River and Set 6071 Dots Pattern",
+      "category": "Parts",
+      "author": "Marc Giraudet [Mad_Marc]",
+      "faceCount": 267,
+      "triCount": 40,
+      "quadCount": 227,
+      "sizeBytes": 22724,
+      "sceneType": "water_terrain",
+      "tags": [
+        "baseplate",
+        "river"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "44342p01.dat",
+      "path": "parts/44342p01.dat",
+      "description": "Baseplate 32 x 32 Road 6-Stud Curve with Yellow Road Edge Pattern",
+      "category": "Parts",
+      "author": "William Howard [WilliamH]",
+      "faceCount": 247,
+      "triCount": 22,
+      "quadCount": 225,
+      "sizeBytes": 42518,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "51542.dat",
+      "path": "parts/51542.dat",
+      "description": "Baseplate 32 x 48 Raised with Level Front",
+      "category": "Parts",
+      "author": "Christian Neumann [Wesley]",
+      "faceCount": 238,
+      "triCount": 52,
+      "quadCount": 186,
+      "sizeBytes": 28528,
+      "sceneType": "raised_terrain",
+      "tags": [
+        "baseplate",
+        "raised"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "51595p03.dat",
+      "path": "parts/51595p03.dat",
+      "description": "Baseplate 16 x 16 Driveway with Yellow Truck Pattern",
+      "category": "Parts",
+      "author": "Tim Lampmann [L4mpi]",
+      "faceCount": 215,
+      "triCount": 120,
+      "quadCount": 95,
+      "sizeBytes": 11199,
+      "sceneType": "generic_baseplate",
+      "tags": [
+        "baseplate"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2552p02.dat",
+      "path": "parts/2552p02.dat",
+      "description": "Baseplate 32 x 32 Raised with Ramp and Pit with White and Light Grey Craters Pattern",
+      "category": "Parts",
+      "author": "Damien Roux [Darats]",
+      "faceCount": 212,
+      "triCount": 47,
+      "quadCount": 165,
+      "sizeBytes": 17239,
+      "sceneType": "space_crater",
+      "tags": [
+        "baseplate",
+        "crater",
+        "raised"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "44342p02.dat",
+      "path": "parts/44342p02.dat",
+      "description": "Baseplate 32 x 32 Road 6-Stud Curve with White Road Edge Pattern",
+      "category": "Parts",
+      "author": "Sylvain Sauvage [SLS]",
+      "faceCount": 211,
+      "triCount": 82,
+      "quadCount": 129,
+      "sizeBytes": 16878,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3857p01.dat",
+      "path": "parts/3857p01.dat",
+      "description": "Baseplate 16 x 32 with Square Corners and Beach Pattern",
+      "category": "Parts",
+      "author": "Marc Giraudet [Mad_Marc]",
+      "faceCount": 206,
+      "triCount": 45,
+      "quadCount": 161,
+      "sizeBytes": 14425,
+      "sceneType": "generic_baseplate",
+      "tags": [
+        "baseplate"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3811p04.dat",
+      "path": "parts/3811p04.dat",
+      "description": "Baseplate 32 x 32 with Paradisa Island Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 202,
+      "triCount": 2,
+      "quadCount": 200,
+      "sizeBytes": 25158,
+      "sceneType": "island_terrain",
+      "tags": [
+        "baseplate",
+        "island"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "44343p02.dat",
+      "path": "parts/44343p02.dat",
+      "description": "Baseplate 32 x 32 Road 6-Stud Crossroads with Runway Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 184,
+      "triCount": 132,
+      "quadCount": 52,
+      "sizeBytes": 11490,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2361p02.dat",
+      "path": "parts/2361p02.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Crossroads w/ Runway Wide Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 176,
+      "triCount": 124,
+      "quadCount": 52,
+      "sizeBytes": 11147,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6092p01.dat",
+      "path": "parts/6092p01.dat",
+      "description": "Baseplate 32 x 32 Raised with Ramp, Pit and Stairs with Grey Stones Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 174,
+      "triCount": 49,
+      "quadCount": 125,
+      "sizeBytes": 17177,
+      "sceneType": "raised_terrain",
+      "tags": [
+        "baseplate",
+        "raised"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6092.dat",
+      "path": "parts/6092.dat",
+      "description": "Baseplate 32 x 32 Raised with Ramp, Pit and Stairs",
+      "category": "Parts",
+      "author": "Bernd Broich [bbroich]",
+      "faceCount": 174,
+      "triCount": 49,
+      "quadCount": 125,
+      "sizeBytes": 15401,
+      "sceneType": "raised_terrain",
+      "tags": [
+        "baseplate",
+        "raised"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p01.dat",
+      "path": "parts/6099p01.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad with Runway Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 164,
+      "triCount": 108,
+      "quadCount": 56,
+      "sizeBytes": 10559,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "2361p03.dat",
+      "path": "parts/2361p03.dat",
+      "description": "Baseplate 32 x 32 Road 7-Stud Crossroads w/ Runway Narrow Patt.",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 164,
+      "triCount": 112,
+      "quadCount": 52,
+      "sizeBytes": 10152,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "44336p04.dat",
+      "path": "parts/44336p04.dat",
+      "description": "Baseplate 32 x 32 Road 6-Stud Straight with White Road Edge Pattern",
+      "category": "Parts",
+      "author": "Sylvain Sauvage [SLS]",
+      "faceCount": 163,
+      "triCount": null,
+      "quadCount": 163,
+      "sizeBytes": 13684,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "44336p01.dat",
+      "path": "parts/44336p01.dat",
+      "description": "Baseplate 32 x 32 Road 6-Stud Straight with Yellow Road Edge Pattern",
+      "category": "Parts",
+      "author": "William Howard [WilliamH]",
+      "faceCount": 159,
+      "triCount": null,
+      "quadCount": 159,
+      "sizeBytes": 30497,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3867p02.dat",
+      "path": "parts/3867p02.dat",
+      "description": "Baseplate 16 x 16 with Island Pattern",
+      "category": "Parts",
+      "author": "Damien Guichard [BrickCaster]",
+      "faceCount": 153,
+      "triCount": 23,
+      "quadCount": 130,
+      "sizeBytes": 19415,
+      "sceneType": "island_terrain",
+      "tags": [
+        "baseplate",
+        "island"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "3867p01.dat",
+      "path": "parts/3867p01.dat",
+      "description": "Baseplate 16 x 16 with Island and Water Pattern",
+      "category": "Parts",
+      "author": "Andy Westrate [westrate]",
+      "faceCount": 153,
+      "triCount": 23,
+      "quadCount": 130,
+      "sizeBytes": 19361,
+      "sceneType": "island_terrain",
+      "tags": [
+        "baseplate",
+        "island"
+      ]
+    },
+    {
+      "head": "baseplate",
+      "kind": "baseplate",
+      "primary": true,
+      "filename": "6099p02.dat",
+      "path": "parts/6099p02.dat",
+      "description": "Baseplate 32 x 32 Road 9-Stud Landing Pad with Green Octagon",
+      "category": "Parts",
+      "author": "Steve Bliss [sbliss]",
+      "faceCount": 136,
+      "triCount": 20,
+      "quadCount": 116,
+      "sizeBytes": 7207,
+      "sceneType": "road_network",
+      "tags": [
+        "baseplate",
+        "road",
+        "landing_pad"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92710.dat",
+      "path": "parts/92710.dat",
+      "description": "Boat Hull Floating 28 x  8 Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 365,
+      "triCount": 270,
+      "quadCount": 95,
+      "sizeBytes": 72003,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "54101.dat",
+      "path": "parts/54101.dat",
+      "description": "Boat Hull Floating 51 x 12 Top",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 83,
+      "triCount": 12,
+      "quadCount": 71,
+      "sizeBytes": 15192,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92711.dat",
+      "path": "parts/92711.dat",
+      "description": "Boat Hull Floating 28 x  8 Deck",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 67,
+      "triCount": 14,
+      "quadCount": 53,
+      "sizeBytes": 9381,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "65417.dat",
+      "path": "parts/65417.dat",
+      "description": "Boat Hull Floating 36 x  7 x  7 Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 35,
+      "triCount": 6,
+      "quadCount": 29,
+      "sizeBytes": 7940,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "30215.dat",
+      "path": "parts/30215.dat",
+      "description": "Boat Hull Floating 52 x 16 x  5",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 35,
+      "triCount": 2,
+      "quadCount": 33,
+      "sizeBytes": 5618,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "23997.dat",
+      "path": "parts/23997.dat",
+      "description": "Boat Hull Floating 40 x 12 Bottom (Needs Work)",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 34,
+      "triCount": 4,
+      "quadCount": 30,
+      "sizeBytes": 5634,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "62791.dat",
+      "path": "parts/62791.dat",
+      "description": "Boat Hull Floating 51 x 12 with Side Bulges",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 29,
+      "triCount": 6,
+      "quadCount": 23,
+      "sizeBytes": 3640,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "65418.dat",
+      "path": "parts/65418.dat",
+      "description": "Boat Hull Floating 36 x  7 x  7 Top",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 28,
+      "triCount": 2,
+      "quadCount": 26,
+      "sizeBytes": 4416,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "18913.dat",
+      "path": "parts/18913.dat",
+      "description": "Boat Hull Floating 40 x 20 Bottom (Needs Work)",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 27,
+      "triCount": null,
+      "quadCount": 27,
+      "sizeBytes": 5469,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "57789.dat",
+      "path": "parts/57789.dat",
+      "description": "Boat Hull Floating 72 x 18 Bottom",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 21,
+      "triCount": 2,
+      "quadCount": 19,
+      "sizeBytes": 4727,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "23998.dat",
+      "path": "parts/23998.dat",
+      "description": "Boat Hull Floating 40 x 12 Deck",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 20,
+      "triCount": null,
+      "quadCount": 20,
+      "sizeBytes": 3772,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "57786.dat",
+      "path": "parts/57786.dat",
+      "description": "Boat Hull Floating 72 x 18 Deck (Needs Work)",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 16,
+      "triCount": 2,
+      "quadCount": 14,
+      "sizeBytes": 6741,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "28533.dat",
+      "path": "parts/28533.dat",
+      "description": "Boat Hull Floating 16 x  8 Bottom (Needs Work)",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 14,
+      "triCount": 2,
+      "quadCount": 12,
+      "sizeBytes": 3145,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "18912.dat",
+      "path": "parts/18912.dat",
+      "description": "Boat Hull Floating 40 x 20 Deck",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 10,
+      "triCount": null,
+      "quadCount": 10,
+      "sizeBytes": 3957,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "28535.dat",
+      "path": "parts/28535.dat",
+      "description": "Boat Hull Floating 16 x  8 Deck",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": 8,
+      "triCount": null,
+      "quadCount": 8,
+      "sizeBytes": 2040,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "73741d01.dat",
+      "path": "parts/73741d01.dat",
+      "description": "Boat Hull Floating 38 x 10 with Light Grey Decks with Fire Station Logo and White \"4020\" Sticker",
+      "category": "Parts",
+      "author": "Takeshi Takahashi [RainbowDolphin]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 989,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "2372c01d01.dat",
+      "path": "parts/2372c01d01.dat",
+      "description": "Boat Hull Floating 25 x 10 with White Deck, \"Police\" and \"4010\" Stickers",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 969,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "73741d03.dat",
+      "path": "parts/73741d03.dat",
+      "description": "Boat Hull Floating 38 x 10 with Light Grey Decks with Coast Guard (1995) Logos and White Stripes Stickers",
+      "category": "Parts",
+      "author": "Chris Böhnke [KnightOfTarenta]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 690,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "62792p01.dat",
+      "path": "parts/62792p01.dat",
+      "description": "Boat Hull Floating 51 x 12 with Side Bulges with Dark Bluish Grey Deck Pattern",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 685,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92709c01.dat",
+      "path": "parts/92709c01.dat",
+      "description": "Boat Hull Floating 28 x  8 with Dark Bluish Grey Deck",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 680,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92709c02.dat",
+      "path": "parts/92709c02.dat",
+      "description": "Boat Hull Floating 28 x  8 with Reddish Brown Deck",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 677,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "54779c01.dat",
+      "path": "parts/54779c01.dat",
+      "description": "Boat Hull Floating 51 x 12 with Light Bluish Grey Top",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 675,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "54779c02.dat",
+      "path": "parts/54779c02.dat",
+      "description": "Boat Hull Floating 51 x 12 with Dark Bluish Grey Top",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 674,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92709c03.dat",
+      "path": "parts/92709c03.dat",
+      "description": "Boat Hull Floating 28 x  8 with White Deck",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 669,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "23999p01.dat",
+      "path": "parts/23999p01.dat",
+      "description": "Boat Hull Floating 40 x 12 with Light Bluish Grey Deck Pattern",
+      "category": "Parts",
+      "author": "Massimo Maso [Sirio]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 654,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "54779.dat",
+      "path": "parts/54779.dat",
+      "description": "Boat Hull Floating 51 x 12",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 519,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "73742.dat",
+      "path": "parts/73742.dat",
+      "description": "Boat Hull Floating 51 x 12 with V-shaped Stern with Light Grey Decks",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 510,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "125c01.dat",
+      "path": "parts/125c01.dat",
+      "description": "Boat Hull Floating  6 x 24 x  3 (Complete) with Black Base",
+      "category": "Parts",
+      "author": "Michael Heidemann [mikeheide]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 500,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "54100.dat",
+      "path": "parts/54100.dat",
+      "description": "Boat Hull Floating 51 x 12 Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 496,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92709.dat",
+      "path": "parts/92709.dat",
+      "description": "Boat Hull Floating 28 x  8",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 482,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "73741.dat",
+      "path": "parts/73741.dat",
+      "description": "Boat Hull Floating 38 x 10 with Light Grey Decks",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 463,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull floating",
+      "kind": "boat-hull-floating",
+      "primary": true,
+      "filename": "92709c05.dat",
+      "path": "parts/92709c05.dat",
+      "description": "Boat Hull Floating 28 x  8 with Dark Tan Deck",
+      "category": "Parts",
+      "author": "Manfred Schaefer [Lego-Manfred]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 443,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull_floating",
+        "boat"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "2439.dat",
+      "path": "parts/2439.dat",
+      "description": "Container  2 x  2 Rubbish Bin",
+      "category": "Parts",
+      "author": "Bernd Broich [bbroich]",
+      "faceCount": 416,
+      "triCount": 150,
+      "quadCount": 266,
+      "sizeBytes": 44602,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "92926.dat",
+      "path": "parts/92926.dat",
+      "description": "Container  2 x  2 Rubbish Bin with  4 Cover Holders",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 324,
+      "triCount": 160,
+      "quadCount": 164,
+      "sizeBytes": 49310,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "u9166.dat",
+      "path": "parts/u9166.dat",
+      "description": "Container  4.5 x  4.5 x  4.5 Rubbish Bin",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 184,
+      "triCount": null,
+      "quadCount": 184,
+      "sizeBytes": 39233,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35700p02.dat",
+      "path": "parts/35700p02.dat",
+      "description": "Container  2 x  2 x  1 Crate with Medium Blue Diagonal Stripes on Four Sides Pattern",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 144,
+      "triCount": 88,
+      "quadCount": 56,
+      "sizeBytes": 7796,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "6197.dat",
+      "path": "parts/6197.dat",
+      "description": "Container  4 x  4 x  4 with Elliptical Cutout for Sink",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 128,
+      "triCount": 96,
+      "quadCount": 32,
+      "sizeBytes": 8724,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35700p01.dat",
+      "path": "parts/35700p01.dat",
+      "description": "Container  2 x  2 x  1 Crate with Metallic Light Blue Ribbon Wrapping on Four Sides Pattern",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 128,
+      "triCount": 24,
+      "quadCount": 104,
+      "sizeBytes": 7881,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "3018.dat",
+      "path": "parts/3018.dat",
+      "description": "Container  3 x  3 x  1 Salt and Pepper Shaker Bottom (Needs Work)",
+      "category": "Parts",
+      "author": "Tore Eriksson [Tore_Eriksson]",
+      "faceCount": 104,
+      "triCount": 12,
+      "quadCount": 92,
+      "sizeBytes": 13589,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "72024.dat",
+      "path": "parts/72024.dat",
+      "description": "Container  8 x  8 x  3 Cupcake",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 100,
+      "triCount": 76,
+      "quadCount": 24,
+      "sizeBytes": 10335,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "65067.dat",
+      "path": "parts/65067.dat",
+      "description": "Container  6 x  6 x  7 Arcade Game Cabinet Front",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 90,
+      "triCount": 46,
+      "quadCount": 44,
+      "sizeBytes": 8634,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "4237.dat",
+      "path": "parts/4237.dat",
+      "description": "Container  4 x  6 x  2.333 Crate",
+      "category": "Parts",
+      "author": "Joerg Sommerer [Brickaneer]",
+      "faceCount": 87,
+      "triCount": 38,
+      "quadCount": 49,
+      "sizeBytes": 8010,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35018.dat",
+      "path": "parts/35018.dat",
+      "description": "Container 22 x 16 x  6 Box Bygglek Sides",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 68,
+      "triCount": 4,
+      "quadCount": 64,
+      "sizeBytes": 9754,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35015.dat",
+      "path": "parts/35015.dat",
+      "description": "Container 16 x 11 x  6 Box Bygglek Sides",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 68,
+      "triCount": 4,
+      "quadCount": 64,
+      "sizeBytes": 8924,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "34993.dat",
+      "path": "parts/34993.dat",
+      "description": "Container 44 x 32 x 12 Box Bygglek Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 66,
+      "triCount": 8,
+      "quadCount": 58,
+      "sizeBytes": 8856,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "u1104.dat",
+      "path": "parts/u1104.dat",
+      "description": "Container  8 x  3 x  3 HO Car Showcase",
+      "category": "Parts",
+      "author": "Niels Karsdorp [nielsk]",
+      "faceCount": 63,
+      "triCount": null,
+      "quadCount": 63,
+      "sizeBytes": 9714,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35017.dat",
+      "path": "parts/35017.dat",
+      "description": "Container 22 x 16 x  6 Box Bygglek Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 62,
+      "triCount": 16,
+      "quadCount": 46,
+      "sizeBytes": 7798,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "container",
+      "kind": "container",
+      "primary": false,
+      "filename": "35020.dat",
+      "path": "parts/35020.dat",
+      "description": "Container 32 x 22 x 12 Box Bygglek Bottom",
+      "category": "Parts",
+      "author": "Philippe Hurbain [Philo]",
+      "faceCount": 58,
+      "triCount": 8,
+      "quadCount": 50,
+      "sizeBytes": 7461,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "85977.dat",
+      "path": "parts/85977.dat",
+      "description": "Train Track 4 Studs Wide Ramp",
+      "category": "Parts",
+      "author": "Ronald Vallenduuk [Duq]",
+      "faceCount": 652,
+      "triCount": 190,
+      "quadCount": 462,
+      "sizeBytes": 103509,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "85976.dat",
+      "path": "parts/85976.dat",
+      "description": "Train Track 4 Studs Wide Curved",
+      "category": "Parts",
+      "author": "Ronald Vallenduuk [Duq]",
+      "faceCount": 386,
+      "triCount": 38,
+      "quadCount": 348,
+      "sizeBytes": 64646,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "53401.dat",
+      "path": "parts/53401.dat",
+      "description": "Train Track 6 Studs Wide Straight",
+      "category": "Parts",
+      "author": "Ronald Vallenduuk [Duq]",
+      "faceCount": 56,
+      "triCount": null,
+      "quadCount": 56,
+      "sizeBytes": 7283,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "32087.dat",
+      "path": "parts/32087.dat",
+      "description": "Train Track  9V Crossing",
+      "category": "Parts",
+      "author": "Ludo Soete [ludo]",
+      "faceCount": 29,
+      "triCount": null,
+      "quadCount": 29,
+      "sizeBytes": 7805,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "2866.dat",
+      "path": "parts/2866.dat",
+      "description": "Train Track  9V Points Lever",
+      "category": "Parts",
+      "author": "Ludo Soete [ludo]",
+      "faceCount": 28,
+      "triCount": 10,
+      "quadCount": 18,
+      "sizeBytes": 6662,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "53400.dat",
+      "path": "parts/53400.dat",
+      "description": "Train Track 6 Studs Wide Curved",
+      "category": "Parts",
+      "author": "Ronald Vallenduuk [Duq]",
+      "faceCount": 24,
+      "triCount": null,
+      "quadCount": 24,
+      "sizeBytes": 14038,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "u9137.dat",
+      "path": "parts/u9137.dat",
+      "description": "Train Track 12V Tapered Crossing",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": 2,
+      "triCount": null,
+      "quadCount": 2,
+      "sizeBytes": 873,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "992.dat",
+      "path": "parts/992.dat",
+      "description": "Train Track 12V Slotted Crossing",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": 2,
+      "triCount": null,
+      "quadCount": 2,
+      "sizeBytes": 737,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "862a.dat",
+      "path": "parts/862a.dat",
+      "description": "Train Track 12V Straight Insert Type 2 with Isolation",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": 1,
+      "triCount": null,
+      "quadCount": 1,
+      "sizeBytes": 3542,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "3241a.dat",
+      "path": "parts/3241a.dat",
+      "description": "Train Track 12V Curved Insert Type 2 with Plug Sockets",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 6510,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "866.dat",
+      "path": "parts/866.dat",
+      "description": "Train Track 12V Curved Insert Type 1 (Needs Work)",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 6279,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "3241b.dat",
+      "path": "parts/3241b.dat",
+      "description": "Train Track 12V Curved Insert Type 2 without Plug Sockets",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 5970,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "3240b.dat",
+      "path": "parts/3240b.dat",
+      "description": "Train Track 12V Straight Insert Type 3",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 2980,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "3240a.dat",
+      "path": "parts/3240a.dat",
+      "description": "Train Track 12V Straight Insert Type 2",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 2686,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "861.dat",
+      "path": "parts/861.dat",
+      "description": "Train Track 12V Straight Insert Type 1",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 1843,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "train track",
+      "kind": "train-track",
+      "primary": false,
+      "filename": "3231a.dat",
+      "path": "parts/3231a.dat",
+      "description": "Train Track  4.5V Crossing Tapered",
+      "category": "Parts",
+      "author": "Tore Eriksson [Tore_Eriksson]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 1471,
+      "sceneType": "rail_network",
+      "tags": [
+        "train_track",
+        "train"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346pw01.dat",
+      "path": "parts/4346pw01.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and Vintage 'Safe Co' Pattern",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": 1467,
+      "triCount": 272,
+      "quadCount": 1195,
+      "sizeBytes": 101591,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346ps3.dat",
+      "path": "parts/4346ps3.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot with SW Gonk Droid Pattern",
+      "category": "Parts",
+      "author": "Evert-Jan Boer [ejboer]",
+      "faceCount": 1179,
+      "triCount": 986,
+      "quadCount": 193,
+      "sizeBytes": 57996,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p04.dat",
+      "path": "parts/4346p04.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Blue Globe, Yellow Box and Curved Arrows Pattern",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 771,
+      "triCount": 192,
+      "quadCount": 579,
+      "sizeBytes": 48460,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p61.dat",
+      "path": "parts/4346p61.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and Spyrius Pattern",
+      "category": "Parts",
+      "author": "Philip Peickert [mr51flip]",
+      "faceCount": 487,
+      "triCount": 130,
+      "quadCount": 357,
+      "sizeBytes": 35040,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346ps2.dat",
+      "path": "parts/4346ps2.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and Sith Pattern",
+      "category": "Parts",
+      "author": "Damien Roux [Darats]",
+      "faceCount": 292,
+      "triCount": 134,
+      "quadCount": 158,
+      "sizeBytes": 15207,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346ps1.dat",
+      "path": "parts/4346ps1.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and SW Rebel Pattern",
+      "category": "Parts",
+      "author": "Ronald Scott Moody [rmoody]",
+      "faceCount": 266,
+      "triCount": 105,
+      "quadCount": 161,
+      "sizeBytes": 14684,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p60.dat",
+      "path": "parts/4346p60.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot with Controls Pattern",
+      "category": "Parts",
+      "author": "Damien Roux [Darats]",
+      "faceCount": 234,
+      "triCount": 94,
+      "quadCount": 140,
+      "sizeBytes": 13406,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p68.dat",
+      "path": "parts/4346p68.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and MTron Pattern",
+      "category": "Parts",
+      "author": "John Van Zwieten [jvan]",
+      "faceCount": 213,
+      "triCount": 76,
+      "quadCount": 137,
+      "sizeBytes": 14908,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p05.dat",
+      "path": "parts/4346p05.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Black Dollar Sign on Yellow Circle Pattern",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 159,
+      "triCount": 66,
+      "quadCount": 93,
+      "sizeBytes": 10329,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p02.dat",
+      "path": "parts/4346p02.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Fire Logo Yellow/Orange/Red Pattern",
+      "category": "Parts",
+      "author": "Alex Taylor [anathema]",
+      "faceCount": 153,
+      "triCount": 56,
+      "quadCount": 97,
+      "sizeBytes": 10792,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "64454.dat",
+      "path": "parts/64454.dat",
+      "description": "Container Box  3 x  8 x  6.667 - Back",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 85,
+      "triCount": 36,
+      "quadCount": 49,
+      "sizeBytes": 8824,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4452.dat",
+      "path": "parts/4452.dat",
+      "description": "Container Box  6 x  6",
+      "category": "Parts",
+      "author": "Tore Eriksson [Tore_Eriksson]",
+      "faceCount": 42,
+      "triCount": 16,
+      "quadCount": 26,
+      "sizeBytes": 4619,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "64462.dat",
+      "path": "parts/64462.dat",
+      "description": "Container Box  3 x  8 x  6.667 - Front",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 36,
+      "triCount": 6,
+      "quadCount": 30,
+      "sizeBytes": 3806,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4461.dat",
+      "path": "parts/4461.dat",
+      "description": "Container Box  4 x  4 x  2 with Hollowed-Out Semi-Circle",
+      "category": "Parts",
+      "author": "Tore Eriksson [Tore_Eriksson]",
+      "faceCount": 22,
+      "triCount": null,
+      "quadCount": 22,
+      "sizeBytes": 3075,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p03.dat",
+      "path": "parts/4346p03.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Slot and Mailbox Pattern",
+      "category": "Parts",
+      "author": "Steffen [Steffen]",
+      "faceCount": 20,
+      "triCount": 8,
+      "quadCount": 12,
+      "sizeBytes": 1553,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "container box",
+      "kind": "container",
+      "primary": false,
+      "filename": "4346p06.dat",
+      "path": "parts/4346p06.dat",
+      "description": "Container Box  2 x  2 x  2 Door with Black Dollar Sign on Yellow Badge Pattern",
+      "category": "Parts",
+      "author": "Chris Böhnke [KnightOfTarenta]",
+      "faceCount": 15,
+      "triCount": 2,
+      "quadCount": 13,
+      "sizeBytes": 1305,
+      "sceneType": "freight_unit",
+      "tags": [
+        "container_box",
+        "container"
+      ]
+    },
+    {
+      "head": "boat hull",
+      "kind": "boat-hull",
+      "primary": true,
+      "filename": "50820.dat",
+      "path": "parts/50820.dat",
+      "description": "Boat Hull 48 x  6 x  5 Top",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 64,
+      "triCount": 4,
+      "quadCount": 60,
+      "sizeBytes": 6962,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull",
+      "kind": "boat-hull",
+      "primary": true,
+      "filename": "50821.dat",
+      "path": "parts/50821.dat",
+      "description": "Boat Hull 48 x  6 x  5 Bottom",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": 50,
+      "triCount": 6,
+      "quadCount": 44,
+      "sizeBytes": 7193,
+      "sceneType": "ship_hull_bottom",
+      "tags": [
+        "boat_hull",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull",
+      "kind": "boat-hull",
+      "primary": true,
+      "filename": "52572c01.dat",
+      "path": "parts/52572c01.dat",
+      "description": "Boat Hull 48 x  6 x  5 with Black Top",
+      "category": "Parts",
+      "author": "Willy Tschager [Holly-Wood]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 463,
+      "sceneType": "ship_hull_top",
+      "tags": [
+        "boat_hull",
+        "boat"
+      ]
+    },
+    {
+      "head": "boat hull",
+      "kind": "boat-hull",
+      "primary": true,
+      "filename": "52572.dat",
+      "path": "parts/52572.dat",
+      "description": "Boat Hull 48 x  6 x  5",
+      "category": "Parts",
+      "author": "Gerald Lasser [GeraldLasser]",
+      "faceCount": null,
+      "triCount": null,
+      "quadCount": null,
+      "sizeBytes": 398,
+      "sceneType": "ship_hull",
+      "tags": [
+        "boat_hull",
+        "boat"
+      ]
+    }
+  ]
+}

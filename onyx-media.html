@@ -1,0 +1,1065 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ONYX MEDIA - Narrative Thinking Tool</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --theme-bg: #0b1121;
+            --theme-panel: #0f172a;
+            --theme-surface: #1e293b;
+            --theme-border: #334155;
+            --theme-accent: #fbbf24;
+            --theme-accent-glow: rgba(251, 191, 36, 0.4);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--theme-bg);
+            color: #e2e8f0;
+            overflow: hidden;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* HORIZONTAL TIMELINE (Top 30%) */
+        .timeline-track {
+            height: 30vh;
+            background: var(--theme-panel);
+            border-bottom: 2px solid var(--theme-border);
+            display: flex;
+            flex-direction: column;
+            overflow-x: auto;
+            overflow-y: hidden;
+        }
+
+        .timeline-header {
+            padding: 1rem;
+            border-bottom: 1px solid var(--theme-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .story-title {
+            font-size: 1.5rem;
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .timeline-canvas {
+            flex: 1;
+            position: relative;
+            padding: 2rem;
+            min-width: max-content;
+        }
+
+        .timeline-path {
+            position: absolute;
+            top: 50%;
+            left: 2rem;
+            right: 2rem;
+            height: 2px;
+            background: var(--theme-border);
+            transform: translateY(-50%);
+        }
+
+        .scene-node {
+            position: absolute;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 80px;
+            height: 80px;
+            background: var(--theme-surface);
+            border: 3px solid var(--theme-border);
+            border-radius: 8px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s;
+            z-index: 10;
+        }
+
+        .scene-node:hover {
+            border-color: var(--theme-accent);
+            transform: translate(-50%, -50%) scale(1.1);
+            box-shadow: 0 0 20px var(--theme-accent-glow);
+        }
+
+        .scene-node.active {
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 30px var(--theme-accent-glow);
+        }
+
+        .scene-icon {
+            width: 40px;
+            height: 40px;
+            margin-bottom: 4px;
+        }
+
+        .scene-label {
+            font-size: 10px;
+            color: #94a3b8;
+        }
+
+        .timepoint-marker {
+            position: absolute;
+            top: 20%;
+            bottom: 20%;
+            width: 2px;
+            background: var(--theme-border);
+            opacity: 0.5;
+        }
+
+        .timepoint-label {
+            position: absolute;
+            top: 10%;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 9px;
+            color: #64748b;
+            white-space: nowrap;
+        }
+
+        .shift-arrow {
+            position: absolute;
+            top: 50%;
+            height: 2px;
+            background: var(--theme-accent);
+            transform-origin: left center;
+            pointer-events: none;
+        }
+
+        .shift-arrow::after {
+            content: '';
+            position: absolute;
+            right: 0;
+            top: -4px;
+            width: 0;
+            height: 0;
+            border-left: 8px solid var(--theme-accent);
+            border-top: 5px solid transparent;
+            border-bottom: 5px solid transparent;
+        }
+
+        .fork-branch {
+            position: absolute;
+            top: 50%;
+            width: 2px;
+            background: #22d3ee;
+            transform-origin: top center;
+        }
+
+        /* GRID GALLERY (Bottom 70%) */
+        .grid-gallery {
+            flex: 1;
+            background: var(--theme-bg);
+            display: flex;
+            overflow-x: auto;
+            overflow-y: hidden;
+            gap: 2rem;
+            padding: 2rem;
+        }
+
+        .grid-panel {
+            flex: 0 0 500px;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .grid-panel-header {
+            text-align: center;
+        }
+
+        .grid-panel-title {
+            font-size: 14px;
+            font-weight: bold;
+            color: var(--theme-accent);
+        }
+
+        .grid-panel-subtitle {
+            font-size: 10px;
+            color: #64748b;
+        }
+
+        /* CHAT INPUT BENEATH GRIDS */
+        .scene-chat {
+            padding: 0.75rem;
+            background: var(--theme-panel);
+            border-top: 1px solid var(--theme-border);
+            border-radius: 0 0 8px 8px;
+        }
+
+        .scene-chat-input {
+            width: 100%;
+            background: var(--theme-bg);
+            border: 1px solid var(--theme-border);
+            color: #e2e8f0;
+            padding: 0.5rem;
+            border-radius: 4px;
+            font-size: 10px;
+            font-family: 'JetBrains Mono', monospace;
+            resize: none;
+            min-height: 32px;
+            max-height: 80px;
+            transition: all 0.2s;
+        }
+
+        .scene-chat-input:focus {
+            outline: none;
+            border-color: var(--theme-accent);
+            box-shadow: 0 0 8px var(--theme-accent-glow);
+        }
+
+        /* SHARPER GRIDS */
+        .grid-container {
+            aspect-ratio: 1;
+            background: var(--theme-panel);
+            border: 3px solid var(--theme-border);
+            border-radius: 8px;
+            padding: 8px;
+            position: relative;
+        }
+
+        .grid-overlay {
+            background-image:
+                linear-gradient(var(--theme-border) 2px, transparent 2px),
+                linear-gradient(90deg, var(--theme-border) 2px, transparent 2px);
+            background-size: 11.11% 11.11%;
+            opacity: 0.3;
+        }
+
+        .grid-cells {
+            position: absolute;
+            inset: 8px;
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 2px;
+        }
+
+        .grid-cell {
+            background: var(--theme-surface);
+            border: 1px solid var(--theme-border);
+            border-radius: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 10px;
+            color: #64748b;
+            position: relative;
+        }
+
+        .grid-cell:hover {
+            border-color: var(--theme-accent);
+            background: rgba(251, 191, 36, 0.1);
+        }
+
+        .grid-cell.occupied {
+            border-color: var(--theme-accent);
+            background: rgba(251, 191, 36, 0.2);
+        }
+
+        .node-instance {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+        }
+
+        /* ENTITY THREADS */
+        .entity-thread {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 5;
+        }
+
+        .thread-line {
+            stroke-width: 3;
+            stroke-linecap: round;
+            fill: none;
+            opacity: 0.6;
+        }
+
+        /* SIDEBAR (Collapsed by default) */
+        .sidebar {
+            position: fixed;
+            right: -320px;
+            top: 0;
+            width: 320px;
+            height: 100vh;
+            background: var(--theme-panel);
+            border-left: 2px solid var(--theme-border);
+            transition: right 0.3s;
+            z-index: 100;
+            overflow-y: auto;
+        }
+
+        .sidebar.open {
+            right: 0;
+        }
+
+        .sidebar-toggle {
+            position: fixed;
+            right: 1rem;
+            top: 1rem;
+            width: 40px;
+            height: 40px;
+            background: var(--theme-surface);
+            border: 2px solid var(--theme-border);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 101;
+        }
+
+        .sidebar-toggle:hover {
+            border-color: var(--theme-accent);
+        }
+    </style>
+</head>
+
+<body>
+    <!-- Toast container for notifications -->
+    <div id="toast-container"
+        style="position: fixed; bottom: 2rem; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 0.5rem;">
+    </div>
+
+    <!-- SIDEBAR TOGGLE -->
+    <div class="sidebar-toggle" onclick="document.querySelector('.sidebar').classList.toggle('open')">
+        <i class="fas fa-bars"></i>
+    </div>
+
+    <!-- HORIZONTAL TIMELINE (Top 30%) -->
+    <div class="timeline-track">
+        <div class="timeline-header">
+            <div class="story-title" id="story-title">Untitled Story</div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button onclick="TIMELINE.addScene()"
+                    style="padding: 0.5rem 1rem; background: var(--theme-accent); color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    <i class="fas fa-plus"></i> Scene
+                </button>
+                <button onclick="TIMELINE.fork()"
+                    style="padding: 0.5rem 1rem; background: #22d3ee; color: #000; border: none; border-radius: 4px; cursor: pointer; font-weight: bold;">
+                    <i class="fas fa-code-branch"></i> Fork
+                </button>
+            </div>
+        </div>
+        <div class="timeline-canvas" id="timeline-canvas">
+            <div class="timeline-path"></div>
+            <!-- Scene nodes, timepoint markers, and shift arrows rendered here -->
+        </div>
+    </div>
+
+    <!-- GRID GALLERY (Bottom 70%) -->
+    <div class="grid-gallery" id="grid-gallery">
+        <!-- Grid panels rendered here -->
+    </div>
+
+    <!-- SIDEBAR (Collapsed by default) -->
+    <aside class="sidebar">
+        <div style="padding: 1.5rem; border-bottom: 2px solid var(--theme-border);">
+            <h2 style="font-size: 1.25rem; font-weight: bold; margin-bottom: 1rem;">ONYX MEDIA</h2>
+            <p style="font-size: 0.75rem; color: #64748b;">Narrative Thinking Tool</p>
+        </div>
+
+        <div style="padding: 1rem;">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem;">Story
+                Info</div>
+            <input id="story-title-input" type="text"
+                style="width: 100%; background: var(--theme-bg); border: 1px solid var(--theme-border); border-radius: 4px; padding: 0.5rem; color: #e2e8f0; font-size: 0.875rem; margin-bottom: 0.5rem;"
+                placeholder="Story Title" onchange="TIMELINE.updateStoryTitle(this.value)">
+            <textarea id="story-desc-input"
+                style="width: 100%; background: var(--theme-bg); border: 1px solid var(--theme-border); border-radius: 4px; padding: 0.5rem; color: #e2e8f0; font-size: 0.875rem; resize: none;"
+                rows="3" placeholder="Story Description" onchange="TIMELINE.updateStoryDesc(this.value)"></textarea>
+        </div>
+
+        <div style="padding: 1rem; border-top: 1px solid var(--theme-border);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem;">Entity
+                Palette</div>
+            <div id="tools-list" style="display: flex; flex-direction: column; gap: 0.5rem;"></div>
+        </div>
+
+        <div style="padding: 1rem; border-top: 1px solid var(--theme-border);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem;">Entity
+                Registry</div>
+            <div id="entity-registry" style="max-height: 200px; overflow-y: auto;"></div>
+        </div>
+
+        <div style="padding: 1rem; border-top: 1px solid var(--theme-border);">
+            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.5rem;">Help
+            </div>
+            <div style="font-size: 0.75rem; color: #64748b; line-height: 1.5;">
+                <p style="margin-bottom: 0.5rem;"><strong style="color: #e2e8f0;">Timeline:</strong> Click scene nodes
+                    to navigate</p>
+                <p style="margin-bottom: 0.5rem;"><strong style="color: #e2e8f0;">Grid Gallery:</strong> All scenes
+                    visible at once</p>
+                <p style="margin-bottom: 0.5rem;"><strong style="color: #e2e8f0;">Entities:</strong> Click to highlight
+                    across scenes</p>
+                <p><strong style="color: #e2e8f0;">Forks:</strong> Branch from any scene</p>
+            </div>
+        </div>
+    </aside>
+
+    <script>
+        // =========================================
+        // SCENE MODEL (Entity-based)
+        // =========================================
+        class Scene {
+            constructor(id, timestamp, title = '', description = '') {
+                this.id = id;
+                this.timestamp = timestamp;
+                this.title = title;
+                this.description = description;
+                this.entityInstances = [];  // [{entityId, x, y}]
+                this.parentScene = null;
+                this.forkScenes = [];
+            }
+
+            addEntity(entityId, x, y) {
+                this.entityInstances.push({ entityId, x, y });
+                ENTITIES.addAppearance(entityId, this.id, x, y);
+            }
+
+            removeEntity(entityId) {
+                this.entityInstances = this.entityInstances.filter(ei => ei.entityId !== entityId);
+                ENTITIES.removeAppearance(entityId, this.id);
+            }
+
+            getNodes() {
+                // Convert entity instances to renderable nodes
+                return this.entityInstances.map(ei => {
+                    const entity = ENTITIES.findById(ei.entityId);
+                    return entity ? {
+                        id: ei.entityId,
+                        type: entity.type,
+                        icon: entity.icon,
+                        label: entity.label,
+                        x: ei.x,
+                        y: ei.y
+                    } : null;
+                }).filter(Boolean);
+            }
+
+            clone() {
+                const cloned = new Scene(`${this.id}_fork_${Date.now()}`, this.timestamp, `${this.title} (Fork)`, this.description);
+                // Clone entity instances (same entities, new positions)
+                this.entityInstances.forEach(ei => {
+                    cloned.addEntity(ei.entityId, ei.x, ei.y);
+                });
+                cloned.parentScene = this.id;
+                return cloned;
+            }
+        }
+
+        // =========================================
+        // STATE (with Entity Registry)
+        // =========================================
+        const STATE = {
+            entities: [],           // Canonical entity registry
+            scenes: [],             // Scene timeline
+            currentTimestamp: 0,
+            activeFork: null,
+            viewMode: 'single',
+            selectedEntity: null    // For entity highlighting
+        };
+
+        // =========================================
+        // ENTITY MANAGER
+        // =========================================
+        const ENTITIES = {
+            create(type, label) {
+                const entity = {
+                    id: `e_${Date.now()}_${Math.random()}`,
+                    type: type.toLowerCase(),
+                    icon: type,
+                    label: label,
+                    appearances: []  // Array of {sceneId, x, y}
+                };
+                STATE.entities.push(entity);
+                return entity;
+            },
+
+            findById(id) {
+                return STATE.entities.find(e => e.id === id);
+            },
+
+            addAppearance(entityId, sceneId, x, y) {
+                const entity = this.findById(entityId);
+                if (entity) {
+                    entity.appearances.push({ sceneId, x, y });
+                }
+            },
+
+            removeAppearance(entityId, sceneId) {
+                const entity = this.findById(entityId);
+                if (entity) {
+                    entity.appearances = entity.appearances.filter(a => a.sceneId !== sceneId);
+                }
+            },
+
+            getAppearances(entityId) {
+                const entity = this.findById(entityId);
+                return entity ? entity.appearances : [];
+            },
+
+            getScenesFor(entityId) {
+                const appearances = this.getAppearances(entityId);
+                return appearances.map(a => STATE.scenes.find(s => s.id === a.sceneId)).filter(Boolean);
+            }
+        };
+
+        // =========================================
+        // GRID
+        // =========================================
+        const GRID = {
+            center(col, row) {
+                const step = 100 / 9;
+                return { x: (col + 0.5) * step, y: (row + 0.5) * step };
+            },
+            snap(x, y) {
+                const step = 100 / 9;
+                const col = Math.max(0, Math.min(8, Math.round(x / step - 0.5)));
+                const row = Math.max(0, Math.min(8, Math.round(y / step - 0.5)));
+                return this.center(col, row);
+            }
+        };
+
+        // =========================================
+        // ICONS (From onyx-storytelling.html)
+        // =========================================
+        const ICONS = {
+            getIsoCube(color = "blue", opacity = 1) {
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                    red: { top: '#f87171', left: '#ef4444', right: '#dc2626' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' }
+                };
+                const c = colors[color] || colors.blue;
+                return `
+                <svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-lg" style="opacity: ${opacity}">
+                    <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1" />
+                </svg>`;
+            },
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('green')}<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-yellow-400 animate-pulse"><i class="fas fa-bullseye"></i></div></div>`,
+            Obstacle: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('red')}<div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-full bg-red-400"></div></div>`,
+            Morphism: () => `<div class="relative w-full h-full flex items-center justify-between px-1"><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div><div class="flex-1 h-0.5 bg-cyan-400 mx-1 relative"><div class="absolute right-0 -top-1 w-0 h-0 border-l-4 border-l-cyan-400 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div></div><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div><div class="absolute z-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"><i class="fas fa-bolt w-5 h-5 fill-current"></i></div><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><svg class="absolute inset-0 w-full h-full pointer-events-none"><path d="M14 26 C 14 26, 20 20, 26 14" stroke="#c084fc" stroke-width="2" fill="none" stroke-linecap="round" /><polygon points="26 14, 22 15, 25 18" fill="#c084fc" /></svg></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4">${ICONS.getIsoCube('cyan')}</div><div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[#0f172a] rounded-full border border-cyan-500 flex items-center justify-center"><i class="fas fa-clock w-3 h-3 text-cyan-400"></i></div></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center p-1"><div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-purple-400"></div><div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-purple-400"></div><div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-purple-400"></div><div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-purple-400"></div><div class="flex gap-0.5"><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div></div></div>`,
+            Story: () => `<div class="relative w-full h-full flex flex-col items-center justify-start pt-1"><div class="w-4 h-4 z-10">${ICONS.getIsoCube('purple')}</div><div class="w-0.5 h-2 bg-purple-500/50"></div><div class="w-full h-0.5 bg-purple-500/50 relative"><div class="absolute left-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute right-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute left-1/2 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full -translate-x-1/2"></div></div><div class="flex gap-1 mt-2"><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div></div></div>`
+        };
+
+        // =========================================
+        // TIMELINE
+        // =========================================
+        const TIMELINE = {
+            init() {
+                const scene0 = new Scene('sc_init', 0, 'Opening', 'The story begins');
+                const pos1 = GRID.center(4, 4);
+                // Create first entity
+                const originEntity = ENTITIES.create('Core', 'Origin');
+                scene0.addEntity(originEntity.id, pos1.x, pos1.y);
+                STATE.scenes.push(scene0);
+                this.render();
+                this.updateDisplay();
+            },
+
+            getCurrentScene() {
+                return STATE.scenes.find(s => s.timestamp === STATE.currentTimestamp && !STATE.activeFork) ||
+                    STATE.scenes.find(s => s.id === STATE.activeFork) ||
+                    STATE.scenes[0];
+            },
+
+            prev() {
+                if (STATE.currentTimestamp > 0) {
+                    STATE.currentTimestamp--;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            next() {
+                const max = Math.max(...STATE.scenes.map(s => s.timestamp));
+                if (STATE.currentTimestamp < max) {
+                    STATE.currentTimestamp++;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            addScene() {
+                const current = this.getCurrentScene();
+                const newT = STATE.currentTimestamp + 1;
+                const newScene = new Scene(`sc_${Date.now()}`, newT, `Scene ${newT + 1}`, '');
+                newScene.parentScene = current.id;
+                // Inherit entity instances from current scene
+                current.entityInstances.forEach(ei => {
+                    newScene.addEntity(ei.entityId, ei.x, ei.y);
+                });
+                STATE.scenes.push(newScene);
+                STATE.currentTimestamp = newT;
+                STATE.activeFork = null;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('New scene created');
+            },
+
+            fork() {
+                const current = this.getCurrentScene();
+                const forked = current.clone();
+                current.forkScenes.push(forked.id);
+                STATE.scenes.push(forked);
+                STATE.activeFork = forked.id;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('Scene forked');
+            },
+
+            selectScene(sceneId) {
+                const scene = STATE.scenes.find(s => s.id === sceneId);
+                if (scene) {
+                    STATE.currentTimestamp = scene.timestamp;
+                    STATE.activeFork = scene.parentScene ? sceneId : null;
+                    this.updateDisplay();
+                }
+            },
+
+            updateSceneTitle(title) {
+                this.getCurrentScene().title = title;
+                this.updateDisplay();
+            },
+
+            updateSceneDesc(desc) {
+                this.getCurrentScene().description = desc;
+                this.updateDisplay();
+            },
+
+            updateDisplay() {
+                const scene = TIMELINE.getCurrentScene();
+                // No scene title/desc inputs in new UI - those are in sidebar story info
+                document.getElementById('story-title').textContent = 'Untitled Story';
+
+                // Render horizontal timeline
+                RENDERER.renderTimeline();
+
+                // Render grid gallery
+                RENDERER.renderGridGallery();
+            },
+
+            render() {
+                // Called when timeline structure changes (scenes added/removed)
+                RENDERER.renderTimeline();
+                RENDERER.renderGridGallery();
+            },
+
+            updateStoryTitle(title) {
+                document.getElementById('story-title').textContent = title;
+            },
+
+            updateStoryDesc(desc) {
+                // Store in STATE if needed
+            }
+        };
+
+        // =========================================
+        // VIEW MODES
+        // =========================================
+        const VIEW = {
+            setMode(mode) {
+                STATE.viewMode = mode;
+                document.getElementById('view-single').className = mode === 'single' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-meta').className = mode === 'meta' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-fork').className = mode === 'fork' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+
+                document.getElementById('view-single-content').classList.toggle('hidden', mode !== 'single');
+                document.getElementById('view-meta-content').classList.toggle('hidden', mode !== 'meta');
+                document.getElementById('view-fork-content').classList.toggle('hidden', mode !== 'fork');
+
+                if (mode === 'meta') this.renderMeta();
+                if (mode === 'fork') this.renderForks();
+            },
+
+            renderMeta() {
+                const container = document.getElementById('meta-grid');
+                container.innerHTML = STATE.scenes.filter(s => !s.parentScene).map(scene => {
+                    // Check if scene contains selected entity
+                    const containsEntity = STATE.selectedEntity &&
+                        scene.entityInstances.some(ei => ei.entityId === STATE.selectedEntity);
+                    const borderClass = containsEntity ? 'border-yellow-500 bg-yellow-500/5' : 'border-slate-700 hover:border-yellow-500';
+
+                    return `
+                    <div class="border ${borderClass} rounded-lg p-4 transition cursor-pointer" onclick="VIEW.setMode('single'); TIMELINE.selectScene('${scene.id}')">
+                        <div class="text-xs text-slate-400 mb-1">T${scene.timestamp}</div>
+                        <div class="text-lg font-bold mb-2">${scene.title}</div>
+                        <div class="border border-slate-700 rounded mb-2 aspect-square">
+                            ${this.renderMiniGrid(scene)}
+                        </div>
+                        <div class="text-xs text-slate-400">${scene.entityInstances.length} entities</div>
+                        ${scene.forkScenes.length ? `<div class="text-xs text-cyan-400 mt-1"><i class="fas fa-code-branch mr-1"></i>${scene.forkScenes.length} forks</div>` : ''}
+                        ${containsEntity ? '<div class="text-xs text-yellow-500 mt-1"><i class="fas fa-star mr-1"></i>Contains selected</div>' : ''}
+                    </div>
+                `}).join('');
+            },
+
+            renderForks() {
+                const current = TIMELINE.getCurrentScene();
+                const parent = current.parentScene ? STATE.scenes.find(s => s.id === current.parentScene) : current;
+                const forks = STATE.scenes.filter(s => s.parentScene === parent.id);
+
+                const container = document.getElementById('fork-comparison');
+                const scenes = [parent, ...forks];
+
+                container.innerHTML = scenes.map(scene => `
+                    <div class="border border-slate-700 rounded-lg p-4 min-w-[400px]">
+                        <div class="text-sm text-slate-400 mb-1">${scene.parentScene ? 'FORK' : 'MAIN'}</div>
+                        <div class="text-xl font-bold mb-3">${scene.title}</div>
+                        <div class="border border-slate-700 rounded" style="height: 400px;">
+                            ${this.renderMiniGrid(scene, true)}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">${scene.entityInstances.length} entities</div>
+                    </div>
+                `).join('');
+            },
+
+            renderMiniGrid(scene, large = false) {
+                const size = large ? 40 : 25;
+                return `
+                    <svg viewBox="0 0 900 900" class="w-full h-full">
+                        <defs>
+                            <pattern id="grid-${scene.id}" width="100" height="100" patternUnits="userSpaceOnUse">
+                                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#334155" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="900" height="900" fill="url(#grid-${scene.id})"/>
+                        ${scene.getNodes().map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const cx = node.x * 9;
+                    const cy = node.y * 9;
+                    return `
+                                <g transform="translate(${cx - size / 2}, ${cy - size / 2})">
+                                    <foreignObject width="${size}" height="${size}">
+                                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${size}px;height:${size}px;">
+                                            ${iconFn()}
+                                        </div>
+                                    </foreignObject>
+                                </g>
+                            `;
+                }).join('')}
+                    </svg>
+                `;
+            }
+        };
+
+        // =========================================
+        // RENDERER (Horizontal Timeline + Grid Gallery)
+        // =========================================
+        const RENDERER = {
+            renderTimeline() {
+                const canvas = document.getElementById('timeline-canvas');
+                if (!canvas) return;
+
+                //... Remove old content except the path
+                const path = canvas.querySelector('.timeline-path');
+                canvas.innerHTML = '';
+                if (path) canvas.appendChild(path);
+
+                // Calculate positions (150px spacing between scenes)
+                const spacing = 150;
+                const startX = 100;
+
+                // Render timepoint markers and scene nodes
+                const byTimestamp = {};
+                STATE.scenes.forEach(s => {
+                    if (!byTimestamp[s.timestamp]) byTimestamp[s.timestamp] = [];
+                    byTimestamp[s.timestamp].push(s);
+                });
+
+                Object.keys(byTimestamp).sort((a, b) => Number(a) - Number(b)).forEach((t, index) => {
+                    const x = startX + (index * spacing);
+                    const scenes = byTimestamp[t];
+                    const mainScene = scenes.find(s => !s.parentScene) || scenes[0];
+
+                    // Timepoint marker
+                    const marker = document.createElement('div');
+                    marker.className = 'timepoint-marker';
+                    marker.style.left = `${x}px`;
+                    canvas.appendChild(marker);
+
+                    const label = document.createElement('div');
+                    label.className = 'timepoint-label';
+                    label.style.left = `${x}px`;
+                    label.textContent = `T${t}`;
+                    canvas.appendChild(label);
+
+                    // Scene node
+                    const node = document.createElement('div');
+                    node.className = `scene-node ${STATE.currentTimestamp == t && !STATE.activeFork ? 'active' : ''}`;
+                    node.style.left = `${x}px`;
+                    node.onclick = () => TIMELINE.selectScene(mainScene.id);
+
+                    const iconDiv = document.createElement('div');
+                    iconDiv.className = 'scene-icon';
+                    iconDiv.innerHTML = ICONS.Scene();
+                    node.appendChild(iconDiv);
+
+                    const sceneLabelDiv = document.createElement('div');
+                    sceneLabelDiv.className = 'scene-label';
+                    sceneLabelDiv.textContent = mainScene.title || `Scene ${Number(t) + 1}`;
+                    node.appendChild(sceneLabelDiv);
+
+                    canvas.appendChild(node);
+
+                    // Shift arrow from previous scene
+                    if (index > 0) {
+                        const prevX = startX + ((index - 1) * spacing);
+                        const arrow = document.createElement('div');
+                        arrow.className = 'shift-arrow';
+                        arrow.style.left = `${prevX + 40}px`; // Start from edge of previous node
+                        arrow.style.width = `${spacing - 80}px`;
+                        canvas.appendChild(arrow);
+                    }
+
+                    // Fork branches
+                    const forks = scenes.filter(s => s.parentScene);
+                    forks.forEach((fork, forkIndex) => {
+                        const forkY = 60 + ((forkIndex + 1) * 100);
+
+                        // Vertical branch line
+                        const branch = document.createElement('div');
+                        branch.className = 'fork-branch';
+                        branch.style.left = `${x}px`;
+                        branch.style.height = `${forkY}px`;
+                        canvas.appendChild(branch);
+
+                        // Fork scene node
+                        const forkNode = document.createElement('div');
+                        forkNode.className = `scene-node ${STATE.activeFork === fork.id ? 'active' : ''}`;
+                        forkNode.style.left = `${x}px`;
+                        forkNode.style.top = `calc(50% + ${forkY}px)`;
+                        forkNode.style.borderColor = '#22d3ee';
+                        forkNode.onclick = () => TIMELINE.selectScene(fork.id);
+
+                        const forkIconDiv = document.createElement('div');
+                        forkIconDiv.className = 'scene-icon';
+                        forkIconDiv.innerHTML = ICONS.Scene();
+                        forkNode.appendChild(forkIconDiv);
+
+                        const forkLabelDiv = document.createElement('div');
+                        forkLabelDiv.className = 'scene-label';
+                        forkLabelDiv.textContent = fork.title;
+                        forkLabelDiv.style.color = '#22d3ee';
+                        forkNode.appendChild(forkLabelDiv);
+
+                        canvas.appendChild(forkNode);
+                    });
+                });
+            },
+
+            renderGridGallery() {
+                const gallery = document.getElementById('grid-gallery');
+                if (!gallery) return;
+
+                // Show all main scenes (not forks) side-by-side
+                const mainScenes = STATE.scenes.filter(s => !s.parentScene).sort((a, b) => a.timestamp - b.timestamp);
+
+                gallery.innerHTML = mainScenes.map(scene => {
+                    const isActive = TIMELINE.getCurrentScene().id === scene.id;
+                    return `
+                        <div class="grid-panel" data-scene-id="${scene.id}">
+                            <div class="grid-panel-header">
+                                <div class="grid-panel-title">T${scene.timestamp} - ${scene.title || `Scene ${scene.timestamp + 1}`}</div>
+                                <div class="grid-panel-subtitle">${scene.entityInstances.length} entities</div>
+                            </div>
+                            <div class="grid-container ${isActive ? 'border-yellow-500' : ''}">
+                                <div class="grid-overlay"></div>
+                                <div class="grid-cells" id="grid-cells-${scene.id}">
+                                    ${this.renderGridCells(scene)}
+                                </div>
+                                ${this.renderEntityNodes(scene)}
+                            </div>
+                            <div class="scene-chat">
+                                <textarea 
+                                    class="scene-chat-input" 
+                                    placeholder="Notes, ideas, observations for this scene..."
+                                    data-scene-id="${scene.id}"
+                                    onkeydown="if(event.key==='Enter' && event.shiftKey) { event.preventDefault(); /* TODO: Process scene note */ }"
+                                ></textarea>
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            renderGridCells(scene) {
+                return Array(81).fill(0).map((_, i) => `<div class="grid-cell" data-cell="${i}"></div>`).join('');
+            },
+
+            renderEntityNodes(scene) {
+                const nodes = scene.getNodes();
+                return nodes.map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const isSelected = STATE.selectedEntity === node.id;
+                    return `
+                        <div class="node-instance" style="left: ${node.x}%; top: ${node.y}%; width: 40px; height: 40px;">
+                            <div class="${isSelected ? 'ring-4 ring-yellow-500/50 rounded' : ''}">
+                                ${iconFn()}
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            nodes() {
+                const scene = TIMELINE.getCurrentScene();
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = scene.getNodes().map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const isHighlighted = STATE.selectedEntity === node.id;
+                    return `
+                    <div class="node-instance ${isHighlighted ? 'ring-4 ring-yellow-500/50' : ''}" style="left: ${node.x}%; top: ${node.y}%;">
+                        <div class="w-16 h-16 ${isHighlighted ? 'scale-110 transition-transform' : ''}">${iconFn()}</div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-slate-900/90 border ${isHighlighted ? 'border-yellow-500 text-yellow-400' : 'border-cyan-500/30 text-cyan-400'} rounded text-[10px] pointer-events-none">
+                            ${node.label}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        };
+
+        // =========================================
+        // SIDEBAR
+        // =========================================
+        const SIDEBAR = {
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity', desc: 'Character or object' },
+                    { label: 'Core', icon: 'Core', desc: 'Central theme' },
+                    { label: 'Goal', icon: 'Goal', desc: 'Desired state' },
+                    { label: 'Obstacle', icon: 'Obstacle', desc: 'Blocker or conflict' },
+                    { label: 'Morphism', icon: 'Morphism', desc: 'Transformation' },
+                    { label: 'Shift', icon: 'Shift', desc: 'State change' },
+                    { label: 'Location', icon: 'Location', desc: 'Place or setting' },
+                    { label: 'Timepoint', icon: 'Timepoint', desc: 'Temporal marker' },
+                    { label: 'Scene', icon: 'Scene', desc: 'Container frame' },
+                    { label: 'Story', icon: 'Story', desc: 'Meta-narrative' }
+                ];
+
+                document.getElementById('tools-list').innerHTML = tools.map(tool => `
+                    <div style="display: flex; align-items: center; gap: 0.5rem; padding: 0.5rem; border: 1px solid var(--theme-border); border-radius: 6px; background: var(--theme-surface); cursor: pointer; transition: all 0.2s;"
+                         onclick="SIDEBAR.spawnNode('${tool.icon}', '${tool.label}')" 
+                         title="${tool.desc}"
+                         onmouseover="this.style.borderColor='var(--theme-accent)'; this.style.transform='translateX(4px)';"
+                         onmouseout="this.style.borderColor='var(--theme-border)'; this.style.transform='translateX(0)';">
+                        <div style="width: 24px; height: 24px;">${ICONS[tool.icon]()}</div>
+                        <span style="font-size: 12px; flex: 1;">${tool.label}</span>
+                        <i class="fas fa-plus" style="font-size: 10px; color: #64748b;"></i>
+                    </div>
+                `).join('');
+            },
+
+            spawnNode(type, label) {
+                const scene = TIMELINE.getCurrentScene();
+                const pos = GRID.snap(50 + (Math.random() * 40 - 20), 50 + (Math.random() * 40 - 20));
+                // Create canonical entity
+                const entity = ENTITIES.create(type, label);
+                // Add instance to current scene
+                scene.addEntity(entity.id, pos.x, pos.y);
+                // Render both timeline and gallery
+                RENDERER.renderTimeline();
+                RENDERER.renderGridGallery();
+                this.renderEntityRegistry();
+                LOG.toast(`Added ${label}`);
+            },
+
+            renderEntityRegistry() {
+                const container = document.getElementById('entity-registry');
+                if (STATE.entities.length === 0) {
+                    container.innerHTML = '<div class="text-slate-600 text-[10px]">No entities yet</div>';
+                    return;
+                }
+
+                container.innerHTML = STATE.entities.map(entity => {
+                    const isSelected = STATE.selectedEntity === entity.id;
+                    const appearanceCount = entity.appearances.length;
+                    const iconFn = ICONS[entity.icon] || ICONS.Entity;
+
+                    return `
+                        <div class="flex items-center gap-2 p-1.5 rounded cursor-pointer transition ${isSelected ? 'bg-yellow-500/20 border border-yellow-500' : 'hover:bg-slate-700/50 border border-transparent'}" 
+                             onclick="SIDEBAR.selectEntity('${entity.id}')">
+                            <div class="w-5 h-5 flex-shrink-0">${iconFn()}</div>
+                            <div class="flex-1 min-w-0">
+                                <div class="truncate text-[11px]">${entity.label}</div>
+                                <div class="text-[9px] text-slate-500">${appearanceCount} scene${appearanceCount === 1 ? '' : 's'}</div>   
+                            </div>
+                        </div>
+                    `;
+                }).join('');
+            },
+
+            selectEntity(entityId) {
+                if (STATE.selectedEntity === entityId) {
+                    // Deselect
+                    STATE.selectedEntity = null;
+                } else {
+                    STATE.selectedEntity = entityId;
+                }
+                this.renderEntityRegistry();
+                if (STATE.viewMode === 'meta') VIEW.renderMeta();
+                RENDERER.nodes(); // Update highlighting in SINGLE view
+            }
+        };
+
+        // =========================================
+        // LOG
+        // =========================================
+        const LOG = {
+            toast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg';
+                toast.innerHTML = `<i class="fas fa-check-circle text-cyan-400 mr-2"></i><span class="text-sm">${msg}</span>`;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+        };
+
+        // =========================================
+        // INIT
+        // =========================================
+        TIMELINE.init();
+        SIDEBAR.renderTools();
+        SIDEBAR.renderEntityRegistry();
+    </script>
+</body>
+
+</html>

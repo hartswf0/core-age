@@ -1,0 +1,667 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Taxonomy of the Brick</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="taxonomy_data.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg-color: #f4f1ea;
+            --text-color: #1a1a1a;
+            --grid-color: rgba(0, 0, 0, 0.05);
+            --grid-size: 40px;
+            --accent-red: #d02c2f;
+            --accent-blue: #1e3888;
+            --accent-yellow: #f5a623;
+        }
+
+        body {
+            margin: 0;
+            background-color: var(--bg-color);
+            font-family: 'Inter', sans-serif;
+            color: var(--text-color);
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+        }
+
+        /* Sidebar */
+        #sidebar {
+            width: 320px;
+            background: #fff;
+            border-right: 1px solid #e0e0e0;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 5px 0 15px rgba(0, 0, 0, 0.02);
+            z-index: 20;
+            padding: 0;
+        }
+
+        .sidebar-header {
+            padding: 30px;
+            border-bottom: 1px solid #eee;
+            background: #fafafa;
+        }
+
+        h1 {
+            font-family: 'Playfair Display', serif;
+            font-size: 2rem;
+            margin: 0 0 10px 0;
+            letter-spacing: -0.5px;
+        }
+
+        h1 span {
+            color: var(--accent-red);
+            font-style: italic;
+        }
+
+        .controls {
+            display: flex;
+            gap: 10px;
+            margin-top: 15px;
+        }
+
+        button {
+            background: #fff;
+            border: 1px solid #ccc;
+            padding: 8px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.8rem;
+            cursor: pointer;
+            border-radius: 4px;
+            transition: all 0.2s;
+        }
+
+        button:hover {
+            background: var(--accent-blue);
+            color: white;
+            border-color: var(--accent-blue);
+        }
+
+        #info-panel {
+            flex-grow: 1;
+            overflow-y: auto;
+            padding: 30px;
+        }
+
+        .node-stat {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.8rem;
+            color: #888;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        .node-title {
+            font-family: 'Playfair Display', serif;
+            font-size: 1.6rem;
+            margin-bottom: 15px;
+            color: var(--accent-blue);
+            line-height: 1.2;
+        }
+
+        .part-list {
+            list-style: none;
+            padding: 0;
+        }
+
+        .part-item {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            font-size: 0.85rem;
+        }
+
+        .part-id {
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--accent-red);
+            font-size: 0.75rem;
+            display: block;
+            margin-bottom: 2px;
+        }
+
+        /* Visualization Area */
+        #viz-container {
+            flex-grow: 1;
+            position: relative;
+            overflow: hidden;
+            background-image:
+                linear-gradient(var(--grid-color) 1px, transparent 1px),
+                linear-gradient(90deg, var(--grid-color) 1px, transparent 1px);
+            background-size: var(--grid-size) var(--grid-size);
+            background-position: -1px -1px;
+        }
+
+        /* Minimap */
+        #minimap {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            width: 200px;
+            height: 150px;
+            background: rgba(255, 255, 255, 0.9);
+            border: 1px solid #ddd;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.1);
+            z-index: 30;
+            overflow: hidden;
+        }
+
+        /* D3 Styles */
+        .link {
+            fill: none;
+            stroke: #ccc;
+            stroke-width: 2px;
+            shape-rendering: crispEdges;
+        }
+
+        .node {
+            cursor: pointer;
+        }
+
+        /* LEGO-style dots with studs */
+        .node circle {
+            fill: #fff;
+            stroke: #333;
+            stroke-width: 2.5px;
+            transition: all 0.3s;
+        }
+
+        .node .stud {
+            fill: rgba(255, 255, 255, 0.3);
+            stroke: none;
+        }
+
+        .node text {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            fill: #333;
+            paint-order: stroke;
+            stroke: var(--bg-color);
+            stroke-width: 3px;
+        }
+
+        .node:hover circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 4px;
+            filter: brightness(1.1);
+        }
+
+        .node--internal circle {
+            fill: var(--accent-blue);
+        }
+
+        .node--leaf circle {
+            fill: #888;
+        }
+
+        .node--collapsed circle {
+            fill: var(--accent-red);
+        }
+
+        .node--highlighted circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 5px;
+            filter: drop-shadow(0 0 8px var(--accent-yellow));
+        }
+
+        .node--dimmed {
+            opacity: 0.2;
+        }
+
+        .node--selected circle {
+            stroke: var(--accent-yellow);
+            stroke-width: 4px;
+            fill: var(--accent-yellow) !important;
+        }
+
+        /* Wizard Modal */
+        #wizard-modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.7);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 100;
+        }
+
+        #wizard-content {
+            background: white;
+            padding: 40px;
+            border-radius: 8px;
+            max-width: 600px;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+
+        .wizard-option {
+            padding: 15px;
+            margin: 10px 0;
+            border: 2px solid #ddd;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .wizard-option:hover {
+            border-color: var(--accent-blue);
+            background: #f0f8ff;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="sidebar">
+        <div class="sidebar-header">
+            <h1>Parts <span>Taxonomy</span></h1>
+            <div style="font-size: 0.8rem; color: #666; text-transform: uppercase; letter-spacing: 1px;">System Map v1.0
+            </div>
+            <div class="controls">
+                <button onclick="expandAll()">Expand All</button>
+                <button onclick="collapseAll()">Collapse All</button>
+                <button onclick="resetZoom()">Reset View</button>
+            </div>
+            <div style="margin-top: 15px;">
+                <input type="text" id="branch-search" placeholder="Filter branches..."
+                    style="width: 100%; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-family: 'Inter', sans-serif; font-size: 0.9rem;"
+                    oninput="filterBranches(this.value)">
+            </div>
+            <div style="margin-top: 15px; border-top: 1px solid #eee; padding-top: 15px;">
+                <div
+                    style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 1px; color: #888; margin-bottom: 10px;">
+                    Selection</div>
+                <button onclick="startWizard()" style="width: 100%; margin-bottom: 8px;">🧙 Find a Part Wizard</button>
+                <button onclick="clearSelection()" style="width: 100%; margin-bottom: 8px;">Clear Selection</button>
+                <button onclick="exportMPD()" style="width: 100%; background: var(--accent-red); color: white;">Export
+                    Selected → MPD</button>
+                <button onclick="exportSelectionJSON()" style="width: 100%; margin-bottom: 8px;">Export Selected →
+                    JSON</button>
+                <div id="selection-count" style="margin-top: 10px; font-size: 0.85rem; color: #666;">0 parts selected
+                </div>
+            </div>
+        </div>
+
+        <div id="info-panel">
+            <div style="color: #888; font-style: italic; margin-top: 20px;">
+                Select a node to inspect the lineage and contents of the LEGO system.
+            </div>
+        </div>
+    </div>
+
+    <div id="viz-container">
+        <div id="minimap"></div>
+    </div>
+
+    <div id="wizard-modal">
+        <div id="wizard-content">
+            <h2 style="font-family: 'Playfair Display', serif; margin-top: 0;">Find a Part</h2>
+            <div id="wizard-question"></div>
+            <div id="wizard-options"></div>
+            <div style="margin-top: 20px;">
+                <button onclick="closeWizard()" style="padding: 10px 20px;">Close</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // --- Neurosymbolic Ontology (Path-Based) ---
+        // Maps taxonomy paths to semantic roles.
+        // Format: "Path/To/Branch": { role, color, trait }
+        const LEGOS_ONTOLOGY = {
+            paths: {
+                "Parts/Minifig/Accessory/Weapon": { role: "Aggressor", color: "#d02c2f", trait: "Conflict" },
+                "Parts/Minifig/Body": { role: "Actor", color: "#f5a623", trait: "Agency" },
+                "Parts/Vegetation": { role: "Nature", color: "#237841", trait: "Growth" },
+                "Parts/Technic": { role: "Mechanism", color: "#0055bf", trait: "Logic" },
+                "Parts/Brick": { role: "Structure", color: "#999999", trait: "Stability" },
+                "Parts/Plate": { role: "Structure", color: "#999999", trait: "Stability" }
+            },
+            // Fallback rules if path doesn't match
+            keywords: {
+                "sword": { role: "Aggressor", color: "#d02c2f" },
+                "gun": { role: "Aggressor", color: "#d02c2f" },
+                "plant": { role: "Nature", color: "#237841" }
+            }
+        };
+
+        // --- Data State ---
+        let rootData = window.TAXONOMY_DATA; // Default to mock
+        let root; // D3 hierarchy root
+
+        // --- Visualization Setup ---
+        const container = document.getElementById('viz-container');
+        const width = container.clientWidth;
+        const height = container.clientHeight;
+        const GRID_SIZE = 40;
+        const DURATION = 600;
+
+        const zoom = d3.zoom().scaleExtent([0.1, 4]).on("zoom", (e) => {
+            g.attr("transform", e.transform);
+            updateMinimapRect(e.transform);
+        });
+
+        const svg = d3.select("#viz-container").append("svg")
+            .attr("width", "100%")
+            .attr("height", "100%")
+            .call(zoom)
+            .on("dblclick.zoom", null);
+
+        const g = svg.append("g");
+        const tree = d3.tree().nodeSize([GRID_SIZE, GRID_SIZE * 4])
+            .separation((a, b) => (a.parent == b.parent ? 1 : 1.2));
+
+        // --- Selection ---
+        const selectedNodes = new Set();
+        let i = 0;
+
+        // --- Initialization ---
+        initViz(rootData);
+
+        function initViz(data) {
+            root = d3.hierarchy(data);
+            root.x0 = height / 2;
+            root.y0 = 0;
+            root.sum(d => d.value ? d.value : (d._parts ? d._parts.length : 0));
+
+            // Initial collapse
+            if (root.children) {
+                root.children.forEach(collapse);
+                // Expand first level
+                if (root._children) {
+                    root.children = root._children;
+                    root._children = null;
+                }
+            }
+
+            update(root);
+            resetZoom();
+            analyzeTaxonomy();
+        }
+
+        // --- Core Update ---
+        function update(source) {
+            const treeData = tree(root);
+            const nodes = treeData.descendants();
+            const links = treeData.links();
+
+            nodes.forEach(d => d.y = Math.round(d.depth * (GRID_SIZE * 5)));
+
+            // Nodes
+            const node = g.selectAll('g.node').data(nodes, d => d.id || (d.id = ++i));
+
+            const nodeEnter = node.enter().append('g')
+                .attr('class', 'node')
+                .attr("transform", d => `translate(${source.y0},${source.x0})`)
+                .on('click', click)
+                .on('contextmenu', (e, d) => { e.preventDefault(); toggleSelection(d); });
+
+            nodeEnter.append('circle').attr('class', 'node-circle').attr('r', 1e-6)
+                .style("fill", d => getSemanticColor(d));
+            nodeEnter.append('circle').attr('class', 'stud').attr('r', 0);
+            nodeEnter.append('text').attr("dy", ".35em").attr("x", d => d.children || d._children ? -15 : 15)
+                .attr("text-anchor", d => d.children || d._children ? "end" : "start")
+                .text(d => d.data.name).style('fill-opacity', 1e-6);
+
+            const nodeUpdate = nodeEnter.merge(node);
+            nodeUpdate.transition().duration(DURATION).attr("transform", d => `translate(${d.y},${d.x})`);
+
+            nodeUpdate.classed('node--selected', d => selectedNodes.has(d));
+            nodeUpdate.select('.node-circle')
+                .attr('r', d => Math.max(6, Math.sqrt(d.value || 1) / 2))
+                .style("fill", d => selectedNodes.has(d) ? "var(--accent-yellow)" : getSemanticColor(d))
+                .attr('class', d => d._children ? 'node--collapsed' : (d.children ? 'node--internal' : 'node--leaf'));
+
+            nodeUpdate.select('.stud').attr('r', d => Math.max(2, Math.sqrt(d.value || 1) / 4));
+            nodeUpdate.select('text').style('fill-opacity', 1);
+
+            const nodeExit = node.exit().transition().duration(DURATION)
+                .attr("transform", d => `translate(${source.y},${source.x})`).remove();
+            nodeExit.select('circle').attr('r', 1e-6);
+            nodeExit.select('text').style('fill-opacity', 1e-6);
+
+            // Links
+            const link = g.selectAll('path.link').data(links, d => d.target.id);
+            const linkEnter = link.enter().insert('path', "g").attr("class", "link")
+                .attr('d', d => elbow({ x: source.x0, y: source.y0 }, { x: source.x0, y: source.y0 }));
+            link.merge(linkEnter).transition().duration(DURATION).attr('d', d => elbow(d.source, d.target));
+            link.exit().transition().duration(DURATION).attr('d', d => elbow({ x: source.x, y: source.y }, { x: source.x, y: source.y })).remove();
+
+            nodes.forEach(d => { d.x0 = d.x; d.y0 = d.y; });
+            updateMinimap(nodes);
+        }
+
+        function elbow(s, d) {
+            return `M ${s.y} ${s.x} H ${(s.y + d.y) / 2} V ${d.x} H ${d.y}`;
+        }
+
+        function click(e, d) {
+            showInfo(d);
+            if (d.children) { d._children = d.children; d.children = null; }
+            else { d.children = d._children; d._children = null; }
+            update(d);
+        }
+
+        function collapse(d) {
+            if (d.children) { d._children = d.children; d._children.forEach(collapse); d.children = null; }
+        }
+
+        // --- Neurosymbolic Logic ---
+
+        function getPath(d) {
+            const path = [];
+            let current = d;
+            while (current) {
+                path.unshift(current.data.name);
+                current = current.parent;
+            }
+            return path.join('/');
+        }
+
+        function getSemanticColor(d) {
+            const path = getPath(d);
+
+            // 1. Check exact path match
+            for (const [key, meta] of Object.entries(LEGOS_ONTOLOGY.paths)) {
+                if (path.includes(key)) return meta.color;
+            }
+
+            // 2. Check keywords in name (fallback)
+            const name = d.data.name.toLowerCase();
+            for (const [key, meta] of Object.entries(LEGOS_ONTOLOGY.keywords)) {
+                if (name.includes(key)) return meta.color;
+            }
+
+            // 3. Depth fallback
+            const colors = ['#1e3888', '#47a8bd', '#58b368', '#f5a623', '#e87722', '#d02c2f', '#888888'];
+            return colors[Math.min(d.depth, colors.length - 1)];
+        }
+
+        function analyzeTaxonomy() {
+            const stats = { counts: {}, roles: {} };
+
+            root.each(d => {
+                const path = getPath(d);
+                let matched = false;
+
+                // Check paths
+                for (const [key, meta] of Object.entries(LEGOS_ONTOLOGY.paths)) {
+                    if (path.includes(key)) {
+                        stats.roles[meta.role] = (stats.roles[meta.role] || 0) + (d.value || 0);
+                        matched = true;
+                        break;
+                    }
+                }
+
+                // Check keywords if no path match
+                if (!matched) {
+                    const name = d.data.name.toLowerCase();
+                    for (const [key, meta] of Object.entries(LEGOS_ONTOLOGY.keywords)) {
+                        if (name.includes(key)) {
+                            stats.roles[meta.role] = (stats.roles[meta.role] || 0) + (d.value || 0);
+                            break;
+                        }
+                    }
+                }
+            });
+
+            renderAnalysis(stats);
+        }
+
+        function renderAnalysis(stats) {
+            const panel = document.getElementById('info-panel');
+            let html = `<div style="border-bottom: 2px solid #000; padding-bottom: 10px; margin-bottom: 20px;">
+                <h2 style="font-family: 'Playfair Display'; color: var(--accent-blue);">Neurosymbolic Analysis</h2>
+                <div style="font-size: 0.8rem; color: #666;">ONTOLOGY SCAN COMPLETE</div>
+            </div>`;
+
+            html += `<h3>Role Distribution</h3><div style="display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 20px;">`;
+            for (const [role, count] of Object.entries(stats.roles)) {
+                let color = '#666';
+                // Find color for role
+                for (const meta of Object.values(LEGOS_ONTOLOGY.paths)) {
+                    if (meta.role === role) color = meta.color;
+                }
+
+                html += `<div style="background: ${color}20; border: 1px solid ${color}; padding: 8px; border-radius: 4px;">
+                    <div style="color: ${color}; font-weight: bold; font-size: 0.8rem;">${role.toUpperCase()}</div>
+                    <div style="font-size: 1.2rem;">${count}</div>
+                </div>`;
+            }
+            html += `</div>`;
+
+            // Health Checks
+            const actors = stats.roles['Actor'] || 0;
+            const aggressors = stats.roles['Aggressor'] || 0;
+            const nature = stats.roles['Nature'] || 0;
+            const structure = stats.roles['Structure'] || 0;
+
+            html += `<h3>Narrative Health</h3><ul class="part-list">`;
+
+            // Check 1: Conflict Balance
+            let conflictMsg = "Balanced";
+            let conflictColor = "var(--accent-green)";
+            if (actors > 0) {
+                const ratio = aggressors / actors;
+                if (ratio > 2) { conflictMsg = "High Conflict (Arms Race)"; conflictColor = "var(--accent-red)"; }
+                else if (ratio < 0.1) { conflictMsg = "Low Conflict (Pacifist)"; conflictColor = "#666"; }
+            }
+            html += `<li class="part-item" style="border-left: 3px solid ${conflictColor}; padding-left: 10px;">
+                <strong>Conflict Potential</strong><br>${conflictMsg}
+            </li>`;
+
+            // Check 2: Ecosystem
+            let ecoMsg = "Nominal";
+            let ecoColor = "var(--accent-green)";
+            if (structure > 100 && nature < 10) { ecoMsg = "Nature Deficit (Urban Sprawl)"; ecoColor = "var(--accent-red)"; }
+            html += `<li class="part-item" style="border-left: 3px solid ${ecoColor}; padding-left: 10px;">
+                <strong>Ecosystem</strong><br>${ecoMsg}
+            </li>`;
+
+            html += `</ul>`;
+
+            // Add Parser Input
+            html += `<div style="margin-top: 20px; border-top: 1px solid #eee; padding-top: 20px;">
+                <h3>Import LDraw Library</h3>
+                <textarea id="parts-input" placeholder="Paste content of parts.lst here..." style="width: 100%; height: 100px; font-family: monospace; font-size: 0.8rem; border: 1px solid #ccc;"></textarea>
+                <button onclick="parsePartsListInput()" style="width: 100%; margin-top: 10px;">Parse parts.lst</button>
+            </div>`;
+
+            panel.innerHTML = html;
+        }
+
+        // --- Real Parsing Logic ---
+        window.parsePartsListInput = function () {
+            const text = document.getElementById('parts-input').value;
+            if (!text) return;
+
+            const lines = text.split(/\r?\n/);
+            const newRoot = { name: "LDraw Library", children: [] };
+            const map = { "LDraw Library": newRoot };
+
+            let count = 0;
+            lines.forEach(line => {
+                // parts.lst format: <filename> <description>
+                // e.g. "3001.dat Brick 2 x 4"
+                const match = line.match(/^(\S+)\s+(.+)$/);
+                if (match) {
+                    const filename = match[1];
+                    const desc = match[2];
+
+                    // Heuristic categorization based on description
+                    // This is "parsing" structure from flat list
+                    let category = "Misc";
+                    if (desc.includes("Brick")) category = "Brick";
+                    else if (desc.includes("Plate")) category = "Plate";
+                    else if (desc.includes("Technic")) category = "Technic";
+                    else if (desc.includes("Minifig")) category = "Minifig";
+                    else if (desc.includes("Plant") || desc.includes("Tree")) category = "Vegetation";
+                    else if (desc.includes("Sword") || desc.includes("Gun")) category = "Weapon";
+
+                    // Build tree
+                    if (!map[category]) {
+                        const node = { name: category, children: [], _parts: [] };
+                        map[category] = node;
+                        newRoot.children.push(node);
+                    }
+
+                    map[category]._parts.push({ filename, description: desc });
+                    count++;
+                }
+            });
+
+            // Recalculate values
+            newRoot.children.forEach(cat => cat.value = cat._parts.length);
+
+            alert(`Parsed ${count} parts into ${newRoot.children.length} categories.`);
+            initViz(newRoot);
+        };
+
+        // --- Helpers ---
+        function showInfo(d) {
+            // We don't want to overwrite the analysis panel completely
+            // Just append node info or show in modal? 
+            // For now, let's just log it or append to bottom
+            console.log(d.data);
+        }
+
+        function updateMinimap(nodes) {
+            if (!minimapSvg) {
+                minimapSvg = d3.select("#minimap").append("svg").attr("width", "100%").attr("height", "100%");
+                minimapG = minimapSvg.append("g");
+            }
+            // Simple dots
+            const mmNodes = minimapG.selectAll("circle").data(nodes, d => d.id);
+            mmNodes.enter().append("circle").attr("r", 1).attr("fill", "#666")
+                .merge(mmNodes)
+                .attr("cx", d => (d.y / 20) + 10).attr("cy", d => (d.x / 20) + 75);
+            mmNodes.exit().remove();
+        }
+
+        function updateMinimapRect(t) { }
+
+        window.expandAll = function () { root.children.forEach(c => { if (c._children) { c.children = c._children; c._children = null; } }); update(root); };
+        window.collapseAll = function () { if (root.children) { root.children.forEach(collapse); update(root); } };
+        window.resetZoom = function () { svg.transition().duration(750).call(zoom.transform, d3.zoomIdentity.translate(100, height / 2).scale(1)); };
+
+        // Stub functions for UI buttons
+        window.startWizard = () => alert("Wizard not available in parsed mode yet.");
+        window.clearSelection = () => { selectedNodes.clear(); update(root); };
+        window.exportMPD = () => alert("Export not implemented.");
+        window.exportSelectionJSON = () => alert("Export not implemented.");
+        window.filterBranches = (q) => { /* ... */ };
+
+    </script>
+</body>
+
+</html>

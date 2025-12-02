@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Slopwright: Forensic Media Archaeology for AI Systems</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: #000;
+            color: #0f0;
+            font-family: 'Courier New', monospace;
+            overflow-x: hidden;
+            min-height: 100vh;
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        .header {
+            border: 2px solid #0f0;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 255, 0, 0.05);
+            position: relative;
+        }
+
+        .title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin-bottom: 1rem;
+            text-transform: uppercase;
+        }
+
+        .subtitle {
+            font-size: 1.2rem;
+            opacity: 0.8;
+            margin-bottom: 0.5rem;
+        }
+
+        .tagline {
+            font-size: 1rem;
+            opacity: 0.6;
+            font-style: italic;
+        }
+
+        .section {
+            border: 1px solid #0f0;
+            padding: 2rem;
+            margin-bottom: 2rem;
+            background: rgba(0, 255, 0, 0.02);
+        }
+
+        .section-title {
+            font-size: 1.5rem;
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            border-bottom: 1px solid #0f0;
+            text-transform: uppercase;
+        }
+
+        .content-block {
+            line-height: 1.8;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-block p {
+            margin-bottom: 1rem;
+        }
+
+        .metric-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1rem;
+            margin: 1.5rem 0;
+        }
+
+        .metric-box {
+            border: 1px solid #0f0;
+            padding: 1.5rem;
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .metric-label {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 0.5rem;
+            text-transform: uppercase;
+        }
+
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: bold;
+            margin-bottom: 0.5rem;
+        }
+
+        .metric-detail {
+            font-size: 0.85rem;
+            opacity: 0.8;
+            line-height: 1.6;
+        }
+
+        .code-block {
+            background: rgba(0, 255, 0, 0.1);
+            border-left: 3px solid #0f0;
+            padding: 1rem 1.5rem;
+            margin: 1rem 0;
+            font-family: 'Courier New', monospace;
+            overflow-x: auto;
+        }
+
+        .pipeline {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin: 2rem 0;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .pipeline-step {
+            flex: 1;
+            min-width: 150px;
+            text-align: center;
+            padding: 1rem;
+            border: 1px solid #0f0;
+            background: rgba(0, 255, 0, 0.05);
+        }
+
+        .pipeline-arrow {
+            font-size: 2rem;
+            opacity: 0.6;
+        }
+
+        .truth-box {
+            border: 2px solid #0f0;
+            padding: 1.5rem;
+            background: rgba(0, 255, 0, 0.08);
+            margin: 2rem 0;
+        }
+
+        .truth-box strong {
+            color: #0f0;
+            text-transform: uppercase;
+        }
+
+        .stack-list {
+            list-style: none;
+            padding-left: 0;
+        }
+
+        .stack-list li {
+            padding: 0.8rem 0;
+            border-bottom: 1px solid rgba(0, 255, 0, 0.2);
+            padding-left: 2rem;
+            position: relative;
+        }
+
+        .stack-list li:before {
+            content: "→";
+            position: absolute;
+            left: 0;
+            color: #0f0;
+            font-weight: bold;
+        }
+
+        .stack-list li:last-child {
+            border-bottom: none;
+        }
+
+        .graph-viz {
+            border: 1px solid #0f0;
+            padding: 2rem;
+            margin: 2rem 0;
+            background: rgba(0, 255, 0, 0.02);
+            min-height: 300px;
+            position: relative;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .footer {
+            border: 2px solid #0f0;
+            padding: 2rem;
+            margin-top: 3rem;
+            background: rgba(0, 255, 0, 0.05);
+            text-align: center;
+        }
+
+        .footer a {
+            color: #0f0;
+            text-decoration: none;
+            margin: 0 1rem;
+            border-bottom: 1px solid transparent;
+            transition: border-color 0.3s;
+        }
+
+        .footer a:hover {
+            border-bottom-color: #0f0;
+        }
+
+        .cursor {
+            animation: blink 1s infinite;
+        }
+
+        @keyframes blink {
+
+            0%,
+            49% {
+                opacity: 1;
+            }
+
+            50%,
+            100% {
+                opacity: 0;
+            }
+        }
+
+        .liability-flag {
+            color: #ff0;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .title {
+                font-size: 1.8rem;
+            }
+
+            .pipeline {
+                flex-direction: column;
+            }
+
+            .pipeline-arrow {
+                transform: rotate(90deg);
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="title">Slopwright</div>
+            <div class="subtitle">Forensic Media Archaeology for AI Systems</div>
+            <div class="tagline">Watson Hartsoe • PhD Candidate, Digital Media • Georgia Tech</div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">What This Actually Is</div>
+            <div class="content-block">
+                <p>I build measurement infrastructure for generative media production. Not "exploring possibilities" or
+                    "probing culture"—I'm instrumenting the triage pipeline where AI output becomes reusable narrative
+                    components.</p>
+
+                <p>The work: run generative scripts, sort the slop, log the waste ratios, compost what's salvageable
+                    into typed blocks with provenance. Most of it's garbage. Some becomes symbolic tilth you can
+                    actually plant in.</p>
+            </div>
+
+            <div class="pipeline">
+                <div class="pipeline-step">
+                    <strong>Input</strong><br>
+                    GPT-4 drafts<br>
+                    (n=12)
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <strong>Triage</strong><br>
+                    Manual sort<br>
+                    + failure taxonomy
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <strong>Retention</strong><br>
+                    Validated blocks<br>
+                    (n=3, 25%)
+                </div>
+                <div class="pipeline-arrow">→</div>
+                <div class="pipeline-step">
+                    <strong>Reuse</strong><br>
+                    LEGOS assembly<br>
+                    4.5hrs saved
+                </div>
+            </div>
+
+            <div class="truth-box">
+                <strong>Current status:</strong> Party of one. 127 blocks built, zero external forks, no deployed
+                governance instances. Building tools so others can sort faster. We'll see if anyone wants to.
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">The Stack (What's Actually Built)</div>
+
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="metric-label">LEGOS Engine</div>
+                    <div class="metric-value">127 blocks</div>
+                    <div class="metric-detail">5 block types: dialogue, transition, proximity, power-map, observer-note.
+                        Compiles to HTML/video/live roleplay. Reuse cuts scene design by 4.5 hours per project.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Conversion Rate</div>
+                    <div class="metric-value">25%</div>
+                    <div class="metric-detail">12 drafts → 3 usable scenes. 75% waste logged with failure taxonomy:
+                        null_choice, uncanny_line_match, withdrawal, structural_drift.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Canon Database</div>
+                    <div class="metric-value">471 entities</div>
+                    <div class="metric-detail">Provenance-first knowledge graph tracking entities, scenes, apparatus
+                        cues across 8 productions. Full lineage + license variants.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">OS Films</div>
+                    <div class="metric-value">8 films</div>
+                    <div class="metric-detail">Accountability artifacts. Each logs decisions, metrics, handoff chains.
+                        Films as audit trails, not just deliverables.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Role Deck</div>
+                    <div class="metric-value">5 protocols</div>
+                    <div class="metric-detail">Ethical negotiation system. 4 workshops run, 23 participants, 0 disputes
+                        logged yet. Consent/credit/conflict resolution roles defined.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Handoff Chain</div>
+                    <div class="metric-value">Matrix→Cineosis→Prompt</div>
+                    <div class="metric-detail">Agent coordination pipeline. Measuring: handoff completeness %, role
+                        clarity score, payload integrity across transitions.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Neurosymbolic Architecture</div>
+            <div class="content-block">
+                <p>The core contribution: building models that reason over structure (ontology graph) and generate new
+                    assemblies consistent with typed constraints.</p>
+            </div>
+
+            <div class="code-block">
+                // Word→World Pipeline
+                Input: Natural language prompt
+                ↓
+                Parse: Extract entities, relations, apparatus cues
+                ↓
+                Ontology Check: Validate against typed schema
+                ↓
+                Generate: Compile to scene blocks (LEGOS)
+                ↓
+                Observe: Log telemetry + failure modes
+                ↓
+                Transclude: Maintain live links to sources
+                ↓
+                Output: Executable ritual with provenance
+            </div>
+
+            <ul class="stack-list">
+                <li><strong>Apparatus Grammar:</strong> Typed ontology of scene elements (entities, morphisms, observer
+                    protocols) from HITCH/CLANCY CLOSE</li>
+                <li><strong>LEGOS Blocks:</strong> Atomic narrative components with composition rules—reusable across
+                    film/web/workshop</li>
+                <li><strong>Transclusion (Xanadu):</strong> Bidirectional links keep sources/claims/scenes connected;
+                    edits propagate</li>
+                <li><strong>Observer Protocols:</strong> Instrumentation layer measuring handoff completeness, steering
+                    variety, boundary thickness</li>
+                <li><strong>Failure Taxonomy:</strong> Classify waste: null_choice, uncanny_line_match, withdrawal,
+                    structural_drift</li>
+                <li><strong>Provenance Graph:</strong> Canon DB traces entity lineage, licensing, role-based permissions
+                    across productions</li>
+            </ul>
+
+            <div class="graph-viz" id="ontology-graph">
+                <canvas id="graph-canvas"></canvas>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">What Gets Measured (Instrumentation Layer)</div>
+
+            <div class="content-block">
+                <p><strong>Handoff Completeness:</strong> % of agent transitions (Matrix→Cineosis→CinePrompt) with all
+                    required payload fields + downstream consumption verified</p>
+
+                <p><strong>Steering Variety Index:</strong> Count of distinct feedback variables referenced per liberty
+                    claim, normalized by harm space considered</p>
+
+                <p><strong>Blueprint→Compile→Trace Rate:</strong> Share of prompts mapping to LEGOS blocks, compiling to
+                    assets, retaining live source links. Report drop-offs per stage.</p>
+
+                <p><strong>Transclusion Freshness:</strong> 95th percentile lag between source edit and linked artifact
+                    update. Classify: auto/semi/manual.</p>
+
+                <p><strong>Boundary Thickness Index:</strong> Gradient of similarity vs distance at cultural region
+                    edges (Axelrod model) + interaction suppression ratio</p>
+
+                <p><strong>Ritual Telemetry Coverage:</strong> Schema fill-rate for choice, latency_ms, agency_score
+                    fields in Sense Ritual interactions</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">The Shift (2020–2025)</div>
+
+            <div class="content-block">
+                <p><strong>2020-21 (VR/HCI):</strong> Build, mentor, produce. Museum-linked social VR. High specificity
+                    on deliverables, low metaphor.</p>
+
+                <p><strong>2022-23 (Privacy/Safety):</strong> Align, test, consult. AI safety workshops, testing
+                    procedures. Policy-meets-ops detail.</p>
+
+                <p><strong>2024 (Platform Bios):</strong> Explore, probe, pioneer. <span class="liability-flag">High
+                        metaphor, low metrics.</span> "Probing algorithmic culture"—breadth over measurement.</p>
+
+                <p><strong>2025 (Accountability Turn):</strong> Instrument, diagnose, trace, log, map, measure. Exhibits
+                    as responsibility artifacts. Decision logs, entity counts, failure taxonomies. <strong>Specificity
+                        rising.</strong></p>
+            </div>
+
+            <div class="code-block">
+                Verb Drift (Chronological):
+                Build → Explore → Instrument
+                Mentor/Produce → Probe/Pioneer → Diagnose/Trace/Log
+                Prototype → Exhibit/Account
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Liability Zones (Honest Audit)</div>
+
+            <div class="truth-box">
+                <p><strong>Claims to revise:</strong></p>
+                <ul class="stack-list">
+                    <li><span class="liability-flag">"Multi-agent systems"</span> → Actually: 3-persona simulation (G-7,
+                        G0, G+7) in HEPTA-TOWN</li>
+                    <li><span class="liability-flag">"Communities compose worlds"</span> → Reality: 0 external
+                        contributors, no forks</li>
+                    <li><span class="liability-flag">"Democratically programmable"</span> → Evidence: No governance
+                        instances deployed yet</li>
+                    <li><span class="liability-flag">"Probing algorithmic culture"</span> → Replace with: "Scenes embed
+                        apparatus cues for workshop analysis"</li>
+                </ul>
+            </div>
+
+            <div class="content-block">
+                <p><strong>What's defensible right now:</strong> The forensic methodology itself. Logging the 75% waste.
+                    Counting the zero forks. Instrumenting slop-sorting with failure taxonomies. Building accountability
+                    into process (OS Films as decision logs).</p>
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">The Actual Research Contribution</div>
+
+            <div class="content-block">
+                <p><strong>A practice-led methodology for making generative media production auditable.</strong></p>
+            </div>
+
+            <ul class="stack-list">
+                <li>Word→world modeling with closed-loop observer protocols</li>
+                <li>Transclusion keeping sources/claims/code linked across edits</li>
+                <li>Apparatus grammars that compile across film/web/workshop formats</li>
+                <li>Provenance-first canon tracking entity lineage and licensing</li>
+                <li>Neurosymbolic assembly: reason over ontology graph, generate consistent new parts</li>
+                <li>Failure taxonomy capturing what doesn't work (not just what does)</li>
+            </ul>
+
+            <div class="truth-box">
+                <strong>In one line:</strong> Forensic media archaeology for AI systems. Creating the instrumentation to
+                study what actually happens when humans and LLMs collaborate on narrative production—with full waste
+                logs and decision trails.
+            </div>
+        </div>
+
+        <div class="section">
+            <div class="section-title">Selected Works (With Real Numbers)</div>
+
+            <div class="metric-grid">
+                <div class="metric-box">
+                    <div class="metric-label">A Western Picture: Spuddy</div>
+                    <div class="metric-detail">Mythic western instrumenting algorithmic culture. 9×9 staging grid,
+                        apparatus grammar, Tetrad probes. Saved 4.5hrs via block reuse.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">MESA CHIP</div>
+                    <div class="metric-detail">AI film platform with Matrix Editor. Handoff chain:
+                        layered-diegesis→acts→beats. Agent collaboration pipeline.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Sense Ritual</div>
+                    <div class="metric-detail">Playable prompts generating videos. Telemetry: choice, latency_ms,
+                        agency_score. Measuring participant→co-author shift.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">VAC World</div>
+                    <div class="metric-detail">Virtual stage for cultural interactions. 4 workshops, 23 participants.
+                        Memory trace dynamics, facilitation scripts.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">Liberty Machine</div>
+                    <div class="metric-detail">Cybernetic steering framework. Negative/positive/republican liberty +
+                        harm-accounting. Requisite variety for freedom.</div>
+                </div>
+
+                <div class="metric-box">
+                    <div class="metric-label">THICK LINES (Axelrod)</div>
+                    <div class="metric-detail">Cultural boundary model. Similarity→interaction probability. Thick
+                        boundaries via regional convergence. Boundary thickness index measured.</div>
+                </div>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>WATSON HARTSOE</strong> • Slopwright<span class="cursor">█</span></p>
+            <p>
+                <a href="https://hartswf0.github.io" target="_blank">hartswf0.github.io</a> |
+                <a href="mailto:watson.hartsoe@gatech.edu">watson.hartsoe@gatech.edu</a> |
+                <a href="https://github.com/hartswf0" target="_blank">github</a>
+            </p>
+            <p style="margin-top: 1rem; opacity: 0.6; font-size: 0.9rem;">
+                Current status: 127 blocks • 471 entities • 8 films • 0 forks • Looking for collaborators
+            </p>
+        </div>
+    </div>
+
+    <script>
+        // Ontology graph visualization
+        const canvas = document.getElementById('graph-canvas');
+        const ctx = canvas.getContext('2d');
+        const container = document.getElementById('ontology-graph');
+
+        function resizeCanvas() {
+            canvas.width = container.clientWidth;
+            canvas.height = 300;
+        }
+        resizeCanvas();
+        window.addEventListener('resize', resizeCanvas);
+
+        // Node definitions (ontology entities)
+        const nodes = [
+            { x: 100, y: 150, label: 'Prompt', r: 30 },
+            { x: 250, y: 80, label: 'Block', r: 25 },
+            { x: 250, y: 220, label: 'Entity', r: 25 },
+            { x: 400, y: 50, label: 'Scene', r: 25 },
+            { x: 400, y: 150, label: 'Apparatus', r: 25 },
+            { x: 400, y: 250, label: 'Observer', r: 25 },
+            { x: 550, y: 150, label: 'Film', r: 30 },
+            { x: 700, y: 150, label: 'Ritual', r: 30 }
+        ];
+
+        // Edges (morphisms/relations)
+        const edges = [
+            { from: 0, to: 1, label: 'parse' },
+            { from: 0, to: 2, label: 'extract' },
+            { from: 1, to: 3, label: 'compile' },
+            { from: 2, to: 4, label: 'instantiate' },
+            { from: 3, to: 4, label: 'stage' },
+            { from: 4, to: 5, label: 'measure' },
+            { from: 3, to: 6, label: 'render' },
+            { from: 6, to: 7, label: 'perform' },
+            { from: 5, to: 1, label: 'feedback' }
+        ];
+
+        function drawGraph() {
+            ctx.fillStyle = '#000';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+            // Draw edges
+            ctx.strokeStyle = '#0f0';
+            ctx.lineWidth = 1;
+            edges.forEach(edge => {
+                const from = nodes[edge.from];
+                const to = nodes[edge.to];
+
+                ctx.beginPath();
+                ctx.moveTo(from.x, from.y);
+                ctx.lineTo(to.x, to.y);
+                ctx.stroke();
+
+                // Arrow
+                const angle = Math.atan2(to.y - from.y, to.x - from.x);
+                const arrowX = to.x - to.r * Math.cos(angle);
+                const arrowY = to.y - to.r * Math.sin(angle);
+
+                ctx.beginPath();
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(
+                    arrowX - 10 * Math.cos(angle - Math.PI / 6),
+                    arrowY - 10 * Math.sin(angle - Math.PI / 6)
+                );
+                ctx.moveTo(arrowX, arrowY);
+                ctx.lineTo(
+                    arrowX - 10 * Math.cos(angle + Math.PI / 6),
+                    arrowY - 10 * Math.sin(angle + Math.PI / 6)
+                );
+                ctx.stroke();
+
+                // Label
+                const midX = (from.x + to.x) / 2;
+                const midY = (from.y + to.y) / 2;
+                ctx.fillStyle = '#0f0';
+                ctx.font = '10px Courier New';
+                ctx.fillText(edge.label, midX + 5, midY - 5);
+            });
+
+            // Draw nodes
+            nodes.forEach(node => {
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.1)';
+                ctx.strokeStyle = '#0f0';
+                ctx.lineWidth = 2;
+
+                ctx.beginPath();
+                ctx.arc(node.x, node.y, node.r, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.stroke();
+
+                ctx.fillStyle = '#0f0';
+                ctx.font = 'bold 12px Courier New';
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'middle';
+                ctx.fillText(node.label, node.x, node.y);
+            });
+        }
+
+        drawGraph();
+
+        // Animate graph (subtle pulse)
+        let pulsePhase = 0;
+        function animate() {
+            pulsePhase += 0.02;
+
+            nodes.forEach((node, i) => {
+                node.r = 25 + (i === 0 || i === nodes.length - 1 ? 5 : 0) + Math.sin(pulsePhase + i * 0.5) * 2;
+            });
+
+            drawGraph();
+            requestAnimationFrame(animate);
+        }
+        animate();
+    </script>
+</body>
+
+</html>

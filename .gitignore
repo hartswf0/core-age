@@ -19,14 +19,27 @@ tutorial_assets/videos/*.mp4
 # LARGE JSON FILES TO EXCLUDE
 # ───────────────────────────────────────────────────────────
 
-# Exclude large scene/parts JSON files (>1MB)
+# Exclude massive parts database files (>1MB)
 *-future-scenarios.json
-ldraw-parts-manifest.json
-ldraw-part-geometry.json
 parts-taxonomy.json
-gold-*.json
-wag_gold_*.json
-test-wag-gold.json
+all-parts-descriptors.json
+
+# Exclude large LDraw databases
+wag-viewer-prime-integration-*/ldraw-parts-manifest.json
+wag-viewer-prime-integration-*/ldraw-part-geometry.json
+wag-viewer-prime-integration-*/ldraw-part-skeletons.json
+
+# ALLOW essential minifig and library data (needed for viewers)
+!wag-viewer-prime-integration-*/minifig*.json
+!wag-viewer-prime-integration-*/minifig-library.json
+!wag-viewer-prime-integration-*/minifig-themes.json
+!wag-viewer-prime-integration-*/scene-shells.json
+!wag-viewer-prime-integration-*/vehicle-library.json
+!wag-viewer-prime-integration-*/location-library.json
+!wag-viewer-prime-integration-*/taxonomy-primitives.json
+!wag-viewer-prime-integration-*/large-ready-mades.json
+!wag-viewer-prime-integration-*/quarantine-section.json
+!wag-viewer-prime-integration-*/glb-mento-moe.html
 
 # Keep essential manifest (small, required for index.html)
 !file-manifest.json

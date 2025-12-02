@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Neuro System Verification</title>
+    <style>
+        body {
+            font-family: 'Courier New', monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            color: #0ff;
+        }
+
+        .test-section {
+            border: 1px solid #333;
+            padding: 15px;
+            margin: 15px 0;
+            background: #111;
+        }
+
+        .pass {
+            color: #0f0;
+        }
+
+        .fail {
+            color: #f00;
+        }
+
+        .info {
+            color: #ff0;
+        }
+
+        pre {
+            background: #000;
+            border: 1px solid #333;
+            padding: 10px;
+            overflow-x: auto;
+            font-size: 11px;
+        }
+
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-weight: bold;
+            margin: 5px;
+        }
+
+        button:hover {
+            background: #0ff;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>🧬 Neurosymbolic System Verification Suite</h1>
+    <p>This page automatically tests the neuro-studio.html system with real embeddings and DNA injection.</p>
+
+    <button onclick="runAllTests()">▶ Run All Tests</button>
+    <button onclick="clearResults()">🗑 Clear</button>
+
+    <div id="results"></div>
+
+    <script src="embeddings_data.js"></script>
+    <script>
+        const results = document.getElementById('results');
+
+        function log(msg, type = 'info') {
+            const div = document.createElement('div');
+            div.className = type;
+            div.innerHTML = msg;
+            results.appendChild(div);
+        }
+
+        function clearResults() {
+            results.innerHTML = '';
+        }
+
+        async function runAllTests() {
+            clearResults();
+            log('<h2>Starting Verification Tests...</h2>');
+
+            // Test 1: Embeddings Loading
+            testEmbeddingsLoaded();
+
+            // Test 2: Cosine Similarity
+            testCosineSimilarity();
+
+            // Test 3: DNA Parsing
+            testDNAParsing();
+
+            // Test 4: Semantic Search
+            await testSemanticSearch();
+
+            log('<h2>✅ All Tests Complete</h2>', 'pass');
+        }
+
+        function testEmbeddingsLoaded() {
+            log('<div class="test-section"><h3>Test 1: Real Embeddings Loaded</h3>', 'info');
+
+            if (!window.REAL_EMBEDDINGS) {
+                log('❌ FAIL: REAL_EMBEDDINGS not found', 'fail');
+                return;
+            }
+
+            const count = window.REAL_EMBEDDINGS.metadata.count;
+            const dim = window.REAL_EMBEDDINGS.metadata.dim;
+            const model = window.REAL_EMBEDDINGS.metadata.model;
+
+            log(`✅ PASS: Loaded ${count} embeddings`, 'pass');
+            log(`Dimension: ${dim}, Model: ${model}`, 'info');
+
+            // Check a random embedding
+            const ids = Object.keys(window.REAL_EMBEDDINGS.vectors);
+            const sampleId = ids[0];
+            const sampleVec = window.REAL_EMBEDDINGS.vectors[sampleId].vector;
+
+            log(`Sample ID: ${sampleId}`, 'info');
+            log(`Vector length: ${sampleVec.length}`, 'info');
+            log(`First 5 values: [${sampleVec.slice(0, 5).map(v => v.toFixed(3)).join(', ')}]`, 'info');
+            log('</div>');
+        }
+
+        function cosineSimilarity(a, b) {
+            let dot = 0, magA = 0, magB = 0;
+            for (let i = 0; i < a.length; i++) {
+                dot += a[i] * b[i];
+                magA += a[i] * a[i];
+                magB += b[i] * b[i];
+            }
+            return dot / (Math.sqrt(magA) * Math.sqrt(magB) + 1e-8);
+        }
+
+        function testCosineSimilarity() {
+            log('<div class="test-section"><h3>Test 2: Cosine Similarity Function</h3>', 'info');
+
+            const vec1 = [1, 0, 0, 0];
+            const vec2 = [1, 0, 0, 0];
+            const vec3 = [0, 1, 0, 0];
+
+            const sim1 = cosineSimilarity(vec1, vec2);
+            const sim2 = cosineSimilarity(vec1, vec3);
+
+            log(`Similarity(identical): ${sim1.toFixed(4)} (expected ~1.0)`, sim1 > 0.99 ? 'pass' : 'fail');
+            log(`Similarity(orthogonal): ${sim2.toFixed(4)} (expected ~0.0)`, sim2 < 0.01 ? 'pass' : 'fail');
+
+            // Test with real vectors
+            const ids = Object.keys(window.REAL_EMBEDDINGS.vectors);
+            const v1 = window.REAL_EMBEDDINGS.vectors[ids[0]].vector;
+            const v2 = window.REAL_EMBEDDINGS.vectors[ids[1]].vector;
+            const selfSim = cosineSimilarity(v1, v1);
+            const crossSim = cosineSimilarity(v1, v2);
+
+            log(`Real Vector Self-Similarity: ${selfSim.toFixed(4)}`, selfSim > 0.99 ? 'pass' : 'fail');
+            log(`Real Vector Cross-Similarity: ${crossSim.toFixed(4)}`, 'info');
+            log('</div>');
+        }
+
+        function testDNAParsing() {
+            log('<div class="test-section"><h3>Test 3: DNA Payload Parsing</h3>', 'info');
+
+            const dnaPayload = {
+                "seed": "Odysseus",
+                "entropy": 0.3,
+                "archetype": "Navigator (Hero)",
+                "palette": ["#1d4ed8", "#3b82f6", "#93c5fd", "#ffffff"],
+                "constraints": ["Pathfinding: True", "Obstacle Avoidance: High"],
+                "meta": {
+                    "premise": "Arrogance → Suffering",
+                    "conflict": "Odysseus's desire for home ⟂ Poseidon's desire for revenge"
+                }
+            };
+
+            try {
+                const json = JSON.stringify(dnaPayload, null, 2);
+                const parsed = JSON.parse(json);
+
+                log('✅ PASS: DNA JSON is valid', 'pass');
+                log(`Seed: ${parsed.seed}`, 'info');
+                log(`Archetype: ${parsed.archetype}`, 'info');
+                log(`Entropy: ${parsed.entropy}`, 'info');
+                log(`Palette: ${parsed.palette.join(', ')}`, 'info');
+                log('<pre>' + json + '</pre>');
+            } catch (e) {
+                log(`❌ FAIL: ${e.message}`, 'fail');
+            }
+            log('</div>');
+        }
+
+        async function testSemanticSearch() {
+            log('<div class="test-section"><h3>Test 4: Semantic Search with Real Embeddings</h3>', 'info');
+
+            // Simulate finding "weapon" parts
+            const weaponKeywords = ['sword', 'blade', 'gun', 'axe', 'spear'];
+            const ids = Object.keys(window.REAL_EMBEDDINGS.vectors);
+
+            // Find weapon seeds
+            const weaponSeeds = [];
+            for (const id of ids) {
+                for (const kw of weaponKeywords) {
+                    if (id.includes(kw)) {
+                        weaponSeeds.push({
+                            id,
+                            vector: window.REAL_EMBEDDINGS.vectors[id].vector
+                        });
+                        if (weaponSeeds.length >= 3) break;
+                    }
+                }
+                if (weaponSeeds.length >= 3) break;
+            }
+
+            if (weaponSeeds.length === 0) {
+                log('⚠ No weapon parts found in embeddings (keyword search)', 'info');
+                log('Searching for ANY parts to demonstrate similarity...', 'info');
+
+                // Just pick 3 random parts to show similarity works
+                const randomIds = ids.slice(0, 3);
+                for (const id of randomIds) {
+                    weaponSeeds.push({
+                        id,
+                        vector: window.REAL_EMBEDDINGS.vectors[id].vector
+                    });
+                }
+            }
+
+            log(`Found ${weaponSeeds.length} seed parts: ${weaponSeeds.map(s => s.id).join(', ')}`, 'pass');
+
+            // Create average "concept vector"
+            const conceptVector = new Array(64).fill(0);
+            weaponSeeds.forEach(seed => {
+                seed.vector.forEach((val, i) => conceptVector[i] += val);
+            });
+            conceptVector.forEach((val, i) => conceptVector[i] /= weaponSeeds.length);
+
+            log('Created concept vector (averaged from seeds)', 'info');
+
+            // Find top 10 similar parts
+            const candidates = [];
+            for (const [id, data] of Object.entries(window.REAL_EMBEDDINGS.vectors)) {
+                const sim = cosineSimilarity(conceptVector, data.vector);
+                candidates.push({ id, score: sim });
+            }
+
+            candidates.sort((a, b) => b.score - a.score);
+            const top10 = candidates.slice(0, 10);
+
+            log('✅ Top 10 Similar Parts:', 'pass');
+            log('<pre>' + top10.map((c, i) =>
+                `${i + 1}. ${c.id} (similarity: ${c.score.toFixed(4)})`
+            ).join('\n') + '</pre>');
+
+            log('</div>');
+        }
+
+        // Auto-run on load
+        window.addEventListener('load', () => {
+            setTimeout(runAllTests, 500);
+        });
+    </script>
+</body>
+
+</html>

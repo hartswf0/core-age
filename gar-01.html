@@ -1,0 +1,572 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover" />
+    <title>Grid Assembles Reality — 20×20 Mosaic</title>
+    <style>
+        :root {
+            /* Swap this to your art URL */
+            --bg: #111;
+            --fg: #eee;
+            --accent: #3a9;
+            --img: url('tutorial_assets/images/city_final.png');
+            --cols: 20;
+            --rows: 20;
+            --size: min(92vmin, 1024px);
+            --grid: rgba(0, 255, 180, .28);
+            --ink: #e9e9e9;
+            --accent: #ffcc00;
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            height: 100%;
+            margin: 0;
+            background: var(--bg);
+            color: var(--ink);
+            font: 14px/1.45 system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+        }
+
+        .main {
+            min-height: 100%;
+            display: grid;
+            place-items: center;
+            padding: 20px;
+        }
+
+        .panel {
+            width: var(--size);
+        }
+
+        .hdr {
+            display: flex;
+            align-items: center;
+            gap: .75rem;
+            margin-bottom: 12px;
+        }
+
+        .hdr h1 {
+            font-weight: 700;
+            letter-spacing: .02em;
+            font-size: clamp(16px, 2.6vmin, 24px);
+            margin: 0
+        }
+
+        .hdr .small {
+            opacity: .7;
+            font-size: .9em
+        }
+
+        .controls {
+            margin-left: auto;
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap
+        }
+
+        button,
+        input {
+            background: #12161c;
+            color: var(--ink);
+            border: 1px solid #2a323a;
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        button {
+            cursor: pointer
+        }
+
+        button:hover {
+            border-color: #3a9
+        }
+
+        input.url {
+            min-width: 260px;
+            width: min(48vw, 520px)
+        }
+
+        .stage {
+            position: relative;
+            width: var(--size);
+            height: var(--size);
+            border-radius: 18px;
+            overflow: hidden;
+            box-shadow: 0 10px 45px rgba(0, 0, 0, .5), inset 0 0 0 1px #222
+        }
+
+        /* subtle vignette */
+        .stage::after {
+            content: "";
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(60% 60% at 50% 45%, transparent 0 60%, rgba(0, 0, 0, .35) 100%);
+            pointer-events: none
+        }
+
+        .grid {
+            position: absolute;
+            inset: 0;
+            display: grid;
+            grid-template-columns: repeat(var(--cols), 1fr);
+            grid-template-rows: repeat(var(--rows), 1fr);
+        }
+
+        .tile {
+            position: relative;
+            opacity: 0;
+            transform: scale(.96);
+            filter: blur(8px) saturate(.1) brightness(.7);
+            transition: opacity .6s cubic-bezier(.18, .7, .16, 1), transform .6s cubic-bezier(.18, .7, .16, 1), filter .9s ease;
+            background-image: var(--img);
+            background-repeat: no-repeat;
+            background-size: calc(var(--cols)*100%) calc(var(--rows)*100%);
+            outline: 1px solid color-mix(in hsl, var(--grid) 95%, transparent);
+        }
+
+        .tile.on {
+            opacity: 1;
+            transform: scale(1);
+            filter: blur(0) saturate(1) brightness(1);
+            outline-color: color-mix(in hsl, var(--grid) 0%, transparent)
+        }
+
+        /* heat shimmer (applied globally during build) */
+        @keyframes shimmer {
+            0% {
+                transform: translateY(0)
+            }
+
+            50% {
+                transform: translateY(-.7px)
+            }
+
+            100% {
+                transform: translateY(0)
+            }
+        }
+
+        .stage.building {
+            filter: contrast(1.02) saturate(1.03)
+        }
+
+        .tile.on.build-wobble {
+            animation: shimmer 1.6s ease-in-out var(--delay) 2
+        }
+
+        /* ember flicker overlay */
+        .flicker {
+            pointer-events: none;
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(100% 65% at 50% 70%, rgba(255, 110, 30, .18), transparent 60%);
+            mix-blend-mode: screen;
+            opacity: .0;
+            transition: opacity .6s ease
+        }
+
+        .stage.ready .flicker {
+            opacity: .6
+        }
+
+        .legend {
+            margin-top: 10px;
+            color: #9aa3ad;
+            font-size: .92em
+        }
+
+        .code {
+            font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, "Liberation Mono", monospace
+        }
+
+        .badge {
+            background: #11161c;
+            border: 1px solid #2a323a;
+            padding: 4px 8px;
+            border-radius: 8px;
+            margin-right: 6px
+        }
+
+        .controls select,
+        .controls label.seg input {
+            background: #12161c;
+            border: 1px solid #2a323a;
+            color: var(--ink);
+            border-radius: 10px;
+            padding: 8px 10px
+        }
+
+        .controls label.seg {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px
+        }
+    </style>
+</head>
+
+<body>
+    <div class="main">
+        <div class="panel">
+            <div class="hdr">
+                <h1>Grid Assembles Reality</h1>
+                <div class="small">20×20 cells, ripple from the frog → full scene</div>
+                <div class="controls">
+                    <input class="url" placeholder="Paste image URL (optional)" />
+                    <select id="mode" title="Assembly mode">
+                        <option value="ripple">Ripple</option>
+                        <option value="edges">Edges‑first</option>
+                        <option value="contour" selected>Contour BFS</option>
+                        <option value="segments">Segments (K‑means)</option>
+                    </select>
+                    <label class="seg" title="# of segments for K‑means">k <input id="k" type="number" min="2" max="8"
+                            value="4" /></label>
+                    <button id="rebuild">Reassemble</button>
+                    <button id="exportONYX" title="Export to ONYX narrative format"
+                        style="background: #3a9; border-color: #3a9;">Export to ONYX</button>
+                </div>
+            </div>
+            <div class="stage" id="stage">
+                <div class="grid" id="grid"></div>
+                <div class="flicker"></div>
+            </div>
+            <div class="legend code">
+                <span class="badge">Prompt (≈250c)</span>Grid births the scene: 20×20 cells ignite from the
+                frog—rippling outward—to reveal the photo. Tiles brighten, unblur, and colorize; grid lines fade;
+                heat\-shimmer and ember flicker settle into a gentle loop. Title locks, smoke drifts.
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const STAGE = document.getElementById('stage');
+        const GRID = document.getElementById('grid');
+        const rebuildBtn = document.getElementById('rebuild');
+        const urlInput = document.querySelector('.url');
+        const modeSelect = document.getElementById('mode');
+        const kInput = document.getElementById('k');
+
+        // CONFIG — tweak to taste
+        const COLS = 20, ROWS = 20;                  // grid
+        let ORIGIN = { c: 8, r: 13 };                // default seed (frog-ish)
+        const CELL_DELAY = 90;                       // ms per ring (fallback)
+        const NOISE = 80;                            // random jitter per cell
+        const WOBBLE_PROB = 0.55;                    // some tiles shimmer briefly
+
+        // Parse current CSS --img url
+        function getCurrentImgURL() {
+            const s = getComputedStyle(document.documentElement).getPropertyValue('--img');
+            const m = s.match(/url\(["']?(.*?)["']?\)/);
+            return m ? m[1] : '';
+        }
+        let IMG_URL = getCurrentImgURL();
+
+        // Offscreen canvas for analysis
+        const CANVAS = document.createElement('canvas');
+        const CTX = CANVAS.getContext('2d', { willReadFrequently: true });
+        CANVAS.width = COLS * 16; CANVAS.height = ROWS * 16; // analysis resolution
+
+        function setImage(url) {
+            if (url) {
+                IMG_URL = url;
+                document.documentElement.style.setProperty('--img', `url('${url}')`);
+            }
+        }
+
+        function makeGrid() {
+            GRID.style.setProperty('--cols', COLS);
+            GRID.style.setProperty('--rows', ROWS);
+            GRID.innerHTML = '';
+            for (let r = 0; r < ROWS; r++) {
+                for (let c = 0; c < COLS; c++) {
+                    const t = document.createElement('div');
+                    t.className = 'tile';
+                    const x = (c / (COLS - 1)) * 100, y = (r / (ROWS - 1)) * 100; // slice position
+                    t.style.backgroundPosition = `${x}% ${y}%`;
+                    GRID.appendChild(t);
+                }
+            }
+        }
+
+        function coverDraw(img, ctx, W, H) {
+            const ar = img.width / img.height, stageAR = W / H;
+            let dw = W, dh = H, dx = 0, dy = 0;
+            if (ar > stageAR) { dh = H; dw = dh * ar; dx = -(dw - W) / 2; }
+            else { dw = W; dh = dw / ar; dy = -(dh - H) / 2; }
+            ctx.clearRect(0, 0, W, H);
+            ctx.drawImage(img, dx, dy, dw, dh);
+        }
+
+        function loadToCanvas(url) {
+            return new Promise(resolve => {
+                const im = new Image();
+                im.crossOrigin = 'anonymous';
+                im.onload = () => { coverDraw(im, CTX, CANVAS.width, CANVAS.height); resolve(true); };
+                im.onerror = () => resolve(false);
+                im.src = url;
+            });
+        }
+
+        function computeFeatures() {
+            try {
+                const w = CANVAS.width, h = CANVAS.height;
+                const { data } = CTX.getImageData(0, 0, w, h);
+                const gray = new Float32Array(w * h);
+                for (let p = 0, i = 0; i < data.length; i += 4, p++) {
+                    const r = data[i], g = data[i + 1], b = data[i + 2];
+                    gray[p] = 0.299 * r + 0.587 * g + 0.114 * b;
+                }
+                const grad = new Float32Array(w * h);
+                for (let y = 1; y < h - 1; y++) {
+                    for (let x = 1; x < w - 1; x++) {
+                        const p = y * w + x;
+                        const gx = -gray[p - w - 1] + gray[p - w + 1] - 2 * gray[p - 1] + 2 * gray[p + 1] - gray[p + w - 1] + gray[p + w + 1];
+                        const gy = gray[p - w - 1] + 2 * gray[p - w] + gray[p - w + 1] - gray[p + w - 1] - 2 * gray[p + w] - gray[p + w + 1];
+                        grad[p] = Math.hypot(gx, gy);
+                    }
+                }
+                const tw = Math.floor(w / COLS), th = Math.floor(h / ROWS);
+                const edges = [], colors = [], ids = [];
+                let maxE = 1e-6;
+                for (let r = 0; r < ROWS; r++) {
+                    for (let c = 0; c < COLS; c++) {
+                        let sumE = 0, sumR = 0, sumG = 0, sumB = 0, count = 0;
+                        for (let yy = r * th; yy < (r + 1) * th; yy++) {
+                            for (let xx = c * tw; xx < (c + 1) * tw; xx++) {
+                                const p = yy * w + xx; const i4 = p * 4;
+                                sumE += grad[p];
+                                sumR += CTX.getImageData(0, 0, 1, 1).data ? 0 : 0; // noop placeholder to avoid perf shock
+                                // faster: reuse source data by recomputing index
+                                const di = (yy * w + xx) * 4;
+                                sumR += data[di]; sumG += data[di + 1]; sumB += data[di + 2];
+                                count++;
+                            }
+                        }
+                        const e = sumE / count; maxE = Math.max(maxE, e);
+                        edges.push(e); colors.push([sumR / count, sumG / count, sumB / count]); ids.push(r * COLS + c);
+                    }
+                }
+                const normEdges = edges.map(e => e / maxE);
+                return { ok: true, edges: normEdges, colors, ids };
+            } catch (err) { console.warn('Feature compute failed (tainted image?)', err); return { ok: false } }
+        }
+
+        function kmeans(points, k = 4, iters = 8) {
+            const n = points.length, dim = points[0].length;
+            const centers = Array.from({ length: k }, _ => points[Math.floor(Math.random() * n)].slice());
+            const labels = new Array(n).fill(0);
+            for (let it = 0; it < iters; it++) {
+                // assign
+                for (let i = 0; i < n; i++) {
+                    let best = 0, bestd = Infinity; const p = points[i];
+                    for (let j = 0; j < k; j++) {
+                        let d = 0; const c = centers[j];
+                        for (let dI = 0; dI < dim; dI++) { const diff = p[dI] - c[dI]; d += diff * diff; }
+                        if (d < bestd) { bestd = d; best = j; }
+                    }
+                    labels[i] = best;
+                }
+                // update
+                const sums = Array.from({ length: k }, _ => new Array(dim).fill(0));
+                const counts = new Array(k).fill(0);
+                for (let i = 0; i < n; i++) { const l = labels[i]; counts[l]++; const p = points[i]; for (let dI = 0; dI < dim; dI++) sums[l][dI] += p[dI]; }
+                for (let j = 0; j < k; j++) { if (counts[j]) for (let dI = 0; dI < dim; dI++) centers[j][dI] = sums[j][dI] / counts[j]; }
+            }
+            return labels;
+        }
+
+        function buildSchedule(mode, edges, clusters) {
+            const tiles = [...GRID.children];
+            const idxs = [...Array(tiles.length).keys()];
+            const STEP = 26; // ms
+            if (mode === 'edges') {
+                idxs.sort((a, b) => edges[b] - edges[a]);
+                return idxs.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'contour') {
+                const visited = new Array(ROWS * COLS).fill(false); const order = []; const frontier = [];
+                function push(r, c) { if (r < 0 || c < 0 || r >= ROWS || c >= COLS) return; const id = r * COLS + c; if (visited[id]) return; frontier.push(id); visited[id] = true; }
+                push(ORIGIN.r, ORIGIN.c);
+                while (frontier.length) {
+                    frontier.sort((a, b) => edges[b] - edges[a]);
+                    const id = frontier.shift(); order.push(id);
+                    const r = Math.floor(id / COLS), c = id % COLS;
+                    push(r - 1, c); push(r + 1, c); push(r, c - 1); push(r, c + 1);
+                }
+                return order.map((id, i) => [id, i * STEP]);
+            }
+            if (mode === 'segments' && clusters) {
+                const groups = {}; idxs.forEach(id => { const cl = clusters[id]; (groups[cl] || (groups[cl] = [])).push(id); });
+                function medianEdge(list) { const s = list.map(i => edges[i]).sort((a, b) => a - b); return s[Math.floor(s.length / 2)] || 0; }
+                const clusterOrder = Object.keys(groups).sort((A, B) => medianEdge(groups[B]) - medianEdge(groups[A]));
+                const order = [];
+                for (const cl of clusterOrder) {
+                    const ids = groups[cl];
+                    // BFS within cluster, edge-prioritized
+                    const vis = new Set();
+                    const q = [];
+                    const start = ORIGIN.r * COLS + ORIGIN.c;
+                    q.push(ids.includes(start) ? start : ids[0]); vis.add(q[0]);
+                    while (q.length) {
+                        q.sort((a, b) => edges[b] - edges[a]);
+                        const id = q.shift(); order.push(id);
+                        const r = Math.floor(id / COLS), c = id % COLS;
+                        const N = [[r - 1, c], [r + 1, c], [r, c - 1], [r, c + 1]];
+                        for (const [rr, cc] of N) { const nid = rr * COLS + cc; if (rr >= 0 && cc >= 0 && rr < ROWS && cc < COLS && ids.includes(nid) && !vis.has(nid)) { vis.add(nid); q.push(nid); } }
+                    }
+                    order.push(-1); // gap
+                }
+                const schedule = []; let t = 0; for (const id of order) { if (id == -1) { t += 300; continue; } schedule.push([id, t]); t += STEP; } return schedule;
+            }
+            // fallback ripple
+            const schedule = [];
+            for (let r = 0; r < ROWS; r++) for (let c = 0; c < COLS; c++) { const id = r * COLS + c; const ring = Math.abs(c - ORIGIN.c) + Math.abs(r - ORIGIN.r); schedule.push([id, ring * CELL_DELAY + Math.random() * NOISE]); }
+            schedule.sort((a, b) => a[1] - b[1]);
+            return schedule;
+        }
+
+        async function assemble() {
+            STAGE.classList.add('building'); STAGE.classList.remove('ready');
+            const tiles = [...GRID.children]; tiles.forEach(t => t.classList.remove('on', 'build-wobble'));
+
+            // analysis pipeline
+            let features = { ok: false };
+            const loaded = await loadToCanvas(IMG_URL);
+            if (loaded) features = computeFeatures();
+
+            // optional: move origin to highest-edge tile near center
+            if (features.ok) {
+                const centerId = Math.floor(ROWS / 2) * COLS + Math.floor(COLS / 2);
+                let best = centerId, bestScore = -1; const rad = 3;
+                for (let rr = ORIGIN.r - rad; rr <= ORIGIN.r + rad; rr++) {
+                    for (let cc = ORIGIN.c - rad; cc <= ORIGIN.c + rad; cc++) {
+                        if (rr < 0 || cc < 0 || rr >= ROWS || cc >= COLS) continue; const id = rr * COLS + cc; const score = features.edges[id]; if (score > bestScore) { bestScore = score; best = id; }
+                    }
+                }
+                ORIGIN = { r: Math.floor(best / COLS), c: best % COLS };
+            }
+
+            // clustering for segmentation
+            let clusters = null;
+            if (features.ok) {
+                const pts = features.colors.map((rgb, i) => [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, features.edges[i]]);
+                const k = Math.max(2, Math.min(8, parseInt(kInput.value) || 4));
+                clusters = kmeans(pts, k, 8);
+            }
+
+            const mode = modeSelect.value;
+            const schedule = buildSchedule(mode, features.ok ? features.edges : new Array(COLS * ROWS).fill(0), clusters);
+
+            let maxDelay = 0;
+            for (const [id, t] of schedule) { if (id < 0) continue; maxDelay = Math.max(maxDelay, t); setTimeout(() => { const tile = tiles[id]; tile.classList.add('on'); if (Math.random() < WOBBLE_PROB) tile.classList.add('build-wobble'); }, t); }
+            setTimeout(() => { STAGE.classList.remove('building'); STAGE.classList.add('ready'); }, maxDelay + 1200);
+        }
+
+        rebuildBtn.addEventListener('click', () => { setImage(urlInput.value.trim()); assemble(); });
+
+        function exportONYX() {
+            // Load the bridge if not already loaded
+            if (!window.GAR_ONYX_BRIDGE) {
+                const script = document.createElement('script');
+                script.src = 'gar-onyx-bridge.js';
+                script.onload = () => exportONYX(); // Retry after load
+                script.onerror = () => alert('Failed to load gar-onyx-bridge.js!');
+                document.head.appendChild(script);
+                return;
+            }
+
+            // Prepare GAR state for export
+            // For GAR-01, we might not have full segmentation data like GAR-07
+            // We'll construct a basic state from the grid
+            const tiles = [...GRID.children];
+            const labels = new Array(ROWS * COLS).fill(0);
+            const centroids = [{ x: COLS / 2, y: ROWS / 2 }];
+            const areas = [ROWS * COLS];
+            const colors = [[100, 100, 100]]; // Default gray
+
+            // If we have features, use them
+            // Note: gar-01 computeFeatures returns edges/colors but not clusters/labels by default unless we run kmeans
+            // We'll run a quick kmeans if needed or just export as single segment
+
+            // Try to get features if available
+            let k = 1;
+            try {
+                const features = computeFeatures();
+                if (features.ok) {
+                    const pts = features.colors.map((rgb, i) => [rgb[0] / 255, rgb[1] / 255, rgb[2] / 255, features.edges[i]]);
+                    k = Math.max(2, Math.min(8, parseInt(kInput.value) || 4));
+                    const clusters = kmeans(pts, k, 8);
+
+                    // Update state
+                    for (let i = 0; i < clusters.length; i++) labels[i] = clusters[i];
+
+                    // Recompute centroids/areas/colors
+                    const cent = Array.from({ length: k }, () => ({ x: 0, y: 0, n: 0 }));
+                    const area = new Array(k).fill(0);
+                    const col = Array.from({ length: k }, () => ({ r: 0, g: 0, b: 0, n: 0 }));
+
+                    for (let i = 0; i < labels.length; i++) {
+                        const cl = labels[i];
+                        const r = Math.floor(i / COLS);
+                        const c = i % COLS;
+                        cent[cl].x += c + 0.5; cent[cl].y += r + 0.5; cent[cl].n++;
+                        area[cl]++;
+
+                        if (features.colors[i]) {
+                            col[cl].r += features.colors[i][0];
+                            col[cl].g += features.colors[i][1];
+                            col[cl].b += features.colors[i][2];
+                            col[cl].n++;
+                        }
+                    }
+
+                    centroids.length = 0; areas.length = 0; colors.length = 0;
+                    for (let i = 0; i < k; i++) {
+                        if (cent[i].n) {
+                            centroids.push({ x: cent[i].x / cent[i].n, y: cent[i].y / cent[i].n });
+                            areas.push(area[i]);
+                            colors.push([col[i].r / col[i].n, col[i].g / col[i].n, col[i].b / col[i].n]);
+                        } else {
+                            centroids.push({ x: 0, y: 0 }); areas.push(0); colors.push([0, 0, 0]);
+                        }
+                    }
+                }
+            } catch (e) {
+                console.warn("Auto-segmentation for export failed, using default", e);
+            }
+
+            const garState = {
+                labels: labels,
+                centroids: centroids,
+                colors: colors,
+                areas: areas,
+                k: k
+            };
+
+            // Convert to ONYX format
+            const onyxData = window.GAR_ONYX_BRIDGE.garToOnyx(garState);
+
+            // Post message to parent (Studio)
+            window.parent.postMessage({ type: 'GAR_EXPORT', data: onyxData }, '*');
+
+            // Also download JSON as backup
+            // const json = JSON.stringify({ exportedAt: new Date().toISOString(), channels: [onyxData] }, null, 2);
+            // ... (download logic omitted for brevity, relying on Studio integration)
+
+            alert(`✓ Exported GAR-01 data to ONYX Studio!`);
+        }
+
+        document.getElementById('exportONYX').addEventListener('click', exportONYX);
+
+        // Boot
+        makeGrid();
+        assemble();
+    </script>
+</body>
+
+</html>

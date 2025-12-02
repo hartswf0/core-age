@@ -1,0 +1,908 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ONYX // Reactor</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #0b1121;
+            --panel: #0f172a;
+            --surface: #1e293b;
+            --border: #334155;
+            --text-main: #e2e8f0;
+            --text-muted: #64748b;
+
+            /* Ontology Colors */
+            --c-core: #fbbf24;
+            --c-entity: #3b82f6;
+            --c-morph: #22d3ee;
+            --c-goal: #fcd34d;
+            --c-story: #4ade80;
+            --c-meta: #a855f7;
+
+            --focus: rgba(34, 211, 238, 0.1);
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+
+            --sidebar-width: 80px;
+            --timeline-width: 320px;
+            --header-h: 56px;
+            --footer-h: 120px;
+        }
+
+        body {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-main);
+            overflow: hidden;
+        }
+
+        * {
+            box-sizing: border-box;
+            -webkit-tap-highlight-color: transparent;
+            outline: none;
+        }
+
+        /* LAYOUT */
+        .layout-root {
+            display: grid;
+            grid-template-areas:
+                "header header header"
+                "sidebar canvas timeline"
+                "sidebar footer timeline";
+            grid-template-columns: var(--sidebar-width) 1fr var(--timeline-width);
+            grid-template-rows: var(--header-h) 1fr var(--footer-h);
+            width: 100vw;
+            height: 100dvh;
+        }
+
+        @media (max-width: 768px) {
+            .layout-root {
+                grid-template-areas: "header header" "canvas canvas" "timeline timeline" "footer footer";
+                grid-template-columns: 0px 1fr;
+                grid-template-rows: 50px 1fr 150px 80px;
+            }
+
+            #sidebar {
+                display: none;
+            }
+        }
+
+        /* HEADER */
+        #header {
+            grid-area: header;
+            border-bottom: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0 1rem;
+            z-index: 50;
+        }
+
+        /* SIDEBAR (Palette) */
+        #sidebar {
+            grid-area: sidebar;
+            border-right: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            padding-top: 1rem;
+            gap: 0.5rem;
+            z-index: 40;
+            overflow-y: auto;
+        }
+
+        .tool {
+            width: 56px;
+            height: 56px;
+            flex-shrink: 0;
+            border-radius: 6px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid transparent;
+            cursor: grab;
+            transition: all 0.2s var(--ease);
+            padding: 4px;
+        }
+
+        .tool:hover {
+            background: var(--surface);
+            border-color: var(--border);
+            transform: scale(1.05);
+        }
+
+        .tool-icon {
+            width: 32px;
+            height: 32px;
+            position: relative;
+        }
+
+        .tool-label {
+            font-size: 8px;
+            color: var(--text-muted);
+            margin-top: 2px;
+            text-transform: uppercase;
+        }
+
+        /* CANVAS */
+        #canvas {
+            grid-area: canvas;
+            position: relative;
+            background: var(--bg);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .grid-frame {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 1px;
+            width: 100%;
+            max-width: 600px;
+            aspect-ratio: 1;
+            /* Technical Grid Background */
+            background-image:
+                linear-gradient(var(--surface) 1px, transparent 1px),
+                linear-gradient(90deg, var(--surface) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+        }
+
+        .cell {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            transition: background 0.1s;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+            z-index: 10;
+        }
+
+        .cell.active {
+            background: var(--focus);
+            box-shadow: inset 0 0 10px var(--focus);
+        }
+
+        /* TIMELINE (Chat) */
+        #timeline {
+            grid-area: timeline;
+            border-left: 1px solid var(--border);
+            background: var(--panel);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .chat-scroll {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+        }
+
+        .node {
+            background: var(--surface);
+            border-left: 3px solid var(--border);
+            padding: 0.5rem 0.75rem;
+            border-radius: 0 4px 4px 0;
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+
+        .node:hover {
+            transform: translateX(2px);
+            background: #222;
+        }
+
+        .node-meta {
+            font-size: 0.6rem;
+            color: var(--text-muted);
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 2px;
+        }
+
+        .node-content {
+            font-size: 0.75rem;
+            line-height: 1.4;
+            white-space: pre-wrap;
+        }
+
+        /* FOOTER (Actuator) */
+        #footer {
+            grid-area: footer;
+            border-top: 1px solid var(--border);
+            background: var(--surface);
+            padding: 1rem;
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            z-index: 60;
+        }
+
+        textarea {
+            flex: 1;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            color: var(--text-main);
+            padding: 0.5rem;
+            font-family: var(--font-mono);
+            font-size: 0.8rem;
+            resize: none;
+            border-radius: 4px;
+        }
+
+        textarea:focus {
+            border-color: var(--c-morph);
+        }
+
+        /* Animation for entry */
+        @keyframes scaleIn {
+            from {
+                transform: scale(0);
+                opacity: 0;
+            }
+
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        .iso-entry {
+            animation: scaleIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            width: 100%;
+            height: 100%;
+        }
+    </style>
+</head>
+
+<body class="layout-root" data-theme="dark">
+
+    <header id="header">
+        <div class="flex items-center gap-3">
+            <i data-lucide="cpu" class="text-[var(--c-morph)] w-5 h-5"></i>
+            <span class="text-xs font-bold tracking-widest text-[var(--text-muted)]">ONYX REACTOR</span>
+        </div>
+        <div class="flex gap-4 text-[0.65rem] text-[var(--text-muted)] font-bold">
+            <span class="text-[var(--c-core)]">CORE</span>
+            <span class="text-[var(--c-entity)]">ENT</span>
+            <span class="text-[var(--c-morph)]">MORPH</span>
+            <span class="text-[var(--c-goal)]">GOAL</span>
+        </div>
+        <div class="flex gap-2">
+            <button onclick="resetGrid()" class="p-2 hover:text-[var(--c-goal)]" title="Clear Grid">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+            </button>
+        </div>
+    </header>
+
+    <aside id="sidebar">
+        <!-- Palette Rendered via JS -->
+    </aside>
+
+    <main id="canvas">
+        <div id="grid" class="grid-frame"></div>
+        <div class="absolute bottom-2 left-4 text-[0.65rem] text-[var(--text-muted)]">
+            CELL: <span id="hover-idx" class="text-white">--</span>
+        </div>
+    </main>
+
+    <aside id="timeline">
+        <div
+            class="p-2 border-b border-[var(--border)] text-[10px] font-bold tracking-widest text-center text-[var(--text-muted)] bg-[var(--bg)]">
+            EVENT LOG
+        </div>
+        <div id="chat-stream" class="chat-scroll">
+            <div class="node">
+                <div class="node-meta"><span>SYSTEM</span><span>INIT</span></div>
+                <div class="node-content">Reactor Online. Grid locked.</div>
+            </div>
+        </div>
+    </aside>
+
+    <footer id="footer">
+        <div class="flex h-full gap-2">
+            <textarea id="input" placeholder="Paste code to decompose, or narrative commands..."></textarea>
+            <button onclick="processInput()"
+                class="w-12 h-full bg-[var(--panel)] border border-[var(--border)] rounded flex items-center justify-center hover:border-[var(--c-morph)] hover:text-[var(--c-morph)] transition-colors">
+                <i data-lucide="arrow-right"></i>
+            </button>
+        </div>
+    </footer>
+
+    <script>
+        // =========================================
+        // 1. ISOMETRIC HELPERS
+        // =========================================
+        function getIsoCube(color = "blue") {
+            const colors = {
+                blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' },
+                green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                red: { top: '#f87171', left: '#ef4444', right: '#dc2626' }
+            };
+            const c = colors[color] || colors.blue;
+            return `
+            <svg viewBox="0 0 40 40" class="w-full h-full iso-entry">
+                <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1"/>
+                <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1"/>
+                <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1"/>
+            </svg>`;
+        }
+
+        // =========================================
+        // 2. ICON DEFINITIONS (Imported List)
+        // =========================================
+        const ICONS = {
+            Entity: () => getIsoCube('blue'),
+
+            Core: () => getIsoCube('yellow'),
+
+            Goal: () => `
+                <div class="relative w-full h-full iso-entry">
+                    <div class="absolute -top-2 left-0 right-0 mx-auto w-4 h-4 flex justify-center items-center text-yellow-400 z-10">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <circle cx="12" cy="12" r="3" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    ${getIsoCube('blue')}
+                </div>`,
+
+            Obstacle: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-3/4 h-3/4 relative">${getIsoCube('blue')}</div>
+                    <div class="absolute right-0 h-full w-1 bg-slate-400/80"></div>
+                    <div class="absolute right-1 top-1/2 w-3 h-0.5 bg-yellow-400"></div>
+                </div>`,
+
+            Morphism: () => `
+                <div class="relative w-full h-full flex items-center justify-between iso-entry">
+                    <div class="w-5 h-5">${getIsoCube('blue')}</div>
+                    <div class="flex-1 h-0.5 bg-yellow-400 mx-1 relative"></div>
+                    <div class="w-5 h-5">${getIsoCube('blue')}</div>
+                </div>`,
+
+            Shift: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-5 h-5 opacity-50">${getIsoCube('blue')}</div>
+                    <div class="absolute z-10 text-yellow-400">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+                            <path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z" fill="currentColor"/>
+                        </svg>
+                    </div>
+                    <div class="w-5 h-5 opacity-50">${getIsoCube('blue')}</div>
+                </div>`,
+
+            Location: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="absolute top-0 right-0 w-4 h-4">${getIsoCube('cyan')}</div>
+                    <div class="absolute bottom-0 left-0 w-4 h-4">${getIsoCube('cyan')}</div>
+                </div>`,
+
+            Timepoint: () => `
+                <div class="relative w-full h-full flex items-center justify-center iso-entry">
+                    <div class="w-3/4 h-3/4">${getIsoCube('cyan')}</div>
+                    <div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[var(--bg)] rounded-full border border-cyan-500 flex items-center justify-center z-10">
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none">
+                            <circle cx="12" cy="12" r="10" stroke="currentColor" stroke-width="2"/>
+                            <path d="M12 6v6l4 2" stroke="currentColor" stroke-width="2" fill="none"/>
+                        </svg>
+                    </div>
+                </div>`,
+
+            Scene: () => `
+                <div class="relative w-full h-full flex items-center justify-center p-1 iso-entry">
+                    <div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-cyan-400"></div>
+                    <div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-cyan-400"></div>
+                    <div class="flex gap-0.5">
+                        <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                        <div class="w-3 h-3">${getIsoCube('cyan')}</div>
+                    </div>
+                </div>`,
+
+            Story: () => `
+                <div class="relative w-full h-full flex flex-col items-center justify-start pt-1 iso-entry">
+                    <div class="w-4 h-4 z-10">${getIsoCube('cyan')}</div>
+                    <div class="w-full h-0.5 bg-cyan-500/50"></div>
+                    <div class="flex gap-1 mt-2">
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                        <div class="w-2.5 h-2.5">${getIsoCube('cyan')}</div>
+                    </div>
+                </div>`
+        };
+
+        // =========================================
+        // 3. ONTOLOGY DEFINITIONS
+        // =========================================
+        const ONTOLOGY = {
+            Core: { type: 'Core', match: /class|interface|extends/ },
+            Entity: { type: 'Entity', match: /const|let|var|new/ },
+            Goal: { type: 'Goal', match: /return|throw/ },
+            Obstacle: { type: 'Obstacle', match: /catch|error|finally/ },
+            Morphism: { type: 'Morphism', match: /function|=>|\(\)/ },
+            Shift: { type: 'Shift', match: /await|async|promise/ },
+            Location: { type: 'Location', match: /import|export|from/ },
+            Timepoint: { type: 'Timepoint', match: /Date|time|now/ },
+            Scene: { type: 'Scene', match: /module|package/ },
+            Story: { type: 'Story', match: /\/\// }
+        };
+
+        // =========================================
+        // 4. CORE ONTOLOGY (State Management)
+        // =========================================
+
+        class RingMemory {
+            constructor(capacity = 48) {
+                this.capacity = capacity;
+                this.entries = [];
+                this.mainline = null; // ID of the canonical timeline
+            }
+
+            log(type, content, channelId) {
+                const entry = {
+                    id: Date.now() + Math.random(),
+                    timestamp: Date.now(),
+                    type,
+                    content,
+                    channelId
+                };
+                this.entries.push(entry);
+                if (this.entries.length > this.capacity) {
+                    this.entries.shift();
+                }
+                return entry;
+            }
+        }
+
+        class Channel {
+            constructor(id, parentId = null) {
+                this.id = id;
+                this.parentId = parentId;
+                this.grid = Array(81).fill(null);
+                this.links = []; // { from: idx, to: idx, type: 'has_goal'|'blocked_by'|'at' }
+                this.messages = []; // Chat history
+                this.culturalAgents = new Map(); // Agent simulation state
+                this.createdAt = Date.now();
+            }
+
+            // Deep copy for branching
+            clone() {
+                const newChannel = new Channel(`ch-${Date.now()}-${Math.floor(Math.random() * 1000)}`, this.id);
+                newChannel.grid = JSON.parse(JSON.stringify(this.grid));
+                newChannel.links = JSON.parse(JSON.stringify(this.links));
+                newChannel.messages = JSON.parse(JSON.stringify(this.messages));
+                // Agents would need deep cloning too if complex
+                return newChannel;
+            }
+
+            addMessage(type, text) {
+                const msg = {
+                    id: Date.now(),
+                    type,
+                    text,
+                    timestamp: Date.now()
+                };
+                this.messages.push(msg);
+                return msg;
+            }
+
+            addLink(from, to, type) {
+                this.links.push({ from, to, type });
+            }
+        }
+
+        // =========================================
+        // 6. SIMULATION ENGINES (The Muscles)
+        // =========================================
+
+        class CulturalAgent {
+            constructor(id, role = 'Citizen') {
+                this.id = id;
+                this.role = role; // Citizen, Rebel, Cop
+                this.grievance = Math.random();
+                this.fear = Math.random();
+                this.active = false;
+            }
+
+            tick(neighbors) {
+                // Epstein Civil Violence Model (Simplified)
+                const risk = this.fear * 0.5; // Placeholder for cop density
+                const netGrievance = this.grievance - risk;
+
+                if (netGrievance > 0.1) {
+                    this.active = true;
+                    this.role = 'Rebel';
+                } else {
+                    this.active = false;
+                    this.role = 'Citizen';
+                }
+                return this.role;
+            }
+        }
+
+        class CulturalEngine {
+            constructor(channel) {
+                this.channel = channel;
+            }
+
+            initAgents() {
+                // Spawn agents in random cells
+                for (let i = 0; i < 20; i++) {
+                    const idx = Math.floor(Math.random() * 81);
+                    const agent = new CulturalAgent(idx);
+                    this.channel.culturalAgents.set(idx, agent);
+
+                    // Visual representation
+                    if (!this.channel.grid[idx]) {
+                        this.channel.grid[idx] = { type: 'Entity', content: `Agent ${agent.role}` };
+                    }
+                }
+            }
+
+            tick() {
+                this.channel.culturalAgents.forEach((agent, idx) => {
+                    const oldRole = agent.role;
+                    const newRole = agent.tick([]);
+
+                    // Update grid visual if role changed
+                    if (oldRole !== newRole && this.channel.grid[idx]) {
+                        this.channel.grid[idx].type = newRole === 'Rebel' ? 'Goal' : 'Entity'; // Red vs Blue
+                    }
+                });
+            }
+        }
+
+        class SceneAssembler {
+            static compose(channel, prompt) {
+                channel.addMessage('System', `Weaving narrative for: "${prompt}"...`);
+
+                // Clear previous transient state if needed, or append?
+                // For this demo, let's clear to show the structure clearly
+                channel.grid.fill(null);
+                channel.links = [];
+
+                // 1. Determine Core Components
+                // Simple heuristic: "Protagonist" -> "Goal" -> "Obstacle"
+
+                const center = 40; // Middle of 9x9
+
+                // Entity (Protagonist)
+                const entIdx = center;
+                channel.grid[entIdx] = { type: 'Entity', content: 'Protagonist' };
+
+                // Goal (Top Rightish)
+                const goalIdx = center - 8;
+                channel.grid[goalIdx] = { type: 'Goal', content: 'The Objective' };
+
+                // Obstacle (In between)
+                const obsIdx = center - 4;
+                channel.grid[obsIdx] = { type: 'Obstacle', content: 'The Conflict' };
+
+                // Location (Background context)
+                const locIdx = center + 10;
+                channel.grid[locIdx] = { type: 'Location', content: 'Setting' };
+
+                // 2. Link them (The Tendons)
+                channel.addLink(entIdx, goalIdx, 'has_goal');
+                channel.addLink(goalIdx, obsIdx, 'blocked_by');
+                channel.addLink(entIdx, locIdx, 'located_at');
+
+                channel.addMessage('System', `Narrative structure woven: Entity -> Goal (Blocked) @ Location.`);
+            }
+        }
+
+        // Update AppState to include Engines
+        class AppState {
+            constructor() {
+                this.channels = new Map();
+                this.ring = new RingMemory();
+                this.activeChannelId = null;
+
+                // Initialize with a default channel
+                const root = new Channel('root');
+                this.channels.set(root.id, root);
+                this.activeChannelId = root.id;
+
+                // Attach Engines
+                this.culturalEngine = new CulturalEngine(root);
+            }
+
+            // ... existing methods ...
+
+            get activeChannel() {
+                return this.channels.get(this.activeChannelId);
+            }
+
+            forkChannel(sourceId) {
+                const source = this.channels.get(sourceId);
+                if (!source) return;
+
+                const fork = source.clone();
+                this.channels.set(fork.id, fork);
+                this.activeChannelId = fork.id;
+
+                // Re-attach engine to new channel
+                this.culturalEngine = new CulturalEngine(fork);
+                // Copy agents? For now, re-init
+                this.culturalEngine.initAgents();
+
+                this.ring.log('System', `Forked reality from ${sourceId} to ${fork.id}`, fork.id);
+                return fork;
+            }
+        }
+
+        // Global State Instance
+        const APP = new AppState();
+
+        // =========================================
+        // 7. RENDERERS & INTERACTION
+        // =========================================
+
+        function init() {
+            renderPalette();
+            renderGrid();
+            renderTimeline();
+            lucide.createIcons();
+
+            document.getElementById('input').addEventListener('keydown', (e) => {
+                if (e.key === 'Enter' && !e.shiftKey) {
+                    e.preventDefault();
+                    processInput();
+                }
+            });
+
+            // Initial Log
+            APP.activeChannel.addMessage('System', 'Reactor Online. Root Channel Active.');
+            renderTimeline();
+        }
+
+        // --- Render Sidebar Palette ---
+        function renderPalette() {
+            const sb = document.getElementById('sidebar');
+            sb.innerHTML = ''; // Clear
+            Object.keys(ONTOLOGY).forEach(k => {
+                const el = document.createElement('div');
+                el.className = 'tool';
+                el.title = k;
+                el.draggable = true;
+                el.innerHTML = `
+                    <div class="tool-icon">${ICONS[k]()}</div>
+                    <span class="tool-label">${k}</span>
+                `;
+
+                el.ondragstart = (e) => {
+                    e.dataTransfer.setData('type', k); // Use dataTransfer for clean state
+                    e.dataTransfer.effectAllowed = 'copy';
+                    e.dataTransfer.setDragImage(el, 28, 28);
+                };
+                sb.appendChild(el);
+            });
+        }
+
+        // --- Render Grid & Links ---
+        function renderGrid() {
+            const el = document.getElementById('grid');
+            el.innerHTML = '';
+
+            // 1. Render Links Layer (SVG)
+            const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+            svg.setAttribute("class", "absolute top-0 left-0 w-full h-full pointer-events-none z-0");
+            svg.style.opacity = "0.6";
+
+            const links = APP.activeChannel.links;
+            links.forEach(link => {
+                const fromRect = getCellCenter(link.from);
+                const toRect = getCellCenter(link.to);
+
+                const line = document.createElementNS("http://www.w3.org/2000/svg", "line");
+                line.setAttribute("x1", fromRect.x + "%");
+                line.setAttribute("y1", fromRect.y + "%");
+                line.setAttribute("x2", toRect.x + "%");
+                line.setAttribute("y2", toRect.y + "%");
+
+                let color = "#64748b"; // Default slate
+                if (link.type === 'has_goal') color = "#fcd34d"; // Yellow
+                if (link.type === 'blocked_by') color = "#ef4444"; // Red
+                if (link.type === 'located_at') color = "#22d3ee"; // Cyan
+
+                line.setAttribute("stroke", color);
+                line.setAttribute("stroke-width", "2");
+                line.setAttribute("stroke-dasharray", link.type === 'located_at' ? "4 2" : "0");
+
+                svg.appendChild(line);
+            });
+            el.appendChild(svg);
+
+            // 2. Render Cells
+            const gridData = APP.activeChannel.grid;
+            gridData.forEach((data, i) => {
+                const cell = document.createElement('div');
+                cell.className = 'cell';
+                // Ensure z-index is higher than SVG
+                cell.style.zIndex = data ? "10" : "1";
+
+                if (data) {
+                    cell.innerHTML = ICONS[data.type]();
+                    cell.title = `${data.type}: ${data.content || ''}`;
+                } else {
+                    cell.innerHTML = `<span style="opacity:0.1">${i}</span>`;
+                }
+
+                // Events
+                cell.onmouseover = () => document.getElementById('hover-idx').innerText = i;
+                cell.ondragover = (e) => { e.preventDefault(); cell.classList.add('active'); };
+                cell.ondragleave = () => cell.classList.remove('active');
+                cell.ondrop = (e) => handleDrop(e, i);
+                cell.onclick = () => {
+                    if (data) {
+                        APP.activeChannel.addMessage(data.type, `Inspect Cell ${i}: ${data.content || 'Unknown'}`);
+                        renderTimeline();
+                    }
+                };
+
+                el.appendChild(cell);
+            });
+        }
+
+        function getCellCenter(idx) {
+            const col = idx % 9;
+            const row = Math.floor(idx / 9);
+            // Grid is 9x9, so each cell is 11.11%
+            const half = 11.11 / 2;
+            return {
+                x: (col * 11.11) + half,
+                y: (row * 11.11) + half
+            };
+        }
+
+        // --- Render Timeline (With Forking) ---
+        function renderTimeline() {
+            const stream = document.getElementById('chat-stream');
+            stream.innerHTML = ''; // Re-render full history for now (optimize later)
+
+            APP.activeChannel.messages.forEach(msg => {
+                const node = document.createElement('div');
+                node.className = `node ${msg.type}`;
+
+                let color = '#475569';
+                if (msg.type === 'Core') color = '#fbbf24';
+                if (msg.type === 'Entity') color = '#3b82f6';
+                if (msg.type === 'Morphism') color = '#22d3ee';
+                if (msg.type === 'Goal') color = '#fcd34d';
+                if (msg.type === 'System') color = '#a855f7';
+
+                node.style.borderLeftColor = color;
+                node.innerHTML = `
+                    <div class="node-meta">
+                        <span style="color:${color}">${msg.type.toUpperCase()}</span>
+                        <span>${new Date(msg.timestamp).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}</span>
+                    </div>
+                    <div class="node-content">${msg.text}</div>
+                `;
+
+                // Fork Interaction
+                node.onclick = () => {
+                    if (confirm(`Fork reality from this point?`)) {
+                        APP.forkChannel(APP.activeChannelId);
+                        APP.activeChannel.addMessage('System', `Forked from message: "${msg.text.substring(0, 20)}..."`);
+                        renderGrid(); // Grid might be same, but context changes
+                        renderTimeline();
+                    }
+                };
+
+                stream.appendChild(node);
+            });
+
+            stream.scrollTop = stream.scrollHeight;
+        }
+
+        // --- Logic ---
+        function handleDrop(e, idx) {
+            e.preventDefault();
+            const type = e.dataTransfer.getData('type');
+            if (!type) return;
+
+            APP.activeChannel.grid[idx] = { type, content: 'Manual Drop' };
+            APP.activeChannel.addMessage(type, `Placed ${type} at [${idx}]`);
+
+            renderGrid();
+            renderTimeline();
+        }
+
+        function processInput() {
+            const input = document.getElementById('input');
+            const text = input.value.trim();
+            if (!text) return;
+
+            input.value = '';
+
+            // Commands
+            if (text.startsWith('/fork')) {
+                APP.forkChannel(APP.activeChannelId);
+                renderTimeline();
+                renderGrid();
+                return;
+            }
+
+            if (text.startsWith('/paint')) {
+                SceneAssembler.compose(APP.activeChannel, text.replace('/paint', '').trim() || "Generic Story");
+                renderGrid();
+                renderTimeline();
+                return;
+            }
+
+            if (text.startsWith('/cultural')) {
+                APP.culturalEngine.initAgents();
+                APP.activeChannel.addMessage('System', 'Cultural Agents Initialized.');
+                renderGrid();
+                renderTimeline();
+                // Start Loop
+                setInterval(() => {
+                    APP.culturalEngine.tick();
+                    renderGrid();
+                }, 1000);
+                return;
+            }
+
+            // Narrative
+            APP.activeChannel.addMessage('Entity', text);
+            SceneAssembler.compose(APP.activeChannel, text);
+            renderGrid();
+            renderTimeline();
+        }
+
+        function proceduralGen(text) {
+            let seed = 0;
+            for (let i = 0; i < text.length; i++) seed += text.charCodeAt(i);
+            const count = Math.max(1, seed % 5);
+            const types = Object.keys(ONTOLOGY);
+
+            for (let i = 0; i < count; i++) {
+                const pos = (seed * (i + 2)) % 81;
+                const type = types[(seed + i) % types.length];
+                APP.activeChannel.grid[pos] = { type, content: 'Narrative Flux' };
+            }
+            renderGrid();
+            APP.activeChannel.addMessage('Story', `Materialized ${count} nodes from narrative.`);
+            renderTimeline();
+        }
+
+        function resetGrid() {
+            APP.activeChannel.grid.fill(null);
+            APP.activeChannel.addMessage('System', 'Grid cleared.');
+            renderGrid();
+            renderTimeline();
+        }
+
+        init();
+    </script>
+</body>
+
+</html>

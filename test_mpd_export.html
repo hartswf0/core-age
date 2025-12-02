@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>MPD Export Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            background: #000;
+            color: #0f0;
+            padding: 20px;
+        }
+
+        pre {
+            background: #111;
+            border: 1px solid #333;
+            padding: 10px;
+            overflow-x: auto;
+        }
+
+        .pass {
+            color: #0f0;
+        }
+
+        .fail {
+            color: #f00;
+        }
+
+        button {
+            background: #0f0;
+            color: #000;
+            padding: 10px;
+            margin: 10px;
+            cursor: pointer;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>MPD Export Format Test</h1>
+    <button onclick="testExport()">Run Test</button>
+    <div id="output"></div>
+
+    <script>
+        // Mock NeuroGraph structure
+        class MockGraph {
+            constructor() {
+                this.nodes = new Map([
+                    ['n1', { id: 'n1', color: 4, x: -300, y: -50, z: 200, file: 'parts/3001.dat', category: 'Structure' }],
+                    ['n2', { id: 'n2', color: 4, x: -280, y: -50, z: 220, file: 'parts/3003.dat', category: 'Weapon' }],
+                    ['n3', { id: 'n3', color: 1, x: 300, y: -50, z: 200, file: 'parts/3004.dat', category: 'Structure' }],
+                    ['n4', { id: 'n4', color: 1, x: 320, y: -50, z: 180, file: 'parts/3622.dat', category: 'Structure' }]
+                ]);
+                this.edges = [
+                    { source: 'n1', target: 'n2', type: 'proximity', weight: 0.8 },
+                    { source: 'n3', target: 'n4', type: 'proximity', weight: 0.9 }
+                ];
+                this.entities = [
+                    { id: 'e1', archetype: 'Villain', role: 'Character', color: 4, count: 2, nodes: ['n1', 'n2'] },
+                    { id: 'e2', archetype: 'Hero', role: 'Character', color: 1, count: 2, nodes: ['n3', 'n4'] }
+                ];
+            }
+
+            exportMPD(filename = "generated_scene.mpd", author = "Neurosymbolic Generator") {
+                const lines = [];
+
+                // Header
+                lines.push(`0 FILE ${filename}`);
+                lines.push(`0 Name: ${filename}`);
+                lines.push(`0 Author: ${author}`);
+                lines.push(`0 !LDRAW_ORG Model`);
+                lines.push(`0 !LICENCE Redistributable under CCAL version 2.0`);
+                lines.push(`0 BFC CERTIFY CCW`);
+                lines.push(``);
+
+                // Decorative header
+                lines.push(`0 // ╔════════════════════════════════════════════════════════════╗`);
+                lines.push(`0 // ║  NEUROSYMBOLIC GENERATED SCENE                             ║`);
+                lines.push(`0 // ║  Nodes: ${this.nodes.size.toString().padEnd(3)} | Edges: ${this.edges.length.toString().padEnd(3)} | Entities: ${this.entities.length.toString().padEnd(3)}                  ║`);
+                lines.push(`0 // ╚════════════════════════════════════════════════════════════╝`);
+                lines.push(``);
+                lines.push(`0 STEP`);
+                lines.push(``);
+
+                // Group nodes by entity
+                this.entities.forEach((entity, idx) => {
+                    lines.push(`0 // ═══ Entity ${idx + 1}: ${entity.archetype} (${entity.count} parts) ═══`);
+                    lines.push(``);
+
+                    const entityNodes = entity.nodes.map(nid => this.nodes.get(nid)).filter(n => n);
+                    entityNodes.forEach(node => {
+                        const line = `1 ${node.color} ${node.x.toFixed(1)} ${node.y.toFixed(1)} ${node.z.toFixed(1)} 1 0 0 0 1 0 0 0 1 ${node.file}`;
+                        lines.push(line);
+                    });
+                    lines.push(``);
+                });
+
+                // Ungrouped nodes
+                const groupedIds = new Set(this.entities.flatMap(e => e.nodes));
+                const ungrouped = Array.from(this.nodes.values()).filter(n => !groupedIds.has(n.id));
+
+                if (ungrouped.length > 0) {
+                    lines.push(`0 // ═══ Ungrouped Parts (${ungrouped.length}) ═══`);
+                    lines.push(``);
+                    ungrouped.forEach(node => {
+                        const line = `1 ${node.color} ${node.x.toFixed(1)} ${node.y.toFixed(1)} ${node.z.toFixed(1)} 1 0 0 0 1 0 0 0 1 ${node.file}`;
+                        lines.push(line);
+                    });
+                    lines.push(``);
+                }
+
+                lines.push(`0 STEP`);
+                lines.push(`0 NOFILE`);
+
+                return lines.join('\\n');
+            }
+        }
+
+        function testExport() {
+            const output = document.getElementById('output');
+            output.innerHTML = '<h2>Testing MPD Export...</h2>';
+
+            const graph = new MockGraph();
+            const mpd = graph.exportMPD('test_scene.mpd', 'Test Generator');
+
+            // Display
+            output.innerHTML += '<pre>' + mpd + '</pre>';
+
+            // Validate
+            const lines = mpd.split('\\n');
+            const checks = [];
+
+            checks.push({ name: 'Has FILE header', pass: lines[0].startsWith('0 FILE') });
+            checks.push({ name: 'Has Author', pass: lines.some(l => l.includes('Author')) });
+            checks.push({ name: 'Has LDRAW_ORG', pass: lines.some(l => l.includes('LDRAW_ORG')) });
+            checks.push({ name: 'Has STEP markers', pass: lines.filter(l => l === '0 STEP').length >= 2 });
+            checks.push({ name: 'Has NOFILE', pass: lines[lines.length - 1] === '0 NOFILE' });
+            checks.push({ name: 'Has part lines (Type 1)', pass: lines.some(l => l.startsWith('1 ')) });
+            checks.push({ name: 'Correct entity count', pass: lines.filter(l => l.includes('═══ Entity')).length === 2 });
+
+            output.innerHTML += '<h3>Validation Results:</h3><ul>';
+            checks.forEach(c => {
+                output.innerHTML += `<li class="${c.pass ? 'pass' : 'fail'}">${c.pass ? '✅' : '❌'} ${c.name}</li>`;
+            });
+            output.innerHTML += '</ul>';
+
+            if (checks.every(c => c.pass)) {
+                output.innerHTML += '<h2 class="pass">✅ ALL CHECKS PASSED - VALID MPD FORMAT</h2>';
+            } else {
+                output.innerHTML += '<h2 class="fail">❌ SOME CHECKS FAILED</h2>';
+            }
+        }
+
+        // Auto-run
+        window.onload = () => testExport();
+    </script>
+</body>
+
+</html>

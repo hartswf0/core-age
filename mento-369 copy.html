@@ -1,0 +1,2481 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <title>MENTO MASTER v8.0 // SENSOR CONTROL</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <style>
+        :root {
+            --bg-root: #050505;
+            --bg-panel: #0a0a0a;
+            --bg-input: #000000;
+            --border: #333333;
+            --text-main: #dddddd;
+
+            /* STUDIO PALETTE */
+            --c-model: #00ffff;
+            /* Cyan */
+            --c-path: #d000ff;
+            /* Purple */
+            --c-rec: #ff0040;
+            /* Red */
+            --c-good: #00ff88;
+            /* Mint */
+
+            --font-mono: "Menlo", "Consolas", monospace;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            outline: none;
+            user-select: none;
+        }
+
+        body {
+            background-color: var(--bg-root);
+            color: var(--text-main);
+            font-family: var(--font-mono);
+            font-size: 11px;
+            height: 100vh;
+            width: 100vw;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        /* LOADING */
+        #loader {
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 9999;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-direction: column;
+            transition: opacity 0.5s;
+        }
+
+        .load-bar-track {
+            width: 200px;
+            height: 1px;
+            background: #222;
+            margin-top: 10px;
+            position: relative;
+        }
+
+        .load-bar-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 0%;
+            background: var(--c-good);
+            transition: width 0.1s;
+        }
+
+        /* TOP BAR */
+        .top-bar {
+            height: 30px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-panel);
+            display: flex;
+            align-items: center;
+            padding: 0 10px;
+            justify-content: space-between;
+        }
+
+        .brand {
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        .status-badge {
+            background: #222;
+            color: #666;
+            padding: 1px 6px;
+            border-radius: 2px;
+            font-size: 9px;
+        }
+
+        .status-badge.rec {
+            background: var(--c-rec);
+            color: #fff;
+            animation: pulse 1s infinite;
+        }
+
+        .fs-btn {
+            background: #000;
+            border: 1px solid var(--border);
+            color: #777;
+            font-size: 9px;
+            width: 24px;
+            height: 18px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0;
+        }
+
+        .fs-btn.active {
+            color: var(--c-good);
+            border-color: var(--c-good);
+        }
+
+        /* LAYOUT */
+        .main-area {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* VIEWPORT - Now handles CSS scaling for High-Res Canvas */
+        .viewport-container {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at center, #1a1a1a 0%, #000 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        #glb-canvas {
+            display: block;
+            /* This ensures huge canvases shrink to fit the view without changing resolution */
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+        }
+
+        .panel {
+            width: 320px;
+            background: var(--bg-panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* TABS */
+        .tab-header {
+            display: flex;
+            border-bottom: 1px solid var(--border);
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 8px 0;
+            text-align: center;
+            color: #666;
+            cursor: pointer;
+            border-bottom: 2px solid transparent;
+            transition: 0.2s;
+        }
+
+        .tab-btn:hover {
+            background: #111;
+            color: #fff;
+        }
+
+        .tab-btn.active {
+            color: #fff;
+        }
+
+        .tab-btn[data-tab="scene"].active {
+            border-bottom-color: var(--c-model);
+            color: var(--c-model);
+        }
+
+        .tab-btn[data-tab="cam"].active {
+            border-bottom-color: var(--c-path);
+            color: var(--c-path);
+        }
+
+        .tab-btn[data-tab="rec"].active {
+            border-bottom-color: var(--c-rec);
+            color: var(--c-rec);
+        }
+
+        .tab-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 10px;
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* WIDGETS */
+        .section {
+            margin-bottom: 12px;
+            border: 1px solid var(--border);
+            padding: 8px;
+            position: relative;
+            margin-top: 6px;
+        }
+
+        .section-title {
+            position: absolute;
+            top: -7px;
+            left: 6px;
+            background: var(--bg-panel);
+            padding: 0 4px;
+            font-size: 9px;
+            color: #666;
+            letter-spacing: 0.5px;
+        }
+
+        .row {
+            display: flex;
+            gap: 4px;
+            margin-bottom: 4px;
+            align-items: center;
+        }
+
+        .fill {
+            flex: 1;
+        }
+
+        button {
+            background: #111;
+            border: 1px solid var(--border);
+            color: #ccc;
+            padding: 4px 8px;
+            font-family: var(--font-mono);
+            font-size: 10px;
+            cursor: pointer;
+            text-transform: uppercase;
+            height: 24px;
+        }
+
+        button:hover {
+            border-color: #666;
+            color: #fff;
+        }
+
+        button.active {
+            background: var(--c-model);
+            color: #000;
+            border-color: var(--c-model);
+        }
+
+        button.active-path {
+            background: var(--c-path);
+            color: #000;
+            border-color: var(--c-path);
+        }
+
+        .btn-toggle.checked {
+            background: #222;
+            color: #fff;
+            border-color: #666;
+        }
+
+        .btn-toggle.checked::before {
+            content: "● ";
+            color: var(--c-good);
+        }
+
+        .btn-toggle::before {
+            content: "○ ";
+            color: #444;
+        }
+
+        input,
+        select {
+            background: var(--bg-input);
+            border: 1px solid var(--border);
+            color: #fff;
+            font-family: var(--font-mono);
+            font-size: 11px;
+            padding: 0 4px;
+            height: 24px;
+            width: 100%;
+        }
+
+        input:focus {
+            border-color: var(--c-good);
+        }
+
+        /* HUD */
+        .hud {
+            position: absolute;
+            pointer-events: none;
+            padding: 4px;
+            font-size: 10px;
+            color: var(--c-good);
+            text-shadow: 0 1px 2px #000;
+        }
+
+        .hud-tl {
+            top: 10px;
+            left: 10px;
+        }
+
+        .hud-br {
+            bottom: 10px;
+            right: 10px;
+            text-align: right;
+        }
+
+        #toast {
+            position: fixed;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--c-good);
+            color: #000;
+            padding: 4px 12px;
+            font-weight: bold;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.2s;
+        }
+
+        .kf-list {
+            max-height: 120px;
+            overflow-y: auto;
+            background: #000;
+            border: 1px solid #222;
+        }
+
+        .kf-row {
+            padding: 4px;
+            border-bottom: 1px solid #111;
+            display: flex;
+            justify-content: space-between;
+            cursor: pointer;
+        }
+
+        .kf-row:hover {
+            background: #111;
+            color: #fff;
+        }
+
+        .kf-row.selected {
+            background: #222;
+            color: var(--c-path);
+            border-left: 2px solid var(--c-path);
+        }
+
+        .mobile-splitter {
+            display: none;
+            height: 18px;
+            background: #050505;
+            border-top: 1px solid #333;
+            border-bottom: 1px solid #000;
+            cursor: row-resize;
+            position: relative;
+        }
+
+        .mobile-splitter::before {
+            content: '';
+            position: absolute;
+            left: 50%;
+            top: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 4px;
+            border-radius: 999px;
+            background: #444;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 1;
+            }
+
+            50% {
+                opacity: 0.5;
+            }
+
+            100% {
+                opacity: 1;
+            }
+        }
+
+        /* MOBILE LAYOUT: stack viewport over panel with adjustable split */
+        @media (max-width: 900px) {
+            .main-area {
+                flex-direction: column;
+                height: calc(100vh - 50px);
+                height: calc(100dvh - 50px);
+            }
+
+            .viewport-container {
+                flex: 1 1 0;
+                min-height: 0;
+            }
+
+            .mobile-splitter {
+                display: block;
+            }
+
+            .panel {
+                width: 100%;
+                flex: 1 1 0;
+                min-height: 0;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                overflow-y: auto;
+                padding-bottom: 80px;
+                /* base padding */
+                padding-bottom: calc(80px + env(safe-area-inset-bottom));
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="loader">
+        <div style="color:var(--c-good); font-weight:bold; letter-spacing:4px;">MENTO // V8.0</div>
+        <div class="load-bar-track">
+            <div class="load-bar-fill" id="load-bar"></div>
+        </div>
+    </div>
+
+    <div class="top-bar">
+        <div class="brand"><span style="color:var(--c-model)">MENTO</span> <span style="color:#444">//</span> STUDIO
+        </div>
+        <div style="display:flex; align-items:center; gap:6px;">
+            <button id="btn-fs" class="fs-btn" onclick="toggleFullscreen()" title="Toggle fullscreen">⛶</button>
+            <div id="cam-badge" class="status-badge">STANDBY</div>
+        </div>
+    </div>
+
+    <div class="main-area">
+        <div class="viewport-container">
+            <!-- Canvas is now centered and can have aspect ratio different from window -->
+            <canvas id="glb-canvas"></canvas>
+
+            <div class="hud hud-tl">
+                <div id="hud-cam">CAM: 0, 0, 0</div>
+                <div id="hud-mode" style="color:var(--c-model)">MODE: MODEL</div>
+            </div>
+            <div class="hud hud-br" id="hud-sel">NO SELECTION</div>
+        </div>
+
+        <div id="mobile-split" class="mobile-splitter"></div>
+
+        <div class="panel">
+            <div class="tab-header">
+                <div class="tab-btn active" data-tab="scene" onclick="setTab('scene')">SCENE</div>
+                <div class="tab-btn" data-tab="cam" onclick="setTab('cam')">CAMERA</div>
+                <div class="tab-btn" data-tab="rec" onclick="setTab('rec')">OUTPUT</div>
+            </div>
+
+            <!-- SCENE TAB -->
+            <div id="tab-scene" class="tab-content active">
+                <div class="section">
+                    <span class="section-title">VISUALS</span>
+                    <div class="row">
+                        <button id="vis-grid" class="btn-toggle checked fill" onclick="toggleVis('grid')">GRID</button>
+                        <button id="vis-ruler" class="btn-toggle fill" onclick="toggleVis('ruler')">RULER</button>
+                    </div>
+                    <div class="row">
+                        <button id="vis-model" class="btn-toggle checked fill"
+                            onclick="toggleVis('model')">MODEL</button>
+                        <button id="vis-frust" class="btn-toggle fill" onclick="toggleVis('frust')">FRUSTUMS</button>
+                    </div>
+                    <div class="row">
+                        <button id="vis-mento" class="btn-toggle checked fill" onclick="toggleVis('mento')">MENTO
+                            LIGHTS</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">SCENE PRESET</span>
+                    <div class="row">
+                        <select id="scene-preset">
+                            <option value="grace">GRACE SAMPLE</option>
+                            <option value="desert">DESERT CANYON</option>
+                            <option value="blank">BLANK SCENE</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="loadScenePreset()">LOAD SCENE</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">FILE</span>
+                    <div class="row">
+                        <button class="fill" onclick="triggerLoad()">LOAD GLB</button>
+                        <select id="slot-sel"
+                            style="width:50px; height:24px; background:#000; color:#fff; border:1px solid #333">
+                            <option value="1">S1</option>
+                            <option value="2">S2</option>
+                        </select>
+                        <input type="file" id="file-in" style="display:none" accept=".glb,.gltf">
+                    </div>
+                    <div class="row">
+                        <button id="btn-toggle-model" class="fill" onclick="toggleActiveModelVisible()">HIDE
+                            MODEL</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">TRANSFORMS</span>
+                    <div class="row">
+                        <button id="mt-t" class="active fill" onclick="setMode('MODEL', 'translate')">MOVE</button>
+                        <button id="mt-r" class="fill" onclick="setMode('MODEL', 'rotate')">ROT</button>
+                        <button id="mt-s" class="fill" onclick="setMode('MODEL', 'scale')">SCALE</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <span style="color:var(--c-model); width:15px">X</span> <input id="inp-mx" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('x')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:15px">Y</span> <input id="inp-my" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('y')">INV</button>
+                    </div>
+                    <div class="row">
+                        <span style="color:var(--c-model); width:15px">Z</span> <input id="inp-mz" type="number"
+                            step="10">
+                        <button style="width:30px" onclick="flipModel('z')">INV</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <span style="width:15px">R</span> <input id="inp-mry" type="number" step="15"
+                            placeholder="Y-ROT">
+                        <span style="width:15px; margin-left:4px">S</span> <input id="inp-ms" type="number" step="0.1"
+                            placeholder="SCALE">
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="resetModel()">RESET</button>
+                        <button class="fill" onclick="autoScaleModel()">AUTO-FIT</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- CAMERA TAB -->
+            <div id="tab-cam" class="tab-content">
+                <div class="section">
+                    <span class="section-title">PATH TRANSFORM</span>
+                    <div class="row">
+                        <button id="pt-t" class="fill" onclick="setMode('PATH', 'translate')">MOVE</button>
+                        <button id="pt-r" class="fill" onclick="setMode('PATH', 'rotate')">ROT</button>
+                        <button id="pt-s" class="fill" onclick="setMode('PATH', 'scale')">SCALE</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <button id="pm-path" class="fill active-path" onclick="setPathEditMode('PATH')">WHOLE
+                            PATH</button>
+                        <button id="pm-key" class="fill" onclick="setPathEditMode('KEY')">KEY ONLY</button>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <button class="fill" onclick="flipPath('x')">FLIP X</button>
+                        <button class="fill" onclick="flipPath('y')">FLIP Y</button>
+                        <button class="fill" onclick="flipPath('z')">FLIP Z</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">TIMELINE</span>
+                    <div class="row">
+                        <div id="kf-preview"
+                            style="width:100%; aspect-ratio:16/9; height:auto; background:#000; border:1px solid #222; display:flex; align-items:center; justify-content:center; font-size:9px; color:#444;">
+                            NO PREVIEW</div>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <div id="kf-strip"
+                            style="width:100%; height:120px; background:#000; border:1px solid #222; overflow-y:auto; display:flex; flex-direction:column; align-items:stretch; gap:4px; padding:2px;">
+                        </div>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <button class="fill" style="color:var(--c-good)" onclick="addKey()">+ ADD KEY</button>
+                        <button class="fill" style="color:var(--c-rec)" onclick="clearKeys()">CLEAR</button>
+                    </div>
+                    <div class="row">
+                        <button class="fill" onclick="updateSelectedKey()">UPDATE FROM VIEW</button>
+                        <button class="fill" onclick="copyShot()">COPY SHOT</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">KEY DATA</span>
+                    <div class="row">
+                        <span style="width:32px;">POS</span>
+                        <input id="key-pos-x" type="number" step="1" placeholder="X">
+                        <input id="key-pos-y" type="number" step="1" placeholder="Y">
+                        <input id="key-pos-z" type="number" step="1" placeholder="Z">
+                    </div>
+                    <div class="row" style="margin-top:4px;">
+                        <span style="width:32px;">TGT</span>
+                        <input id="key-tgt-x" type="number" step="1" placeholder="X">
+                        <input id="key-tgt-y" type="number" step="1" placeholder="Y">
+                        <input id="key-tgt-z" type="number" step="1" placeholder="Z">
+                    </div>
+                    <div class="row" style="margin-top:4px;">
+                        <span style="width:32px;">FOV</span>
+                        <input id="key-fov" type="number" step="1" placeholder="LENS">
+                    </div>
+                    <div class="row" style="margin-top:4px;">
+                        <span style="width:32px;">YAW</span>
+                        <input id="key-yaw" type="number" step="1" placeholder="deg">
+                    </div>
+                    <div class="row" style="margin-top:4px;">
+                        <span style="width:32px;">PITCH</span>
+                        <input id="key-pitch" type="number" step="1" placeholder="deg">
+                    </div>
+                    <div class="row" style="margin-top:4px;">
+                        <span style="width:32px;">YAW</span>
+                        <input id="key-yaw-slider" type="range" min="-180" max="180" step="1" value="0">
+                    </div>
+                    <div class="row" style="margin-top:2px;">
+                        <span style="width:32px;">PITCH</span>
+                        <input id="key-pitch-slider" type="range" min="-89" max="89" step="1" value="0">
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">PLAYBACK</span>
+                    <div class="row">
+                        <span>DURATION (S)</span>
+                        <input id="path-dur" type="number" value="8" style="width:50px">
+                    </div>
+                    <div class="row">
+                        <button class="fill" style="border-color:var(--c-path); color:var(--c-path)"
+                            onclick="playSequence()">▶ PLAY SEQUENCE</button>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">DATA IMPORT</span>
+                    <textarea id="mento-txt"
+                        style="width:100%; height:50px; background:#000; border:1px solid #333; color:#aaa; font-size:9px;"
+                        placeholder="PASTE !MENTO SHOT..."></textarea>
+                    <div class="row" style="margin-top:4px;">
+                        <button class="fill" onclick="parseMento()">IMPORT SHOTS + LIGHTS</button>
+                        <button class="fill" onclick="toggleMentoEditorSize()">EXPAND</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <button class="fill" onclick="undoEdit()">UNDO</button>
+                        <button class="fill" onclick="redoEdit()">REDO</button>
+                    </div>
+                    <div class="row" style="margin-top:4px">
+                        <button class="fill" onclick="loadGraceSample()">LOAD GRACE SAMPLE</button>
+                    </div>
+                    <div class="row">
+                        <span style="font-size:9px; color:#666;">Tip: LOAD GRACE SAMPLE, then IMPORT SHOTS + LIGHTS, or
+                            paste your own !MENTO SHOT / !MENTO LIGHT manifest.</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REC TAB -->
+            <div id="tab-rec" class="tab-content">
+                <div class="section">
+                    <span class="section-title">SENSOR CONFIG</span>
+                    <div class="row">
+                        <span class="fill">ASPECT</span>
+                        <select id="rec-aspect" onchange="updateResolution()">
+                            <option value="VIEW">VIEWPORT (AUTO)</option>
+                            <option value="1.777">16:9 (LANDSCAPE)</option>
+                            <option value="0.5625">9:16 (VERTICAL)</option>
+                            <option value="1.0">1:1 (SQUARE)</option>
+                            <option value="1.333">4:3 (CLASSIC)</option>
+                            <option value="2.35">2.35:1 (CINEMA)</option>
+                        </select>
+                    </div>
+                    <div class="row">
+                        <span class="fill">RES</span>
+                        <select id="rec-res" onchange="updateResolution()">
+                            <option value="720">720p</option>
+                            <option value="1080" selected>1080p</option>
+                            <option value="2160">2160p (4K)</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="section">
+                    <span class="section-title">CAPTURE SETTINGS</span>
+                    <div class="row">
+                        <span>FPS</span> <input id="rec-fps" type="number" value="30" style="width:50px">
+                        <span>SEC</span> <input id="rec-len" type="number" value="10" style="width:50px">
+                    </div>
+                    <div class="row">
+                        <span>Mbps</span> <input id="rec-bit" type="number" value="8" style="width:50px">
+                        <div style="flex:1"></div>
+                    </div>
+                    <div class="row" style="margin-top:8px">
+                        <!-- If unchecked, we hide gizmos/grid before rec -->
+                        <button id="vis-burn" class="btn-toggle fill" onclick="toggleBurn()">BURN-IN HELPERS</button>
+                    </div>
+                </div>
+
+                <div class="section" style="margin-top:20px; border-color:var(--c-rec);">
+                    <button id="btn-rec" class="fill"
+                        style="width:100%; height:40px; color:var(--c-rec); border-color:var(--c-rec); font-weight:bold;"
+                        onclick="toggleRecord()">START CAPTURE</button>
+                    <button id="btn-dl" class="fill" style="width:100%; margin-top:5px;" disabled
+                        onclick="downloadCapture()">DOWNLOAD .WEBM</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div id="toast">ACTION COMPLETE</div>
+
+    <!-- MODULES -->
+    <script type="importmap">
+    {
+      "imports": {
+        "three": "https://unpkg.com/three@0.160.0/build/three.module.js",
+        "three/examples/jsm/controls/OrbitControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js",
+        "three/examples/jsm/controls/TransformControls": "https://unpkg.com/three@0.160.0/examples/jsm/controls/TransformControls.js",
+        "three/examples/jsm/loaders/GLTFLoader": "https://unpkg.com/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
+      }
+    }
+    </script>
+
+    <script type="module">
+        import * as THREE from 'three';
+        import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls';
+        import { TransformControls } from 'three/examples/jsm/controls/TransformControls';
+        import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader';
+
+        // RESOLVED GLB PATHS
+        // Use media.githubusercontent.com to fetch the actual LFS binary files
+        const GRACE_GLB_URL = 'https://media.githubusercontent.com/media/hartswf0/tractor-dce-gyo/main/GRACE-SCENE-SAMPLE.glb';
+        const DESERT_GLB_URL = 'https://media.githubusercontent.com/media/hartswf0/tractor-dce-gyo/main/Desert%20Oasis%20Canyon%20Structures_texture_mesh.glb';
+
+        // BUILT-IN SCENES & MENTO SAMPLE
+        const BUILTIN_SCENES = {
+            grace: {
+                label: 'Grace Sample',
+                glb: GRACE_GLB_URL
+            },
+            desert: {
+                label: 'Desert Canyon',
+                glb: DESERT_GLB_URL
+            },
+            blank: {
+                label: 'Blank Scene',
+                glb: null
+            }
+        };
+
+        const GRACE_MENTO_SAMPLE = `0 FILE Searchers_Rider_Grounded_SpinFix.mpd
+0 Name: Searchers Rider Grounded (Bodies Facing TV)
+0 Author: Grace Balanced Architect
+0 !LDRAW_ORG Model
+0 !LICENCE Redistributable under CCAL version 2.0
+0 BFC CERTIFY CCW
+
+0 // ============================================================
+0 // MENTO LIGHTING MANIFEST (The Searchers Contrast)
+0 // ============================================================
+
+0 // LIGHT 1: THE DESERT SUN (Exterior Key)
+0 // High intensity, slightly warm, casting long shadows through the door.
+0 // Positioned high and behind the Horse.
+0 !MENTO LIGHT "Desert Sun" TYPE SUN POS 400 -1000 400 TGT 0 0 0 COLOR #FFF8E7 INTENSITY 1.8 SHADOWS TRUE
+
+0 // LIGHT 2: THE TV GLOW (Interior Key)
+0 // Cool blue, emanating from the TV Frame location, illuminating the family's faces.
+0 !MENTO LIGHT "TV Glow" TYPE AREA POS 0 -40 250 TGT 0 -40 0 COLOR #AADDFF INTENSITY 2.5 DECAY 200
+
+0 // LIGHT 3: CAVE FILL (Interior Ambience)
+0 // Very low purple/dark fill to keep the interior shadows from being pure black.
+0 !MENTO LIGHT "Cave Fill" TYPE POINT POS 0 -100 0 COLOR #110022 INTENSITY 0.3
+
+0 // ============================================================
+0 // MENTO CAMERA TRACK (The Shot List)
+0 // ============================================================
+
+0 // SHOT 1: THE RIDER (Establishing)
+0 // Low angle, behind Homer's right shoulder, looking past him into the house.
+0 !MENTO SHOT "The Rider" POS 280 -80 180 TGT 0 -40 20 LENS 50
+
+0 // SHOT 2: THE AUDIENCE (Reverse Angle)
+0 // The POV of the TV. We see the family staring back at us, bathed in blue light.
+0 !MENTO SHOT "The Audience" POS 0 -40 200 TGT 0 -40 20 LENS 35
+
+0 // SHOT 3: THE THRESHOLD (The Classic Ford Shot)
+0 // Wide shot from deep outside, framing the lit interior through the dark door.
+0 !MENTO SHOT "The Threshold" POS 100 -60 400 TGT 0 -40 0 LENS 85
+
+0 // SHOT 4: THE DISCONNECT (Overhead)
+0 // Top-down view showing the wall separating the Rider from the Family.
+0 !MENTO SHOT "The Disconnect" POS 100 -400 100 TGT 50 0 100 LENS 40
+
+0 // ============================================================
+0 // ZONE 1: THE GROUND & STRUCTURE
+0 // ============================================================
+
+0 // THE RUG
+1 16 0 8 0 1 0 0 0 1 0 0 0 1 2359p02.dat
+
+0 // THE COUCH BACK (Rotated -90 deg)
+1 13 0 -40 20 0 0 -1 0 1 0 1 0 0 22972.dat
+
+0 // THE SIDE WALL
+1 13 120 -40 -40 0 0 1 -1 0 0 0 0 0 22972.dat
+
+0 // PORTAL 1: THE TV FRAME
+1 26 220 -152 -130 0.707 0 -0.707 0 1 0 0.707 0 0.707 2332.dat
+
+0 // PORTAL 2: THE MAIN DOOR
+1 0 0 -144 230 1 0 0 0 1 0 0 0 1 2332.dat
+
+0 // ============================================================
+0 // ZONE 2: THE COUCH (Seating)
+0 // ============================================================
+1 484 0 -8 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 30 -8 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 -30 -8 40 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 0 -32 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 30 -32 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 -30 -32 20 1 0 0 0 1 0 0 0 1 3001.dat
+1 484 50 -24 30 0 0 1 0 1 0 -1 0 0 3003.dat
+1 484 -50 -24 30 0 0 1 0 1 0 -1 0 0 3003.dat
+
+0 // ============================================================
+0 // ZONE 3: THE CAST (Fully Spun to Face TV)
+0 // ============================================================
+0 // All rotation matrices set to -1 0 0 0 1 0 0 0 -1 (Facing Back/+Z)
+
+0 // --- MARGE (Robot Chef) ---
+0 // Hips
+1 16 -20 -38 50 -1 0 0 0 1 0 0 0 -1 parts/10679bp01.dat
+0 // Torso (Flipped)
+1 16 -20 -60 40 -1 0 0 0 1 0 0 0 -1 parts/76382p89.dat
+0 // Head
+1 16 -20 -64 40 -1 0 0 0 1 0 0 0 -1 parts/15522p01.dat
+0 // Hair
+1 16 -20 -84 40 -1 0 0 0 1 0 0 0 -1 parts/24073.dat
+0 // Right Arm (Now on \"Left\" side X-wise because of rotation)
+1 14 -29 -52 40 -1 0 0 0 1 0 0 0 -1 3818.dat
+0 // Left Arm
+1 14 -11 -52 40 -1 0 0 0 1 0 0 0 -1 3819.dat
+0 // Hands
+1 14 -29 -40 50 -1 0 0 0 0 -1 0 -1 0 3820.dat
+1 14 -11 -40 50 -1 0 0 0 0 -1 0 -1 0 3820.dat
+
+0 // --- BART (Chainmail Knight) ---
+0 // Leaning posture, Body matched to Head
+0 // Hips
+1 16 -50 -56 30 -0.9 0 0.4 0 1 0 -0.4 0 -0.9 parts/16709p0e.dat
+0 // Torso (Matched to Hips)
+1 16 -50 -78 30 -0.9 0 0.4 0 1 0 -0.4 0 -0.9 parts/76382p0006.dat
+0 // Head
+1 16 -50 -82 30 -0.9 0 0.4 0 1 0 -0.4 0 -0.9 parts/15523p01.dat
+0 // Right Arm
+1 14 -59 -70 34 -0.9 0 0.4 0 1 0 -0.4 0 -0.9 3818.dat
+0 // Left Arm
+1 14 -41 -70 26 -0.9 0 0.4 0 1 0 -0.4 0 -0.9 3819.dat
+0 // Hands
+1 14 -59 -60 44 -0.9 0 0.4 0 0 -1 0 -1 0 3820.dat
+1 14 -41 -60 36 -0.9 0 0.4 0 0 -1 0 -1 0 3820.dat
+
+0 // --- LISA (Hawaiian Tourist) ---
+0 // Hips
+1 16 20 -28 40 -1 0 0 0 1 0 0 0 -1 parts/73200bp42.dat
+0 // Torso (Flipped)
+1 16 20 -50 40 -1 0 0 0 1 0 0 0 -1 parts/16360p5i.dat
+0 // Head
+1 16 20 -54 40 -1 0 0 0 1 0 0 0 -1 parts/15524p01.dat
+0 // Right Arm
+1 14 11 -42 40 -1 0 0 0 1 0 0 0 -1 3818.dat
+0 // Left Arm
+1 14 29 -42 40 -1 0 0 0 1 0 0 0 -1 3819.dat
+0 // Hands
+1 14 11 -30 50 -1 0 0 0 0 -1 0 -1 0 3820.dat
+1 14 29 -30 50 -1 0 0 0 0 -1 0 -1 0 3820.dat
+
+0 // --- MAGGIE (The Homer Clone) ---
+0 // Body (Flipped to face TV)
+1 16 50 -38 50 -1 0 0 0 1 0 0 0 -1 parts/3815bpde.dat
+0 // Head
+1 16 50 -64 40 -1 0 0 0 1 0 0 0 -1 parts/15525p02.dat
+0 // Accessory
+1 16 50 -84 38 -1 0 0 0 1 0 0 0 -1 parts/30114c01.dat
+
+0 // ============================================================
+0 // ZONE 4: EXTERIOR (Grounded)
+0 // ============================================================
+
+0 // THE HORSE
+1 6 200 -56 100 -1 0 0 0 1 0 0 0 -1 4493c00.dat
+
+0 // HOMER (The Rider)
+1 16 200 -116 100 -1 0 0 0 1 0 0 0 -1 parts/3815bpde.dat
+1 16 190 -104 100 -1 0 0 0 1 0 0 0 -1 parts/3817cpbc.dat
+1 16 210 -104 100 -1 0 0 0 1 0 0 0 -1 parts/3816cpbc.dat
+1 16 200 -148 100 -1 0 0 0 1 0 0 0 -1 parts/76382p6w.dat
+1 16 200 -152 100 1 0 0 0 1 0 0 0 1 parts/15527p02.dat
+1 16 200 -172 100 1 0 0 0 1 0 0 0 1 parts/30114c01.dat
+
+0 // THE TREE
+1 16 140 0 220 1 0 0 0 1 0 0 0 1 u9078s02.dat
+
+0 NOFILE.`;
+
+        // GLOBAL HELPER
+        window.UI = id => document.getElementById(id);
+
+        const raycaster = new THREE.Raycaster();
+        const pointer = new THREE.Vector2();
+
+        // GLOBAL STATE
+        const S = {
+            scene: null, cam: null, rend: null,
+            orbit: null, trans: null,
+            models: [], activeModel: -1,
+
+            keyframes: [], pathAnchor: null, pathVizGroup: null, selectedKey: -1,
+            keyHandle: null, // invisible handle for per-key transforms
+            keyRotDir: null,  // base POS->TGT direction used when rotating a key
+            pathSpheres: [], // meshes for spline point selection
+
+            mentoLights: [],        // parsed MENTO light descriptors
+            mentoLightObjs: [],     // actual Three.js light objects in scene
+
+            // Visual Config
+            vis: { grid: true, ruler: false, model: true, frust: false, burn: false, mento: true },
+            helpers: { grid: null, ruler: null },
+
+            mode: 'MODEL',
+            pathEditMode: 'PATH',
+            playback: { active: false, start: 0, dur: 8, curve: null, useDeterministic: false, time: 0, fps: 30 },
+            recorder: { active: false, media: null, chunks: [], url: null, config: { w: 0, h: 0 } },
+            clock: new THREE.Clock(),
+            history: { past: [], future: [] }
+        };
+
+        function clearSceneModels() {
+            if (!S.scene || !S.models || !S.models.length) return;
+            S.models.forEach(entry => {
+                if (entry && entry.root) {
+                    S.scene.remove(entry.root);
+                }
+            });
+            S.models = [];
+            S.activeModel = -1;
+            if (S.trans) S.trans.detach();
+            const btn = UI('btn-toggle-model');
+            if (btn) btn.textContent = 'HIDE MODEL';
+        }
+
+        function loadBuiltinGLB(glbPath, label) {
+            if (!glbPath) {
+                clearSceneModels();
+                if (window.showToast) window.showToast('BLANK SCENE: no GLB loaded');
+                return;
+            }
+            clearSceneModels();
+
+            // ROBUST LOADING: Check for Git LFS pointer before passing to GLTFLoader
+            fetch(glbPath)
+                .then(res => {
+                    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                    return res.blob();
+                })
+                .then(blob => {
+                    // Check first few bytes for "version https://git-lfs"
+                    // We read as text to check signature
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const text = reader.result.slice(0, 100); // Check header
+                        if (text.includes('version https://git-lfs')) {
+                            console.error('Git LFS pointer detected:', glbPath);
+                            AUDIO.play('error');
+                            if (window.showToast) window.showToast('ERROR: Remote file is Git LFS pointer. Please load local file.');
+                            alert('Failed to load remote scene: The file is stored in Git LFS and cannot be loaded directly from GitHub Raw.\n\nPlease download the .glb file manually and use "LOAD GLB" button.');
+                            return;
+                        }
+
+                        // If safe, load the blob url
+                        const url = URL.createObjectURL(blob);
+                        const loader = new GLTFLoader();
+                        loader.load(
+                            url,
+                            (gltf) => {
+                                const root = gltf.scene;
+                                S.scene.add(root);
+                                const slotSel = UI('slot-sel');
+                                S.models.push({ root, slot: slotSel ? slotSel.value : '1' });
+                                S.activeModel = S.models.length - 1;
+                                window.autoScaleModel();
+                                window.setMode('MODEL', 'translate');
+                                const btn = UI('btn-toggle-model');
+                                if (btn) btn.textContent = 'HIDE MODEL';
+                                if (btn) btn.textContent = 'HIDE MODEL';
+                                if (window.showToast) window.showToast(`${label || 'SCENE'} loaded`);
+                                AUDIO.play('success');
+
+                                // Cleanup blob
+                                URL.revokeObjectURL(url);
+                            },
+                            undefined,
+                            (err) => {
+                                console.error('Failed to parse GLB', err);
+                                AUDIO.play('error');
+                                if (window.showToast) window.showToast('FAILED TO PARSE SCENE GLB');
+                            }
+                        );
+                    };
+                    reader.readAsText(blob);
+                })
+                .catch(err => {
+                    console.error('Failed to fetch builtin GLB', glbPath, err);
+                    if (window.showToast) window.showToast('NETWORK ERROR LOADING SCENE');
+                });
+        }
+
+        window.loadScenePreset = (presetKey) => {
+            const selector = UI('scene-preset');
+            const key = presetKey || (selector ? selector.value : 'grace');
+            const preset = BUILTIN_SCENES[key] || BUILTIN_SCENES.grace;
+            if (selector && !presetKey) selector.value = key;
+            loadBuiltinGLB(preset.glb, preset.label);
+        };
+
+        window.loadGraceSample = () => {
+            const ta = UI('mento-txt');
+            if (!ta) return;
+            ta.value = GRACE_MENTO_SAMPLE;
+            if (window.showToast) window.showToast('Loaded GRACE sample manifest');
+        };
+
+        // --- SOUND & HAPTICS ---
+        const AUDIO = {
+            ctx: null,
+            init: () => {
+                if (!AUDIO.ctx) {
+                    const AudioContext = window.AudioContext || window.webkitAudioContext;
+                    if (AudioContext) AUDIO.ctx = new AudioContext();
+                }
+                if (AUDIO.ctx && AUDIO.ctx.state === 'suspended') {
+                    AUDIO.ctx.resume();
+                }
+            },
+            play: (type) => {
+                if (!AUDIO.ctx) AUDIO.init();
+                if (!AUDIO.ctx) return;
+
+                const t = AUDIO.ctx.currentTime;
+                const osc = AUDIO.ctx.createOscillator();
+                const gain = AUDIO.ctx.createGain();
+
+                osc.connect(gain);
+                gain.connect(AUDIO.ctx.destination);
+
+                if (type === 'thud') {
+                    // UI Click / Tab Switch: Low, short, subtle
+                    osc.type = 'triangle';
+                    osc.frequency.setValueAtTime(120, t);
+                    osc.frequency.exponentialRampToValueAtTime(40, t + 0.1);
+                    gain.gain.setValueAtTime(0.15, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                } else if (type === 'engage') {
+                    // Mode Switch / Action: Higher blip
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(400, t);
+                    osc.frequency.exponentialRampToValueAtTime(600, t + 0.05);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.1);
+                    osc.start(t);
+                    osc.stop(t + 0.1);
+                    if (navigator.vibrate) navigator.vibrate(5);
+                } else if (type === 'success') {
+                    // Load Success: Arpeggio
+                    const now = t;
+                    [440, 554, 659].forEach((freq, i) => {
+                        const o = AUDIO.ctx.createOscillator();
+                        const g = AUDIO.ctx.createGain();
+                        o.type = 'sine';
+                        o.connect(g);
+                        g.connect(AUDIO.ctx.destination);
+                        o.frequency.value = freq;
+                        g.gain.setValueAtTime(0.05, now + i * 0.08);
+                        g.gain.exponentialRampToValueAtTime(0.001, now + i * 0.08 + 0.3);
+                        o.start(now + i * 0.08);
+                        o.stop(now + i * 0.08 + 0.3);
+                    });
+                    if (navigator.vibrate) navigator.vibrate([10, 30, 10]);
+                } else if (type === 'error') {
+                    // Error: Low Saw
+                    osc.type = 'sawtooth';
+                    osc.frequency.setValueAtTime(100, t);
+                    osc.frequency.linearRampToValueAtTime(80, t + 0.3);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.3);
+                    osc.start(t);
+                    osc.stop(t + 0.3);
+                    if (navigator.vibrate) navigator.vibrate(100);
+                } else if (type === 'rec-start') {
+                    // Rec Start: High Ping
+                    osc.type = 'sine';
+                    osc.frequency.setValueAtTime(800, t);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.5);
+                    osc.start(t);
+                    osc.stop(t + 0.5);
+                    if (navigator.vibrate) navigator.vibrate(50);
+                } else if (type === 'rec-stop') {
+                    // Rec Stop: Low Thud
+                    osc.type = 'square';
+                    osc.frequency.setValueAtTime(150, t);
+                    osc.frequency.exponentialRampToValueAtTime(50, t + 0.2);
+                    gain.gain.setValueAtTime(0.1, t);
+                    gain.gain.exponentialRampToValueAtTime(0.01, t + 0.2);
+                    osc.start(t);
+                    osc.stop(t + 0.2);
+                    if (navigator.vibrate) navigator.vibrate([30, 30]);
+                }
+            }
+        };
+
+        // --- CORE ---
+        function init() {
+            S.scene = new THREE.Scene();
+            S.scene.background = new THREE.Color(0x050505);
+
+            // Init Audio on first interaction
+            window.addEventListener('click', () => AUDIO.init(), { once: true });
+            window.addEventListener('touchstart', () => AUDIO.init(), { once: true });
+
+            // Initial sizing will happen via updateResolution()
+            S.cam = new THREE.PerspectiveCamera(50, 1, 0.1, 5000);
+            S.cam.position.set(0, 150, 300);
+
+            S.rend = new THREE.WebGLRenderer({ canvas: UI('glb-canvas'), antialias: true, preserveDrawingBuffer: true });
+            S.rend.outputColorSpace = THREE.SRGBColorSpace;
+            // setSize handled below
+
+            S.scene.add(new THREE.HemisphereLight(0xffffff, 0x111111, 1.2));
+            const dl = new THREE.DirectionalLight(0xffffff, 1.5);
+            dl.position.set(100, 300, 200);
+            S.scene.add(dl);
+
+            S.orbit = new OrbitControls(S.cam, S.rend.domElement);
+            S.orbit.enableDamping = true;
+
+            S.trans = new TransformControls(S.cam, S.rend.domElement);
+            S.trans.size = 1.1;
+            S.trans.addEventListener('dragging-changed', (event) => {
+                S.orbit.enabled = !event.value;
+                if (!event.value) onTransformEnd();
+            });
+            S.trans.addEventListener('change', () => {
+                if (S.trans.dragging) onTransformDrag();
+            });
+            S.scene.add(S.trans);
+
+            S.pathAnchor = new THREE.Group(); S.scene.add(S.pathAnchor);
+            S.pathVizGroup = new THREE.Group(); S.scene.add(S.pathVizGroup);
+
+            // Helpers
+            S.helpers.grid = new THREE.GridHelper(1000, 50, 0x222222, 0x111111);
+            S.scene.add(S.helpers.grid);
+
+            buildRuler();
+            updateResolution(); // Force initial sizing
+
+            window.addEventListener('resize', updateResolution); // Use smart resize
+            S.rend.domElement.addEventListener('pointerdown', onPointerDown);
+            setupMobileSplit();
+
+            setTimeout(() => { UI('load-bar').style.width = '100%'; }, 100);
+            setTimeout(() => { UI('loader').style.display = 'none'; }, 600);
+
+            animate();
+        }
+
+        // --- RESOLUTION & SENSOR LOGIC ---
+        window.updateResolution = () => {
+            // 1. Get container dimensions (Screen Space)
+            const cont = document.querySelector('.viewport-container');
+            const contW = cont.clientWidth;
+            const contH = cont.clientHeight;
+
+            // 2. Determine Sensor Settings
+            const aspectMode = UI('rec-aspect').value;
+            let targetAspect = contW / contH; // Default to window
+
+            if (aspectMode !== 'VIEW') {
+                targetAspect = parseFloat(aspectMode);
+            }
+
+            // 3. Determine Render Resolution (Buffer Size)
+            const resMode = parseInt(UI('rec-res').value); // 720, 1080, 2160 (Height)
+            let renderH = resMode;
+            let renderW = Math.round(renderH * targetAspect);
+
+            if (aspectMode === 'VIEW') {
+                // For Viewport mode, match screen pixels exactly for sharpness
+                renderW = contW;
+                renderH = contH;
+            }
+
+            // 4. Update Renderer (The Internal Buffer)
+            S.rend.setSize(renderW, renderH, false); // false = do not resize CSS style
+            S.cam.aspect = targetAspect;
+            S.cam.updateProjectionMatrix();
+
+            // 5. Update CSS to fit container (The View)
+            const canvas = UI('glb-canvas');
+
+            // Calculate CSS size to fit containment
+            let cssW, cssH;
+            if (contW / contH > targetAspect) {
+                // Window is wider than target -> fit by height
+                cssH = contH;
+                cssW = contH * targetAspect;
+            } else {
+                // Window is taller than target -> fit by width
+                cssW = contW;
+                cssH = contW / targetAspect;
+            }
+
+            canvas.style.width = `${cssW}px`;
+            canvas.style.height = `${cssH}px`;
+
+            S.recorder.config = { w: renderW, h: renderH };
+            // console.log(`SENSOR UPDATE: ${renderW}x${renderH} (Aspect ${targetAspect.toFixed(2)})`);
+        };
+
+        function buildRuler() {
+            // LDraw-style ruler with regular tick marks along X / Y / Z in world LDU.
+            S.helpers.ruler = new THREE.Group();
+            const group = S.helpers.ruler;
+            const length = 500;   // total half-length in each direction (LDU)
+            const step = 50;      // tick spacing (LDU)
+            const tick = 10;      // tick length (LDU)
+
+            function makeAxis(axis, color) {
+                const vertices = [];
+                if (axis === 'x') {
+                    // Main X axis
+                    vertices.push(-length, 0, 0, length, 0, 0);
+                    // Z-facing ticks every STEP
+                    for (let x = -length; x <= length; x += step) {
+                        vertices.push(x, 0, -tick, x, 0, tick);
+                    }
+                } else if (axis === 'z') {
+                    // Main Z axis
+                    vertices.push(0, 0, -length, 0, 0, length);
+                    // X-facing ticks every STEP
+                    for (let z = -length; z <= length; z += step) {
+                        vertices.push(-tick, 0, z, tick, 0, z);
+                    }
+                } else {
+                    // Y axis (up)
+                    vertices.push(0, 0, 0, 0, length, 0);
+                    // X-facing ticks every STEP
+                    for (let y = 0; y <= length; y += step) {
+                        vertices.push(-tick, y, 0, tick, y, 0);
+                    }
+                }
+                const geom = new THREE.BufferGeometry();
+                geom.setAttribute('position', new THREE.Float32BufferAttribute(vertices, 3));
+                const mat = new THREE.LineBasicMaterial({ color });
+                const lines = new THREE.LineSegments(geom, mat);
+                group.add(lines);
+            }
+
+            makeAxis('x', 0xef4444); // X — red
+            makeAxis('z', 0x22c55e); // Z — green
+            makeAxis('y', 0x3b82f6); // Y — blue
+
+            group.visible = false;
+            S.scene.add(group);
+        }
+
+        function setupMobileSplit() {
+            const split = UI('mobile-split');
+            const main = document.querySelector('.main-area');
+            const vp = document.querySelector('.viewport-container');
+            const panel = document.querySelector('.panel');
+            if (!split || !main || !vp || !panel) return;
+            if (window.innerWidth > 900) return; // desktop uses side-by-side layout
+
+            const hasTouch = ('ontouchstart' in window) || (navigator.maxTouchPoints > 0);
+            let dragging = false;
+            let mainRect = null;
+            let totalH = 1;
+            let didDrag = false;
+            let snappedPanelLarge = false;
+
+            function beginDrag(clientY) {
+                dragging = true;
+                mainRect = main.getBoundingClientRect();
+                totalH = mainRect.height || 1;
+                didDrag = false;
+            }
+
+            function updateDrag(clientY) {
+                if (!dragging || !mainRect) return;
+                const y = clientY - mainRect.top;
+                let ratio = y / totalH;
+                // Clamp so neither viewport nor panel shrinks too small
+                ratio = Math.max(0.3, Math.min(0.7, ratio));
+                vp.style.flex = `0 0 ${(ratio * 100).toFixed(1)}%`;
+                panel.style.flex = `0 0 ${((1 - ratio) * 100).toFixed(1)}%`;
+                didDrag = true;
+            }
+
+            function endDrag() {
+                if (!dragging) return;
+                dragging = false;
+            }
+
+            if (hasTouch) {
+                split.addEventListener('touchstart', (e) => {
+                    const t = e.touches[0];
+                    if (!t) return;
+                    beginDrag(t.clientY);
+                    e.preventDefault();
+                }, { passive: false });
+
+                window.addEventListener('touchmove', (e) => {
+                    if (!dragging) return;
+                    const t = e.touches[0];
+                    if (!t) return;
+                    updateDrag(t.clientY);
+                }, { passive: false });
+
+                window.addEventListener('touchend', () => {
+                    endDrag();
+                });
+            } else {
+                split.addEventListener('pointerdown', (e) => {
+                    beginDrag(e.clientY);
+                    try { split.setPointerCapture(e.pointerId); } catch { }
+                });
+
+                window.addEventListener('pointermove', (e) => {
+                    if (!dragging) return;
+                    updateDrag(e.clientY);
+                });
+
+                window.addEventListener('pointerup', (e) => {
+                    if (!dragging) return;
+                    endDrag();
+                    try { split.releasePointerCapture(e.pointerId); } catch { }
+                });
+            }
+
+            // Tap-to-toggle: if the user taps the bar without dragging,
+            // snap between "viewport big" and "panel big" presets.
+            split.addEventListener('click', () => {
+                if (didDrag) { didDrag = false; return; }
+                snappedPanelLarge = !snappedPanelLarge;
+                const ratio = snappedPanelLarge ? 0.3 : 0.7; // viewport share
+                vp.style.flex = `0 0 ${(ratio * 100).toFixed(1)}%`;
+                panel.style.flex = `0 0 ${((1 - ratio) * 100).toFixed(1)}%`;
+            });
+        }
+
+        function ensureKeyHandle() {
+            if (!S.keyHandle) {
+                const geom = new THREE.SphereGeometry(2, 8, 8);
+                const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, visible: false });
+                S.keyHandle = new THREE.Mesh(geom, mat);
+                S.scene.add(S.keyHandle);
+            }
+        }
+
+        window.setPathEditMode = (mode) => {
+            S.pathEditMode = mode === 'KEY' ? 'KEY' : 'PATH';
+            const btnPath = UI('pm-path');
+            const btnKey = UI('pm-key');
+            if (btnPath && btnKey) {
+                btnPath.classList.toggle('active-path', S.pathEditMode === 'PATH');
+                btnKey.classList.toggle('active-path', S.pathEditMode === 'KEY');
+            }
+
+            if (S.mode === 'PATH') {
+                const tool = S.trans.getMode ? S.trans.getMode() : 'translate';
+                if (S.pathEditMode === 'PATH') {
+                    S.trans.attach(S.pathAnchor);
+                    S.keyRotDir = null;
+                } else if (S.selectedKey >= 0 && S.keyframes[S.selectedKey]) {
+                    ensureKeyHandle();
+                    const k = S.keyframes[S.selectedKey];
+                    S.keyHandle.position.copy(k.pos);
+                    S.keyHandle.quaternion.identity();
+                    if (tool === 'rotate') {
+                        // Match behavior of setMode(PATH,'rotate') for per-key rotation
+                        S.keyRotDir = new THREE.Vector3().subVectors(k.tgt, k.pos);
+                        if (S.keyRotDir.lengthSq() === 0) S.keyRotDir.set(0, 0, -1);
+                    } else {
+                        S.keyRotDir = null;
+                    }
+                    S.trans.attach(S.keyHandle);
+                } else {
+                    S.trans.detach();
+                    S.keyRotDir = null;
+                }
+            }
+        };
+
+        function snapshotState() {
+            return {
+                keyframes: S.keyframes.map(k => ({
+                    pos: k.pos.clone(),
+                    tgt: k.tgt.clone(),
+                    fov: k.fov,
+                    thumb: k.thumb || null
+                })),
+                selectedKey: S.selectedKey,
+                mentoLights: S.mentoLights.map(L => ({
+                    name: L.name,
+                    type: L.type,
+                    pos: L.pos.clone(),
+                    tgt: L.tgt ? L.tgt.clone() : null,
+                    color: L.color,
+                    intensity: L.intensity,
+                    decay: L.decay,
+                    shadows: L.shadows
+                }))
+            };
+        }
+
+        function applySnapshot(snap) {
+            if (!snap) return;
+            S.keyframes = (snap.keyframes || []).map(k => ({
+                pos: k.pos.clone(),
+                tgt: k.tgt.clone(),
+                fov: k.fov,
+                thumb: k.thumb || null
+            }));
+            S.selectedKey = typeof snap.selectedKey === 'number' ? snap.selectedKey : -1;
+            S.mentoLights = (snap.mentoLights || []).map(L => ({
+                name: L.name,
+                type: L.type,
+                pos: L.pos.clone(),
+                tgt: L.tgt ? L.tgt.clone() : null,
+                color: L.color,
+                intensity: L.intensity,
+                decay: L.decay,
+                shadows: L.shadows
+            }));
+            applyMentoLights();
+            updatePathVisuals();
+            renderKeyList();
+            updateKeyPreview();
+        }
+
+        function pushHistory() {
+            if (!S.history) S.history = { past: [], future: [] };
+            S.history.past.push(snapshotState());
+            if (S.history.past.length > 50) S.history.past.shift();
+            S.history.future = [];
+        }
+
+        // --- VISUALS TOGGLE ---
+        window.toggleVis = (type) => {
+            S.vis[type] = !S.vis[type];
+            const btn = UI('vis-' + type);
+            if (S.vis[type]) btn.classList.add('checked'); else btn.classList.remove('checked');
+
+            if (type === 'grid') S.helpers.grid.visible = S.vis.grid;
+            if (type === 'ruler') S.helpers.ruler.visible = S.vis.ruler;
+            if (type === 'model') S.models.forEach(m => m.root.visible = S.vis.model);
+            if (type === 'frust') updatePathVisuals();
+            if (type === 'mento') {
+                if (S.mentoLightObjs && S.mentoLightObjs.length) {
+                    S.mentoLightObjs.forEach(l => { if (l) l.visible = S.vis.mento; });
+                }
+            }
+        };
+
+        window.toggleBurn = () => {
+            S.vis.burn = !S.vis.burn;
+            const btn = UI('vis-burn');
+            if (S.vis.burn) btn.classList.add('checked'); else btn.classList.remove('checked');
+        }
+
+        // --- TRANSFORM LOGIC ---
+        function onTransformDrag() {
+            if (S.mode === 'MODEL' && S.activeModel > -1) {
+                updateModelUI();
+            } else if (S.mode === 'PATH') {
+                if (S.pathEditMode === 'PATH' && S.trans.object === S.pathAnchor) {
+                    // Ghost the anchor into the viz group while dragging the whole path
+                    S.pathVizGroup.position.copy(S.pathAnchor.position);
+                    S.pathVizGroup.rotation.copy(S.pathAnchor.rotation);
+                    S.pathVizGroup.scale.copy(S.pathAnchor.scale);
+                } else if (S.pathEditMode === 'KEY' && S.trans.object === S.keyHandle && S.selectedKey >= 0) {
+                    const k = S.keyframes[S.selectedKey];
+                    const mode = S.trans.getMode();
+                    if (mode === 'translate') {
+                        // Per-key editing: move the keyframe control node only; do not
+                        // teleport the main camera while dragging.
+                        k.pos.copy(S.keyHandle.position);
+                        updatePathVisuals();
+                    } else if (mode === 'rotate' && S.keyRotDir) {
+                        // Per-key rotation: spin the TGT around POS using the key
+                        // handle's quaternion applied to the base direction.
+                        const newDir = S.keyRotDir.clone().applyQuaternion(S.keyHandle.quaternion);
+                        k.tgt.copy(k.pos).add(newDir);
+                        updatePathVisuals();
+                    }
+                }
+            }
+        }
+
+        function onTransformEnd() {
+            if (S.mode === 'PATH') {
+                if (S.pathEditMode === 'PATH' && S.trans.object === S.pathAnchor) {
+                    pushHistory();
+                    // Bake whole-path transform into keyframes
+                    S.pathAnchor.updateMatrixWorld();
+                    const mat = S.pathAnchor.matrix;
+                    S.keyframes.forEach(k => {
+                        k.pos.applyMatrix4(mat);
+                        k.tgt.applyMatrix4(mat);
+                    });
+                    S.pathAnchor.position.set(0, 0, 0); S.pathAnchor.rotation.set(0, 0, 0); S.pathAnchor.scale.set(1, 1, 1);
+                    S.pathVizGroup.position.set(0, 0, 0); S.pathVizGroup.rotation.set(0, 0, 0); S.pathVizGroup.scale.set(1, 1, 1);
+                    updatePathVisuals();
+                    window.showToast("PATH TRANSFORM BAKED");
+                    AUDIO.play('thud');
+                } else if (S.trans.object === S.keyHandle && S.selectedKey >= 0) {
+                    pushHistory();
+                    // Finished nudging or rotating a single keyframe camera
+                    updatePathVisuals();
+                    updateKeyPreview();
+                    updateKeyDataUI();
+                    const mode = S.trans.getMode();
+                    window.showToast(mode === 'rotate' ? "KEYFRAME ROTATED" : "KEYFRAME MOVED");
+                    if (mode === 'rotate') {
+                        // Reset rotation baseline for next edit
+                        S.keyRotDir = null;
+                        S.keyHandle.quaternion.identity();
+                    }
+                }
+            }
+        }
+
+        // --- MODEL & FILE ---
+        window.triggerLoad = () => UI('file-in').click();
+
+        UI('file-in').addEventListener('change', (e) => {
+            if (!e.target.files[0]) return;
+            const url = URL.createObjectURL(e.target.files[0]);
+            new GLTFLoader().load(url, (gltf) => {
+                const root = gltf.scene;
+                S.scene.add(root);
+                S.models.push({ root, slot: UI('slot-sel').value });
+                S.activeModel = S.models.length - 1;
+                window.autoScaleModel();
+                window.setMode('MODEL', 'translate');
+                const btn = UI('btn-toggle-model');
+                if (btn) btn.textContent = 'HIDE MODEL';
+                window.showToast("GLB LOADED");
+            });
+        });
+
+        window.toggleActiveModelVisible = () => {
+            if (S.activeModel === -1 || !S.models[S.activeModel]) {
+                window.showToast("NO ACTIVE MODEL");
+                return;
+            }
+            const entry = S.models[S.activeModel];
+            if (!entry.root) return;
+            entry.root.visible = !entry.root.visible;
+            const btn = UI('btn-toggle-model');
+            if (btn) btn.textContent = entry.root.visible ? 'HIDE MODEL' : 'SHOW MODEL';
+        };
+
+        window.setMode = (mode, tool) => {
+            AUDIO.play('engage');
+            S.mode = mode;
+            document.querySelectorAll('button').forEach(b => b.classList.remove('active', 'active-path'));
+
+            if (mode === 'MODEL') {
+                if (S.activeModel > -1) S.trans.attach(S.models[S.activeModel].root);
+                else S.trans.detach();
+                UI('hud-mode').innerText = "MODE: MODEL";
+                UI('hud-mode').style.color = "var(--c-model)";
+                UI(tool === 'translate' ? 'mt-t' : (tool === 'rotate' ? 'mt-r' : 'mt-s')).classList.add('active');
+                S.keyRotDir = null;
+            }
+            else if (mode === 'PATH') {
+                // Respect explicit PATH vs KEY edit mode
+                if (S.pathEditMode === 'KEY' && S.selectedKey >= 0 && S.keyframes[S.selectedKey]) {
+                    ensureKeyHandle();
+                    const k = S.keyframes[S.selectedKey];
+                    S.keyHandle.position.copy(k.pos);
+                    S.keyHandle.quaternion.identity();
+                    if (tool === 'rotate') {
+                        // Base direction from POS to TGT for rotation
+                        S.keyRotDir = new THREE.Vector3().subVectors(k.tgt, k.pos);
+                        if (S.keyRotDir.lengthSq() === 0) S.keyRotDir.set(0, 0, -1);
+                    } else {
+                        S.keyRotDir = null;
+                    }
+                    S.trans.attach(S.keyHandle);
+                } else {
+                    S.trans.attach(S.pathAnchor);
+                    S.keyRotDir = null;
+                }
+                UI('hud-mode').innerText = "MODE: PATH";
+                UI('hud-mode').style.color = "var(--c-path)";
+
+                const btnId = tool === 'translate' ? 'pt-t' : (tool === 'rotate' ? 'pt-r' : 'pt-s');
+                UI(btnId).classList.add('active-path');
+            }
+            S.trans.setMode(tool);
+        };
+
+        window.autoScaleModel = () => {
+            if (S.activeModel === -1) return;
+            const root = S.models[S.activeModel].root;
+            const box = new THREE.Box3().setFromObject(root);
+            const size = box.getSize(new THREE.Vector3()).length();
+            if (size === 0) return;
+            const scale = 150 / size;
+            root.scale.setScalar(scale);
+            const center = box.getCenter(new THREE.Vector3());
+            root.position.sub(center.multiplyScalar(scale));
+            root.position.y = 0;
+            updateModelUI();
+            window.showToast("AUTO SCALED");
+        };
+
+        window.flipModel = (axis) => {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            if (axis === 'x') m.scale.x *= -1;
+            if (axis === 'y') m.scale.y *= -1;
+            if (axis === 'z') m.scale.z *= -1;
+            updateModelUI();
+        };
+
+        window.flipPath = (axis) => {
+            if (S.keyframes.length === 0) return;
+            pushHistory();
+            S.keyframes.forEach(k => {
+                if (axis === 'x') { k.pos.x *= -1; k.tgt.x *= -1; }
+                if (axis === 'y') { k.pos.y *= -1; k.tgt.y *= -1; }
+                if (axis === 'z') { k.pos.z *= -1; k.tgt.z *= -1; }
+            });
+            updatePathVisuals();
+            window.showToast(`PATH FLIPPED ${axis.toUpperCase()}`);
+        };
+
+        window.resetModel = () => {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            m.position.set(0, 0, 0);
+            m.rotation.set(0, 0, 0);
+            m.scale.set(1, 1, 1);
+            updateModelUI();
+        };
+
+        function updateModelUI() {
+            if (S.activeModel === -1) return;
+            const m = S.models[S.activeModel].root;
+            UI('inp-mx').value = m.position.x.toFixed(0);
+            UI('inp-my').value = m.position.y.toFixed(0);
+            UI('inp-mz').value = m.position.z.toFixed(0);
+            UI('inp-mry').value = THREE.MathUtils.radToDeg(m.rotation.y).toFixed(0);
+            UI('inp-ms').value = m.scale.x.toFixed(2);
+        }
+
+        ['mx', 'my', 'mz'].forEach(k => UI('inp-' + k).oninput = () => {
+            if (S.activeModel > -1) S.models[S.activeModel].root.position[{ 'mx': 'x', 'my': 'y', 'mz': 'z' }[k]] = parseFloat(UI('inp-' + k).value);
+        });
+        UI('inp-mry').oninput = e => { if (S.activeModel > -1) S.models[S.activeModel].root.rotation.y = THREE.MathUtils.degToRad(e.target.value); };
+        UI('inp-ms').oninput = e => { if (S.activeModel > -1) S.models[S.activeModel].root.scale.setScalar(e.target.value); };
+
+
+        // --- KEYFRAMES & PATH ---
+        window.addKey = () => {
+            pushHistory();
+            S.keyframes.push({
+                pos: S.cam.position.clone(),
+                tgt: S.orbit.target.clone(),
+                fov: S.cam.fov
+            });
+            updatePathVisuals();
+            renderKeyList();
+            window.showToast("KEYFRAME ADDED");
+            AUDIO.play('engage');
+        };
+
+        window.clearKeys = () => {
+            pushHistory();
+            S.keyframes = [];
+            S.selectedKey = -1;
+            updatePathVisuals();
+            renderKeyList();
+            updateKeyPreview();
+            updateKeyDataUI();
+        };
+
+        window.updateSelectedKey = () => {
+            if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) {
+                window.showToast("SELECT KEY FIRST");
+                return;
+            }
+            pushHistory();
+            const k = S.keyframes[S.selectedKey];
+            k.pos.copy(S.cam.position);
+            k.tgt.copy(S.orbit.target);
+            k.fov = S.cam.fov;
+            updatePathVisuals();
+            renderKeyList();
+            window.showToast("KEY UPDATED FROM VIEW");
+            updateKeyPreview();
+            updateKeyDataUI();
+        };
+
+        function updatePathVisuals() {
+            while (S.pathVizGroup.children.length) S.pathVizGroup.remove(S.pathVizGroup.children[0]);
+            if (S.keyframes.length === 0) return;
+
+            const sphGeo = new THREE.SphereGeometry(3, 12, 12);
+            S.pathSpheres = [];
+
+            S.keyframes.forEach((k, i) => {
+                const color = (i === S.selectedKey) ? 0xd000ff : 0x00ff88;
+                const m = new THREE.Mesh(sphGeo, new THREE.MeshBasicMaterial({ color }));
+                m.position.copy(k.pos);
+                S.pathVizGroup.add(m);
+                m.userData.keyIndex = i;
+                S.pathSpheres.push(m);
+
+                const lineGeo = new THREE.BufferGeometry().setFromPoints([k.pos, k.tgt]);
+                const lineMat = new THREE.LineBasicMaterial({ color: 0xffff00, opacity: 0.3, transparent: true });
+                S.pathVizGroup.add(new THREE.Line(lineGeo, lineMat));
+
+                // FRUSTUMS (Visual Cone)
+                if (S.vis.frust) {
+                    const aspect = S.cam ? S.cam.aspect : 16 / 9;
+                    const dummy = new THREE.PerspectiveCamera(k.fov, aspect, 1, 50);
+                    dummy.position.copy(k.pos);
+                    dummy.lookAt(k.tgt);
+                    dummy.updateMatrixWorld();
+                    const helper = new THREE.CameraHelper(dummy);
+                    if (helper.material) {
+                        if (i === S.selectedKey && helper.material.color) {
+                            helper.material.color.set(0xff0040);
+                            helper.material.opacity = 0.5;
+                        } else {
+                            helper.material.opacity = 0.2;
+                        }
+                        helper.material.transparent = true;
+                    }
+                    S.pathVizGroup.add(helper);
+                }
+            });
+
+            if (S.keyframes.length > 1) {
+                const pts = S.keyframes.map(k => k.pos);
+                const curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+                const points = curve.getPoints(S.keyframes.length * 10);
+                const pathGeo = new THREE.BufferGeometry().setFromPoints(points);
+                const pathMat = new THREE.LineBasicMaterial({ color: 0xd000ff });
+                S.pathVizGroup.add(new THREE.Line(pathGeo, pathMat));
+            }
+        }
+
+        function selectKey(index) {
+            if (!S.keyframes || index < 0 || index >= S.keyframes.length) return;
+            S.selectedKey = index;
+            renderKeyList();
+            updateKeyDataUI();
+            updateKeyPreview();
+            if (S.mode === 'PATH') {
+                window.setPathEditMode('KEY');
+            }
+        }
+
+        // Spline control-node selection: highlight / attach gizmo only,
+        // do NOT change camera or preview.
+        function selectKeyFromSpline(index) {
+            if (!S.keyframes || index < 0 || index >= S.keyframes.length) return;
+            S.selectedKey = index;
+            renderKeyList();
+            updateKeyDataUI();
+            if (S.mode === 'PATH') {
+                window.setPathEditMode('KEY');
+            }
+        }
+
+        function viewKey(index) {
+            if (!S.keyframes || index < 0 || index >= S.keyframes.length) return;
+            selectKey(index);
+            const k = S.keyframes[index];
+            S.cam.position.copy(k.pos);
+            S.orbit.target.copy(k.tgt);
+            S.cam.fov = k.fov;
+            S.cam.updateProjectionMatrix();
+            S.orbit.update();
+            updateKeyPreview();
+            updateKeyDataUI();
+        }
+
+        function renderKeyList() {
+            const el = UI('kf-container');
+            if (el) {
+                el.innerHTML = '';
+                S.keyframes.forEach((k, i) => {
+                    const div = document.createElement('div');
+                    div.className = 'kf-row';
+                    if (i === S.selectedKey) div.classList.add('selected');
+                    div.innerHTML = `<span>KEY ${i + 1}</span> <span style="font-size:9px; color:#666">P:[${k.pos.x.toFixed(0)},${k.pos.z.toFixed(0)}]</span>`;
+                    div.onclick = () => {
+                        selectKey(i);
+                    };
+                    el.appendChild(div);
+                });
+            }
+            renderKeyStrip();
+        }
+
+        function updateKeyPreview() {
+            const box = UI('kf-preview');
+            if (!box) return;
+            if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) {
+                box.textContent = 'NO PREVIEW';
+                box.style.background = '#000';
+                return;
+            }
+            try {
+                // Render preview from the selected key's POV into the timeline box,
+                // without permanently changing the main camera view.
+                const k = S.keyframes[S.selectedKey];
+                const prevPos = S.cam.position.clone();
+                const prevTgt = S.orbit.target.clone();
+                const prevFov = S.cam.fov;
+
+                S.cam.position.copy(k.pos);
+                S.orbit.target.copy(k.tgt);
+                S.cam.fov = k.fov;
+                S.cam.updateProjectionMatrix();
+                S.orbit.update();
+
+                S.rend.render(S.scene, S.cam);
+                const url = S.rend.domElement.toDataURL('image/jpeg', 0.7);
+                k.thumb = url;
+
+                box.innerHTML = '';
+                const img = document.createElement('img');
+                img.src = url;
+                img.style.maxWidth = '100%';
+                img.style.maxHeight = '100%';
+                box.appendChild(img);
+
+                // Restore original camera view
+                S.cam.position.copy(prevPos);
+                S.orbit.target.copy(prevTgt);
+                S.cam.fov = prevFov;
+                S.cam.updateProjectionMatrix();
+                S.orbit.update();
+            } catch (err) {
+                box.textContent = 'PREVIEW ERROR';
+            }
+        }
+
+        function updateKeyDataUI() {
+            const px = UI('key-pos-x'), py = UI('key-pos-y'), pz = UI('key-pos-z');
+            const tx = UI('key-tgt-x'), ty = UI('key-tgt-y'), tz = UI('key-tgt-z');
+            const fov = UI('key-fov');
+            const yaw = UI('key-yaw'), pitch = UI('key-pitch');
+            const yawS = UI('key-yaw-slider'), pitchS = UI('key-pitch-slider');
+            if (!px || !py || !pz || !tx || !ty || !tz || !fov || !yaw || !pitch || !yawS || !pitchS) return;
+
+            if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) {
+                px.value = py.value = pz.value = '';
+                tx.value = ty.value = tz.value = '';
+                fov.value = '';
+                yaw.value = pitch.value = '';
+                yawS.value = '0';
+                pitchS.value = '0';
+                return;
+            }
+
+            const k = S.keyframes[S.selectedKey];
+            px.value = k.pos.x.toFixed(2);
+            py.value = k.pos.y.toFixed(2);
+            pz.value = k.pos.z.toFixed(2);
+            tx.value = k.tgt.x.toFixed(2);
+            ty.value = k.tgt.y.toFixed(2);
+            tz.value = k.tgt.z.toFixed(2);
+            fov.value = k.fov.toFixed(2);
+
+            // Derive yaw/pitch (in degrees) from POS->TGT direction
+            const dir = new THREE.Vector3().subVectors(k.tgt, k.pos).normalize();
+            const yawRad = Math.atan2(dir.x, -dir.z); // Yaw around Y
+            const pitchRad = Math.asin(THREE.MathUtils.clamp(dir.y, -1, 1));
+            const yawDeg = THREE.MathUtils.radToDeg(yawRad);
+            const pitchDeg = THREE.MathUtils.radToDeg(pitchRad);
+            yaw.value = yawDeg.toFixed(1);
+            pitch.value = pitchDeg.toFixed(1);
+            yawS.value = yawDeg.toFixed(0);
+            pitchS.value = pitchDeg.toFixed(0);
+        }
+
+        window.undoEdit = () => {
+            if (!S.history || !S.history.past.length) {
+                window.showToast("NOTHING TO UNDO");
+                return;
+            }
+            const current = snapshotState();
+            const prev = S.history.past.pop();
+            S.history.future.push(current);
+            applySnapshot(prev);
+            window.showToast("UNDO");
+        };
+
+        window.redoEdit = () => {
+            if (!S.history || !S.history.future.length) {
+                window.showToast("NOTHING TO REDO");
+                return;
+            }
+            const current = snapshotState();
+            const next = S.history.future.pop();
+            S.history.past.push(current);
+            applySnapshot(next);
+            window.showToast("REDO");
+        };
+
+        ['key-pos-x', 'key-pos-y', 'key-pos-z', 'key-tgt-x', 'key-tgt-y', 'key-tgt-z', 'key-fov'].forEach(id => {
+            const el = UI(id);
+            if (!el) return;
+            el.oninput = () => {
+                if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) return;
+                const k = S.keyframes[S.selectedKey];
+                const v = parseFloat(el.value);
+                if (!Number.isFinite(v)) return;
+                if (id === 'key-pos-x') k.pos.x = v;
+                if (id === 'key-pos-y') k.pos.y = v;
+                if (id === 'key-pos-z') k.pos.z = v;
+                if (id === 'key-tgt-x') k.tgt.x = v;
+                if (id === 'key-tgt-y') k.tgt.y = v;
+                if (id === 'key-tgt-z') k.tgt.z = v;
+                if (id === 'key-fov') k.fov = v;
+
+                updatePathVisuals();
+                updateKeyPreview();
+                renderKeyList();
+            };
+        });
+
+        function applyYawPitchToKey(k, yawDeg, pitchDeg) {
+            const yawRad = THREE.MathUtils.degToRad(yawDeg);
+            const pitchRad = THREE.MathUtils.degToRad(pitchDeg);
+            const radius = new THREE.Vector3().subVectors(k.tgt, k.pos).length() || 100;
+            const dir = new THREE.Vector3();
+            dir.x = Math.sin(yawRad) * Math.cos(pitchRad);
+            dir.y = Math.sin(pitchRad);
+            dir.z = -Math.cos(yawRad) * Math.cos(pitchRad);
+            k.tgt.copy(k.pos).add(dir.multiplyScalar(radius));
+        }
+
+        ['key-yaw', 'key-pitch'].forEach(id => {
+            const el = UI(id);
+            if (!el) return;
+            el.oninput = () => {
+                if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) return;
+                const k = S.keyframes[S.selectedKey];
+                const yawEl = UI('key-yaw');
+                const pitchEl = UI('key-pitch');
+                const yawS = UI('key-yaw-slider');
+                const pitchS = UI('key-pitch-slider');
+                const yawDeg = parseFloat(yawEl.value) || 0;
+                const pitchDeg = THREE.MathUtils.clamp(parseFloat(pitchEl.value) || 0, -89, 89);
+                applyYawPitchToKey(k, yawDeg, pitchDeg);
+                if (yawS) yawS.value = yawDeg.toFixed(0);
+                if (pitchS) pitchS.value = pitchDeg.toFixed(0);
+                updatePathVisuals();
+                updateKeyPreview();
+                renderKeyList();
+            };
+        });
+
+        ['key-yaw-slider', 'key-pitch-slider'].forEach(id => {
+            const el = UI(id);
+            if (!el) return;
+            el.oninput = () => {
+                if (S.selectedKey < 0 || S.selectedKey >= S.keyframes.length) return;
+                const k = S.keyframes[S.selectedKey];
+                const yawS = UI('key-yaw-slider');
+                const pitchS = UI('key-pitch-slider');
+                const yawEl = UI('key-yaw');
+                const pitchEl = UI('key-pitch');
+                const yawDeg = parseFloat(yawS.value) || 0;
+                const pitchDeg = THREE.MathUtils.clamp(parseFloat(pitchS.value) || 0, -89, 89);
+                applyYawPitchToKey(k, yawDeg, pitchDeg);
+                if (yawEl) yawEl.value = yawDeg.toFixed(1);
+                if (pitchEl) pitchEl.value = pitchDeg.toFixed(1);
+                updatePathVisuals();
+                updateKeyPreview();
+                renderKeyList();
+            };
+        });
+
+        function renderKeyStrip() {
+            const strip = UI('kf-strip');
+            if (!strip) return;
+            strip.innerHTML = '';
+            if (!S.keyframes.length) return;
+            S.keyframes.forEach((k, i) => {
+                const row = document.createElement('div');
+                row.style.display = 'flex';
+                row.style.gap = '4px';
+                row.style.cursor = 'pointer';
+                row.style.border = '1px solid #222';
+                if (i === S.selectedKey) row.style.borderColor = '#d000ff';
+
+                const thumb = document.createElement('div');
+                thumb.style.flex = '0 0 72px';
+                thumb.style.aspectRatio = '16 / 9';
+                thumb.style.background = '#000';
+                thumb.style.display = 'flex';
+                thumb.style.alignItems = 'center';
+                thumb.style.justifyContent = 'center';
+                thumb.style.overflow = 'hidden';
+
+                if (k.thumb) {
+                    const img = document.createElement('img');
+                    img.src = k.thumb;
+                    img.style.maxWidth = '100%';
+                    img.style.maxHeight = '100%';
+                    thumb.appendChild(img);
+                } else {
+                    thumb.textContent = `K${i + 1}`;
+                    thumb.style.fontSize = '9px';
+                    thumb.style.color = '#555';
+                }
+
+                const info = document.createElement('div');
+                info.style.flex = '1';
+                info.style.fontSize = '9px';
+                info.style.color = '#aaa';
+                const pos = `POS [${k.pos.x.toFixed(0)}, ${k.pos.y.toFixed(0)}, ${k.pos.z.toFixed(0)}]`;
+                const tgt = `TGT [${k.tgt.x.toFixed(0)}, ${k.tgt.y.toFixed(0)}, ${k.tgt.z.toFixed(0)}] LENS ${k.fov.toFixed(0)}`;
+                info.innerHTML = `<div style="color:#fff;">KEY ${i + 1}</div><div>${pos}</div><div>${tgt}</div>`;
+
+                const povBtn = document.createElement('button');
+                povBtn.textContent = 'POV';
+                povBtn.style.marginLeft = '4px';
+                povBtn.style.flex = '0 0 auto';
+                povBtn.onclick = (ev) => {
+                    ev.stopPropagation();
+                    viewKey(i);
+                };
+
+                row.onclick = () => selectKey(i);
+                row.appendChild(thumb);
+                row.appendChild(info);
+                row.appendChild(povBtn);
+                strip.appendChild(row);
+            });
+        }
+
+        function onPointerDown(event) {
+            if (!S.cam || !S.rend || !S.pathSpheres || !S.pathSpheres.length) return;
+            const rect = S.rend.domElement.getBoundingClientRect();
+            pointer.x = ((event.clientX - rect.left) / rect.width) * 2 - 1;
+            pointer.y = -((event.clientY - rect.top) / rect.height) * 2 + 1;
+            raycaster.setFromCamera(pointer, S.cam);
+
+            const intersects = raycaster.intersectObjects(S.pathSpheres, false);
+            if (intersects.length > 0) {
+                const obj = intersects[0].object;
+                const idx = obj.userData.keyIndex;
+                if (typeof idx === 'number') {
+                    selectKeyFromSpline(idx);
+                }
+            }
+        }
+
+        // --- PLAYBACK ---
+        window.playSequence = () => {
+            if (S.keyframes.length < 2) { window.showToast("NEED 2+ KEYS"); return; }
+
+            const pts = S.keyframes.map(k => k.pos);
+            S.playback.curve = new THREE.CatmullRomCurve3(pts, false, 'centripetal');
+
+            S.playback.dur = parseFloat(UI('path-dur').value) || 8;
+            S.playback.start = S.clock.getElapsedTime();
+            S.playback.time = 0;
+            S.playback.useDeterministic = false; // interactive preview uses real time
+            S.playback.active = true;
+        };
+
+        // --- ANIMATION LOOP ---
+        function animate() {
+            requestAnimationFrame(animate);
+            S.orbit.update();
+
+            if (S.playback.active && S.playback.dur > 0 && S.keyframes.length >= 2) {
+                let t;
+                if (S.playback.useDeterministic && S.recorder.active && S.playback.fps > 0) {
+                    // Deterministic capture mode: advance virtual time by a fixed
+                    // 1/fps step each rendered frame. This means capture can take
+                    // longer than SEC in wall-clock time, but the final video has
+                    // the correct duration and evenly spaced frames along the path.
+                    const dt = 1.0 / S.playback.fps;
+                    S.playback.time += dt;
+                    t = S.playback.time / S.playback.dur;
+                } else {
+                    // Interactive preview: use real elapsed time so the camera
+                    // motion feels responsive to the DURATION (S) control.
+                    const elapsed = S.clock.getElapsedTime() - S.playback.start;
+                    t = elapsed / S.playback.dur;
+                }
+
+                if (t >= 1) {
+                    t = 1;
+                    // End of path: stop camera animation. If we are capturing
+                    // deterministically, also stop recording here so we only
+                    // finish once we've advanced the full virtual SEC along
+                    // the spline, even if rendering was slow.
+                    S.playback.active = false;
+                    S.playback.useDeterministic = false;
+                    if (S.recorder.active) {
+                        window.toggleRecord();
+                    }
+                }
+
+                if (S.playback.curve) {
+                    const pos = S.playback.curve.getPointAt(THREE.MathUtils.clamp(t, 0, 1));
+                    S.cam.position.copy(pos);
+                }
+
+                const totalSegments = S.keyframes.length - 1;
+                const rawIdx = THREE.MathUtils.clamp(t, 0, 1) * totalSegments;
+                const idx = Math.min(Math.floor(rawIdx), totalSegments - 1);
+                const alpha = rawIdx - idx;
+
+                const k1 = S.keyframes[idx];
+                const k2 = S.keyframes[idx + 1];
+
+                const lookAt = new THREE.Vector3().lerpVectors(k1.tgt, k2.tgt, alpha);
+                S.orbit.target.copy(lookAt);
+
+                if (k1.fov && k2.fov) {
+                    S.cam.fov = THREE.MathUtils.lerp(k1.fov, k2.fov, alpha);
+                    S.cam.updateProjectionMatrix();
+                }
+            }
+
+            UI('hud-cam').innerText = `POS: ${S.cam.position.x.toFixed(0)}, ${S.cam.position.y.toFixed(0)}, ${S.cam.position.z.toFixed(0)}`;
+            S.rend.render(S.scene, S.cam);
+        }
+
+        // --- UTILS ---
+        window.setTab = (t) => {
+            AUDIO.play('thud');
+            document.querySelectorAll('.tab-content').forEach(d => d.classList.remove('active'));
+            document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+            UI('tab-' + t).classList.add('active');
+            document.querySelector(`.tab-btn[data-tab="${t}"]`).classList.add('active');
+
+            if (t === 'scene') window.setMode('MODEL', 'translate');
+            if (t === 'cam') window.setMode('PATH', 'translate');
+        };
+
+        window.toggleFullscreen = () => {
+            const btn = UI('btn-fs');
+            if (!document.fullscreenElement) {
+                const el = document.documentElement;
+                if (el.requestFullscreen) el.requestFullscreen();
+            } else {
+                if (document.exitFullscreen) document.exitFullscreen();
+            }
+            if (btn) btn.blur();
+        };
+
+        document.addEventListener('fullscreenchange', () => {
+            const btn = UI('btn-fs');
+            if (!btn) return;
+            const active = !!document.fullscreenElement;
+            btn.classList.toggle('active', active);
+            btn.textContent = active ? '⤢' : '⛶';
+        });
+
+        window.toggleRecord = () => {
+            if (S.recorder.active) {
+                // STOP CAPTURE
+                AUDIO.play('rec-stop');
+                S.recorder.media.stop();
+                S.recorder.active = false;
+                UI('btn-rec').innerText = "START CAPTURE";
+                UI('btn-rec').style.color = "var(--c-rec)";
+                UI('cam-badge').className = "status-badge";
+                UI('cam-badge').innerText = "STANDBY";
+
+                // CLEAN FEED: RESTORE VISUALS
+                if (!S.vis.burn) {
+                    S.helpers.grid.visible = S.vis.grid;
+                    S.helpers.ruler.visible = S.vis.ruler;
+                    S.trans.visible = true;
+                    S.pathVizGroup.visible = true;
+                    UI('hud-cam').style.display = 'block';
+                }
+
+            } else {
+                // START CAPTURE
+                AUDIO.play('rec-start');
+                // CLEAN FEED: HIDE VISUALS
+                if (!S.vis.burn) {
+                    S.helpers.grid.visible = false;
+                    S.helpers.ruler.visible = false;
+                    S.trans.visible = false;
+                    S.pathVizGroup.visible = false;
+                    UI('hud-cam').style.display = 'none';
+                }
+
+                const fps = parseInt(UI('rec-fps').value) || 30;
+                const bps = (parseFloat(UI('rec-bit').value) || 8) * 1000000;
+                const stream = UI('glb-canvas').captureStream(fps);
+
+                S.recorder.chunks = [];
+                // Prefer VP9 for quality, fallback to VP8
+                let mime = 'video/webm; codecs=vp9';
+                if (!MediaRecorder.isTypeSupported(mime)) mime = 'video/webm; codecs=vp8';
+
+                S.recorder.media = new MediaRecorder(stream, {
+                    mimeType: mime,
+                    videoBitsPerSecond: bps
+                });
+
+                S.recorder.media.ondataavailable = e => { if (e.data.size > 0) S.recorder.chunks.push(e.data); };
+                S.recorder.media.onstop = () => {
+                    const blob = new Blob(S.recorder.chunks, { type: 'video/webm' });
+                    S.recorder.url = URL.createObjectURL(blob);
+                    UI('btn-dl').disabled = false;
+                    window.showToast("CAPTURE FINISHED");
+                };
+
+                S.recorder.media.start();
+                S.recorder.active = true;
+
+                UI('btn-rec').innerText = "STOP CAPTURE";
+                UI('btn-rec').style.color = "#fff";
+                UI('cam-badge').className = "status-badge rec";
+                UI('cam-badge').innerText = "RECORDING";
+
+                // Use SEC as the canonical virtual duration during capture so that
+                // a 10s SEC always yields a 10s move from first to last key in
+                // virtual time. For path-based shots we do NOT use a wall-clock
+                // timeout; we stop when the spline has fully advanced (t >= 1),
+                // even if rendering was slow.
+                let sec = parseFloat(UI('rec-len').value);
+                if (!Number.isFinite(sec) || sec <= 0) sec = 10;
+                UI('rec-len').value = sec.toFixed(2);
+
+                if (S.keyframes.length > 1) {
+                    UI('path-dur').value = sec.toFixed(2);
+                    window.playSequence();
+                    S.playback.useDeterministic = true;
+                    S.playback.fps = fps;
+                    S.playback.time = 0;
+                    S.playback.dur = sec;
+                    // No setTimeout here: animate() will stop recording when
+                    // t reaches 1 while in deterministic mode.
+                } else {
+                    // No path: treat SEC as a simple wall-clock capture length.
+                    setTimeout(() => { if (S.recorder.active) window.toggleRecord(); }, sec * 1000 + 500);
+                }
+            }
+        };
+
+        window.downloadCapture = () => {
+            if (!S.recorder.url) return;
+            const a = document.createElement('a');
+            a.href = S.recorder.url;
+            a.download = `MENTO_SHOT_${Date.now()}.webm`;
+            a.click();
+        };
+
+        window.copyShot = () => {
+            const str = `0 !MENTO SHOT "Custom" POS ${S.cam.position.x.toFixed(2)} ${S.cam.position.y.toFixed(2)} ${S.cam.position.z.toFixed(2)} TGT ${S.orbit.target.x.toFixed(2)} ${S.orbit.target.y.toFixed(2)} ${S.orbit.target.z.toFixed(2)} LENS ${S.cam.fov}`;
+            navigator.clipboard.writeText(str);
+            window.showToast("SHOT COPIED");
+        };
+
+        window.toggleMentoEditorSize = () => {
+            const ta = UI('mento-txt');
+            const btns = document.querySelectorAll('button');
+            const btn = Array.from(btns).find(b => b.getAttribute('onclick') === 'toggleMentoEditorSize()');
+            if (!ta) return;
+            const expanded = ta.dataset.expanded === 'true';
+            if (expanded) {
+                ta.style.height = '50px';
+                ta.dataset.expanded = 'false';
+                if (btn) btn.textContent = 'EXPAND';
+            } else {
+                ta.style.height = '200px';
+                ta.dataset.expanded = 'true';
+                if (btn) btn.textContent = 'COLLAPSE';
+            }
+        };
+
+        function parseMentoLightLine(line) {
+            // Example:
+            // 0 !MENTO LIGHT "Desert Sun" TYPE SUN POS 400 -1000 400 TGT 0 0 0 COLOR #FFF8E7 INTENSITY 1.8 SHADOWS TRUE
+            if (!line.includes('!MENTO LIGHT')) return null;
+            const tokens = line.trim().split(/\s+/);
+            const result = {
+                name: '',
+                type: 'POINT',
+                pos: new THREE.Vector3(),
+                tgt: null,
+                color: '#ffffff',
+                intensity: 1,
+                decay: 0,
+                shadows: false
+            };
+
+            // Name (quoted)
+            const nameMatch = line.match(/!MENTO\s+LIGHT\s+"([^"]+)"/);
+            if (nameMatch) result.name = nameMatch[1];
+
+            // Simple token walk for TYPE / POS / TGT / COLOR / INTENSITY / DECAY / SHADOWS
+            for (let i = 0; i < tokens.length; i++) {
+                const t = tokens[i];
+                if (t === 'TYPE' && tokens[i + 1]) {
+                    result.type = tokens[i + 1].toUpperCase();
+                }
+                if (t === 'POS' && tokens[i + 3]) {
+                    result.pos.set(parseFloat(tokens[i + 1]), parseFloat(tokens[i + 2]), parseFloat(tokens[i + 3]));
+                }
+                if (t === 'TGT' && tokens[i + 3]) {
+                    if (!result.tgt) result.tgt = new THREE.Vector3();
+                    result.tgt.set(parseFloat(tokens[i + 1]), parseFloat(tokens[i + 2]), parseFloat(tokens[i + 3]));
+                }
+                if (t === 'COLOR' && tokens[i + 1]) {
+                    result.color = tokens[i + 1];
+                }
+                if (t === 'INTENSITY' && tokens[i + 1]) {
+                    result.intensity = parseFloat(tokens[i + 1]);
+                }
+                if (t === 'DECAY' && tokens[i + 1]) {
+                    result.decay = parseFloat(tokens[i + 1]);
+                }
+                if (t === 'SHADOWS' && tokens[i + 1]) {
+                    result.shadows = tokens[i + 1].toUpperCase() === 'TRUE';
+                }
+            }
+            return result;
+        }
+
+        function applyMentoLights() {
+            if (!S.scene) return;
+
+            // Remove old lights created from MENTO manifest
+            if (S.mentoLightObjs && S.mentoLightObjs.length) {
+                S.mentoLightObjs.forEach(obj => {
+                    if (!obj) return;
+                    S.scene.remove(obj);
+                    if (obj.isLight && obj.dispose) obj.dispose();
+                });
+            }
+            S.mentoLightObjs = [];
+
+            if (!S.mentoLights || !S.mentoLights.length) return;
+
+            S.mentoLights.forEach(L => {
+                const col = new THREE.Color(L.color || '#ffffff');
+                const intensity = Number.isFinite(L.intensity) ? L.intensity : 1;
+                let light = null;
+
+                if (L.type === 'SUN') {
+                    const dirLight = new THREE.DirectionalLight(col, intensity);
+                    dirLight.position.copy(L.pos);
+                    if (L.tgt) {
+                        dirLight.target.position.copy(L.tgt);
+                        S.scene.add(dirLight.target);
+                    }
+                    if (L.shadows) {
+                        dirLight.castShadow = true;
+                        dirLight.shadow.mapSize.set(1024, 1024);
+                    }
+                    light = dirLight;
+                } else if (L.type === 'POINT') {
+                    const dist = Number.isFinite(L.decay) && L.decay > 0 ? L.decay : 0;
+                    const pt = new THREE.PointLight(col, intensity, dist);
+                    pt.position.copy(L.pos);
+                    light = pt;
+                } else {
+                    // AREA or other types → approximate with SpotLight aimed at TGT if present
+                    const spot = new THREE.SpotLight(col, intensity);
+                    spot.position.copy(L.pos);
+                    if (L.tgt) {
+                        spot.target.position.copy(L.tgt);
+                        S.scene.add(spot.target);
+                    }
+                    light = spot;
+                }
+
+                if (light) {
+                    S.scene.add(light);
+                    S.mentoLightObjs.push(light);
+                }
+            });
+        }
+
+        window.parseMento = () => {
+            const txt = UI('mento-txt').value;
+            const lines = txt.split('\n');
+            let shotCount = 0;
+            let lightCount = 0;
+
+            S.keyframes = [];
+            S.mentoLights = [];
+
+            lines.forEach(l => {
+                const line = l.trim();
+                if (!line) return;
+
+                // Lights
+                if (line.includes('!MENTO LIGHT')) {
+                    const L = parseMentoLightLine(line);
+                    if (L) {
+                        S.mentoLights.push(L);
+                        lightCount++;
+                    }
+                    return;
+                }
+
+                // Shots
+                if (!line.includes('!MENTO SHOT')) return;
+                const m = line.match(/POS\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+TGT\s+([-\d.]+)\s+([-\d.]+)\s+([-\d.]+)\s+LENS\s+([\d.]+)/);
+                if (m) {
+                    S.keyframes.push({
+                        pos: new THREE.Vector3(+m[1], +m[2], +m[3]),
+                        tgt: new THREE.Vector3(+m[4], +m[5], +m[6]),
+                        fov: +m[7]
+                    });
+                    shotCount++;
+                }
+            });
+
+            applyMentoLights();
+            updatePathVisuals();
+            renderKeyList();
+            window.showToast(`IMPORTED ${shotCount} SHOTS, ${lightCount} LIGHTS`);
+        };
+
+        window.showToast = (msg) => {
+            const t = UI('toast'); t.innerText = msg; t.style.opacity = 1;
+            setTimeout(() => t.style.opacity = 0, 2000);
+        };
+
+        init();
+        // Auto-load GRACE scene on startup for 369
+        loadScenePreset('grace');
+    </script>
+</body>
+
+</html>

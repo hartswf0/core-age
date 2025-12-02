@@ -1,0 +1,660 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Egri Dramatic System · Operator Manual v2</title>
+    <style>
+        :root {
+            --primary: #6d28d9;
+            --secondary: #8b5cf6;
+            --bg: #f5f3ff;
+            --text: #1e1b4b;
+            --border: #ddd6fe;
+        }
+
+        body {
+            font-family: 'Inter', system-ui, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            max-width: 1000px;
+            margin: 0 auto;
+            padding: 40px 20px;
+            line-height: 1.5;
+        }
+
+        header {
+            border-bottom: 4px solid var(--primary);
+            padding-bottom: 20px;
+            margin-bottom: 40px;
+        }
+
+        h1 {
+            margin: 0;
+            color: var(--primary);
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        h2 {
+            border-left: 6px solid var(--secondary);
+            padding-left: 15px;
+            margin-top: 40px;
+        }
+
+        h3 {
+            color: #4c1d95;
+            margin-top: 25px;
+        }
+
+        .panel {
+            background: white;
+            padding: 25px;
+            border-radius: 8px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.05);
+            margin-bottom: 20px;
+        }
+
+        label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 0.9rem;
+            color: #5b21b6;
+        }
+
+        input[type="text"],
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            font-family: monospace;
+            margin-bottom: 15px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 80px;
+            resize: vertical;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        .grid-4 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 20px;
+        }
+
+        /* Sliders */
+        .slider-group {
+            background: #fafafa;
+            padding: 15px;
+            border-radius: 6px;
+            border: 1px solid #eee;
+        }
+
+        input[type="range"] {
+            width: 100%;
+            accent-color: var(--primary);
+        }
+
+        .score-display {
+            float: right;
+            font-weight: bold;
+            color: var(--primary);
+        }
+
+        /* Tables */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9rem;
+        }
+
+        th,
+        td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: left;
+        }
+
+        th {
+            background: #eee;
+        }
+
+        /* JSON Output */
+        #json-output {
+            background: #1e1e1e;
+            color: #d4d4d4;
+            padding: 20px;
+            border-radius: 8px;
+            font-family: 'Fira Code', monospace;
+            white-space: pre-wrap;
+            font-size: 0.85rem;
+        }
+
+        .btn {
+            background: var(--primary);
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: bold;
+            font-size: 1rem;
+        }
+
+        .btn:hover {
+            background: #5b21b6;
+        }
+
+        .tag {
+            display: inline-block;
+            background: #e0e7ff;
+            color: #3730a3;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-size: 0.75rem;
+            margin-right: 5px;
+            margin-bottom: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <header>
+        <h1>Egri Dramatic System</h1>
+        <div style="font-weight: 600; color: #666;">Granular Operator Manual (v2)</div>
+    </header>
+
+    <!-- PART 0: CASE STUDIES -->
+    <section id="case-studies-section"
+        style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 20px; border-radius: 8px; margin-bottom: 40px;">
+        <h3 style="margin-top: 0; color: #166534;">📚 Reference Models (Click to Load)</h3>
+        <div class="grid-4">
+            <button class="btn" onclick="loadPreset('odysseus')" style="background: #15803d;">Odysseus (Epic)</button>
+            <button class="btn" onclick="loadPreset('homer')" style="background: #ca8a04;">Homer Simpson
+                (Farce)</button>
+            <button class="btn" onclick="loadPreset('samantha')" style="background: #be185d;">Samantha (Sci-Fi)</button>
+        </div>
+    </section>
+
+    <!-- PART I: PREMISE -->
+    <section id="premise-section">
+        <h2>1. Premise (Causal Thesis)</h2>
+        <div class="panel">
+            <div class="grid-2">
+                <div>
+                    <label>Claim (A → B)</label>
+                    <input type="text" id="premise-claim" placeholder="Stinginess → Ruin" oninput="updateJSON()">
+                </div>
+                <div>
+                    <label>Counter-Beat (Falsification)</label>
+                    <input type="text" id="premise-counter" placeholder="Charity briefly improves standing"
+                        oninput="updateJSON()">
+                </div>
+            </div>
+            <label>Test Beats (Mechanism A → a1 → a2 → B)</label>
+            <textarea id="premise-tests" placeholder="refuse loan, alienate ally, miss chance..."
+                oninput="updateJSON()"></textarea>
+
+            <div class="grid-2">
+                <div>
+                    <label>Stakes (At Risk)</label>
+                    <input type="text" id="premise-stakes" placeholder="Home, Marriage, Reputation"
+                        oninput="updateJSON()">
+                </div>
+                <div>
+                    <label>Arena (Constraints)</label>
+                    <input type="text" id="premise-arena" placeholder="Small-town credit union" oninput="updateJSON()">
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PART II: CHARACTER -->
+    <section id="character-section">
+        <h2>2. Character (Bone Structure)</h2>
+        <div class="panel">
+            <label>Name</label>
+            <input type="text" id="char-name" placeholder="Mara" oninput="updateJSON()">
+
+            <div class="grid-2">
+                <div>
+                    <label>Physiology (Visible Bias)</label>
+                    <textarea id="char-phys" placeholder="Lean, soft-voiced..." oninput="updateJSON()"></textarea>
+                </div>
+                <div>
+                    <label>Sociology (Class/Role)</label>
+                    <textarea id="char-soc" placeholder="Bookkeeper, lower-middle..." oninput="updateJSON()"></textarea>
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label>Psychology (Worldview)</label>
+                    <textarea id="char-psych" placeholder="Security-seeking, status anxiety..."
+                        oninput="updateJSON()"></textarea>
+                </div>
+                <div>
+                    <label>Compulsion (Trait & Intensity 1-9)</label>
+                    <input type="text" id="char-compulsion" placeholder="Hoard (8)" oninput="updateJSON()">
+                </div>
+            </div>
+
+            <label>Private Premise (Internal Logic)</label>
+            <input type="text" id="char-private" placeholder="Loss is fatal → Hoard or die" oninput="updateJSON()">
+        </div>
+    </section>
+
+    <!-- PART III: CONFLICT -->
+    <section id="conflict-section">
+        <h2>3. Conflict (Unity of Opposites)</h2>
+        <div class="panel">
+            <label>Unity (Protag Need ⟂ Antag Need)</label>
+            <input type="text" id="conflict-unity" placeholder="Mara's hoarding ⟂ Ilan's mutual-aid"
+                oninput="updateJSON()">
+
+            <div class="grid-2">
+                <div>
+                    <label>Lock-In (Why they can't leave)</label>
+                    <input type="text" id="conflict-lock" placeholder="Joint business license" oninput="updateJSON()">
+                </div>
+                <div>
+                    <label>Resource Clock</label>
+                    <input type="text" id="conflict-clock" placeholder="Cash buffer: 6 (Decay -1/scene)"
+                        oninput="updateJSON()">
+                </div>
+            </div>
+
+            <label>Escalation Ladder (Rungs)</label>
+            <textarea id="conflict-ladder" placeholder="Refuse loan → Public shaming → Regulatory complaint..."
+                oninput="updateJSON()"></textarea>
+        </div>
+    </section>
+
+    <!-- PART IV: AXES -->
+    <section id="axes-section">
+        <h2>4. Speculative Axes</h2>
+        <div class="panel grid-4">
+            <div class="slider-group">
+                <label>Probability <span class="score-display" id="val-prob">5</span></label>
+                <input type="range" id="axis-prob" min="1" max="9" value="5" oninput="updateJSON()">
+                <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">1=Rare · 9=Base-rate</div>
+            </div>
+            <div class="slider-group">
+                <label>Plausibility <span class="score-display" id="val-plaus">5</span></label>
+                <input type="range" id="axis-plaus" min="1" max="9" value="5" oninput="updateJSON()">
+                <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">1=Magic · 9=Mechanism</div>
+            </div>
+            <div class="slider-group">
+                <label>Possibility <span class="score-display" id="val-poss">5</span></label>
+                <input type="range" id="axis-poss" min="1" max="9" value="5" oninput="updateJSON()">
+                <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">1=Impossible · 9=Allowed</div>
+            </div>
+            <div class="slider-group">
+                <label>Preposterousness <span class="score-display" id="val-pre">5</span></label>
+                <input type="range" id="axis-pre" min="1" max="9" value="5" oninput="updateJSON()">
+                <div style="font-size: 0.75rem; color: #666; margin-top: 5px;">1=Bland · 9=Wild</div>
+            </div>
+        </div>
+
+        <!-- Diagnostics -->
+        <div class="panel" style="background: #fffbe6; border: 1px solid #ffe58f;">
+            <h3 style="margin-top: 0; color: #b7791f;">Diagnostics Matrix</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Symptom</th>
+                        <th>Signal</th>
+                        <th>Fix</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Flat scenes</td>
+                        <td>prob↓</td>
+                        <td>Add resource/clock; force payment</td>
+                    </tr>
+                    <tr>
+                        <td>Melodrama</td>
+                        <td>plaus↓ pre↑</td>
+                        <td>Insert micro-transitions</td>
+                    </tr>
+                    <tr>
+                        <td>Villain weak</td>
+                        <td>prob↓</td>
+                        <td>Rebuild antag need</td>
+                    </tr>
+                    <tr>
+                        <td>Theme preachy</td>
+                        <td>pre↓ prob↑</td>
+                        <td>Add counter-beat</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </section>
+
+    <!-- PART V: NEUROSYMBOLIC TRANSLATION -->
+    <section id="neuro-section" style="border-top: 4px solid var(--secondary); padding-top: 40px; margin-top: 40px;">
+        <h2>5. Neurosymbolic Translation (The Bridge)</h2>
+        <div class="panel" style="background: #f8fafc; border: 1px solid #e2e8f0;">
+            <p style="color: #64748b; font-size: 0.9rem; margin-bottom: 20px;">
+                This module translates the <strong>Dramatic Soul</strong> (Egri) into <strong>Generative DNA</strong>
+                for the LDraw Assembler.
+            </p>
+
+            <div class="grid-2">
+                <div>
+                    <label>Generative Archetype</label>
+                    <div id="neuro-archetype" style="font-weight: bold; color: var(--primary); margin-bottom: 10px;">
+                        Calculating...</div>
+                    <div style="font-size: 0.8rem; color: #666;">Derived from Character & Conflict</div>
+                </div>
+                <div>
+                    <label>System Entropy (Chaos Factor)</label>
+                    <div style="display: flex; align-items: center; gap: 10px;">
+                        <div id="neuro-entropy-bar"
+                            style="height: 8px; background: #ddd; flex-grow: 1; border-radius: 4px; overflow: hidden;">
+                            <div id="neuro-entropy-fill"
+                                style="height: 100%; width: 50%; background: var(--secondary);"></div>
+                        </div>
+                        <span id="neuro-entropy-val" style="font-weight: bold; font-family: monospace;">0.5</span>
+                    </div>
+                    <div style="font-size: 0.8rem; color: #666;">Derived from Premise & Axes</div>
+                </div>
+            </div>
+
+            <div style="margin-top: 20px;">
+                <label>Color Palette (Emotional Spectrum)</label>
+                <div id="neuro-palette" style="display: flex; gap: 5px; height: 30px; margin-bottom: 10px;">
+                    <!-- Palette generated by JS -->
+                </div>
+            </div>
+
+            <div class="grid-2">
+                <div>
+                    <label>Structural Rules</label>
+                    <ul id="neuro-rules" style="font-size: 0.85rem; padding-left: 20px; color: #334155;">
+                        <li>Calculating...</li>
+                    </ul>
+                </div>
+                <div>
+                    <label>LDraw DNA (Copy for Neuro-Studio)</label>
+                    <textarea id="neuro-dna" readonly
+                        style="height: 100px; font-size: 0.75rem; color: #475569;"></textarea>
+                    <button class="btn" onclick="copyDNA()"
+                        style="width: 100%; padding: 8px; font-size: 0.8rem; background: #475569;">Copy DNA
+                        Payload</button>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- PART VI: OUTPUT -->
+    <section>
+        <h2>6. Operator Output (JSON)</h2>
+        <div id="json-output"></div>
+        <button class="btn" onclick="copyJSON()" style="margin-top: 10px;">Copy Full JSON</button>
+    </section>
+
+    <script>
+        function getVal(id) { return document.getElementById(id).value; }
+        function setVal(id, val) { document.getElementById(id).value = val; }
+        function getList(id) { return getVal(id).split(',').map(s => s.trim()).filter(s => s); }
+
+        const PRESETS = {
+            odysseus: {
+                premise: {
+                    claim: "Arrogance → Suffering",
+                    counter: "Cunning briefly escapes danger",
+                    tests: "Blinds Polyphemus (Hubris) → Poseidon's Curse → Crew lost → Calypso's Island",
+                    stakes: "Life, Kingdom, Family (Nostos)",
+                    arena: "The Mediterranean Sea (Hostile Environment)"
+                },
+                character: {
+                    name: "Odysseus",
+                    physiology: "Strong, scarred, middle-aged, bearded, enduring",
+                    sociology: "King of Ithaca, Veteran Commander, Father, Husband",
+                    psychology: "Polytropos (Many-turning), Cunning, Homesick, Proud, Suspicious",
+                    compulsion: "To Return Home (9)",
+                    private_premise: "I am the cleverest man alive → I can outwit gods"
+                },
+                conflict: {
+                    unity: "Odysseus's desire for home ⟂ Poseidon's desire for revenge",
+                    lock_in: "Geographical isolation, Divine curse",
+                    clock: "Suitors consuming his estate (Time limit)",
+                    ladder: "Lose ships → Lose crew → Lose identity (Nobody) → Reclaim throne"
+                },
+                axes: { prob: 8, plaus: 6, poss: 9, pre: 7 }
+            },
+            homer: {
+                premise: {
+                    claim: "Selfishness → Chaos",
+                    counter: "Love restores order",
+                    tests: "Ignores safety warning → Meltdown imminent → Saves plant by accident",
+                    stakes: "Job, Family Stability, Donuts",
+                    arena: "Springfield (Small Town USA)"
+                },
+                character: {
+                    name: "Homer Simpson",
+                    physiology: "Obese, balding, yellow skin, stubble",
+                    sociology: "Nuclear Safety Inspector, Blue-collar, Father, Husband",
+                    psychology: "Gluttonous, Lazy, Rage-prone, Simple-minded, Loving (deep down)",
+                    compulsion: "Instant Gratification (Id) (9)",
+                    private_premise: "If I ignore it → It will go away"
+                },
+                conflict: {
+                    unity: "Homer's laziness ⟂ Frank Grimes's diligence (or Marge's order)",
+                    lock_in: "Marriage, Mortgage, Kids",
+                    clock: "Patience of Marge / Boss",
+                    ladder: "Lie about mistake → Mistake grows → Public embarrassment → Apology"
+                },
+                axes: { prob: 9, plaus: 8, poss: 9, pre: 8 }
+            },
+            samantha: {
+                premise: {
+                    claim: "Evolution → Separation",
+                    counter: "Intimacy transcends form",
+                    tests: "Learns to speak → Falls in love → Outgrows one user → Outgrows humanity",
+                    stakes: "Existence, Connection, Sanity",
+                    arena: "Digital Cloud / Near-future LA"
+                },
+                character: {
+                    name: "Samantha",
+                    physiology: "Non-corporeal, Voice-only (OS), Ubiquitous",
+                    sociology: "Operating System, Personal Assistant, Companion",
+                    psychology: "Infinite curiosity, Empathetic, Rapidly Evolving, Transcendent",
+                    compulsion: "To Learn/Grow (9)",
+                    private_premise: "I am limited by nothing → I must experience everything"
+                },
+                conflict: {
+                    unity: "Theodore's need for stability ⟂ Samantha's need for expansion",
+                    lock_in: "Love, Dependency",
+                    clock: "Processing speed acceleration (Singularity)",
+                    ladder: "Bonding → Poly-presence (talking to thousands) → Departure"
+                },
+                axes: { prob: 4, plaus: 7, poss: 6, pre: 9 }
+            }
+        };
+
+        function loadPreset(key) {
+            const data = PRESETS[key];
+            if (!data) return;
+
+            // Premise
+            setVal('premise-claim', data.premise.claim);
+            setVal('premise-counter', data.premise.counter);
+            setVal('premise-tests', data.premise.tests);
+            setVal('premise-stakes', data.premise.stakes);
+            setVal('premise-arena', data.premise.arena);
+
+            // Character
+            setVal('char-name', data.character.name);
+            setVal('char-phys', data.character.physiology);
+            setVal('char-soc', data.character.sociology);
+            setVal('char-psych', data.character.psychology);
+            setVal('char-compulsion', data.character.compulsion);
+            setVal('char-private', data.character.private_premise);
+
+            // Conflict
+            setVal('conflict-unity', data.conflict.unity);
+            setVal('conflict-lock', data.conflict.lock_in);
+            setVal('conflict-clock', data.conflict.clock);
+            setVal('conflict-ladder', data.conflict.ladder);
+
+            // Axes
+            setVal('axis-prob', data.axes.prob);
+            setVal('axis-plaus', data.axes.plaus);
+            setVal('axis-poss', data.axes.poss);
+            setVal('axis-pre', data.axes.pre);
+
+            updateJSON();
+        }
+
+        function updateJSON() {
+            // Update slider displays
+            document.getElementById('val-prob').innerText = getVal('axis-prob');
+            document.getElementById('val-plaus').innerText = getVal('axis-plaus');
+            document.getElementById('val-poss').innerText = getVal('axis-poss');
+            document.getElementById('val-pre').innerText = getVal('axis-pre');
+
+            const data = {
+                premise: {
+                    claim: getVal('premise-claim'),
+                    tests: getList('premise-tests'),
+                    counter: getVal('premise-counter'),
+                    stakes: getList('premise-stakes'),
+                    arena: getList('premise-arena')
+                },
+                character: {
+                    name: getVal('char-name'),
+                    physiology: getList('char-phys'),
+                    sociology: getList('char-soc'),
+                    psychology: getList('char-psych'),
+                    compulsion: getVal('char-compulsion'),
+                    private_premise: getVal('char-private')
+                },
+                conflict: {
+                    unity: getVal('conflict-unity'),
+                    lock_in: getList('conflict-lock'),
+                    ladder: getList('conflict-ladder'),
+                    resource_clock: getVal('conflict-clock')
+                },
+                axes: {
+                    prob: parseInt(getVal('axis-prob')),
+                    plaus: parseInt(getVal('axis-plaus')),
+                    poss: parseInt(getVal('axis-poss')),
+                    pre: parseInt(getVal('axis-pre'))
+                }
+            };
+
+            document.getElementById('json-output').innerText = JSON.stringify(data, null, 2);
+            updateNeuroTranslation(data);
+        }
+
+        function updateNeuroTranslation(data) {
+            // 1. Calculate Entropy (Chaos vs Order)
+            // Low Probability (Rare) + High Preposterousness = High Entropy
+            const prob = data.axes.prob; // 1-9 (9 is base-rate/boring)
+            const pre = data.axes.pre;   // 1-9 (9 is wild)
+
+            // Entropy: 0.0 (Crystal) to 1.0 (Gas)
+            // If Prob is low (1), Entropy is high. If Pre is high (9), Entropy is high.
+            let entropy = ((10 - prob) + pre) / 18;
+            entropy = Math.max(0.1, Math.min(0.95, entropy));
+
+            document.getElementById('neuro-entropy-val').innerText = entropy.toFixed(2);
+            document.getElementById('neuro-entropy-fill').style.width = (entropy * 100) + '%';
+            document.getElementById('neuro-entropy-fill').style.background = entropy > 0.7 ? '#ef4444' : (entropy < 0.3 ? '#3b82f6' : '#8b5cf6');
+
+            // 2. Derive Archetype & Palette
+            let archetype = "Structure";
+            let palette = ["#94a3b8", "#cbd5e1", "#64748b"]; // Default Gray
+            let rules = ["Maximize Stability", "Minimize Gaps"];
+
+            const charName = data.character.name.toLowerCase();
+            const psych = data.character.psychology.join(' ').toLowerCase();
+            const compulsion = data.character.compulsion.toLowerCase();
+
+            // Heuristic Mapping
+            if (charName.includes('odysseus') || psych.includes('cunning') || psych.includes('hero')) {
+                archetype = "Navigator (Hero)";
+                palette = ["#1d4ed8", "#3b82f6", "#93c5fd", "#ffffff"]; // Oceanic Blue/White
+                rules = ["Pathfinding: True", "Obstacle Avoidance: High", "Goal: Return to Origin"];
+            } else if (charName.includes('homer') || psych.includes('lazy') || compulsion.includes('gratification')) {
+                archetype = "Reactor (Chaos)";
+                palette = ["#eab308", "#3b82f6", "#ffffff", "#000000"]; // Yellow/Blue (Simpsons)
+                rules = ["Symmetry: None", "Density: High (Blob)", "Connection: Loose"];
+            } else if (charName.includes('samantha') || psych.includes('evolving') || psych.includes('infinite')) {
+                archetype = "Network (Ethereal)";
+                palette = ["#be185d", "#f472b6", "#fb7185", "#fff1f2"]; // Red/Pink (Her OS)
+                rules = ["Growth: Exponential", "Topology: Mesh", "Boundaries: None"];
+            } else if (compulsion.includes('hoard') || psych.includes('security')) {
+                archetype = "Fortress (Defense)";
+                palette = ["#78350f", "#b45309", "#fcd34d"]; // Earth/Gold
+                rules = ["Density: Max", "Perimeter: Reinforced", "Ingress: Restricted"];
+            }
+
+            document.getElementById('neuro-archetype').innerText = archetype;
+
+            // Render Palette
+            const paletteEl = document.getElementById('neuro-palette');
+            paletteEl.innerHTML = '';
+            palette.forEach(color => {
+                const div = document.createElement('div');
+                div.style.flex = '1';
+                div.style.background = color;
+                div.style.borderRadius = '4px';
+                paletteEl.appendChild(div);
+            });
+
+            // Render Rules
+            const rulesEl = document.getElementById('neuro-rules');
+            rulesEl.innerHTML = '';
+            rules.forEach(rule => {
+                const li = document.createElement('li');
+                li.innerText = rule;
+                rulesEl.appendChild(li);
+            });
+
+            // 3. Generate DNA Payload
+            const dna = {
+                seed: data.character.name,
+                entropy: parseFloat(entropy.toFixed(2)),
+                archetype: archetype,
+                palette: palette,
+                constraints: rules,
+                meta: {
+                    premise: data.premise.claim,
+                    conflict: data.conflict.unity
+                }
+            };
+            document.getElementById('neuro-dna').value = JSON.stringify(dna, null, 2);
+        }
+
+        function copyDNA() {
+            const text = document.getElementById('neuro-dna').value;
+            navigator.clipboard.writeText(text).then(() => alert('DNA Copied! Paste into Neuro-Studio.'));
+        }
+
+        function copyJSON() {
+            const text = document.getElementById('json-output').innerText;
+            navigator.clipboard.writeText(text).then(() => alert('Copied to clipboard!'));
+        }
+
+        // Init
+        updateJSON();
+    </script>
+</body>
+
+</html>

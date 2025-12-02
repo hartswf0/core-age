@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>ONYX Scene Timeline System</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600&display=swap"
+        rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" />
+    <style>
+        :root {
+            --theme-bg: #0b1121;
+            --theme-panel: #0f172a;
+            --theme-surface: #1e293b;
+            --theme-border: #334155;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--theme-bg);
+            color: #e2e8f0;
+        }
+
+        .grid-overlay {
+            background-image: linear-gradient(var(--theme-border) 1px, transparent 1px),
+                linear-gradient(90deg, var(--theme-border) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+        }
+
+        .node-instance {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            z-index: 20;
+            pointer-events: auto;
+        }
+
+        .tool-item {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem;
+            border: 1px solid var(--theme-border);
+            border-radius: 0.375rem;
+            background: var(--theme-surface);
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .tool-item:hover {
+            border-color: #fbbf24;
+            transform: translateX(4px);
+        }
+    </style>
+</head>
+
+<body class="grid grid-cols-[320px_1fr] grid-rows-[64px_1fr] h-screen overflow-hidden">
+
+    <div id="toast-container" class="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-50 flex flex-col gap-2 w-80">
+    </div>
+
+    <!-- Header -->
+    <header
+        class="col-span-2 bg-[var(--theme-panel)] border-b border-[var(--theme-border)] flex items-center justify-between px-6">
+        <div class="flex items-center gap-4">
+            <div>
+                <div class="font-bold text-xl">ONYX</div>
+                <div class="text-[10px] text-yellow-500 uppercase tracking-wider">Multi-Scene Timeline</div>
+            </div>
+            <div class="h-8 w-px bg-[var(--theme-border)]"></div>
+            <div class="flex gap-2">
+                <button onclick="VIEW.setMode('single')" id="view-single"
+                    class="px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold">SINGLE</button>
+                <button onclick="VIEW.setMode('meta')" id="view-meta"
+                    class="px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm">META</button>
+                <button onclick="VIEW.setMode('fork')" id="view-fork"
+                    class="px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm">FORKS</button>
+            </div>
+        </div>
+        <div class="flex items-center gap-2">
+            <span class="text-sm text-slate-400">Scene <span id="scene-num"
+                    class="text-yellow-500 font-bold">1</span>/<span id="scene-total">1</span></span>
+            <button onclick="TIMELINE.prev()"
+                class="px-3 py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded hover:border-yellow-500"><i
+                    class="fas fa-chevron-left"></i></button>
+            <button onclick="TIMELINE.next()"
+                class="px-3 py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded hover:border-yellow-500"><i
+                    class="fas fa-chevron-right"></i></button>
+            <button onclick="TIMELINE.addScene()"
+                class="px-3 py-2 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded hover:border-yellow-500 text-sm"><i
+                    class="fas fa-plus mr-1"></i>Scene</button>
+            <button onclick="TIMELINE.fork()"
+                class="px-3 py-2 bg-cyan-500/20 border border-cyan-500 text-cyan-400 rounded hover:bg-cyan-500/30 text-sm"><i
+                    class="fas fa-code-branch mr-1"></i>Fork</button>
+        </div>
+    </header>
+
+    <!-- Sidebar -->
+    <aside class="bg-[var(--theme-panel)] border-r border-[var(--theme-border)] flex flex-col overflow-y-auto">
+        <div class="p-4 border-b border-[var(--theme-border)]">
+            <div class="text-xs text-slate-400 uppercase mb-2">Scene Info</div>
+            <input id="scene-title" type="text"
+                class="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded p-2 text-sm mb-2"
+                placeholder="Scene Title" onchange="TIMELINE.updateSceneTitle(this.value)">
+            <textarea id="scene-desc"
+                class="w-full bg-[var(--theme-bg)] border border-[var(--theme-border)] rounded p-2 text-sm resize-none"
+                rows="3" placeholder="Description" onchange="TIMELINE.updateSceneDesc(this.value)"></textarea>
+        </div>
+
+        <div class="p-3 flex-1">
+            <div class="text-xs text-slate-400 uppercase mb-2">Entities</div>
+            <div id="tools-list" class="flex flex-col gap-1.5"></div>
+        </div>
+
+        <div class="p-4 border-t border-[var(--theme-border)]">
+            <div class="text-xs text-slate-400 uppercase mb-2">Timeline</div>
+            <div id="timeline-list" class="space-y-1 max-h-60 overflow-y-auto"></div>
+        </div>
+    </aside>
+
+    <!-- Main Canvas -->
+    <main class="relative bg-[var(--theme-bg)] overflow-hidden">
+        <!-- SINGLE VIEW -->
+        <div id="view-single-content" class="absolute inset-0">
+            <div class="absolute top-4 left-1/2 transform -translate-x-1/2 z-30 text-center pointer-events-none">
+                <div id="scene-title-display" class="text-3xl font-bold text-yellow-500"></div>
+                <div id="scene-desc-display" class="text-sm text-slate-400 mt-1"></div>
+            </div>
+            <div class="absolute inset-0 opacity-10 grid-overlay pointer-events-none"></div>
+            <div id="grid-lock" class="absolute inset-0 grid grid-cols-9 grid-rows-9"></div>
+            <div id="nodes-layer" class="absolute inset-0 z-10 pointer-events-none"></div>
+            <svg id="connections-layer" class="absolute inset-0 pointer-events-none z-5"></svg>
+        </div>
+
+        <!-- META VIEW (Storyboard) -->
+        <div id="view-meta-content" class="absolute inset-0 hidden p-8 overflow-y-auto">
+            <div class="text-2xl font-bold text-yellow-500 mb-6">Story Overview</div>
+            <div id="meta-grid" class="grid grid-cols-3 gap-6"></div>
+        </div>
+
+        <!-- FORK COMPARISON VIEW -->
+        <div id="view-fork-content" class="absolute inset-0 hidden p-8 overflow-y-auto">
+            <div class="text-2xl font-bold text-yellow-500 mb-6">Fork Comparison</div>
+            <div id="fork-comparison" class="flex gap-6 overflow-x-auto"></div>
+        </div>
+    </main>
+
+    <script>
+        // =========================================
+        // SCENE MODEL
+        // =========================================
+        class Scene {
+            constructor(id, timestamp, title = '', description = '') {
+                this.id = id;
+                this.timestamp = timestamp;
+                this.title = title;
+                this.description = description;
+                this.nodes = [];
+                this.parentScene = null;
+                this.forkScenes = [];
+            }
+
+            addNode(node) {
+                this.nodes.push(node);
+            }
+
+            clone() {
+                const cloned = new Scene(`${this.id}_fork_${Date.now()}`, this.timestamp, `${this.title} (Fork)`, this.description);
+                cloned.nodes = JSON.parse(JSON.stringify(this.nodes));
+                cloned.parentScene = this.id;
+                return cloned;
+            }
+        }
+
+        // =========================================
+        // STATE
+        // =========================================
+        const STATE = {
+            scenes: [],
+            currentTimestamp: 0,
+            activeFork: null,
+            viewMode: 'single'
+        };
+
+        // =========================================
+        // GRID
+        // =========================================
+        const GRID = {
+            center(col, row) {
+                const step = 100 / 9;
+                return { x: (col + 0.5) * step, y: (row + 0.5) * step };
+            },
+            snap(x, y) {
+                const step = 100 / 9;
+                const col = Math.max(0, Math.min(8, Math.round(x / step - 0.5)));
+                const row = Math.max(0, Math.min(8, Math.round(y / step - 0.5)));
+                return this.center(col, row);
+            }
+        };
+
+        // =========================================
+        // ICONS (From onyx-storytelling.html)
+        // =========================================
+        const ICONS = {
+            getIsoCube(color = "blue", opacity = 1) {
+                const colors = {
+                    blue: { top: '#60a5fa', left: '#3b82f6', right: '#2563eb' },
+                    yellow: { top: '#fcd34d', left: '#f59e0b', right: '#d97706' },
+                    green: { top: '#4ade80', left: '#16a34a', right: '#15803d' },
+                    red: { top: '#f87171', left: '#ef4444', right: '#dc2626' },
+                    cyan: { top: '#22d3ee', left: '#06b6d4', right: '#0891b2' },
+                    purple: { top: '#e879f9', left: '#c026d3', right: '#a21caf' }
+                };
+                const c = colors[color] || colors.blue;
+                return `
+                <svg viewBox="0 0 40 40" class="w-full h-full drop-shadow-lg" style="opacity: ${opacity}">
+                    <path d="M20 4 L36 12 L20 20 L4 12 Z" fill="${c.top}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M4 12 L20 20 L20 38 L4 30 Z" fill="${c.left}" stroke="#1e293b" stroke-width="1" />
+                    <path d="M36 12 L20 20 L20 38 L36 30 Z" fill="${c.right}" stroke="#1e293b" stroke-width="1" />
+                </svg>`;
+            },
+            Entity: () => ICONS.getIsoCube('blue'),
+            Core: () => ICONS.getIsoCube('yellow'),
+            Goal: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('green')}<div class="absolute -top-2 left-1/2 transform -translate-x-1/2 text-yellow-400 animate-pulse"><i class="fas fa-bullseye"></i></div></div>`,
+            Obstacle: () => `<div class="relative w-full h-full">${ICONS.getIsoCube('red')}<div class="absolute right-0 top-1/2 transform -translate-y-1/2 w-0.5 h-full bg-red-400"></div></div>`,
+            Morphism: () => `<div class="relative w-full h-full flex items-center justify-between px-1"><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div><div class="flex-1 h-0.5 bg-cyan-400 mx-1 relative"><div class="absolute right-0 -top-1 w-0 h-0 border-l-4 border-l-cyan-400 border-t-2 border-t-transparent border-b-2 border-b-transparent"></div></div><div class="w-4 h-4">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Shift: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div><div class="absolute z-10 text-yellow-400 drop-shadow-[0_0_8px_rgba(250,204,21,0.8)]"><i class="fas fa-bolt w-5 h-5 fill-current"></i></div><div class="w-5 h-5 opacity-50">${ICONS.getIsoCube('cyan')}</div></div>`,
+            Location: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="absolute top-0 right-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><div class="absolute bottom-0 left-0 w-4 h-4">${ICONS.getIsoCube('purple')}</div><svg class="absolute inset-0 w-full h-full pointer-events-none"><path d="M14 26 C 14 26, 20 20, 26 14" stroke="#c084fc" stroke-width="2" fill="none" stroke-linecap="round" /><polygon points="26 14, 22 15, 25 18" fill="#c084fc" /></svg></div>`,
+            Timepoint: () => `<div class="relative w-full h-full flex items-center justify-center"><div class="w-3/4 h-3/4">${ICONS.getIsoCube('cyan')}</div><div class="absolute -right-1 -bottom-1 w-5 h-5 bg-[#0f172a] rounded-full border border-cyan-500 flex items-center justify-center"><i class="fas fa-clock w-3 h-3 text-cyan-400"></i></div></div>`,
+            Scene: () => `<div class="relative w-full h-full flex items-center justify-center p-1"><div class="absolute top-0 left-0 w-2 h-2 border-l-2 border-t-2 border-purple-400"></div><div class="absolute top-0 right-0 w-2 h-2 border-r-2 border-t-2 border-purple-400"></div><div class="absolute bottom-0 left-0 w-2 h-2 border-l-2 border-b-2 border-purple-400"></div><div class="absolute bottom-0 right-0 w-2 h-2 border-r-2 border-b-2 border-purple-400"></div><div class="flex gap-0.5"><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div><div class="w-3 h-3">${ICONS.getIsoCube('purple', 0.7)}</div></div></div>`,
+            Story: () => `<div class="relative w-full h-full flex flex-col items-center justify-start pt-1"><div class="w-4 h-4 z-10">${ICONS.getIsoCube('purple')}</div><div class="w-0.5 h-2 bg-purple-500/50"></div><div class="w-full h-0.5 bg-purple-500/50 relative"><div class="absolute left-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute right-0 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full"></div><div class="absolute left-1/2 bottom-0 w-0.5 h-2 bg-purple-500/50 transform translate-y-full -translate-x-1/2"></div></div><div class="flex gap-1 mt-2"><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div><div class="w-2.5 h-2.5">${ICONS.getIsoCube('cyan', 0.6)}</div></div></div>`
+        };
+
+        // =========================================
+        // TIMELINE
+        // =========================================
+        const TIMELINE = {
+            init() {
+                const scene0 = new Scene('sc_init', 0, 'Opening', 'The story begins');
+                const pos1 = GRID.center(4, 4);
+                scene0.addNode({ id: 1, type: 'core', icon: 'Core', label: 'Origin', x: pos1.x, y: pos1.y });
+                STATE.scenes.push(scene0);
+                this.render();
+                this.updateDisplay();
+            },
+
+            getCurrentScene() {
+                return STATE.scenes.find(s => s.timestamp === STATE.currentTimestamp && !STATE.activeFork) ||
+                    STATE.scenes.find(s => s.id === STATE.activeFork) ||
+                    STATE.scenes[0];
+            },
+
+            prev() {
+                if (STATE.currentTimestamp > 0) {
+                    STATE.currentTimestamp--;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            next() {
+                const max = Math.max(...STATE.scenes.map(s => s.timestamp));
+                if (STATE.currentTimestamp < max) {
+                    STATE.currentTimestamp++;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            addScene() {
+                const current = this.getCurrentScene();
+                const newT = STATE.currentTimestamp + 1;
+                const newScene = new Scene(`sc_${Date.now()}`, newT, `Scene ${newT + 1}`, '');
+                newScene.parentScene = current.id;
+                current.nodes.forEach(n => {
+                    newScene.addNode({ ...n, id: Date.now() + Math.random() });
+                });
+                STATE.scenes.push(newScene);
+                STATE.currentTimestamp = newT;
+                STATE.activeFork = null;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('New scene created');
+            },
+
+            fork() {
+                const current = this.getCurrentScene();
+                const forked = current.clone();
+                current.forkScenes.push(forked.id);
+                STATE.scenes.push(forked);
+                STATE.activeFork = forked.id;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('Scene forked');
+            },
+
+            selectScene(sceneId) {
+                const scene = STATE.scenes.find(s => s.id === sceneId);
+                if (scene) {
+                    STATE.currentTimestamp = scene.timestamp;
+                    STATE.activeFork = scene.parentScene ? sceneId : null;
+                    this.updateDisplay();
+                }
+            },
+
+            updateSceneTitle(title) {
+                this.getCurrentScene().title = title;
+                this.updateDisplay();
+            },
+
+            updateSceneDesc(desc) {
+                this.getCurrentScene().description = desc;
+                this.updateDisplay();
+            },
+
+            updateDisplay() {
+                const scene = this.getCurrentScene();
+                document.getElementById('scene-title').value = scene.title;
+                document.getElementById('scene-desc').value = scene.description;
+                document.getElementById('scene-title-display').textContent = scene.title;
+                document.getElementById('scene-desc-display').textContent = scene.description;
+                document.getElementById('scene-num').textContent = STATE.currentTimestamp + 1;
+                document.getElementById('scene-total').textContent = Math.max(...STATE.scenes.map(s => s.timestamp)) + 1;
+
+                RENDERER.nodes();
+                this.render();
+
+                if (STATE.viewMode === 'meta') VIEW.renderMeta();
+                if (STATE.viewMode === 'fork') VIEW.renderForks();
+            },
+
+            render() {
+                const container = document.getElementById('timeline-list');
+                const byTimestamp = {};
+                STATE.scenes.forEach(s => {
+                    if (!byTimestamp[s.timestamp]) byTimestamp[s.timestamp] = [];
+                    byTimestamp[s.timestamp].push(s);
+                });
+
+                container.innerHTML = '';
+                Object.keys(byTimestamp).sort((a, b) => Number(a) - Number(b)).forEach(t => {
+                    const scenes = byTimestamp[t];
+                    const main = scenes.find(s => !s.parentScene) || scenes[0];
+                    const forks = scenes.filter(s => s.parentScene);
+
+                    const isActive = STATE.currentTimestamp == t && !STATE.activeFork;
+                    const div = document.createElement('div');
+                    div.className = `p-2 border rounded cursor-pointer transition ${isActive ? 'border-yellow-500 bg-yellow-500/10' : 'border-slate-700 hover:border-yellow-500'}`;
+                    div.onclick = () => this.selectScene(main.id);
+                    div.innerHTML = `
+                        <div class="text-xs text-slate-400">T${t}</div>
+                        <div class="text-sm font-bold truncate">${main.title}</div>
+                        <div class="text-[10px] text-slate-500">${main.nodes.length} nodes</div>
+                        ${forks.length ? `<div class="text-[10px] text-cyan-400 mt-1"><i class="fas fa-code-branch mr-1"></i>${forks.length} forks</div>` : ''}
+                    `;
+                    container.appendChild(div);
+
+                    forks.forEach(fork => {
+                        const isForkActive = STATE.activeFork === fork.id;
+                        const forkDiv = document.createElement('div');
+                        forkDiv.className = `ml-3 mt-1 p-1.5 border rounded cursor-pointer text-xs ${isForkActive ? 'border-cyan-500 bg-cyan-500/10' : 'border-cyan-700/50 hover:border-cyan-500'}`;
+                        forkDiv.onclick = (e) => {
+                            e.stopPropagation();
+                            this.selectScene(fork.id);
+                        };
+                        forkDiv.innerHTML = `<i class="fas fa-code-branch text-cyan-400 mr-1"></i>${fork.title}`;
+                        container.appendChild(forkDiv);
+                    });
+                });
+            }
+        };
+
+        // =========================================
+        // VIEW MODES
+        // =========================================
+        const VIEW = {
+            setMode(mode) {
+                STATE.viewMode = mode;
+                document.getElementById('view-single').className = mode === 'single' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-meta').className = mode === 'meta' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-fork').className = mode === 'fork' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+
+                document.getElementById('view-single-content').classList.toggle('hidden', mode !== 'single');
+                document.getElementById('view-meta-content').classList.toggle('hidden', mode !== 'meta');
+                document.getElementById('view-fork-content').classList.toggle('hidden', mode !== 'fork');
+
+                if (mode === 'meta') this.renderMeta();
+                if (mode === 'fork') this.renderForks();
+            },
+
+            renderMeta() {
+                const container = document.getElementById('meta-grid');
+                container.innerHTML = STATE.scenes.filter(s => !s.parentScene).map(scene => `
+                    <div class="border border-slate-700 rounded-lg p-4 hover:border-yellow-500 transition cursor-pointer" onclick="VIEW.setMode('single'); TIMELINE.selectScene('${scene.id}')">
+                        <div class="text-xs text-slate-400 mb-1">T${scene.timestamp}</div>
+                        <div class="text-lg font-bold mb-2">${scene.title}</div>
+                        <div class="border border-slate-700 rounded mb-2 aspect-square">
+                            ${this.renderMiniGrid(scene)}
+                        </div>
+                        <div class="text-xs text-slate-400">${scene.nodes.length} nodes</div>
+                        ${scene.forkScenes.length ? `<div class="text-xs text-cyan-400 mt-1"><i class="fas fa-code-branch mr-1"></i>${scene.forkScenes.length} forks</div>` : ''}
+                    </div>
+                `).join('');
+            },
+
+            renderForks() {
+                const current = TIMELINE.getCurrentScene();
+                const parent = current.parentScene ? STATE.scenes.find(s => s.id === current.parentScene) : current;
+                const forks = STATE.scenes.filter(s => s.parentScene === parent.id);
+
+                const container = document.getElementById('fork-comparison');
+                const scenes = [parent, ...forks];
+
+                container.innerHTML = scenes.map(scene => `
+                    <div class="border border-slate-700 rounded-lg p-4 min-w-[400px]">
+                        <div class="text-sm text-slate-400 mb-1">${scene.parentScene ? 'FORK' : 'MAIN'}</div>
+                        <div class="text-xl font-bold mb-3">${scene.title}</div>
+                        <div class="border border-slate-700 rounded" style="height: 400px;">
+                            ${this.renderMiniGrid(scene, true)}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">${scene.nodes.length} nodes</div>
+                    </div>
+                `).join('');
+            },
+
+            renderMiniGrid(scene, large = false) {
+                const size = large ? 40 : 25;
+                return `
+                    <svg viewBox="0 0 900 900" class="w-full h-full">
+                        <defs>
+                            <pattern id="grid-${scene.id}" width="100" height="100" patternUnits="userSpaceOnUse">
+                                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#334155" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="900" height="900" fill="url(#grid-${scene.id})"/>
+                        ${scene.nodes.map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const cx = node.x * 9;
+                    const cy = node.y * 9;
+                    return `
+                                <g transform="translate(${cx - size / 2}, ${cy - size / 2})">
+                                    <foreignObject width="${size}" height="${size}">
+                                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${size}px;height:${size}px;">
+                                            ${iconFn()}
+                                        </div>
+                                    </foreignObject>
+                                </g>
+                            `;
+                }).join('')}
+                    </svg>
+                `;
+            }
+        };
+
+        // =========================================
+        // RENDERER
+        // =========================================
+        const RENDERER = {
+            nodes() {
+                const scene = TIMELINE.getCurrentScene();
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = scene.nodes.map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance" style="left: ${node.x}%; top: ${node.y}%;">
+                        <div class="w-16 h-16">${iconFn()}</div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-slate-900/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 pointer-events-none">
+                            ${node.label}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        };
+
+        // =========================================
+        // SIDEBAR
+        // =========================================
+        const SIDEBAR = {
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity', desc: 'Character or object' },
+                    { label: 'Core', icon: 'Core', desc: 'Central theme' },
+                    { label: 'Goal', icon: 'Goal', desc: 'Desired state' },
+                    { label: 'Obstacle', icon: 'Obstacle', desc: 'Blocker or conflict' },
+                    { label: 'Morphism', icon: 'Morphism', desc: 'Transformation' },
+                    { label: 'Shift', icon: 'Shift', desc: 'State change' },
+                    { label: 'Location', icon: 'Location', desc: 'Place or setting' },
+                    { label: 'Timepoint', icon: 'Timepoint', desc: 'Temporal marker' },
+                    { label: 'Scene', icon: 'Scene', desc: 'Container frame' },
+                    { label: 'Story', icon: 'Story', desc: 'Meta-narrative' }
+                ];
+
+                document.getElementById('tools-list').innerHTML = tools.map(tool => `
+                    <div class="tool-item" onclick="SIDEBAR.spawnNode('${tool.icon}', '${tool.label}')" title="${tool.desc}">
+                        <div class="w-6 h-6">${ICONS[tool.icon]()}</div>
+                        <span class="text-xs">${tool.label}</span>
+                        <i class="fas fa-plus ml-auto text-xs text-slate-500"></i>
+                    </div>
+                `).join('');
+            },
+
+            spawnNode(type, label) {
+                const scene = TIMELINE.getCurrentScene();
+                const pos = GRID.snap(50 + (Math.random() * 40 - 20), 50 + (Math.random() * 40 - 20));
+                scene.addNode({
+                    id: Date.now() + Math.random(),
+                    type: type.toLowerCase(),
+                    icon: type,
+                    label: label,
+                    x: pos.x,
+                    y: pos.y
+                });
+                RENDERER.nodes();
+                TIMELINE.render();
+                LOG.toast(`Added ${label}`);
+            }
+        };
+
+        // =========================================
+        // TIMELINE
+        // =========================================
+        const TIMELINE = {
+            init() {
+                const scene0 = new Scene('sc_init', 0, 'Opening', 'The story begins');
+                const pos1 = GRID.center(4, 4);
+                scene0.addNode({ id: 1, type: 'core', icon: 'Core', label: 'Origin', x: pos1.x, y: pos1.y });
+                STATE.scenes.push(scene0);
+                this.render();
+                this.updateDisplay();
+            },
+
+            getCurrentScene() {
+                return STATE.scenes.find(s => s.timestamp === STATE.currentTimestamp && !STATE.activeFork) ||
+                    STATE.scenes.find(s => s.id === STATE.activeFork) ||
+                    STATE.scenes[0];
+            },
+
+            prev() {
+                if (STATE.currentTimestamp > 0) {
+                    STATE.currentTimestamp--;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            next() {
+                const max = Math.max(...STATE.scenes.map(s => s.timestamp));
+                if (STATE.currentTimestamp < max) {
+                    STATE.currentTimestamp++;
+                    STATE.activeFork = null;
+                    this.updateDisplay();
+                }
+            },
+
+            addScene() {
+                const current = this.getCurrentScene();
+                const newT = STATE.currentTimestamp + 1;
+                const newScene = new Scene(`sc_${Date.now()}`, newT, `Scene ${newT + 1}`, '');
+                newScene.parentScene = current.id;
+                current.nodes.forEach(n => {
+                    newScene.addNode({ ...n, id: Date.now() + Math.random() });
+                });
+                STATE.scenes.push(newScene);
+                STATE.currentTimestamp = newT;
+                STATE.activeFork = null;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('New scene created');
+            },
+
+            fork() {
+                const current = this.getCurrentScene();
+                const forked = current.clone();
+                current.forkScenes.push(forked.id);
+                STATE.scenes.push(forked);
+                STATE.activeFork = forked.id;
+                this.render();
+                this.updateDisplay();
+                LOG.toast('Scene forked');
+            },
+
+            selectScene(sceneId) {
+                const scene = STATE.scenes.find(s => s.id === sceneId);
+                if (scene) {
+                    STATE.currentTimestamp = scene.timestamp;
+                    STATE.activeFork = scene.parentScene ? sceneId : null;
+                    this.updateDisplay();
+                }
+            },
+
+            updateSceneTitle(title) {
+                this.getCurrentScene().title = title;
+                this.updateDisplay();
+            },
+
+            updateSceneDesc(desc) {
+                this.getCurrentScene().description = desc;
+                this.updateDisplay();
+            },
+
+            updateDisplay() {
+                const scene = this.getCurrentScene();
+                document.getElementById('scene-title').value = scene.title;
+                document.getElementById('scene-desc').value = scene.description;
+                document.getElementById('scene-title-display').textContent = scene.title;
+                document.getElementById('scene-desc-display').textContent = scene.description;
+                document.getElementById('scene-num').textContent = STATE.currentTimestamp + 1;
+                document.getElementById('scene-total').textContent = Math.max(...STATE.scenes.map(s => s.timestamp)) + 1;
+
+                RENDERER.nodes();
+                this.render();
+
+                if (STATE.viewMode === 'meta') VIEW.renderMeta();
+                if (STATE.viewMode === 'fork') VIEW.renderForks();
+            },
+
+            render() {
+                const container = document.getElementById('timeline-list');
+                const byTimestamp = {};
+                STATE.scenes.forEach(s => {
+                    if (!byTimestamp[s.timestamp]) byTimestamp[s.timestamp] = [];
+                    byTimestamp[s.timestamp].push(s);
+                });
+
+                container.innerHTML = '';
+                Object.keys(byTimestamp).sort((a, b) => Number(a) - Number(b)).forEach(t => {
+                    const scenes = byTimestamp[t];
+                    const main = scenes.find(s => !s.parentScene) || scenes[0];
+                    const forks = scenes.filter(s => s.parentScene);
+
+                    const isActive = STATE.currentTimestamp == t && !STATE.activeFork;
+                    const div = document.createElement('div');
+                    div.className = `p-2 border rounded cursor-pointer transition ${isActive ? 'border-yellow-500 bg-yellow-500/10' : 'border-slate-700 hover:border-yellow-500'}`;
+                    div.onclick = () => this.selectScene(main.id);
+                    div.innerHTML = `
+                        <div class="text-xs text-slate-400">T${t}</div>
+                        <div class="text-sm font-bold truncate">${main.title}</div>
+                        <div class="text-[10px] text-slate-500">${main.nodes.length} nodes</div>
+                        ${forks.length ? `<div class="text-[10px] text-cyan-400 mt-1"><i class="fas fa-code-branch mr-1"></i>${forks.length} forks</div>` : ''}
+                    `;
+                    container.appendChild(div);
+
+                    forks.forEach(fork => {
+                        const isForkActive = STATE.activeFork === fork.id;
+                        const forkDiv = document.createElement('div');
+                        forkDiv.className = `ml-3 mt-1 p-1.5 border rounded cursor-pointer text-xs ${isForkActive ? 'border-cyan-500 bg-cyan-500/10' : 'border-cyan-700/50 hover:border-cyan-500'}`;
+                        forkDiv.onclick = (e) => {
+                            e.stopPropagation();
+                            this.selectScene(fork.id);
+                        };
+                        forkDiv.innerHTML = `<i class="fas fa-code-branch text-cyan-400 mr-1"></i>${fork.title}`;
+                        container.appendChild(forkDiv);
+                    });
+                });
+            }
+        };
+
+        // =========================================
+        // VIEW MODES
+        // =========================================
+        const VIEW = {
+            setMode(mode) {
+                STATE.viewMode = mode;
+                document.getElementById('view-single').className = mode === 'single' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-meta').className = mode === 'meta' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+                document.getElementById('view-fork').className = mode === 'fork' ? 'px-3 py-1.5 bg-yellow-500 text-black rounded text-sm font-bold' : 'px-3 py-1.5 bg-[var(--theme-surface)] border border-[var(--theme-border)] rounded text-sm';
+
+                document.getElementById('view-single-content').classList.toggle('hidden', mode !== 'single');
+                document.getElementById('view-meta-content').classList.toggle('hidden', mode !== 'meta');
+                document.getElementById('view-fork-content').classList.toggle('hidden', mode !== 'fork');
+
+                if (mode === 'meta') this.renderMeta();
+                if (mode === 'fork') this.renderForks();
+            },
+
+            renderMeta() {
+                const container = document.getElementById('meta-grid');
+                container.innerHTML = STATE.scenes.filter(s => !s.parentScene).map(scene => `
+                    <div class="border border-slate-700 rounded-lg p-4 hover:border-yellow-500 transition cursor-pointer" onclick="VIEW.setMode('single'); TIMELINE.selectScene('${scene.id}')">
+                        <div class="text-xs text-slate-400 mb-1">T${scene.timestamp}</div>
+                        <div class="text-lg font-bold mb-2">${scene.title}</div>
+                        <div class="border border-slate-700 rounded mb-2 aspect-square">
+                            ${this.renderMiniGrid(scene)}
+                        </div>
+                        <div class="text-xs text-slate-400">${scene.nodes.length} nodes</div>
+                        ${scene.forkScenes.length ? `<div class="text-xs text-cyan-400 mt-1"><i class="fas fa-code-branch mr-1"></i>${scene.forkScenes.length} forks</div>` : ''}
+                    </div>
+                `).join('');
+            },
+
+            renderForks() {
+                const current = TIMELINE.getCurrentScene();
+                const parent = current.parentScene ? STATE.scenes.find(s => s.id === current.parentScene) : current;
+                const forks = STATE.scenes.filter(s => s.parentScene === parent.id);
+
+                const container = document.getElementById('fork-comparison');
+                const scenes = [parent, ...forks];
+
+                container.innerHTML = scenes.map(scene => `
+                    <div class="border border-slate-700 rounded-lg p-4 min-w-[400px]">
+                        <div class="text-sm text-slate-400 mb-1">${scene.parentScene ? 'FORK' : 'MAIN'}</div>
+                        <div class="text-xl font-bold mb-3">${scene.title}</div>
+                        <div class="border border-slate-700 rounded" style="height: 400px;">
+                            ${this.renderMiniGrid(scene, true)}
+                        </div>
+                        <div class="text-xs text-slate-400 mt-2">${scene.nodes.length} nodes</div>
+                    </div>
+                `).join('');
+            },
+
+            renderMiniGrid(scene, large = false) {
+                const size = large ? 40 : 25;
+                return `
+                    <svg viewBox="0 0 900 900" class="w-full h-full">
+                        <defs>
+                            <pattern id="grid-${scene.id}" width="100" height="100" patternUnits="userSpaceOnUse">
+                                <path d="M 100 0 L 0 0 0 100" fill="none" stroke="#334155" stroke-width="1"/>
+                            </pattern>
+                        </defs>
+                        <rect width="900" height="900" fill="url(#grid-${scene.id})"/>
+                        ${scene.nodes.map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    const cx = node.x * 9;
+                    const cy = node.y * 9;
+                    return `
+                                <g transform="translate(${cx - size / 2}, ${cy - size / 2})">
+                                    <foreignObject width="${size}" height="${size}">
+                                        <div xmlns="http://www.w3.org/1999/xhtml" style="width:${size}px;height:${size}px;">
+                                            ${iconFn()}
+                                        </div>
+                                    </foreignObject>
+                                </g>
+                            `;
+                }).join('')}
+                    </svg>
+                `;
+            }
+        };
+
+        // =========================================
+        // RENDERER
+        // =========================================
+        const RENDERER = {
+            nodes() {
+                const scene = TIMELINE.getCurrentScene();
+                const container = document.getElementById('nodes-layer');
+                container.innerHTML = scene.nodes.map(node => {
+                    const iconFn = ICONS[node.icon] || ICONS.Entity;
+                    return `
+                    <div class="node-instance" style="left: ${node.x}%; top: ${node.y}%;">
+                        <div class="w-16 h-16">${iconFn()}</div>
+                        <div class="absolute -bottom-6 left-1/2 transform -translate-x-1/2 whitespace-nowrap px-2 py-0.5 bg-slate-900/90 border border-cyan-500/30 rounded text-[10px] text-cyan-400 pointer-events-none">
+                            ${node.label}
+                        </div>
+                    </div>`;
+                }).join('');
+            }
+        };
+
+        // =========================================
+        // SIDEBAR
+        // =========================================
+        const SIDEBAR = {
+            renderTools() {
+                const tools = [
+                    { label: 'Entity', icon: 'Entity' },
+                    { label: 'Core', icon: 'Core' },
+                    { label: 'Goal', icon: 'Goal' },
+                    { label: 'Obstacle', icon: 'Obstacle' },
+                    { label: 'Morphism', icon: 'Morphism' }
+                ];
+
+                document.getElementById('tools-list').innerHTML = tools.map(tool => `
+                    <div class="tool-item" onclick="SIDEBAR.spawnNode('${tool.icon}', '${tool.label}')">
+                        <div class="w-6 h-6">${ICONS[tool.icon]()}</div>
+                        <span class="text-xs">${tool.label}</span>
+                        <i class="fas fa-plus ml-auto text-xs text-slate-500"></i>
+                    </div>
+                `).join('');
+            },
+
+            spawnNode(type, label) {
+                const scene = TIMELINE.getCurrentScene();
+                const pos = GRID.snap(50 + (Math.random() * 40 - 20), 50 + (Math.random() * 40 - 20));
+                scene.addNode({
+                    id: Date.now() + Math.random(),
+                    type: type.toLowerCase(),
+                    icon: type,
+                    label: label,
+                    x: pos.x,
+                    y: pos.y
+                });
+                RENDERER.nodes();
+                TIMELINE.render();
+                LOG.toast(`Added ${label}`);
+            }
+        };
+
+        // =========================================
+        // LOG
+        // =========================================
+        const LOG = {
+            toast(msg) {
+                const container = document.getElementById('toast-container');
+                const toast = document.createElement('div');
+                toast.className = 'bg-slate-800 border border-slate-700 rounded-lg p-3 shadow-lg';
+                toast.innerHTML = `<i class="fas fa-check-circle text-cyan-400 mr-2"></i><span class="text-sm">${msg}</span>`;
+                container.appendChild(toast);
+                setTimeout(() => toast.remove(), 2000);
+            }
+        };
+
+        // =========================================
+        // INIT
+        // =========================================
+        TIMELINE.init();
+        SIDEBAR.renderTools();
+    </script>
+</body>
+
+</html>

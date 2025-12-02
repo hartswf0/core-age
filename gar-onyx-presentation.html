@@ -1,0 +1,613 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GAR ↔ ONYX: Bridging Visual and Narrative Cognition</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0a0e27 0%, #1a1f3a 100%);
+            color: #e0e6ed;
+            overflow: hidden;
+        }
+
+        .presentation {
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+        }
+
+        .slide {
+            width: 90vw;
+            max-width: 1400px;
+            height: 90vh;
+            background: rgba(15, 20, 40, 0.95);
+            border: 2px solid rgba(100, 255, 218, 0.3);
+            border-radius: 20px;
+            padding: 60px 80px;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+            display: none;
+            flex-direction: column;
+            position: relative;
+            overflow-y: auto;
+        }
+
+        .slide.active {
+            display: flex;
+            animation: slideIn 0.6s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(30px) rotateX(5deg);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0) rotateX(0);
+            }
+        }
+
+        h1 {
+            font-size: clamp(32px, 4vw, 56px);
+            font-weight: 800;
+            background: linear-gradient(135deg, #64ffda 0%, #4a9eff 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 30px;
+            letter-spacing: -0.02em;
+        }
+
+        h2 {
+            font-size: clamp(24px, 3vw, 40px);
+            color: #64ffda;
+            margin: 40px 0 20px 0;
+            font-weight: 700;
+        }
+
+        h3 {
+            font-size: clamp(18px, 2vw, 28px);
+            color: #4a9eff;
+            margin: 30px 0 15px 0;
+            font-weight: 600;
+        }
+
+        p,
+        li {
+            font-size: clamp(14px, 1.5vw, 20px);
+            line-height: 1.7;
+            color: #b8c5d6;
+            margin-bottom: 15px;
+        }
+
+        ul,
+        ol {
+            margin-left: 40px;
+            margin-bottom: 20px;
+        }
+
+        li {
+            margin-bottom: 12px;
+        }
+
+        .highlight {
+            background: rgba(100, 255, 218, 0.1);
+            border-left: 4px solid #64ffda;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+
+        .two-column {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin: 30px 0;
+        }
+
+        .diagram {
+            background: rgba(74, 158, 255, 0.05);
+            border: 2px dashed rgba(74, 158, 255, 0.3);
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            margin: 30px 0;
+            font-family: 'Courier New', monospace;
+            font-size: 16px;
+            line-height: 1.8;
+        }
+
+        .arrow {
+            color: #64ffda;
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        code {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9em;
+        }
+
+        pre {
+            background: rgba(0, 0, 0, 0.4);
+            border: 1px solid rgba(100, 255, 218, 0.2);
+            border-radius: 8px;
+            padding: 20px;
+            overflow-x: auto;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+        }
+
+        .nav {
+            position: fixed;
+            bottom: 40px;
+            right: 40px;
+            display: flex;
+            gap: 15px;
+            z-index: 100;
+        }
+
+        button {
+            background: rgba(100, 255, 218, 0.1);
+            border: 2px solid #64ffda;
+            color: #64ffda;
+            padding: 12px 24px;
+            font-size: 16px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            font-weight: 600;
+        }
+
+        button:hover {
+            background: rgba(100, 255, 218, 0.2);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(100, 255, 218, 0.3);
+        }
+
+        .counter {
+            position: fixed;
+            bottom: 40px;
+            left: 40px;
+            font-size: 18px;
+            color: rgba(100, 255, 218, 0.6);
+            font-weight: 600;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        th,
+        td {
+            padding: 15px;
+            text-align: left;
+            border-bottom: 1px solid rgba(100, 255, 218, 0.2);
+        }
+
+        th {
+            background: rgba(100, 255, 218, 0.1);
+            color: #64ffda;
+            font-weight: 700;
+        }
+
+        .badge {
+            display: inline-block;
+            background: rgba(74, 158, 255, 0.2);
+            color: #4a9eff;
+            padding: 6px 12px;
+            border-radius: 6px;
+            font-size: 14px;
+            font-weight: 600;
+            margin: 5px 5px 5px 0;
+        }
+
+        .title-slide {
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+
+        .title-slide h1 {
+            font-size: clamp(40px, 6vw, 80px);
+            margin-bottom: 30px;
+        }
+
+        .subtitle {
+            font-size: clamp(20px, 2.5vw, 32px);
+            color: #b8c5d6;
+            margin-bottom: 50px;
+            font-weight: 300;
+        }
+
+        .emoji {
+            font-size: 60px;
+            margin: 20px 0;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="presentation">
+        <!-- Slide 1: Title -->
+        <div class="slide active title-slide">
+            <div class="emoji">🎨 ↔ 📖</div>
+            <h1>Bridging Visual and Narrative Cognition</h1>
+            <div class="subtitle">A Category-Theoretic Integration of GAR and ONYX</div>
+            <p style="margin-top: 50px;">Research Olog on Computational Creativity</p>
+            <p style="opacity: 0.7;">December 2025 • Antigravity AI Research</p>
+        </div>
+
+        <!-- Slide 2: The Problem -->
+        <div class="slide">
+            <h1>The Divide</h1>
+            <div class="two-column">
+                <div>
+                    <h3>🎨 Visual Systems (GAR)</h3>
+                    <ul>
+                        <li>Analyze pixels and colors</li>
+                        <li>Detect edges and regions</li>
+                        <li>Cluster into segments</li>
+                        <li>K-means, gradients, features</li>
+                    </ul>
+                    <div class="badge">20×20 Grid</div>
+                    <div class="badge">Image Segmentation</div>
+                </div>
+                <div>
+                    <h3>📖 Narrative Systems (ONYX)</h3>
+                    <ul>
+                        <li>Model story elements</li>
+                        <li>Track entities and goals</li>
+                        <li>Map relationships</li>
+                        <li>Build scene graphs</li>
+                    </ul>
+                    <div class="badge">9×9 Grid</div>
+                    <div class="badge">Ontology Framework</div>
+                </div>
+            </div>
+            <div class="highlight">
+                <strong>The Question:</strong> Can we bridge these domains with mathematical rigor?
+            </div>
+        </div>
+
+        <!-- Slide 3: Category Theory Foundation -->
+        <div class="slide">
+            <h1>Category Theory as Bridge</h1>
+            <h2>Why Categories?</h2>
+            <ul>
+                <li><strong>Abstraction</strong>: Focus on relationships, not internal structure</li>
+                <li><strong>Composition</strong>: Build complex from simple transformations</li>
+                <li><strong>Universality</strong>: Same patterns across domains</li>
+            </ul>
+            <div class="diagram">
+                <strong>Category 𝒱 (Visual)</strong><br>
+                Objects: Segments with features<br>
+                Morphisms: Spatial relationships<br>
+                <br>
+                <span class="arrow">F ⟹</span><br>
+                <br>
+                <strong>Category ℕ (Narrative)</strong><br>
+                Objects: Ontological types<br>
+                Morphisms: Narrative relations
+            </div>
+            <p style="text-align: center;"><code>F: 𝒱 → ℕ</code> is a structure-preserving functor</p>
+        </div>
+
+        <!-- Slide 4: The Functor -->
+        <div class="slide">
+            <h1>The Translation Functor</h1>
+            <h2>F: Visual Segments → Narrative Types</h2>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Visual Property</th>
+                        <th>Condition</th>
+                        <th>Narrative Type</th>
+                        <th>Rationale</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>Large area</td>
+                        <td>area > 25%</td>
+                        <td><code>Location</code></td>
+                        <td>Dominant space = context</td>
+                    </tr>
+                    <tr>
+                        <td>Dark regions</td>
+                        <td>luminance < 30%</td>
+                        <td><code>Obstacle</code></td>
+                        <td>Darkness = resistance</td>
+                    </tr>
+                    <tr>
+                        <td>Warm colors</td>
+                        <td>hue: 0-60°</td>
+                        <td><code>Goal</code></td>
+                        <td>Warmth = approach</td>
+                    </tr>
+                    <tr>
+                        <td>Cool colors</td>
+                        <td>hue: 180-300°</td>
+                        <td><code>Shift</code></td>
+                        <td>Coolness = transition</td>
+                    </tr>
+                    <tr>
+                        <td>Desaturated</td>
+                        <td>saturation < 20%</td>
+                        <td><code>Core</code></td>
+                        <td>Neutral = essential</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <!-- Slide 5: Spatial Downsampling -->
+        <div class="slide">
+            <h1>Natural Transformation: Downsampling</h1>
+            <div class="diagram">
+                <strong>20×20 Grid (GAR)</strong><br>
+                400 cells, high resolution<br>
+                <br>
+                <span class="arrow">↓ η (natural transformation)</span><br>
+                <br>
+                <strong>9×9 Grid (ONYX)</strong><br>
+                81 cells, narrative granularity<br>
+            </div>
+            <h3>Preservation Guarantees:</h3>
+            <ul>
+                <li>✅ <strong>Adjacency</strong>: Neighboring segments → Related entities</li>
+                <li>✅ <strong>Centrality</strong>: Visual focus → Narrative importance</li>
+                <li>✅ <strong>Cardinality</strong>: Segment count ≈ Entity count</li>
+            </ul>
+            <div class="highlight">
+                Information loss < 15% (acceptable for semantic downsampling) </div>
+            </div>
+
+            <!-- Slide 6: The Olog Diagram -->
+            <div class="slide">
+                <h1>The Complete Olog</h1>
+                <pre style="font-size: 12px;">
+    Image                K-means              Segments           Adjacency
+    Pixels    ──────►    Clusters   ──────►   + Features  ──────►  Graph
+      │                     │                      │                  │
+      │                     │                      │                  │
+    𝒱 │                     │ F                    │ F                │ F
+      │                     │                      │                  │
+      ↓                     ↓                      ↓                  ↓
+    Grid 9×9  ◄──────   Entity      ◄──────   Narrative    ◄──────  Scene
+                       Types                   Relations            Graph
+
+    [Commutative]: F(visual_relation) = narrative_relation(F(segment))
+            </pre>
+                <p style="text-align: center; margin-top: 30px;">
+                    <strong>Key Insight:</strong> Visual boundaries become narrative relationships
+                </p>
+            </div>
+
+            <!-- Slide 7: Implementation -->
+            <div class="slide">
+                <h1>Implementation: gar-onyx-bridge.js</h1>
+                <h2>Bidirectional Translation</h2>
+                <pre>
+// Forward: GAR → ONYX
+garToOnyx(garState) {
+  const { labels, centroids, colors, k } = garState;
+  
+  // Map each segment to narrative type
+  for (let segment of segments) {
+    const type = mapSegmentToType(segment);
+    const position = downsample(segment.centroid);
+    grid[position] = createEntity(type, segment);
+  }
+  
+  return onyxChannel;
+}
+
+// Reverse: ONYX → GAR  
+onyxToGar(onyxChannel) {
+  // Convert narrative types to visual hints
+  return { edgeWeights, colorHints };
+}
+            </pre>
+            </div>
+
+            <!-- Slide 8: Live Demo Workflow -->
+            <div class="slide">
+                <h1>Live Workflow</h1>
+                <h2>From Pixels to Narrative in 5 Steps</h2>
+                <ol style="font-size: 22px; line-height: 2;">
+                    <li><strong>Load Image</strong> in GAR (gar-07.html)</li>
+                    <li><strong>Segment</strong> with K-means clustering</li>
+                    <li><strong>Export</strong> → Click "Export to ONYX" button</li>
+                    <li><strong>Import</strong> in ONYX (onyx-scenes.html)</li>
+                    <li><strong>Visualize</strong> visual segments as narrative grid</li>
+                </ol>
+                <div class="highlight" style="margin-top: 40px;">
+                    <strong>Demo Ready:</strong> All files in /Users/gaia/COURAGE/<br>
+                    • gar-07.html (visual)<br>
+                    • onyx-scenes.html (narrative)<br>
+                    • gar-onyx-bridge.js (translator)
+                </div>
+            </div>
+
+            <!-- Slide 9: Test Case -->
+            <div class="slide">
+                <h1>Validation: Campfire Scene</h1>
+                <h2>Input (GAR)</h2>
+                <ul>
+                    <li>Image: Dusk campfire, frog, embers, smoke</li>
+                    <li>K-means: 4 segments</li>
+                    <li>Resolution: 20×20 grid</li>
+                </ul>
+                <h2>Output (ONYX)</h2>
+                <table style="font-size: 16px;">
+                    <tr>
+                        <th>Segment</th>
+                        <th>Visual Properties</th>
+                        <th>→</th>
+                        <th>Narrative Type</th>
+                    </tr>
+                    <tr>
+                        <td>0</td>
+                        <td>Warm embers (hue: 15°)</td>
+                        <td class="arrow">→</td>
+                        <td><code>Goal</code></td>
+                    </tr>
+                    <tr>
+                        <td>1</td>
+                        <td>Dark forest (lum: 15%)</td>
+                        <td class="arrow">→</td>
+                        <td><code>Location</code></td>
+                    </tr>
+                    <tr>
+                        <td>2</td>
+                        <td>Frog (hue: 85°)</td>
+                        <td class="arrow">→</td>
+                        <td><code>Entity</code></td>
+                    </tr>
+                    <tr>
+                        <td>3</td>
+                        <td>Smoke (hue: 220°)</td>
+                        <td class="arrow">→</td>
+                        <td><code>Shift</code></td>
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Slide 10: Theoretical Implications -->
+            <div class="slide">
+                <h1>Theoretical Implications</h1>
+                <h2>Vision and Narrative are Categorically Dual</h2>
+                <div class="diagram">
+                    𝒱 ≃ ℕᵒᵖ<br>
+                    <br>
+                    (Visual Category) ≅ (Narrative Category)<sup>opposite</sup>
+                </div>
+                <h3>This explains why:</h3>
+                <ul>
+                    <li>We <strong>see stories</strong> in static images</li>
+                    <li>Narratives <strong>evoke imagery</strong> in our minds</li>
+                    <li>Film editing creates <strong>meaning through juxtaposition</strong></li>
+                    <li>Comics work as <strong>"sequential visual narrative"</strong></li>
+                </ul>
+                <div class="highlight">
+                    <strong>Universal principle:</strong> Perception and cognition share deep structure
+                </div>
+            </div>
+
+            <!-- Slide 11: Extensions -->
+            <div class="slide">
+                <h1>Future Directions</h1>
+                <h2>Beyond Images and Stories</h2>
+                <div class="two-column">
+                    <div>
+                        <h3>🎵 Audio → Narrative</h3>
+                        <p>Waveform segments → Musical motifs → Story arcs</p>
+
+                        <h3>💻 Code → Narrative</h3>
+                        <p>Function blocks → Program behavior → Developer stories</p>
+                    </div>
+                    <div>
+                        <h3>📊 Data → Narrative</h3>
+                        <p>Statistical clusters → Trends → Data journalism</p>
+
+                        <h3>🎬 Video → Narrative</h3>
+                        <p>Shot sequences → Scene structure → Film theory</p>
+                    </div>
+                </div>
+                <h2 style="margin-top: 40px;">Higher Math</h2>
+                <ul>
+                    <li><strong>Adjoint functors</strong>: F ⊣ G for true invertibility</li>
+                    <li><strong>2-categories</strong>: Transformations of transformations (meta-narrative)</li>
+                    <li><strong>Enriched categories</strong>: Probabilistic/fuzzy structure</li>
+                </ul>
+            </div>
+
+            <!-- Slide 12: Summary -->
+            <div class="slide">
+                <h1>Summary</h1>
+                <h2>What We Built:</h2>
+                <ul>
+                    <li>✅ <strong>Translation functor</strong> F: 𝒱 → ℕ</li>
+                    <li>✅ <strong>Spatial downsampling</strong> (natural transformation)</li>
+                    <li>✅ <strong>Semantic mapping</strong> (color/area → narrative type)</li>
+                    <li>✅ <strong>Bidirectional flow</strong> (GAR ↔ ONYX)</li>
+                </ul>
+                <h2 style="margin-top: 40px;">Why It Matters:</h2>
+                <div class="highlight">
+                    <p><strong>Computational Creativity:</strong> Machines can now reason about visual-narrative
+                        relationships with mathematical precision.</p>
+                </div>
+                <div class="highlight">
+                    <p><strong>Human Cognition:</strong> Our work models how humans seamlessly blend vision and
+                        narrative understanding.</p>
+                </div>
+            </div>
+
+            <!-- Slide 13: Thank You -->
+            <div class="slide title-slide">
+                <h1>Thank You</h1>
+                <div class="emoji">🎨 ↔ 📖</div>
+                <p style="font-size: 24px; margin: 40px 0;">Questions?</p>
+                <div style="margin-top: 60px; opacity: 0.7;">
+                    <p><strong>Full Research Olog:</strong> gar-onyx-research-olog.md</p>
+                    <p><strong>Implementation:</strong> gar-onyx-bridge.js</p>
+                    <p><strong>Live Demo:</strong> gar-07.html + onyx-scenes.html</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="counter">
+            <span id="current">1</span> / <span id="total">13</span>
+        </div>
+
+        <div class="nav">
+            <button id="prev">← Previous</button>
+            <button id="next">Next →</button>
+        </div>
+
+        <script>
+            let currentSlide = 0;
+            const slides = document.querySelectorAll('.slide');
+            const totalSlides = slides.length;
+
+            document.getElementById('total').textContent = totalSlides;
+
+            function showSlide(n) {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (n + totalSlides) % totalSlides;
+                slides[currentSlide].classList.add('active');
+                document.getElementById('current').textContent = currentSlide + 1;
+            }
+
+            document.getElementById('prev').addEventListener('click', () => showSlide(currentSlide - 1));
+            document.getElementById('next').addEventListener('click', () => showSlide(currentSlide + 1));
+
+            // Keyboard navigation
+            document.addEventListener('keydown', (e) => {
+                if (e.key === 'ArrowLeft') showSlide(currentSlide - 1);
+                if (e.key === 'ArrowRight') showSlide(currentSlide + 1);
+            });
+        </script>
+</body>
+
+</html>

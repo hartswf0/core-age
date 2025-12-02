@@ -1,0 +1,260 @@
+{
+  "generated": "2025-11-17T00:00:00.000Z",
+  "source": "hand-curated from parts-taxonomy.json for vehiculator (car/plane/boat/train archetypes)",
+  "vehicleTypes": {
+    "car": {
+      "chassis": [
+        {
+          "id": "car_base_4x4_pins",
+          "filename": "24326.dat",
+          "description": "Car Base  4 x  4 x  0.667 with 4 Wheel Pins",
+          "path": "parts/24326.dat"
+        },
+        {
+          "id": "duplo_car_base_2x6_wheels",
+          "filename": "10715.dat",
+          "description": "Duplo Car Base  2 x  6 with Wheels with Fake Bolts",
+          "path": "parts/10715.dat"
+        },
+        {
+          "id": "duplo_car_base_2x6_complete",
+          "filename": "74656.dat",
+          "description": "Duplo Car Base  2 x  6 with Wheels",
+          "path": "parts/74656.dat"
+        }
+      ],
+      "windscreen": [
+        {
+          "id": "windscreen_5x2_crosshair",
+          "filename": "6070d50.dat",
+          "description": "Windscreen  5 x  2 x  1.667 with Red Crosshair Sticker",
+          "path": "parts/6070d50.dat"
+        },
+        {
+          "id": "windscreen_3x4_police",
+          "filename": "4866d01.dat",
+          "description": "Windscreen  3 x  4 x  1.333 with  6 Studs on Top with Black \"POLICE\" Sticker",
+          "path": "parts/4866d01.dat"
+        },
+        {
+          "id": "windscreen_2x10_stripe",
+          "filename": "24607d01.dat",
+          "description": "Windscreen  2 x 10 x  3 with Red Vertical Stripe Sticker",
+          "path": "parts/24607d01.dat"
+        }
+      ],
+      "wheels": [
+        {
+          "id": "wheel_37x45_curved_spokes",
+          "filename": "100942.dat",
+          "description": "Wheel 37 x 45 Hard-Plastic with  6 Curved Spokes",
+          "path": "parts/100942.dat"
+        },
+        {
+          "id": "wheel_37x45_curved_spokes_pattern",
+          "filename": "100942p01.dat",
+          "description": "Wheel 37 x 45 Hard-Plastic with  6 Silver Curved Spokes Pattern",
+          "path": "parts/100942p01.dat"
+        },
+        {
+          "id": "wheel_13x24_racing_plain",
+          "filename": "105162.dat",
+          "description": "Wheel 13.4 x 24 with Integral Smooth Racing Tyre",
+          "path": "parts/105162.dat"
+        },
+        {
+          "id": "wheel_13x24_racing_pirelli_yellow",
+          "filename": "105162p01.dat",
+          "description": "Wheel 13.4 x 24 with Rubber Black Integral Smooth Racing Tyre Pattern",
+          "path": "parts/105162p01.dat"
+        },
+        {
+          "id": "wheel_14x24_racing_pirelli_yellow",
+          "filename": "110100p01.dat",
+          "description": "Wheel 14.9 x 24 with Rubber Black Integral Smooth Racing Tyre with Yellow \"PIRELLI P ZERO\" Pattern",
+          "path": "parts/110100p01.dat"
+        },
+        {
+          "id": "wheel_30x64_large",
+          "filename": "11094.dat",
+          "description": "Wheel 30 x 64 with  7 Pin Holes and  6 Small Holes",
+          "path": "parts/11094.dat"
+        },
+        {
+          "id": "wheel_30x35_tread_sidewall",
+          "filename": "2593.dat",
+          "description": "Wheel 30 x 35 with Tread on Sidewall",
+          "path": "parts/2593.dat"
+        },
+        {
+          "id": "wheel_18x41_model_team",
+          "filename": "32004bc01.dat",
+          "description": "Wheel 18 x 41 Model Team with Tyre 68.8 x 24S",
+          "path": "parts/32004bc01.dat"
+        }
+      ],
+      "engine": [
+        {
+          "id": "jet_engine_plate_2x2",
+          "filename": "4229.dat",
+          "description": "Plate  2 x  2 with Jet Engine with 12 Fins",
+          "path": "parts/4229.dat"
+        },
+        {
+          "id": "jet_engine_plate_1x2",
+          "filename": "3475b.dat",
+          "description": "Plate  1 x  2 with Jet Engine with Axle Hole",
+          "path": "parts/3475b.dat"
+        }
+      ]
+    },
+    "plane": {
+      "chassis": [
+        {
+          "id": "fuselage_panel_6x8x4",
+          "filename": "42604.dat",
+          "description": "Panel  6 x  8 x  4 Fuselage",
+          "path": "parts/42604.dat"
+        },
+        {
+          "id": "fuselage_panel_6x8x4_alt",
+          "filename": "55539.dat",
+          "description": "Panel  6 x  8 x  4 Fuselage",
+          "path": "parts/55539.dat"
+        }
+      ],
+      "windscreen": [
+        {
+          "id": "windscreen_helicopter_4x4",
+          "filename": "2483d01.dat",
+          "description": "Windscreen  4 x  4 x  3.667 Helicopter with Coastguard Logo Sticker",
+          "path": "parts/2483d01.dat"
+        },
+        {
+          "id": "windscreen_gunship_6x10_single",
+          "filename": "10312ps0.dat",
+          "description": "Windscreen  6 x 10 x  3 with  1 x  2 x  1 Cutout - Ovoid with SW Republic Gunship Cockpit, Single Window Pattern",
+          "path": "parts/10312ps0.dat"
+        }
+      ],
+      "wings": [
+        {
+          "id": "wing_panel_fuselage",
+          "filename": "42604.dat",
+          "description": "Panel  6 x  8 x  4 Fuselage (reused as wing mass)",
+          "path": "parts/42604.dat"
+        }
+      ],
+      "engine": [
+        {
+          "id": "jet_engine_2x2",
+          "filename": "4229.dat",
+          "description": "Plate  2 x  2 with Jet Engine with 12 Fins",
+          "path": "parts/4229.dat"
+        },
+        {
+          "id": "jet_engine_with_plate_2x2",
+          "filename": "4868b.dat",
+          "description": "Plane Jet Engine with Plate  2 x  2",
+          "path": "parts/4868b.dat"
+        }
+      ]
+    },
+    "boat": {
+      "chassis": [
+        {
+          "id": "boat_hull_6x24_complete",
+          "filename": "125c01.dat",
+          "description": "Boat Hull Floating  6 x 24 x  3 (Complete) with Black Base",
+          "path": "parts/125c01.dat"
+        },
+        {
+          "id": "boat_hull_40x20_complete",
+          "filename": "20033.dat",
+          "description": "Boat Hull Floating 40 x 20 (Complete)",
+          "path": "parts/20033.dat"
+        },
+        {
+          "id": "boat_hull_hovercraft",
+          "filename": "57915.dat",
+          "description": "Boat Hull Hovercraft",
+          "path": "parts/57915.dat"
+        }
+      ],
+      "windscreen": [
+        {
+          "id": "boat_bridge_windows",
+          "filename": "6070d50.dat",
+          "description": "Windscreen  5 x  2 x  1.667 with Red Crosshair Sticker (used as bridge glazing)",
+          "path": "parts/6070d50.dat"
+        }
+      ],
+      "engine": [
+        {
+          "id": "boat_engine_jet",
+          "filename": "4229.dat",
+          "description": "Plate  2 x  2 with Jet Engine with 12 Fins",
+          "path": "parts/4229.dat"
+        }
+      ]
+    },
+    "train": {
+      "chassis": [
+        {
+          "id": "train_base_6x12_complete",
+          "filename": "270c02.dat",
+          "description": "Train Base  6 x 12 Type 1 with Wheels and Magnets (Complete)",
+          "path": "parts/270c02.dat"
+        },
+        {
+          "id": "train_base_6x16_complete",
+          "filename": "736c01.dat",
+          "description": "Train Base  6 x 16 Type 1 with Red Wheels (Complete)",
+          "path": "parts/736c01.dat"
+        },
+        {
+          "id": "train_base_6x22_buffers",
+          "filename": "280.dat",
+          "description": "Train Base  6 x 22 Type 2 with Buffers",
+          "path": "parts/280.dat"
+        }
+      ],
+      "windscreen": [
+        {
+          "id": "train_cab_windows",
+          "filename": "4866d01.dat",
+          "description": "Windscreen  3 x  4 x  1.333 with  6 Studs on Top with Black \"POLICE\" Sticker (used as train cab glazing)",
+          "path": "parts/4866d01.dat"
+        }
+      ],
+      "wheels": [
+        {
+          "id": "train_wheels_roller_coaster",
+          "filename": "26021c01.dat",
+          "description": "Train Base  4 x  5 Roller Coaster with Dark Bluish Grey Wheels",
+          "path": "parts/26021c01.dat"
+        },
+        {
+          "id": "train_wheels_base_6x12",
+          "filename": "270c01.dat",
+          "description": "Train Base  6 x 12 Type 1 with Red Wheels (Complete)",
+          "path": "parts/270c01.dat"
+        },
+        {
+          "id": "train_wheels_base_6x16",
+          "filename": "736c01.dat",
+          "description": "Train Base  6 x 16 Type 1 with Red Wheels (Complete)",
+          "path": "parts/736c01.dat"
+        }
+      ],
+      "engine": [
+        {
+          "id": "train_engine_plate_2x2",
+          "filename": "4229.dat",
+          "description": "Plate  2 x  2 with Jet Engine with 12 Fins (used as engine detail)",
+          "path": "parts/4229.dat"
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,633 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ONYX // UNIFIED</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #050505;
+            --panel: #0a0a0a;
+            --surface: #111;
+            --border: #222;
+            --text-main: #e5e5e5;
+            --text-muted: #525252;
+
+            /* ONTOLOGY COLORS */
+            --c-core: #fbbf24;
+            /* Class/Slab */
+            --c-entity: #3b82f6;
+            /* Var/Cube */
+            --c-morph: #22d3ee;
+            /* Func/Orb */
+            --c-goal: #f87171;
+            /* Return/Pyramid */
+            --c-story: #4ade80;
+            /* Comment/Plane */
+            --c-loc: #a855f7;
+            /* Import/Pillar */
+
+            --ease: cubic-bezier(0.23, 1, 0.32, 1);
+        }
+
+        body {
+            margin: 0;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--bg);
+            color: var(--text-main);
+            height: 100vh;
+            overflow: hidden;
+            display: grid;
+            grid-template-rows: 48px 1fr;
+        }
+
+        /* HEADER (Channel Nav) */
+        #header {
+            background: var(--panel);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            padding: 0 1rem;
+            gap: 1rem;
+            z-index: 50;
+        }
+
+        .channel-tab {
+            font-size: 0.75rem;
+            padding: 4px 12px;
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--text-muted);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .channel-tab:hover {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .channel-tab.active {
+            border-color: var(--c-morph);
+            color: var(--c-morph);
+            background: rgba(34, 211, 238, 0.1);
+        }
+
+        /* MAIN STAGE */
+        #stage {
+            position: relative;
+            display: flex;
+            overflow: hidden;
+        }
+
+        /* 3D VIEWPORT */
+        #viewport {
+            flex: 1;
+            position: relative;
+            background: radial-gradient(circle at 50% 50%, #111 0%, #050505 70%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            perspective: 1000px;
+            overflow: hidden;
+        }
+
+        .iso-scene {
+            transform: rotateX(60deg) rotateZ(-45deg);
+            transform-style: preserve-3d;
+            width: 400px;
+            height: 400px;
+            transition: transform 0.5s var(--ease);
+        }
+
+        .grid-floor {
+            display: grid;
+            grid-template-columns: repeat(9, 1fr);
+            grid-template-rows: repeat(9, 1fr);
+            gap: 4px;
+            width: 100%;
+            height: 100%;
+            /* Technical Grid Pattern */
+            background-image:
+                linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+            background-size: 11.11% 11.11%;
+            border: 1px solid var(--border);
+            box-shadow: 0 0 50px rgba(0, 0, 0, 0.5);
+            transform-style: preserve-3d;
+        }
+
+        .cell {
+            position: relative;
+            transition: all 0.2s;
+            transform-style: preserve-3d;
+        }
+
+        .cell:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* THE ICONS (Projected Upwards) */
+        .token {
+            width: 100%;
+            height: 100%;
+            position: absolute;
+            top: 0;
+            left: 0;
+            /* Stand up against the isometric tilt */
+            transform: rotateZ(45deg) rotateX(-60deg) translateY(-20px) scale(1.8);
+            transform-origin: 50% 50%;
+            pointer-events: none;
+            filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.5));
+            transition: transform 0.2s;
+        }
+
+        .cell:hover .token {
+            transform: rotateZ(45deg) rotateX(-60deg) translateY(-30px) scale(2.0);
+            filter: drop-shadow(0 15px 15px rgba(0, 0, 0, 0.6));
+        }
+
+        /* WIRES (SVG Overlay) */
+        #wires-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 10;
+            /* Match the iso transform? No, we project points to 2D and draw on top */
+        }
+
+        /* SIDEBAR (Code/Log) */
+        #sidebar {
+            width: 320px;
+            background: var(--panel);
+            border-left: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            z-index: 20;
+        }
+
+        .code-line {
+            font-size: 10px;
+            padding: 2px 8px;
+            color: var(--text-muted);
+            cursor: pointer;
+            border-left: 2px solid transparent;
+            white-space: pre;
+        }
+
+        .code-line:hover {
+            background: var(--surface);
+            color: var(--text-main);
+        }
+
+        .code-line.active {
+            border-left-color: var(--c-morph);
+            background: rgba(34, 211, 238, 0.05);
+            color: var(--text-main);
+        }
+
+        /* HUD */
+        #hud {
+            position: absolute;
+            bottom: 20px;
+            left: 20px;
+            font-size: 10px;
+            color: var(--text-muted);
+            pointer-events: none;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- HEADER -->
+    <header id="header">
+        <div class="flex items-center gap-2 text-xs font-bold tracking-widest text-[var(--text-muted)]">
+            <i data-lucide="box" class="w-4 h-4 text-[var(--c-core)]"></i>
+            ONYX // UNIFIED
+        </div>
+        <div id="channel-list" class="flex gap-2 ml-4">
+            <!-- Channels injected here -->
+        </div>
+        <div class="flex-1"></div>
+        <button onclick="ENGINE.fork()"
+            class="channel-tab text-[var(--c-goal)] border-[var(--c-goal)] hover:bg-[rgba(248,113,113,0.1)]">
+            <i data-lucide="git-branch" class="w-3 h-3"></i> FORK REALITY
+        </button>
+    </header>
+
+    <!-- STAGE -->
+    <div id="stage">
+        <!-- VIEWPORT -->
+        <div id="viewport">
+            <svg id="wires-layer"></svg>
+            <div class="iso-scene">
+                <div class="grid-floor" id="grid">
+                    <!-- Cells injected here -->
+                </div>
+            </div>
+            <div id="hud">
+                FOCUS: <span id="hud-focus" class="text-[var(--c-morph)]">--</span><br>
+                DEPS: <span id="hud-deps">0</span> | CALLERS: <span id="hud-callers">0</span>
+            </div>
+        </div>
+
+        <!-- SIDEBAR -->
+        <aside id="sidebar">
+            <div class="p-2 border-b border-[var(--border)] text-[10px] font-bold text-[var(--text-muted)]">SOURCE CODE
+            </div>
+            <div id="code-scroller" class="flex-1 overflow-y-auto p-2 font-mono">
+                <!-- Code lines injected here -->
+            </div>
+        </aside>
+    </div>
+
+    <script>
+        // =========================================
+        // 1. VISUAL ONTOLOGY (Atoms & Molecules)
+        // =========================================
+        const ICONS = {
+            // BASE ATOMS
+            cube: (c) => `<path d="M20 12 L36 20 L20 28 L4 20 Z" fill="${c.t}"/><path d="M4 20 L20 28 L20 44 L4 36 Z" fill="${c.l}"/><path d="M36 20 L20 28 L20 44 L36 36 Z" fill="${c.r}"/>`,
+
+            // COLORS
+            c_blue: { t: '#60a5fa', l: '#3b82f6', r: '#2563eb' }, // Entity
+            c_gold: { t: '#fcd34d', l: '#f59e0b', r: '#d97706' }, // Core
+            c_red: { t: '#f87171', l: '#ef4444', r: '#dc2626' }, // Conflict
+            c_cyan: { t: '#67e8f9', l: '#06b6d4', r: '#0891b2' }, // Morphism
+
+            // RENDERERS
+            Entity: () => `<svg viewBox="0 0 40 50" class="token token-anim">${ICONS.cube(ICONS.c_blue)}</svg>`,
+            Core: () => `<svg viewBox="0 0 40 50" class="token token-anim">${ICONS.cube(ICONS.c_gold)}</svg>`,
+
+            // COMPOSITES (Visualized via Relations, but can have specific markers)
+            Obstacle: () => `<svg viewBox="0 0 40 50" class="token token-anim">
+                ${ICONS.cube(ICONS.c_red)}
+                <path d="M20 0 L20 50" stroke="#fff" stroke-width="2" stroke-dasharray="4 2"/>
+            </svg>`,
+
+            Location: () => `<svg viewBox="0 0 40 50" class="token" style="opacity:0.5">
+                <path d="M0 30 L20 40 L40 30 L20 20 Z" fill="rgba(168, 85, 247, 0.4)" stroke="#a855f7"/>
+            </svg>`
+        };
+
+        // =========================================
+        // 2. UNIVERSAL ENGINE (Operational Logic)
+        // =========================================
+        const ENGINE = {
+            channels: {},
+            activeChannel: null,
+            tool: 'select',
+
+            init() {
+                lucide.createIcons();
+                this.createChannel('ROOT', 'Blank Canvas');
+                this.switchChannel('ROOT');
+
+                // Start Simulation Loop
+                this.tick();
+            },
+
+            createChannel(id, name) {
+                this.channels[id] = {
+                    id, name,
+                    grid: Array(81).fill(null),
+                    graph: { nodes: [], edges: [] }
+                };
+                UI.renderChannels();
+            },
+
+            switchChannel(id) {
+                this.activeChannel = id;
+                UI.renderChannels();
+                UI.renderGrid();
+                UI.renderGraph();
+            },
+
+            // OPERATIONAL LOGIC (The Compiler)
+            commit(cmd) {
+                if (!cmd.trim()) return;
+                const ch = this.channels[this.activeChannel];
+
+                // 1. SCENARIO TEMPLATES
+                if (cmd.startsWith('/scenario')) {
+                    const type = cmd.split(' ')[1];
+                    this.loadScenario(type);
+                    return;
+                }
+
+                // 2. NATURAL LOGIC PARSER
+                // Syntax: [A] relation [B]
+                const regex = /(.+?)\s+(wants|opposes|becomes|is inside)\s+(.+)/i;
+                const match = cmd.match(regex);
+
+                if (match) {
+                    const [_, subject, relation, object] = match;
+                    this.decompose(subject, relation, object);
+                } else {
+                    // Fallback: Just spawn an entity
+                    const idx = this.findEmptyCell();
+                    if (idx !== -1) this.placeAtom(idx, 'Entity', cmd);
+                }
+            },
+
+            decompose(subName, rel, objName) {
+                // 1. Find or Create Nodes
+                const subIdx = this.findOrSpawn(subName, 'Entity');
+
+                let objType = 'Entity';
+                if (rel === 'wants') objType = 'Core'; // Goal is usually a Core
+                const objIdx = this.findOrSpawn(objName, objType);
+
+                // 2. Create Relation
+                let type = 'morphism';
+                if (rel === 'wants') type = 'desire';
+                if (rel === 'opposes') type = 'conflict';
+                if (rel === 'is inside') type = 'location';
+
+                this.linkAtoms(subIdx, objIdx, type);
+            },
+
+            findOrSpawn(name, type) {
+                const ch = this.channels[this.activeChannel];
+                const existing = ch.graph.nodes.find(n => n.content.toLowerCase() === name.toLowerCase());
+                if (existing) return existing.idx;
+
+                const idx = this.findEmptyCell();
+                if (idx !== -1) this.placeAtom(idx, type, name);
+                return idx;
+            },
+
+            findEmptyCell() {
+                const ch = this.channels[this.activeChannel];
+                // Random walk to find empty
+                for (let i = 0; i < 50; i++) {
+                    const r = Math.floor(Math.random() * 81);
+                    if (!ch.grid[r]) return r;
+                }
+                return ch.grid.findIndex(c => c === null);
+            },
+
+            loadScenario(type) {
+                const ch = this.channels[this.activeChannel];
+                ch.grid.fill(null);
+                ch.graph = { nodes: [], edges: [] };
+
+                if (type === 'heist') {
+                    this.decompose('The Crew', 'wants', 'The Diamond');
+                    this.decompose('The Guards', 'opposes', 'The Crew');
+                    this.decompose('The Vault', 'is inside', 'The Bank');
+                } else if (type === 'code') {
+                    this.decompose('Client', 'wants', 'Data');
+                    this.decompose('API', 'becomes', 'Bridge');
+                    this.decompose('Firewall', 'opposes', 'Hacker');
+                }
+            },
+
+            // ATOMIC ACTIONS
+            placeAtom(idx, type, content) {
+                const ch = this.channels[this.activeChannel];
+                const atom = {
+                    id: `node-${Date.now()}-${Math.random()}`,
+                    type,
+                    idx,
+                    content: content || `${type} ${idx}`
+                };
+                ch.grid[idx] = atom;
+                ch.graph.nodes.push(atom);
+                UI.renderGrid();
+                return atom;
+            },
+
+            linkAtoms(fromIdx, toIdx, type) {
+                const ch = this.channels[this.activeChannel];
+                const from = ch.grid[fromIdx];
+                const to = ch.grid[toIdx];
+                if (!from || !to) return;
+
+                const edge = {
+                    id: `edge-${Date.now()}`,
+                    from: from.id,
+                    to: to.id,
+                    fromIdx,
+                    toIdx,
+                    type
+                };
+                ch.graph.edges.push(edge);
+                UI.renderGraph();
+            },
+
+            // SIMULATION LOOP
+            tick() {
+                // Animate wires or logic here
+                // For now, just visual pulse
+                requestAnimationFrame(() => this.tick());
+            },
+
+            // TOOL HANDLING
+            handleGridClick(idx) {
+                const ch = this.channels[this.activeChannel];
+
+                if (this.tool === 'entity') this.placeAtom(idx, 'Entity');
+                else if (this.tool === 'core') this.placeAtom(idx, 'Core');
+                else if (this.tool === 'obstacle') this.placeAtom(idx, 'Obstacle');
+                else if (this.tool.startsWith('link-')) {
+                    if (UI.selection === null) {
+                        UI.selection = idx;
+                        document.getElementById(`cell-${idx}`).classList.add('selected');
+                    } else {
+                        const type = this.tool.replace('link-', '');
+                        this.linkAtoms(UI.selection, idx, type);
+                        UI.selection = null;
+                        document.querySelectorAll('.cell').forEach(c => c.classList.remove('selected'));
+                    }
+                }
+                else if (this.tool === 'select') {
+                    const atom = ch.grid[idx];
+                    if (atom) UI.showInspector(atom);
+                }
+            },
+
+            setTool(t) {
+                this.tool = t;
+                document.querySelectorAll('.tool-btn').forEach(b => b.classList.remove('active'));
+                document.getElementById(`btn-${t}`).classList.add('active');
+                UI.selection = null;
+            }
+        };
+
+        // =========================================
+        // 3. UI RENDERER
+        // =========================================
+        const UI = {
+            selection: null,
+
+            renderChannels() {
+                const list = document.getElementById('channel-list');
+                list.innerHTML = '';
+                Object.values(ENGINE.channels).forEach(ch => {
+                    const el = document.createElement('div');
+                    el.className = `channel-tab ${ch.id === ENGINE.activeChannel ? 'active' : ''}`;
+                    el.innerHTML = `<i data-lucide="box" class="w-3 h-3"></i> ${ch.name}`;
+                    el.onclick = () => ENGINE.switchChannel(ch.id);
+                    list.appendChild(el);
+                });
+                lucide.createIcons();
+            },
+
+            renderGrid() {
+                const gridEl = document.getElementById('grid');
+                gridEl.innerHTML = '';
+                const ch = ENGINE.channels[ENGINE.activeChannel];
+
+                ch.grid.forEach((atom, i) => {
+                    const cell = document.createElement('div');
+                    cell.className = 'cell';
+                    cell.id = `cell-${i}`;
+
+                    if (atom) {
+                        cell.innerHTML = ICONS[atom.type] ? ICONS[atom.type]() : ICONS.Entity();
+                        // Tooltip
+                        cell.title = atom.content;
+                    }
+
+                    cell.onclick = () => ENGINE.handleGridClick(i);
+                    gridEl.appendChild(cell);
+                });
+            },
+
+            renderGraph() {
+                const svg = document.getElementById('wires-layer');
+                svg.innerHTML = '';
+                const ch = ENGINE.channels[ENGINE.activeChannel];
+
+                ch.graph.edges.forEach(edge => {
+                    const fromRect = this.getScreenCoords(edge.fromIdx);
+                    const toRect = this.getScreenCoords(edge.toIdx);
+
+                    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+
+                    let color = '#fff';
+                    if (edge.type === 'desire') color = '#fcd34d';
+                    if (edge.type === 'conflict') color = '#f87171';
+                    if (edge.type === 'morphism') color = '#22d3ee';
+
+                    const d = `M ${fromRect.x} ${fromRect.y} Q ${(fromRect.x + toRect.x) / 2} ${fromRect.y - 50} ${toRect.x} ${toRect.y}`;
+
+                    path.setAttribute("d", d);
+                    path.setAttribute("stroke", color);
+                    path.setAttribute("stroke-width", "2");
+                    path.setAttribute("fill", "none");
+                    if (edge.type === 'morphism') path.setAttribute("stroke-dasharray", "4 2");
+
+                    // Pulse Animation
+                    const anim = document.createElementNS("http://www.w3.org/2000/svg", "animate");
+                    anim.setAttribute("attributeName", "stroke-width");
+                    anim.setAttribute("values", "2;4;2");
+                    anim.setAttribute("dur", "2s");
+                    anim.setAttribute("repeatCount", "indefinite");
+                    path.appendChild(anim);
+
+                    svg.appendChild(path);
+                });
+            },
+
+            getScreenCoords(idx) {
+                const cell = document.getElementById(`cell-${idx}`);
+                if (!cell) return { x: 0, y: 0 };
+                const rect = cell.getBoundingClientRect();
+                const view = document.getElementById('viewport').getBoundingClientRect();
+                return {
+                    x: rect.left + rect.width / 2 - view.left,
+                    y: rect.top + rect.height / 2 - view.top
+                };
+            },
+
+            showInspector(atom) {
+                const hud = document.getElementById('hud');
+                hud.innerHTML = `
+                    <div class="font-bold text-[var(--c-blue)]">${atom.type.toUpperCase()}</div>
+                    <div class="text-xs opacity-70">${atom.content}</div>
+                    <div class="mt-2 text-[10px] font-mono">${atom.id}</div>
+                `;
+            }
+        };
+
+        // Initialize
+        window.onload = () => {
+            ENGINE.init();
+
+            // Inject Architect Toolbar + Input
+            const sidebar = document.getElementById('sidebar');
+            sidebar.innerHTML = `
+                <div class="p-4 border-b border-[var(--border)] font-bold text-xs tracking-widest text-[var(--text-muted)]">
+                    OPERATIONAL LOGIC
+                </div>
+                <div class="p-4">
+                    <input id="cmd-input" class="w-full bg-[var(--surface)] border border-[var(--border)] p-2 text-xs text-[var(--text-main)] rounded outline-none focus:border-[var(--c-cyan)]" placeholder="Type: A wants B...">
+                </div>
+                <div class="p-4 grid grid-cols-2 gap-2">
+                    <button id="btn-select" onclick="ENGINE.setTool('select')" class="tool-btn active p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex flex-col items-center gap-1">
+                        <i data-lucide="mouse-pointer-2" class="w-4 h-4"></i> Select
+                    </button>
+                    <button id="btn-entity" onclick="ENGINE.setTool('entity')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex flex-col items-center gap-1 text-blue-400">
+                        <i data-lucide="box" class="w-4 h-4"></i> Entity
+                    </button>
+                    <button id="btn-core" onclick="ENGINE.setTool('core')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex flex-col items-center gap-1 text-yellow-400">
+                        <i data-lucide="box" class="w-4 h-4"></i> Core
+                    </button>
+                    <button id="btn-obstacle" onclick="ENGINE.setTool('obstacle')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex flex-col items-center gap-1 text-red-400">
+                        <i data-lucide="wall" class="w-4 h-4"></i> Obstacle
+                    </button>
+                </div>
+                <div class="p-4 border-t border-[var(--border)]">
+                    <div class="text-[10px] font-bold text-[var(--text-muted)] mb-2">RELATIONS</div>
+                    <div class="flex flex-col gap-2">
+                        <button id="btn-link-desire" onclick="ENGINE.setTool('link-desire')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex items-center gap-2 text-yellow-400">
+                            <i data-lucide="link" class="w-3 h-3"></i> Desire (Goal)
+                        </button>
+                        <button id="btn-link-conflict" onclick="ENGINE.setTool('link-conflict')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex items-center gap-2 text-red-400">
+                            <i data-lucide="x-circle" class="w-3 h-3"></i> Conflict
+                        </button>
+                        <button id="btn-link-morphism" onclick="ENGINE.setTool('link-morphism')" class="tool-btn p-2 border border-[var(--border)] rounded hover:bg-[var(--surface)] text-xs flex items-center gap-2 text-cyan-400">
+                            <i data-lucide="arrow-right-left" class="w-3 h-3"></i> Morphism
+                        </button>
+                    </div>
+                </div>
+                <div id="hud" class="p-4 mt-auto border-t border-[var(--border)]"></div>
+            `;
+            lucide.createIcons();
+
+            // Input Handler
+            const input = document.getElementById('cmd-input');
+            input.addEventListener('keydown', (e) => {
+                if (e.key === 'Enter') {
+                    ENGINE.commit(input.value);
+                    input.value = '';
+                }
+            });
+
+            // Add styles
+            const style = document.createElement('style');
+            style.innerHTML = `
+                .tool-btn.active { background: rgba(255,255,255,0.1); border-color: var(--text-main); }
+                .cell.selected { border-color: var(--c-gold); box-shadow: 0 0 15px var(--c-gold); }
+                .token-anim { animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); }
+                @keyframes popIn { from { transform: rotateZ(45deg) rotateX(-60deg) translateY(0) scale(0); } }
+            `;
+            document.head.appendChild(style);
+        };
+
+    </script>
+</body>
+
+</html>
