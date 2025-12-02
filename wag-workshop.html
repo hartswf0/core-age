@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WAG: Words Become Worlds</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;800&family=JetBrains+Mono:wght@400;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        :root {
+            --neon-cyan: #22d3ee;
+            --neon-pink: #f472b6;
+            --neon-green: #4ade80;
+            --neon-yellow: #facc15;
+            --bg-dark: #050505;
+            --panel-bg: #111;
+            --border-color: #333;
+        }
+
+        body {
+            background-color: var(--bg-dark);
+            color: #e5e5e5;
+            font-family: 'Inter', sans-serif;
+            overflow-x: hidden;
+            scroll-behavior: smooth;
+        }
+
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+            letter-spacing: -0.05em;
+        }
+
+        .gradient-text {
+            background: linear-gradient(135deg, var(--neon-cyan), var(--neon-pink));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .card {
+            background: var(--panel-bg);
+            border: 1px solid var(--border-color);
+            transition: all 0.3s ease;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 4px;
+            background: linear-gradient(90deg, var(--neon-cyan), var(--neon-pink));
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+
+        .card:hover {
+            border-color: var(--neon-cyan);
+            transform: translateY(-4px);
+            box-shadow: 0 10px 30px -10px rgba(34, 211, 238, 0.1);
+        }
+
+        .card:hover::before {
+            opacity: 1;
+        }
+
+        .btn {
+            background: transparent;
+            border: 1px solid var(--neon-cyan);
+            color: var(--neon-cyan);
+            transition: all 0.2s;
+            text-transform: uppercase;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn:hover {
+            background: var(--neon-cyan);
+            color: #000;
+            box-shadow: 0 0 20px rgba(34, 211, 238, 0.4);
+        }
+
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            /* 16:9 */
+            height: 0;
+            overflow: hidden;
+            border-radius: 8px;
+            border: 1px solid var(--border-color);
+            background: #000;
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Glitch effect for title */
+        .glitch {
+            position: relative;
+        }
+
+        .glitch::before,
+        .glitch::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+        }
+
+        .glitch::before {
+            left: 2px;
+            text-shadow: -1px 0 var(--neon-pink);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim 5s infinite linear alternate-reverse;
+        }
+
+        .glitch::after {
+            left: -2px;
+            text-shadow: -1px 0 var(--neon-cyan);
+            clip: rect(44px, 450px, 56px, 0);
+            animation: glitch-anim2 5s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% {
+                clip: rect(36px, 9999px, 9px, 0);
+            }
+
+            20% {
+                clip: rect(68px, 9999px, 86px, 0);
+            }
+
+            40% {
+                clip: rect(12px, 9999px, 48px, 0);
+            }
+
+            60% {
+                clip: rect(89px, 9999px, 6px, 0);
+            }
+
+            80% {
+                clip: rect(54px, 9999px, 32px, 0);
+            }
+
+            100% {
+                clip: rect(16px, 9999px, 76px, 0);
+            }
+        }
+
+        @keyframes glitch-anim2 {
+            0% {
+                clip: rect(2px, 9999px, 85px, 0);
+            }
+
+            20% {
+                clip: rect(45px, 9999px, 12px, 0);
+            }
+
+            40% {
+                clip: rect(76px, 9999px, 34px, 0);
+            }
+
+            60% {
+                clip: rect(23px, 9999px, 67px, 0);
+            }
+
+            80% {
+                clip: rect(91px, 9999px, 11px, 0);
+            }
+
+            100% {
+                clip: rect(56px, 9999px, 98px, 0);
+            }
+        }
+
+        /* Scenario Generator Styles */
+        .scenario-box {
+            font-family: 'JetBrains Mono', monospace;
+            border-left: 4px solid var(--neon-green);
+            background: linear-gradient(90deg, rgba(74, 222, 128, 0.05), transparent);
+        }
+
+        .nav-link {
+            color: #666;
+            transition: color 0.2s;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .nav-link:hover {
+            color: var(--neon-cyan);
+        }
+    </style>
+</head>
+
+<body class="antialiased">
+
+    <!-- NAVIGATION -->
+    <nav class="fixed top-0 left-0 w-full z-50 bg-black/80 backdrop-blur-md border-b border-gray-800">
+        <div class="max-w-7xl mx-auto px-6 h-16 flex items-center justify-between">
+            <a href="index.html" class="text-white font-bold tracking-tighter hover:text-cyan-400 transition-colors">
+                <i class="fas fa-arrow-left mr-2"></i> CORE-AGE
+            </a>
+            <div class="hidden md:flex gap-8">
+                <a href="#manifesto" class="nav-link">Manifesto</a>
+                <a href="#playground" class="nav-link">Playground</a>
+                <a href="#tools" class="nav-link">Toolkit</a>
+                <a href="#cinema" class="nav-link">Cinema</a>
+                <a href="#collaborators" class="nav-link">Research</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- HERO SECTION -->
+    <header
+        class="min-h-screen flex flex-col justify-center items-center text-center px-4 relative overflow-hidden pt-16">
+        <div
+            class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAiIGhlaWdodD0iMjAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PGNpcmNsZSBjeD0iMSIgY3k9IjEiIHI9IjEiIGZpbGw9IiMzMzMiIG9wYWNpdHk9IjAuMiIvPjwvc3ZnPg==')] opacity-20">
+        </div>
+
+        <div class="z-10 max-w-5xl">
+            <div
+                class="inline-block px-3 py-1 border border-gray-700 rounded-full text-xs font-mono text-cyan-400 mb-6 tracking-widest bg-gray-900/50">
+                OPERATIVE EKPHRASIS v1.0
+            </div>
+            <h1 class="text-6xl md:text-9xl font-black mb-8 glitch leading-tight" data-text="WORDS BECOME WORLDS">WORDS
+                BECOME<br>WORLDS</h1>
+            <p class="text-xl md:text-2xl text-gray-400 max-w-3xl mx-auto leading-relaxed font-light">
+                Words don’t just describe worlds. They <span
+                    class="text-white font-bold border-b-2 border-cyan-400">compile</span> them.
+            </p>
+            <div class="mt-12 flex flex-wrap justify-center gap-6">
+                <a href="#manifesto" class="btn px-8 py-4 rounded font-bold tracking-wide">
+                    <i class="fas fa-book-open mr-2"></i> Read Manifesto
+                </a>
+                <a href="#playground"
+                    class="btn px-8 py-4 rounded font-bold tracking-wide border-green-500 text-green-500 hover:bg-green-500">
+                    <i class="fas fa-play mr-2"></i> Start Building
+                </a>
+            </div>
+        </div>
+    </header>
+
+    <!-- MANIFESTO SECTION -->
+    <section id="manifesto" class="py-24 px-4 border-t border-gray-900">
+        <div class="max-w-3xl mx-auto">
+            <h2 class="text-4xl font-bold mb-12 text-center gradient-text">The Thesis</h2>
+
+            <div class="space-y-12 text-lg text-gray-300 leading-relaxed">
+                <div class="card p-8 rounded-xl border-l-4 border-l-cyan-400">
+                    <h3 class="text-xl text-white mb-4">The Problem</h3>
+                    <p>
+                        We are scared of Roblox. We are scared of closed gardens. We are scared of design being locked
+                        behind "fancy degrees" and "complicated software."
+                        <br><br>
+                        We need a <strong>Freirean pedagogy</strong> of design—a tool of liberation where technology
+                        isn't something that happens <em>to</em> you, but something you <em>wield</em>.
+                    </p>
+                </div>
+
+                <div class="card p-8 rounded-xl border-l-4 border-l-pink-500">
+                    <h3 class="text-xl text-white mb-4">The Solution: WAG</h3>
+                    <p>
+                        <strong>Words Assemble Geometry.</strong><br>
+                        <strong>Words Assemble Grids.</strong><br>
+                        <strong>Words Assemble Generations.</strong><br>
+                        <strong>Wild Ass Guess.</strong>
+                    </p>
+                    <p class="mt-4">
+                        Imagine if you could build anything just by talking about it. Like telling a story, but the
+                        computer actually makes what you're saying appear right in front of you in 3D.
+                        It turns natural language into 3D models + social grids that democratize design.
+                    </p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- INTERACTIVE PLAYGROUND -->
+    <section id="playground" class="py-24 px-4 bg-[#0a0a0a] border-y border-gray-900">
+        <div class="max-w-4xl mx-auto text-center">
+            <h2 class="text-4xl font-bold mb-4 text-green-400">Scenario Explorer</h2>
+            <p class="text-gray-400 mb-12">Explore spatial possibilities. Prompt the latent space.</p>
+
+            <div class="scenario-box bg-gray-900 p-8 rounded-lg text-left shadow-2xl relative overflow-hidden">
+                <div class="absolute top-0 right-0 p-4 opacity-20 text-6xl">🎲</div>
+                <div id="scenario-output" class="text-xl md:text-2xl text-white mb-8 min-h-[100px] flex items-center">
+                    Click "Generate" to spawn a spatial scenario...
+                </div>
+
+                <div class="flex gap-4">
+                    <button onclick="generateScenario()"
+                        class="bg-green-500 hover:bg-green-400 text-black font-bold py-3 px-6 rounded transition-colors">
+                        GENERATE SCENARIO
+                    </button>
+                    <button onclick="copyScenario()"
+                        class="border border-gray-600 hover:border-white text-gray-300 py-3 px-6 rounded transition-colors">
+                        COPY
+                    </button>
+                </div>
+            </div>
+
+            <div class="mt-12 grid grid-cols-1 md:grid-cols-2 gap-6">
+                <a href="https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0"
+                    target="_blank" class="card p-6 rounded-lg text-left group">
+                    <div class="text-yellow-400 text-sm font-mono mb-2">GPT AGENT</div>
+                    <h3 class="text-xl font-bold mb-2 group-hover:text-yellow-400">Legos Cognitive Architect v8.0</h3>
+                    <p class="text-sm text-gray-500">Words Assemble Grids, Geometries, and Generations.</p>
+                </a>
+                <a href="https://chatgpt.com/g/g-6920e3c02e548191a474407dac776edf-le-build-build" target="_blank"
+                    class="card p-6 rounded-lg text-left group">
+                    <div class="text-yellow-400 text-sm font-mono mb-2">GPT AGENT</div>
+                    <h3 class="text-xl font-bold mb-2 group-hover:text-yellow-400">Le-Build-Build</h3>
+                    <p class="text-sm text-gray-500">Translates ideas into optimized, build-ready MPD files.</p>
+                </a>
+            </div>
+        </div>
+    </section>
+
+    <!-- TOOLS & ARTIFACTS -->
+    <section id="tools" class="py-24 px-4">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl font-bold mb-12 text-center">The Toolkit</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+                <!-- Core Trajectories -->
+                <div class="col-span-1 md:col-span-3 mb-8">
+                    <h3 class="text-sm font-mono text-gray-500 mb-6 border-b border-gray-800 pb-2">CORE TRAJECTORIES
+                    </h3>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <a href="gar-onyx-studio.html" class="card p-6 rounded-xl block group">
+                            <div class="text-cyan-400 mb-4 text-4xl">💎</div>
+                            <h4 class="text-2xl font-bold mb-2 group-hover:text-cyan-400">Onyx Studio</h4>
+                            <p class="text-gray-400">Meant to be supportive, no AI. Good for planning. The operative
+                                workbench.</p>
+                        </a>
+                        <a href="index.html" class="card p-6 rounded-xl block group">
+                            <div class="text-pink-500 mb-4 text-4xl">🧬</div>
+                            <h4 class="text-2xl font-bold mb-2 group-hover:text-pink-500">Core-Age</h4>
+                            <p class="text-gray-400">Parallel development core trajectories and mechanics.</p>
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Artifacts -->
+                <div class="col-span-1 md:col-span-3">
+                    <h3 class="text-sm font-mono text-gray-500 mb-6 border-b border-gray-800 pb-2">ARTIFACTS</h3>
+                    <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                        <a href="grecian-urn.html" class="card p-4 rounded-lg text-center hover:bg-gray-900">
+                            <div class="text-2xl mb-2">🏺</div>
+                            <div class="font-bold">Grecian Urn</div>
+                        </a>
+                        <a href="shield-of-achilles.html" class="card p-4 rounded-lg text-center hover:bg-gray-900">
+                            <div class="text-2xl mb-2">🛡️</div>
+                            <div class="font-bold">Shield of Achilles</div>
+                        </a>
+                        <a href="ball-jar.html" class="card p-4 rounded-lg text-center hover:bg-gray-900">
+                            <div class="text-2xl mb-2">🫙</div>
+                            <div class="font-bold">Ball Jar</div>
+                        </a>
+                        <a href="homer.html" class="card p-4 rounded-lg text-center hover:bg-gray-900">
+                            <div class="text-2xl mb-2">📜</div>
+                            <div class="font-bold">Homer</div>
+                        </a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CINEMA SECTION -->
+    <section id="cinema" class="py-24 px-4 bg-[#080808]">
+        <div class="max-w-6xl mx-auto">
+            <h2 class="text-4xl font-bold mb-12 text-center gradient-text">Cinema</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <div class="card p-4 rounded-xl">
+                    <div class="video-container mb-4">
+                        <iframe src="https://www.youtube.com/embed/hdTEJSyZahs" frameborder="0"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h3 class="font-bold text-lg">Carrot Uprising 4GRID</h3>
+                </div>
+                <div class="card p-4 rounded-xl">
+                    <div class="video-container mb-4">
+                        <iframe src="https://www.youtube.com/embed/X5xCx2oa2Xw" frameborder="0"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h3 class="font-bold text-lg">Carrot Uprising SA vs Files</h3>
+                </div>
+                <div class="card p-4 rounded-xl">
+                    <div class="video-container mb-4">
+                        <iframe src="https://www.youtube.com/embed/Pvx9OBBRNn0" frameborder="0"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h3 class="font-bold text-lg">Grid 47</h3>
+                </div>
+                <div class="card p-4 rounded-xl">
+                    <div class="video-container mb-4">
+                        <iframe src="https://www.youtube.com/embed/6uur2TqTTKA" frameborder="0"
+                            allowfullscreen></iframe>
+                    </div>
+                    <h3 class="font-bold text-lg">Words Assemble: Undaunted Courage</h3>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- COLLABORATORS -->
+    <section id="collaborators" class="py-24 px-4 border-t border-gray-900">
+        <div class="max-w-5xl mx-auto">
+            <h2 class="text-4xl font-bold mb-12 text-center">Collaborators & Research</h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                <!-- Jordan -->
+                <div class="card p-6 rounded-xl flex gap-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-2xl">JC</div>
+                    <div>
+                        <h3 class="font-bold text-xl">Jordan Caldwell</h3>
+                        <p class="text-sm text-cyan-400 mb-2">Experience Designer, World Builder</p>
+                        <p class="text-sm text-gray-400">"Black Metal, speculation, operator upgrade."</p>
+                        <a href="https://hartswf0.github.io/func-sub/func-index.html"
+                            class="text-xs mt-2 inline-block text-white underline">View Work</a>
+                    </div>
+                </div>
+
+                <!-- Kayla -->
+                <div class="card p-6 rounded-xl flex gap-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-2xl">KE</div>
+                    <div>
+                        <h3 class="font-bold text-xl">Kayla Uleah Evans</h3>
+                        <p class="text-sm text-pink-500 mb-2">Human-Centered Computing PhD</p>
+                        <p class="text-sm text-gray-400">"Active and Passive Decisions: How ethical choices are made in
+                            NLP."</p>
+                        <a href="https://hartswf0.github.io/the-fork/"
+                            class="text-xs mt-2 inline-block text-white underline">The Fork</a>
+                    </div>
+                </div>
+
+                <!-- Shuruq -->
+                <div class="card p-6 rounded-xl flex gap-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-2xl">ST</div>
+                    <div>
+                        <h3 class="font-bold text-xl">Shuruq Tramontini</h3>
+                        <p class="text-sm text-green-400 mb-2">Creative Technical Artist</p>
+                        <p class="text-sm text-gray-400">"Thousand procedurally generated webfriendly open ended
+                            emergent sims."</p>
+                        <a href="https://hartswf0.github.io/1000-small-futures/"
+                            class="text-xs mt-2 inline-block text-white underline">1000 Small Futures</a>
+                    </div>
+                </div>
+
+                <!-- Terhi -->
+                <div class="card p-6 rounded-xl flex gap-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-2xl">TM</div>
+                    <div>
+                        <h3 class="font-bold text-xl">Terhi Marttila</h3>
+                        <p class="text-sm text-yellow-400 mb-2">Artist / Researcher</p>
+                        <p class="text-sm text-gray-400">"Branching paths, exploring multiple channels in the same
+                            place."</p>
+                        <a href="https://terhimarttila.com/"
+                            class="text-xs mt-2 inline-block text-white underline">Portfolio</a>
+                    </div>
+                </div>
+
+                <!-- Soy -->
+                <div class="card p-6 rounded-xl flex gap-4">
+                    <div class="w-16 h-16 bg-gray-800 rounded-full flex items-center justify-center text-2xl">SJ</div>
+                    <div>
+                        <h3 class="font-bold text-xl">So-youn (Soy) Jang</h3>
+                        <p class="text-sm text-purple-400 mb-2">PhD Student, Digital Media</p>
+                        <p class="text-sm text-gray-400">"Exploring how to move through latent space without prompting."
+                        </p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- FOOTER -->
+    <footer class="py-12 text-center text-gray-600 text-sm border-t border-gray-900">
+        <p>CORE-AGE // TRACTOR-DCE-GYO // 2025</p>
+        <p class="mt-2">Built with WAG Heuristics</p>
+    </footer>
+
+    <script>
+        // Scenario Generator Logic
+        const subjects = ["A lonely robot", "A forgotten god", "A digital ghost", "A swarm of drones", "A lost architect"];
+        const actions = ["wanders through", "reconstructs", "haunts", "defends", "maps"];
+        const settings = ["a neon-lit ruin", "an infinite library", "a glitched forest", "a procedural city", "a void of static"];
+        const twists = ["but gravity is inverted.", "while time runs backwards.", "searching for a lost file.", "hiding from the algorithm.", "made entirely of light."];
+
+        function generateScenario() {
+            const sub = subjects[Math.floor(Math.random() * subjects.length)];
+            const act = actions[Math.floor(Math.random() * actions.length)];
+            const set = settings[Math.floor(Math.random() * settings.length)];
+            const twi = twists[Math.floor(Math.random() * twists.length)];
+
+            const scenario = `${sub} ${act} ${set}, ${twi}`;
+
+            const output = document.getElementById('scenario-output');
+            output.style.opacity = 0;
+
+            setTimeout(() => {
+                output.innerText = scenario;
+                output.style.opacity = 1;
+            }, 200);
+        }
+
+        function copyScenario() {
+            const text = document.getElementById('scenario-output').innerText;
+            navigator.clipboard.writeText(text);
+            alert("Scenario copied to clipboard!");
+        }
+
+        // Initial generation
+        generateScenario();
+    </script>
+</body>
+
+</html>
