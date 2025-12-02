@@ -876,7 +876,20 @@
                 <div class="about-title">CORE-AGE // MANIFESTO</div>
                 <button class="header-btn" id="close-about-btn" style="margin:0; border:none;">✕</button>
             </div>
-            <div class="about-body">
+            <div class="nav-section">
+                <div class="nav-header">TOOLS</div>
+                <a href="gar-06.html" class="nav-item">
+                    <span class="nav-icon">🎨</span>
+                    GAR-06 Blend
+                </a>
+                <a href="gar-tao.html" class="nav-item">
+                    <span class="nav-icon">🕸️</span>
+                    GAR-TAO Grid
+                </a>
+            </div>
+
+            <div class="nav-section">
+                <div class="nav-header">FILES</div>
                 <div class="logline">
                     "A recursive, holographic IDE that treats Code, 3D Models, and Logic as interchangeable LEGO
                     bricks."
@@ -1451,13 +1464,10 @@
                         const theme = getFileTheme(file.name);
                         const color = themeColors[theme];
                         const initial = theme.substring(0, 2).toUpperCase();
-                        iconHtml = `<div class="file-theme-indicator" style="background: ${color};">${initial}</div>`;
-                    } else {
-                        iconHtml = `<div class="file-item-icon">${iconMap[ext] || iconMap['other']}</div>`;
-                    }
-
-                    item.innerHTML = `
+                        item.innerHTML = `
                         ${iconHtml}
+                    item.innerHTML = `
+                        ${ iconHtml }
                         <div class="file-item-info">
                             <div class="file-item-name">${file.name}</div>
                             <div class="file-item-meta">${new Date(file.modified).toLocaleDateString()}</div>
@@ -1465,15 +1475,15 @@
                         <div class="file-item-size">${file.size_human}</div>
                     `;
 
-                    item.onclick = () => {
-                        if (ext === '.html') {
-                            openPreview(file);
-                        } else {
-                            window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
-                        }
-                    };
-                    items.appendChild(item);
-                });
+                        item.onclick = () => {
+                            if (ext === '.html') {
+                                openPreview(file);
+                            } else {
+                                window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
+                            }
+                        };
+                        items.appendChild(item);
+                    });
 
                 category.appendChild(items);
                 container.appendChild(category);

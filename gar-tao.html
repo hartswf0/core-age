@@ -412,6 +412,11 @@
                 <button onclick="INSPECTOR.close()" class="text-[var(--theme-text-muted)] hover:text-white">
                     <i class="fas fa-times w-4 h-4"></i>
                 </button>
+                <button id="btn-reset" title="Reset Grid"
+                    style="background: #dc2626; border-color: #dc2626;">🗑️</button>
+                <div class="w-px h-4 bg-[var(--theme-border)] mx-2"></div>
+                <button id="btn-export-frank" title="Export as Frank JSON">📄</button>
+                <button id="btn-export-mpd" title="Export as LDraw MPD">🧱</button>
             </div>
         </div>
         <div id="inspector-content" class="flex-1 p-4">
@@ -764,6 +769,8 @@
                 const btnTree = document.getElementById('btn-tree');
                 const btnForce = document.getElementById('btn-force');
                 const btnReset = document.getElementById('btn-reset');
+                const btnExportFrank = document.getElementById('btn-export-frank');
+                const btnExportMpd = document.getElementById('btn-export-mpd');
 
                 if (btnTree) {
                     btnTree.addEventListener('click', () => {
@@ -798,6 +805,149 @@
                         }
                     });
                 }
+
+                if (btnExportFrank) {
+                    btnExportFrank.addEventListener('click', () => {
+                        this.exportFrank();
+                    });
+                }
+
+                if (btnExportMpd) {
+                    btnExportMpd.addEventListener('click', () => {
+                        this.exportMPD();
+                    });
+                }
+            },
+
+            // Export to Frank JSON format
+            exportFrank() {
+                const scene = {
+                    id: `scene-${Date.now()}`,
+                    name: 'TAO Narrative Export',
+                    description: 'Exported from GAR-TAO',
+                    timestamp: Date.now(),
+                    variant: 'tao',
+                    grid: [], // Will be populated
+                    inbox: [],
+                    meta: {
+                        source: 'gar-tao',
+                        gridSize: 20
+                    }
+                };
+
+                // Populate grid (20x20 = 400 cells)
+                // Initialize empty grid
+                for (let i = 0; i < 400; i++) {
+                    scene.grid.push({
+                        id: i,
+                        occupantId: null
+                    });
+                }
+
+                // Map nodes to grid cells
+                STATE.nodes.forEach(node => {
+                    // Convert percentage back to grid index
+                    // x is 0-100, grid is 0-19
+                    const gridX = Math.round((node.x / 100) * 19);
+                    const gridY = Math.round((node.y / 100) * 19);
+                    const index = gridY * 20 + gridX;
+
+                    if (index >= 0 && index < 400) {
+                        scene.grid[index].occupantId = node.id;
+
+                        // Add node data to inbox as "packet"
+                        scene.inbox.push({
+                            id: node.id,
+                            kind: 'entity',
+                            label: node.label,
+                            type: node.type,
+                            payload: node.data
+                        });
+                    }
+                });
+
+                // Add links to inbox as metadata
+                scene.inbox.push({
+                    id: `links-${Date.now()}`,
+                    kind: 'connections',
+                    payload: STATE.links
+                });
+
+                // Download file
+                const blob = new Blob([JSON.stringify(scene, null, 2)], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `tao-frank-export-${Date.now()}.json`;
+                a.click();
+                URL.revokeObjectURL(url);
+                LOG.success('Exported Frank JSON');
+            },
+
+            // Export to LDraw MPD format
+            exportMPD() {
+                const filename = `tao_narrative_${Date.now()}.mpd`;
+                const lines = [];
+
+                // Header
+                lines.push(`0 FILE ${filename}`);
+                lines.push(`0 Name: ${filename}`);
+                lines.push(`0 Author: TAO System`);
+                lines.push(`0 !LDRAW_ORG Model`);
+                lines.push(`0 !LICENSE Redistributable under CCAL version 2.0`);
+                lines.push(`0 BFC CERTIFY CCW`);
+                lines.push(``);
+                lines.push(`0 // TAO NARRATIVE STRUCTURE`);
+                lines.push(`0 // Nodes: ${STATE.nodes.length} | Links: ${STATE.links.length}`);
+                lines.push(``);
+
+                // Map node types to LDraw parts and colors
+                const typeMap = {
+                    'entity': { part: '3001.dat', color: 4 }, // Red Brick 2x4
+                    'goal': { part: '3003.dat', color: 2 },   // Green Brick 2x2
+                    'obstacle': { part: '3004.dat', color: 1 }, // Blue Brick 1x2
+                    'core': { part: '3005.dat', color: 14 },  // Yellow Brick 1x1
+                    'default': { part: '3005.dat', color: 15 } // White Brick 1x1
+                };
+
+                // Scale factor: TAO 0-100% -> LDraw units (e.g., -400 to 400)
+                const SCALE = 8;
+                const OFFSET = -400;
+
+                STATE.nodes.forEach(node => {
+                    const typeInfo = typeMap[node.type] || typeMap['default'];
+                    const x = (node.x * SCALE) + OFFSET;
+                    const z = (node.y * SCALE) + OFFSET; // Map Y to Z (top-down view)
+                    const y = 0; // Flat plane
+
+                    lines.push(`0 // Node: ${node.label} (${node.type})`);
+                    // LDraw Line: 1 <colour> <x> <y> <z> <a b c d e f g h i> <file>
+                    lines.push(`1 ${typeInfo.color} ${x.toFixed(2)} ${y} ${z.toFixed(2)} 1 0 0 0 1 0 0 0 1 ${typeInfo.part}`);
+                });
+
+                lines.push(``);
+                lines.push(`0 // CONNECTIONS`);
+
+                STATE.links.forEach(link => {
+                    const n1 = STATE.nodes.find(n => n.id === link.from);
+                    const n2 = STATE.nodes.find(n => n.id === link.to);
+                    if (n1 && n2) {
+                        lines.push(`0 // Link: ${n1.label} -> ${n2.label} (${link.type})`);
+                    }
+                });
+
+                lines.push(``);
+                lines.push(`0 NOFILE`);
+
+                // Download file
+                const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                a.click();
+                URL.revokeObjectURL(url);
+                LOG.success('Exported LDraw MPD');
             },
 
             connections() {
