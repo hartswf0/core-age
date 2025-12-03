@@ -1,8 +1,8 @@
 {
-  "generated_at": "2025-11-24T23:13:07.565076",
-  "total_files": 82,
-  "total_size_bytes": 6516299,
-  "total_size_human": "6.21 MB",
+  "generated_at": "2025-12-03T14:16:31.109901",
+  "total_files": 83,
+  "total_size_bytes": 6540861,
+  "total_size_human": "6.24 MB",
   "files": {
     "all": [
       {
@@ -987,6 +987,18 @@
         "modified": "2025-11-24T02:44:12.039984",
         "created": "2025-11-24T02:46:23.215818",
         "accessed": "2025-11-24T02:44:14.237978",
+        "permissions": "644"
+      },
+      {
+        "name": "wag-workshop.html",
+        "path": "/Users/gaia/COURAGE/wag-workshop.html",
+        "extension": ".html",
+        "mime_type": "text/html",
+        "size_bytes": 24562,
+        "size_human": "23.99 KB",
+        "modified": "2025-12-02T12:36:38.559053",
+        "created": "2025-12-02T12:36:38.559053",
+        "accessed": "2025-12-02T12:36:50.023818",
         "permissions": "644"
       }
     ],

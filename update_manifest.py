@@ -20,7 +20,8 @@ FILES_TO_ADD = [
     'wag-frank-tetrad-olog.html',
     'wag-frank-tetrad-term.html',
     'wag-frank-tetrad-unif.html',
-    'wag-frank-tetrad-studio.html'
+    'wag-frank-tetrad-studio.html',
+    'wag-workshop.html'
 ]
 
 def get_file_metadata(filename):
