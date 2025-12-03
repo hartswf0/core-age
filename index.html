@@ -1027,12 +1027,15 @@
             'timber': '#fb923c',       // Orange - Timber tools
             'brick': '#f472b6',        // Pink - Brick/LEGO tools
             'skeleton': '#fbbf24',     // Yellow - Skeleton tools
-            'lego': '#f472b6',         // Pink - LEGO tools
+            'lego': '#eab308',         // Yellow-Orange - LEGO tools (updated)
             'pathology': '#ef4444',    // Red - Pathology tools
             'system': '#6366f1',       // Indigo - System tools
             'grid': '#8b5cf6',         // Violet - Grid tools
-            'manual': '#ec4899',       // Magenta - Manual/tutorial tools
-            'default': '#5ea275'       // Muted green - Default
+            'manual': '#f59e0b',       // Orange - Manual/tutorial tools (updated)
+            'onyx': '#000000',         // Black - Onyx tools (new)
+            'mento': '#8b5cf6',        // Violet - Mento tools (new)
+            'gar': '#ef4444',          // Red - GAR tools (new)
+            'default': '#64748b'       // Slate - Default (updated)
         };
 
         function getFileTheme(filename) {
@@ -1041,12 +1044,15 @@
             if (name.includes('wag-frank')) return 'wag-frank';
             if (name.includes('wag')) return 'wag';
             if (name.includes('timber')) return 'timber';
-            if (name.includes('brick') || name.includes('lego')) return 'brick';
+            if (name.includes('brick') || name.includes('lego')) return 'lego';
             if (name.includes('skeleton')) return 'skeleton';
             if (name.includes('pathology')) return 'pathology';
             if (name.includes('system') || name.includes('monitor')) return 'system';
             if (name.includes('grid')) return 'grid';
             if (name.includes('manual') || name.includes('tutorial')) return 'manual';
+            if (name.includes('onyx')) return 'onyx';
+            if (name.includes('mento')) return 'mento';
+            if (name.includes('gar')) return 'gar';
             return 'default';
         }
 
@@ -1136,6 +1142,19 @@
                 initializeUI();
             } catch (error) {
                 console.error('Failed to load manifest:', error);
+                const container = document.getElementById('file-list');
+                container.innerHTML = `
+                    <div style="padding: 40px; text-align: center; color: #ef4444;">
+                        <div style="font-size: 48px; margin-bottom: 20px;">⚠️</div>
+                        <h3 style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Connection Failed</h3>
+                        <p style="margin-bottom: 20px;">Cannot load file manifest. You are likely opening this file directly.</p>
+                        <div style="background: #1e293b; padding: 20px; border-radius: 8px; display: inline-block; text-align: left;">
+                            <p style="color: #94a3b8; font-size: 14px; margin-bottom: 10px;">Please run the local server:</p>
+                            <code style="color: #38bdf8; font-family: monospace;">node gar-onyx-server.js</code>
+                            <p style="color: #94a3b8; font-size: 14px; margin-top: 10px;">Then visit: <a href="http://localhost:3399" style="color: #38bdf8; text-decoration: underline;">http://localhost:3399</a></p>
+                        </div>
+                    </div>
+                `;
             }
         }
 
@@ -1434,55 +1453,73 @@
 
             const grouped = {};
             files.forEach(file => {
-                const ext = file.extension || 'other';
-                if (!grouped[ext]) grouped[ext] = [];
-                grouped[ext].push(file);
+                let groupKey = file.extension || 'other';
+
+                // Group HTML files by theme
+                if (file.extension === '.html') {
+                    const theme = getFileTheme(file.name);
+                    groupKey = theme.toUpperCase();
+                }
+
+                if (!grouped[groupKey]) grouped[groupKey] = [];
+                grouped[groupKey].push(file);
             });
 
             container.innerHTML = '';
 
+            // Define sort order for groups
+            const sortOrder = ['WAG', 'GAR', 'ONYX', 'MENTO', 'LEGO', 'TIMBER', 'SYSTEM', 'MANUAL', 'GRID', 'INCEPTION', '.JSON', '.MPD', '.MD'];
 
-            Object.keys(grouped).sort().forEach(ext => {
+            const sortedKeys = Object.keys(grouped).sort((a, b) => {
+                const indexA = sortOrder.indexOf(a);
+                const indexB = sortOrder.indexOf(b);
+                if (indexA !== -1 && indexB !== -1) return indexA - indexB;
+                if (indexA !== -1) return -1;
+                if (indexB !== -1) return 1;
+                return a.localeCompare(b);
+            });
+
+            sortedKeys.forEach(group => {
                 const category = document.createElement('div');
                 category.className = 'file-category';
 
                 const header = document.createElement('div');
                 header.className = 'category-header';
                 header.innerHTML = `
-                    <span>${ext.toUpperCase()}</span>
-                    <span class="category-count">${grouped[ext].length}</span>
-                `;
+            <span>${group}</span>
+            <span class="category-count">${grouped[group].length}</span>
+        `;
                 category.appendChild(header);
 
                 const items = document.createElement('div');
                 items.className = 'file-items';
 
-                grouped[ext].forEach(file => {
+                grouped[group].forEach(file => {
                     const item = document.createElement('div');
                     item.className = 'file-item';
 
                     let iconHtml = '';
-                    if (ext === '.html') {
+                    if (file.extension === '.html') {
                         const theme = getFileTheme(file.name);
                         const color = themeColors[theme] || themeColors['default'];
                         const initial = theme.substring(0, 2).toUpperCase();
                         iconHtml = `<div class="file-icon" style="background: ${color};">${initial}</div>`;
                     } else {
-                        const icon = iconMap[ext] || iconMap['other'];
+                        const icon = iconMap[file.extension] || iconMap['other'];
                         iconHtml = `<div class="file-icon" style="background: #333;">${icon}</div>`;
                     }
 
                     item.innerHTML = `
-                        ${iconHtml}
-                        <div class="file-item-info">
-                            <div class="file-item-name">${file.name}</div>
-                            <div class="file-item-meta">${new Date(file.modified).toLocaleDateString()}</div>
-                        </div>
-                        <div class="file-item-size">${file.size_human}</div>
-                    `;
+                ${iconHtml}
+                <div class="file-item-info">
+                    <div class="file-item-name">${file.name}</div>
+                    <div class="file-item-meta">${new Date(file.modified).toLocaleDateString()}</div>
+                </div>
+                <div class="file-item-size">${file.size_human}</div>
+            `;
 
                     item.onclick = () => {
-                        if (ext === '.html') {
+                        if (file.extension === '.html') {
                             openPreview(file);
                         } else {
                             window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
@@ -1495,7 +1532,6 @@
                 container.appendChild(category);
             });
         }
-
         // About Modal Logic
         const aboutModal = document.getElementById('about-modal');
         const aboutBtn = document.getElementById('about-btn');

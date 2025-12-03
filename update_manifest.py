@@ -6,23 +6,24 @@ import mimetypes
 MANIFEST_PATH = '/Users/gaia/COURAGE/file-manifest.json'
 ROOT_DIR = '/Users/gaia/COURAGE'
 
-FILES_TO_ADD = [
-    'inception-harness.html',
-    'inception-horseman.html',
-    'inception-editor.html',
-    'inception-tetrad-code-editor.html',
-    'wag-frank-tetrad-inception.html',
-    'wag-frank-studio.html',
-    'wag-frank-olog.html',
-    'wag-frank-terminal.html',
-    'wag-frank-unified.html',
-    'wag-frank-tetrad.html',
-    'wag-frank-tetrad-olog.html',
-    'wag-frank-tetrad-term.html',
-    'wag-frank-tetrad-unif.html',
-    'wag-frank-tetrad-studio.html',
-    'wag-workshop.html'
-]
+def get_all_html_files():
+    html_files = []
+    for root, dirs, files in os.walk(ROOT_DIR):
+        if 'node_modules' in dirs:
+            dirs.remove('node_modules')
+        if '.git' in dirs:
+            dirs.remove('.git')
+            
+        for file in files:
+            if file.endswith('.html'):
+                # Get relative path from root, but keep just filename if in root
+                # For now, the manifest seems to use just filenames for the 'name' field
+                # but full paths for 'path'. 
+                # The original script used a hardcoded list of filenames.
+                html_files.append(file)
+    return html_files
+
+FILES_TO_ADD = get_all_html_files()
 
 def get_file_metadata(filename):
     path = os.path.join(ROOT_DIR, filename)
