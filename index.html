@@ -1461,17 +1461,19 @@
                     const item = document.createElement('div');
                     item.className = 'file-item';
 
-                    // For HTML files: show color-coded circle with theme letters
-                    // For other files: show regular file icon
                     let iconHtml = '';
                     if (ext === '.html') {
                         const theme = getFileTheme(file.name);
-                        const color = themeColors[theme];
+                        const color = themeColors[theme] || themeColors['default'];
                         const initial = theme.substring(0, 2).toUpperCase();
-                        item.innerHTML = `
-                        ${iconHtml}
+                        iconHtml = `<div class="file-icon" style="background: ${color};">${initial}</div>`;
+                    } else {
+                        const icon = iconMap[ext] || iconMap['other'];
+                        iconHtml = `<div class="file-icon" style="background: #333;">${icon}</div>`;
+                    }
+
                     item.innerHTML = `
-                        ${ iconHtml }
+                        ${iconHtml}
                         <div class="file-item-info">
                             <div class="file-item-name">${file.name}</div>
                             <div class="file-item-meta">${new Date(file.modified).toLocaleDateString()}</div>
@@ -1479,15 +1481,15 @@
                         <div class="file-item-size">${file.size_human}</div>
                     `;
 
-                        item.onclick = () => {
-                            if (ext === '.html') {
-                                openPreview(file);
-                            } else {
-                                window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
-                            }
-                        };
-                        items.appendChild(item);
-                    });
+                    item.onclick = () => {
+                        if (ext === '.html') {
+                            openPreview(file);
+                        } else {
+                            window.open(file.path.replace('/Users/gaia/COURAGE/', './').replace('/Users/gaia/COURAGE', '.'), '_blank');
+                        }
+                    };
+                    items.appendChild(item);
+                });
 
                 category.appendChild(items);
                 container.appendChild(category);
