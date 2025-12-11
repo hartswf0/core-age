@@ -1,5 +1,5 @@
 {
-    "generated_at": "2025-12-11T22:50:42.818Z",
+    "generated_at": "2025-12-11T22:57:01.287Z",
     "thesis": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -1757,25 +1757,25 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "118.44 KB",
+                    "size": "121.6 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-11T22:39:12.839Z"
+                    "modified": "2025-12-11T22:52:00.730Z"
                 },
                 {
                     "text": "courage-trail-data.json",
                     "type": "data",
                     "path": "courage-trail-data.json",
-                    "size": "101.07 KB",
+                    "size": "102.48 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-11T22:38:35.385Z"
+                    "modified": "2025-12-11T22:50:42.819Z"
                 },
                 {
                     "text": "sequence_genome.js",
                     "type": "artifact",
                     "path": "sequence_genome.js",
-                    "size": "9.32 KB",
+                    "size": "13.74 KB",
                     "created": "2025-12-11T22:03:41.572Z",
-                    "modified": "2025-12-11T22:35:56.369Z"
+                    "modified": "2025-12-11T22:50:17.093Z"
                 },
                 {
                     "text": "file-manifest.json",
@@ -1783,7 +1783,7 @@
                     "path": "file-manifest.json",
                     "size": "83.25 KB",
                     "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-11T22:32:48.687Z"
+                    "modified": "2025-12-11T22:48:01.640Z"
                 },
                 {
                     "text": "assemble_genome.js",
@@ -2373,9 +2373,9 @@
     "timeline": [
         {
             "date": "2025-12-11",
-            "label": "DEEP TIME OBSERVATORY (47 Files)",
-            "desc": "Meta-Cognition and Systemic Self-Awareness · [System Generated Context: courage]",
-            "decision": "The map must be part of the territory",
+            "label": "PROJECT GENOME",
+            "desc": "The System Becomes Self-Aware",
+            "decision": "The visualization must be generated from the provenance",
             "ontology": [
                 "C",
                 "T",
@@ -2386,15 +2386,26 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Trail Olog Sequencer",
+                "T (Trail)": "Files → Manifest → Genome → Narrative",
+                "A (Artifact)": "courage-genome.html, sequence_genome.js",
+                "M (Metadata)": "The file-manifest.json itself",
+                "D (Decision)": "The visualization must be generated from the provenance",
+                "S (System)": "Deep Time Observatory",
+                "P (Pattern)": "Algorithmic Autobiography",
+                "I (Intent)": "To close the loop"
+            },
+            "quote": "This document is watching you reading it.",
             "active": [
                 "trail-observatory"
             ]
         },
         {
             "date": "2025-12-02",
-            "label": "THE LOGIC OF THE THOUSAND (22 Files)",
-            "desc": "High-Dimensional Sorting and Pattern Recognition · [System Generated Context: gar]",
-            "decision": "Use Python for heavy data-lifting, keep UI thin",
+            "label": "WAG WORKSHOP LAUNCH",
+            "desc": "First Public Demo of Operative Ekphrasis",
+            "decision": "Simplify the interface for non-technical users",
             "ontology": [
                 "C",
                 "T",
@@ -2405,15 +2416,26 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe + Collaborators",
+                "T (Trail)": "Private Tool → Public Workshop",
+                "A (Artifact)": "wag-workshop.html, gar-tao.html",
+                "M (Metadata)": "Workshop curriculum, demo scripts",
+                "D (Decision)": "Simplify the interface for non-technical users",
+                "S (System)": "WAG Workshop Edition",
+                "P (Pattern)": "Pedagogical Interface",
+                "I (Intent)": "To teach the machine to listen"
+            },
+            "quote": "It wasn't real until other people touched it.",
             "active": [
                 "tetrad-engine"
             ]
         },
         {
             "date": "2025-12-01",
-            "label": "THE INVARIANT SUBSTRATE (25 Files)",
-            "desc": "Establishing the Material Provenance of the System · [System Generated Context: onyx]",
-            "decision": "Sacrifice performance for 100% provenance tracking",
+            "label": "NEURAL EMBEDDINGS",
+            "desc": "Vectorizing the Library",
+            "decision": "Move from keyword search to semantic proximity",
             "ontology": [
                 "C",
                 "T",
@@ -2424,15 +2446,26 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Keywords → Semantic Vectors",
+                "A (Artifact)": "embeddings.json, neuro-studio.html, onyx.html",
+                "M (Metadata)": "Vector dimensions (1536), Cosine similarity",
+                "D (Decision)": "Move from keyword search to semantic proximity",
+                "S (System)": "Onyx Neuro-System",
+                "P (Pattern)": "Latent Space Mapping",
+                "I (Intent)": "To find connections we didn't know existed"
+            },
+            "quote": "The library is no longer sorted by alphabet, but by meaning.",
             "active": [
                 "lego-inputs"
             ]
         },
         {
             "date": "2025-11-28",
-            "label": "THE INVARIANT SUBSTRATE (61 Files)",
-            "desc": "Establishing the Material Provenance of the System · [System Generated Context: concat]",
-            "decision": "Sacrifice performance for 100% provenance tracking",
+            "label": "THE CONTEXT SINGULARITY",
+            "desc": "Massive Context Injection via Concat",
+            "decision": "Brute-force the context window with raw text",
             "ontology": [
                 "C",
                 "T",
@@ -2443,6 +2476,17 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe + Script",
+                "T (Trail)": "Fragmentation → Unification",
+                "A (Artifact)": "concat.txt (Massive), burst_analysis.csv",
+                "M (Metadata)": "File size limits, token counts",
+                "D (Decision)": "Brute-force the context window with raw text",
+                "S (System)": "Bash Concatenation Scripts",
+                "P (Pattern)": "Context Stuffing",
+                "I (Intent)": "To let the LLM see the 'Whole Elephant'"
+            },
+            "quote": "If we feed it everything, maybe it will understand the shape of the void.",
             "active": [
                 "lego-inputs"
             ]
@@ -2462,6 +2506,21 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Raw Material → Standardized Input",
+                "A (Artifact)": "LDraw Library, Color Definitions, Primitive Geometry",
+                "M (Metadata)": "Standardized .dat/.mpd parsing logs",
+                "D (Decision)": "Sacrifice performance for 100% provenance tracking",
+                "S (Tool)": "LEGO 3D Architect / WebGL Parser",
+                "P (Pattern)": "Mesh-Per-Line Architecture",
+                "I (Intent)": "To ensure every atom of the world is addressable"
+            },
+            "readings": [
+                "Hui, Yuk. 'On the Existence of Digital Objects'",
+                "Fuller, Matthew. 'Media Ecologies: Materialist Energies in Art and Technoculture'"
+            ],
+            "quote": "The brick is not just a shape; it is a unit of logic. By enforcing LDraw standards, we inherit 20 years of community geometry.",
             "active": [
                 "lego-inputs"
             ]
@@ -2481,15 +2540,30 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Raw Material → Standardized Input",
+                "A (Artifact)": "LDraw Library, Color Definitions, Primitive Geometry",
+                "M (Metadata)": "Standardized .dat/.mpd parsing logs",
+                "D (Decision)": "Sacrifice performance for 100% provenance tracking",
+                "S (Tool)": "LEGO 3D Architect / WebGL Parser",
+                "P (Pattern)": "Mesh-Per-Line Architecture",
+                "I (Intent)": "To ensure every atom of the world is addressable"
+            },
+            "readings": [
+                "Hui, Yuk. 'On the Existence of Digital Objects'",
+                "Fuller, Matthew. 'Media Ecologies: Materialist Energies in Art and Technoculture'"
+            ],
+            "quote": "The brick is not just a shape; it is a unit of logic. By enforcing LDraw standards, we inherit 20 years of community geometry.",
             "active": [
                 "lego-inputs"
             ]
         },
         {
             "date": "2025-11-24",
-            "label": "THE INVARIANT SUBSTRATE (33 Files)",
-            "desc": "Establishing the Material Provenance of the System · [System Generated Context: wag]",
-            "decision": "Sacrifice performance for 100% provenance tracking",
+            "label": "INCEPTION ARCHITECTURE",
+            "desc": "The First Recursive Builder",
+            "decision": "Allow the tool to edit its own source code (conceptually)",
             "ontology": [
                 "C",
                 "T",
@@ -2500,6 +2574,17 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Parser → Editor → World Builder",
+                "A (Artifact)": "lego-3d-architect.html, inception-horseman.html",
+                "M (Metadata)": "Recursion depth logs",
+                "D (Decision)": "Allow the tool to edit its own source code (conceptually)",
+                "S (System)": "Inception Editor",
+                "P (Pattern)": "Recursive Tooling",
+                "I (Intent)": "To build the tool that builds the world"
+            },
+            "quote": "WE TURNED THE PARSER INSIDE OUT.",
             "active": [
                 "lego-inputs"
             ]
@@ -2519,15 +2604,30 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "System (Self-Reporting)",
+                "T (Trail)": "Action → Reflection → Olog",
+                "A (Artifact)": "Genome Viewer, Trail Olog, Pattern Glossary",
+                "M (Metadata)": "Git History, File Manifest, Ontology Graph",
+                "D (Decision)": "The map must be part of the territory",
+                "S (Tool)": "Trail Olog Sequencer 2.0",
+                "P (Pattern)": "Thick Description / Geertzian Analysis",
+                "I (Intent)": "To make the development process legible as an artwork"
+            },
+            "readings": [
+                "Geertz, Clifford. 'The Interpretation of Cultures'",
+                "Bateson, Gregory. 'Steps to an Ecology of Mind'"
+            ],
+            "quote": "A project that does not know its own history is doomed to just be 'content'. This genome is the memory of the system.",
             "active": [
                 "trail-observatory"
             ]
         },
         {
             "date": "2025-11-22",
-            "label": "THE INVARIANT SUBSTRATE (25 Files)",
-            "desc": "Establishing the Material Provenance of the System · [System Generated Context: skeleton]",
-            "decision": "Sacrifice performance for 100% provenance tracking",
+            "label": "AUTOPSY OF LINE 22",
+            "desc": "Debugging the Invisible Geometry",
+            "decision": "Build a dedicated tool just to fix one bug",
             "ontology": [
                 "C",
                 "T",
@@ -2538,6 +2638,20 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Bug → Deep Analysis → Tool",
+                "A (Artifact)": "line-22-autopsy.html, skeleton-pathology-studio.html",
+                "M (Metadata)": "Parsed LDraw line numbers, mesh indices",
+                "D (Decision)": "Build a dedicated tool just to fix one bug",
+                "S (System)": "Skeleton Pathology Studio",
+                "P (Pattern)": "Tool-for-a-Bug (Micro-Tooling)",
+                "I (Intent)": "To understand why the mesh was tearing"
+            },
+            "readings": [
+                "Debugger as Detective (General Concept)"
+            ],
+            "quote": "We found the ghost in the machine, and it was a floating decimal point.",
             "active": [
                 "lego-inputs"
             ]
@@ -2557,6 +2671,21 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Raw Material → Standardized Input",
+                "A (Artifact)": "LDraw Library, Color Definitions, Primitive Geometry",
+                "M (Metadata)": "Standardized .dat/.mpd parsing logs",
+                "D (Decision)": "Sacrifice performance for 100% provenance tracking",
+                "S (Tool)": "LEGO 3D Architect / WebGL Parser",
+                "P (Pattern)": "Mesh-Per-Line Architecture",
+                "I (Intent)": "To ensure every atom of the world is addressable"
+            },
+            "readings": [
+                "Hui, Yuk. 'On the Existence of Digital Objects'",
+                "Fuller, Matthew. 'Media Ecologies: Materialist Energies in Art and Technoculture'"
+            ],
+            "quote": "The brick is not just a shape; it is a unit of logic. By enforcing LDraw standards, we inherit 20 years of community geometry.",
             "active": [
                 "lego-inputs"
             ]
@@ -2576,15 +2705,30 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Raw Material → Standardized Input",
+                "A (Artifact)": "LDraw Library, Color Definitions, Primitive Geometry",
+                "M (Metadata)": "Standardized .dat/.mpd parsing logs",
+                "D (Decision)": "Sacrifice performance for 100% provenance tracking",
+                "S (Tool)": "LEGO 3D Architect / WebGL Parser",
+                "P (Pattern)": "Mesh-Per-Line Architecture",
+                "I (Intent)": "To ensure every atom of the world is addressable"
+            },
+            "readings": [
+                "Hui, Yuk. 'On the Existence of Digital Objects'",
+                "Fuller, Matthew. 'Media Ecologies: Materialist Energies in Art and Technoculture'"
+            ],
+            "quote": "The brick is not just a shape; it is a unit of logic. By enforcing LDraw standards, we inherit 20 years of community geometry.",
             "active": [
                 "lego-inputs"
             ]
         },
         {
             "date": "2025-11-19",
-            "label": "THE INVARIANT SUBSTRATE (24 Files)",
-            "desc": "Establishing the Material Provenance of the System · [System Generated Context: wag]",
-            "decision": "Sacrifice performance for 100% provenance tracking",
+            "label": "THE BONE WARS",
+            "desc": "Rigging the First Skeleton",
+            "decision": "Use Three.js SkeletonHelper for visualization",
             "ontology": [
                 "C",
                 "T",
@@ -2595,6 +2739,20 @@
                 "P",
                 "I"
             ],
+            "rich_genome": {
+                "C (Creator)": "Watson Hartsoe",
+                "T (Trail)": "Static Bricks → Moving Rigs",
+                "A (Artifact)": "wag-gold-scene.json, multi-move-bones.html",
+                "M (Metadata)": "Bone parenting logs, matrix transformations",
+                "D (Decision)": "Use Three.js SkeletonHelper for visualization",
+                "S (System)": "WAG Rigging System 1.0",
+                "P (Pattern)": "Hierarchical Kinematics",
+                "I (Intent)": "To make the bricks dance"
+            },
+            "readings": [
+                "Catmull, Ed. 'A System for Computer Generated Movies'"
+            ],
+            "quote": "The geometry is rigid, but the relationship is fluid.",
             "active": [
                 "lego-inputs"
             ]

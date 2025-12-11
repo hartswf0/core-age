@@ -95,6 +95,119 @@ const NARRATIVE_ARCHIVE = {
     }
 };
 
+
+
+// Specific Narrative Events (Date-Specific Overrides)
+const SPECIFIC_NARRATIVES = {
+    '2025-11-19': {
+        title: "THE BONE WARS",
+        subtitle: "Rigging the First Skeleton",
+        genome: {
+            "C (Creator)": "Watson Hartsoe",
+            "T (Trail)": "Static Bricks → Moving Rigs",
+            "A (Artifact)": "wag-gold-scene.json, multi-move-bones.html",
+            "M (Metadata)": "Bone parenting logs, matrix transformations",
+            "D (Decision)": "Use Three.js SkeletonHelper for visualization",
+            "S (System)": "WAG Rigging System 1.0",
+            "P (Pattern)": "Hierarchical Kinematics",
+            "I (Intent)": "To make the bricks dance"
+        },
+        readings: ["Catmull, Ed. 'A System for Computer Generated Movies'"],
+        quote: "The geometry is rigid, but the relationship is fluid."
+    },
+    '2025-11-22': {
+        title: "AUTOPSY OF LINE 22",
+        subtitle: "Debugging the Invisible Geometry",
+        genome: {
+            "C (Creator)": "Watson Hartsoe",
+            "T (Trail)": "Bug → Deep Analysis → Tool",
+            "A (Artifact)": "line-22-autopsy.html, skeleton-pathology-studio.html",
+            "M (Metadata)": "Parsed LDraw line numbers, mesh indices",
+            "D (Decision)": "Build a dedicated tool just to fix one bug",
+            "S (System)": "Skeleton Pathology Studio",
+            "P (Pattern)": "Tool-for-a-Bug (Micro-Tooling)",
+            "I (Intent)": "To understand why the mesh was tearing"
+        },
+        readings: ["Debugger as Detective (General Concept)"],
+        quote: "We found the ghost in the machine, and it was a floating decimal point."
+    },
+    '2025-11-24': {
+        title: "INCEPTION ARCHITECTURE",
+        subtitle: "The First Recursive Builder",
+        genome: {
+            "C (Creator)": "Watson Hartsoe",
+            "T (Trail)": "Parser → Editor → World Builder",
+            "A (Artifact)": "lego-3d-architect.html, inception-horseman.html",
+            "M (Metadata)": "Recursion depth logs",
+            "D (Decision)": "Allow the tool to edit its own source code (conceptually)",
+            "S (System)": "Inception Editor",
+            "P (Pattern)": "Recursive Tooling",
+            "I (Intent)": "To build the tool that builds the world"
+        },
+        quote: "WE TURNED THE PARSER INSIDE OUT."
+    },
+    '2025-11-28': {
+        title: "THE CONTEXT SINGULARITY",
+        subtitle: "Massive Context Injection via Concat",
+        genome: {
+            "C (Creator)": "Watson Hartsoe + Script",
+            "T (Trail)": "Fragmentation → Unification",
+            "A (Artifact)": "concat.txt (Massive), burst_analysis.csv",
+            "M (Metadata)": "File size limits, token counts",
+            "D (Decision)": "Brute-force the context window with raw text",
+            "S (System)": "Bash Concatenation Scripts",
+            "P (Pattern)": "Context Stuffing",
+            "I (Intent)": "To let the LLM see the 'Whole Elephant'"
+        },
+        quote: "If we feed it everything, maybe it will understand the shape of the void."
+    },
+    '2025-12-01': {
+        title: "NEURAL EMBEDDINGS",
+        subtitle: "Vectorizing the Library",
+        genome: {
+            "C (Creator)": "Watson Hartsoe",
+            "T (Trail)": "Keywords → Semantic Vectors",
+            "A (Artifact)": "embeddings.json, neuro-studio.html, onyx.html",
+            "M (Metadata)": "Vector dimensions (1536), Cosine similarity",
+            "D (Decision)": "Move from keyword search to semantic proximity",
+            "S (System)": "Onyx Neuro-System",
+            "P (Pattern)": "Latent Space Mapping",
+            "I (Intent)": "To find connections we didn't know existed"
+        },
+        quote: "The library is no longer sorted by alphabet, but by meaning."
+    },
+    '2025-12-02': {
+        title: "WAG WORKSHOP LAUNCH",
+        subtitle: "First Public Demo of Operative Ekphrasis",
+        genome: {
+            "C (Creator)": "Watson Hartsoe + Collaborators",
+            "T (Trail)": "Private Tool → Public Workshop",
+            "A (Artifact)": "wag-workshop.html, gar-tao.html",
+            "M (Metadata)": "Workshop curriculum, demo scripts",
+            "D (Decision)": "Simplify the interface for non-technical users",
+            "S (System)": "WAG Workshop Edition",
+            "P (Pattern)": "Pedagogical Interface",
+            "I (Intent)": "To teach the machine to listen"
+        },
+        quote: "It wasn't real until other people touched it."
+    },
+    '2025-12-11': {
+        title: "PROJECT GENOME",
+        subtitle: "The System Becomes Self-Aware",
+        genome: {
+            "C (Creator)": "Trail Olog Sequencer",
+            "T (Trail)": "Files → Manifest → Genome → Narrative",
+            "A (Artifact)": "courage-genome.html, sequence_genome.js",
+            "M (Metadata)": "The file-manifest.json itself",
+            "D (Decision)": "The visualization must be generated from the provenance",
+            "S (System)": "Deep Time Observatory",
+            "P (Pattern)": "Algorithmic Autobiography",
+            "I (Intent)": "To close the loop"
+        },
+        quote: "This document is watching you reading it."
+    }
+};
+
 // Heuristic Rules for Zone Mapping
 const ZONES = {
     'lego-inputs': {
@@ -209,7 +322,7 @@ function sequenceGenome() {
     Object.keys(dailyActivity).sort().forEach(date => {
         const files = dailyActivity[date];
         if (files.length > 2) {
-            const analysis = analyzeBurst(files);
+            const analysis = analyzeBurst(files, date);
 
             bursts.push({
                 date: date,
@@ -217,6 +330,9 @@ function sequenceGenome() {
                 desc: analysis.desc,
                 decision: analysis.decision,
                 ontology: analysis.ontology,
+                rich_genome: analysis.rich_genome,
+                readings: analysis.readings,
+                quote: analysis.quote,
                 active: [analysis.zone]
             });
         }
@@ -249,7 +365,7 @@ function determineType(file) {
     return 'artifact';
 }
 
-function analyzeBurst(files) {
+function analyzeBurst(files, date) {
     // 1. Determine Dominant Zone
     const zoneCounts = {};
     files.forEach(f => zoneCounts[f.zone] = (zoneCounts[f.zone] || 0) + 1);
@@ -263,38 +379,54 @@ function analyzeBurst(files) {
     });
     const dominantPrefix = Object.keys(prefixCounts).reduce((a, b) => prefixCounts[a] > prefixCounts[b] ? a : b);
 
-    // 3. Check for specific file types to infer "Decision" and "Title"
-    const hasHtml = files.some(f => f.ext === '.html');
-    const hasJson = files.some(f => f.ext === '.json');
-    const hasMd = files.some(f => f.ext === '.md');
-    const hasPy = files.some(f => f.ext === '.py');
-    const hasSh = files.some(f => f.ext === '.sh');
-
+    // 3. Defaults
     let title = `${dominantPrefix.toUpperCase()} System Update`;
     let desc = `Significant development in the ${dominantZone} zone, focusing on ${dominantPrefix}.`;
     let decision = "Iterative improvement of existing infrastructure.";
     let ontology = [];
 
-    // Check Narrative Archive for "Thick" Metadata
+    // PRIORITY 1: Date-Specific Narrative
+    const specificData = SPECIFIC_NARRATIVES[date];
+    if (specificData) {
+        return {
+            title: specificData.title,
+            desc: specificData.subtitle,
+            decision: specificData.genome['D (Decision)'],
+            ontology: Object.keys(specificData.genome).map(k => k.charAt(0)),
+            zone: dominantZone,
+            rich_genome: specificData.genome,
+            readings: specificData.readings,
+            quote: specificData.quote
+        };
+    }
+
+    // PRIORITY 2: Zone-Based Type Narrative
     const richData = NARRATIVE_ARCHIVE[dominantZone];
 
+    // 4. File Type Checks for defaults
+    const hasHtml = files.some(f => f.ext === '.html');
+    const hasJson = files.some(f => f.ext === '.json');
+    const hasMd = files.some(f => f.ext === '.md');
+    const hasPy = files.some(f => f.ext === '.py');
+
     if (richData) {
-        // Use Hand-Crafted Narrative Overlay
         title = richData.title;
-        desc = richData.subtitle; // Use subtitle as description
-
-        // If the burst is truly massive or significant, we use the rich genome.
-        // We can just ALWAYS attach the rich genome to every burst of this zone?
-        // No, that repeats it too much.
-        // Let's only attach it if it's a "Top Tier" burst (e.g. > 10 files) or if it's the specific "Key" burst.
-        // For simplicity, let's attach it to ALL bursts of that zone, but maybe vary the 'trail' or 'metadata' slightly?
-        // Actually, the user wants "better explanations for EACH burst".
-        // So let's use the rich data as a base.
-
+        desc = richData.subtitle;
         decision = richData.genome['D (Decision)'];
-        ontology = Object.keys(richData.genome).map(k => k[0]); // C, T, A...
+        ontology = Object.keys(richData.genome).map(k => k[0]);
+
+        return {
+            title: `${title} (${files.length} Files)`,
+            desc: `${desc} · [System Generated Context: ${dominantPrefix}]`,
+            decision: decision,
+            ontology: ontology,
+            zone: dominantZone,
+            rich_genome: richData.genome,
+            readings: richData.readings,
+            quote: richData.quote
+        };
     } else {
-        // Fallback ALgorithmic Logic
+        // Fallback Algorithmic
         if (dominantZone === 'lego-inputs') {
             ontology.push("L");
             if (hasHtml) {
@@ -305,7 +437,6 @@ function analyzeBurst(files) {
                 decision = "Standardized on JSON for intermediate geometry representation.";
             }
         } else if (dominantZone === 'tetrad-engine') {
-            // ... (rest of existing logic)
             ontology.push("T");
             if (hasPy) {
                 title = "Logic Engine Optimization";
@@ -314,27 +445,35 @@ function analyzeBurst(files) {
                 title = "Tetrad Pattern Analysis";
                 decision = "Refined sorting logic to disentangle complex inputs.";
             }
+        } else if (dominantZone === 'wag-peaks') {
+            ontology.push("W");
+            if (files.some(f => f.file.includes('workshop'))) {
+                title = "WAG Workshop Deployment";
+                desc = "Deployment of the 'Words Assemble Geometry' workshop materials.";
+                decision = "Focused on 'Operative Ekphrasis' as the core interaction model.";
+            } else {
+                title = "Narrative Synthesis";
+                decision = "Integrated MPD-based assets into cohesive narrative scenes.";
+            }
+        } else if (dominantZone === 'trail-observatory') {
+            ontology.push("M");
+            if (files.some(f => f.file.includes('genome'))) {
+                title = "Genome Sequencing";
+                desc = "Deep structural analysis of the repository itself.";
+                decision = "Adopted algorithmic introspection to maintain documentation.";
+            } else if (hasMd) {
+                title = "Research Reflections";
+                decision = "Prioritized 'Thick Description' in documentation.";
+            }
         }
-        // ... (etc)
+
+        // Refine Ontology based on file types
+        if (hasJson) ontology.push("S");
+        if (hasHtml) ontology.push("A");
+        if (hasMd) ontology.push("P");
+
+        return { title, desc, decision, ontology, zone: dominantZone };
     }
-
-    // NARRATIVE OVERRIDE: If richData exists, we return the FULL rich object + stats
-    if (richData) {
-        return {
-            title: `${title} (${files.length} Files)`, // Append stats to title for context
-            desc: `${desc} · [System Generated Context: ${dominantPrefix}]`,
-            decision: decision,
-            ontology: ontology,
-            zone: dominantZone,
-            rich_genome: richData.genome, // Pass the full grid object
-            readings: richData.readings,
-            quote: richData.quote
-        };
-    }
-
-    return { title, desc, decision, ontology, zone: dominantZone };
-
-
 }
 
 sequenceGenome();
