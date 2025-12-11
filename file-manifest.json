@@ -1,8 +1,8 @@
 {
-  "generated": "2025-12-11T21:59:27.905Z",
-  "total_files": 276,
-  "total_size": 69476277,
-  "total_size_human": "66.26 MB",
+  "generated": "2025-12-11T22:12:12.251Z",
+  "total_files": 277,
+  "total_size": 69572639,
+  "total_size_human": "66.35 MB",
   "summary": {
     "extensions": {
       ".md": 30,
@@ -12,7 +12,7 @@
       ".sh": 18,
       ".mpd": 9,
       ".py": 9,
-      ".js": 15,
+      ".js": 16,
       ".svg": 2,
       ".json": 18,
       ".css": 1,
@@ -694,18 +694,18 @@
         "name": "courage-genome.html",
         "path": "/Users/gaia/COURAGE/courage-genome.html",
         "extension": ".html",
-        "size": 24050,
-        "size_human": "23.49 KB",
-        "modified": "2025-12-11T21:59:12.400Z",
+        "size": 24771,
+        "size_human": "24.19 KB",
+        "modified": "2025-12-11T22:05:41.568Z",
         "created": "2025-12-11T21:42:17.067Z"
       },
       {
         "name": "courage-trail-data.json",
         "path": "/Users/gaia/COURAGE/courage-trail-data.json",
         "extension": ".json",
-        "size": 6592,
-        "size_human": "6.44 KB",
-        "modified": "2025-12-11T21:58:14.003Z",
+        "size": 97399,
+        "size_human": "95.12 KB",
+        "modified": "2025-12-11T22:05:09.128Z",
         "created": "2025-12-11T04:38:22.247Z"
       },
       {
@@ -838,9 +838,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 84388,
+        "size": 84386,
         "size_human": "82.41 KB",
-        "modified": "2025-12-11T21:53:18.863Z",
+        "modified": "2025-12-11T21:59:27.906Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
@@ -1787,6 +1787,15 @@
         "size_human": "7.39 KB",
         "modified": "2025-11-24T06:31:57.937Z",
         "created": "2025-11-24T06:25:45.191Z"
+      },
+      {
+        "name": "sequence_genome.js",
+        "path": "/Users/gaia/COURAGE/sequence_genome.js",
+        "extension": ".js",
+        "size": 4836,
+        "size_human": "4.72 KB",
+        "modified": "2025-12-11T22:03:42.719Z",
+        "created": "2025-12-11T22:03:41.572Z"
       },
       {
         "name": "skeleton-control-room.html",
