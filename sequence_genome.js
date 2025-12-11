@@ -15,6 +15,86 @@ const DNA_BASE_PAIRS = {
     "G": "GUARDIAN (Ethical Assessment)"
 };
 
+// Narrative Archive (Hand-Crafted "Thick" Metadata)
+const NARRATIVE_ARCHIVE = {
+    'lego-inputs': {
+        title: "THE INVARIANT SUBSTRATE",
+        subtitle: "Establishing the Material Provenance of the System",
+        genome: {
+            "C (Creator)": "Watson Hartsoe",
+            "T (Trail)": "Raw Material → Standardized Input",
+            "A (Artifact)": "LDraw Library, Color Definitions, Primitive Geometry",
+            "M (Metadata)": "Standardized .dat/.mpd parsing logs",
+            "D (Decision)": "Sacrifice performance for 100% provenance tracking",
+            "S (Tool)": "LEGO 3D Architect / WebGL Parser",
+            "P (Pattern)": "Mesh-Per-Line Architecture",
+            "I (Intent)": "To ensure every atom of the world is addressable"
+        },
+        readings: [
+            "Hui, Yuk. 'On the Existence of Digital Objects'",
+            "Fuller, Matthew. 'Media Ecologies: Materialist Energies in Art and Technoculture'"
+        ],
+        quote: "The brick is not just a shape; it is a unit of logic. By enforcing LDraw standards, we inherit 20 years of community geometry."
+    },
+    'tetrad-engine': {
+        title: "THE LOGIC OF THE THOUSAND",
+        subtitle: "High-Dimensional Sorting and Pattern Recognition",
+        genome: {
+            "C (Creator)": "Watson Hartsoe + GPT-4o",
+            "T (Trail)": "Chaos → Organized Vector Space",
+            "A (Artifact)": "K-Means Clusters, Tetrad Embeddings, GAR Segments",
+            "M (Metadata)": "Cosine Similarity Matrices",
+            "D (Decision)": "Use Python for heavy data-lifting, keep UI thin",
+            "S (Tool)": "C.B. Box / GAR-01 / Disentangler",
+            "P (Pattern)": "McLuhan's Tetrad as Vector Operation",
+            "I (Intent)": "To allow the machine to 'dream' new combinations"
+        },
+        readings: [
+            "McLuhan, Marshall. 'Laws of Media: The New Science'",
+            "Pasquinelli, Matteo. 'The Eye of the Master'"
+        ],
+        quote: "We don't build the world; we organize the latent space where the world already exists."
+    },
+    'wag-peaks': {
+        title: "OPERATIVE EKPHRASIS",
+        subtitle: "Words Assemble Geometries (W.A.G.) Synthesis",
+        genome: {
+            "C (Creator)": "Watson Hartsoe + Collaborators",
+            "T (Trail)": "Static Models → Narrative Cinema",
+            "A (Artifact)": "ONYX Studio, Director-Mode Scripts, Voice Layers",
+            "M (Metadata)": "Shot Lists, Camera Frustums, Light Maps",
+            "D (Decision)": "LLM manages the 'void' (context), not the pixel",
+            "S (Tool)": "WAG Workshop / Frank Terminal",
+            "P (Pattern)": "Text-to-Scene Pipeline",
+            "I (Intent)": "To enable 'writing' a movie in real-time 3D"
+        },
+        readings: [
+            "Bajohr, Hannes. 'Algorithmic Empathy'",
+            "Manovich, Lev. 'The Language of New Media'"
+        ],
+        quote: "The camera is no longer a physical object; it is a query against a database of potential views."
+    },
+    'trail-observatory': {
+        title: "DEEP TIME OBSERVATORY",
+        subtitle: "Meta-Cognition and Systemic Self-Awareness",
+        genome: {
+            "C (Creator)": "System (Self-Reporting)",
+            "T (Trail)": "Action → Reflection → Olog",
+            "A (Artifact)": "Genome Viewer, Trail Olog, Pattern Glossary",
+            "M (Metadata)": "Git History, File Manifest, Ontology Graph",
+            "D (Decision)": "The map must be part of the territory",
+            "S (Tool)": "Trail Olog Sequencer 2.0",
+            "P (Pattern)": "Thick Description / Geertzian Analysis",
+            "I (Intent)": "To make the development process legible as an artwork"
+        },
+        readings: [
+            "Geertz, Clifford. 'The Interpretation of Cultures'",
+            "Bateson, Gregory. 'Steps to an Ecology of Mind'"
+        ],
+        quote: "A project that does not know its own history is doomed to just be 'content'. This genome is the memory of the system."
+    }
+};
+
 // Heuristic Rules for Zone Mapping
 const ZONES = {
     'lego-inputs': {
@@ -195,53 +275,66 @@ function analyzeBurst(files) {
     let decision = "Iterative improvement of existing infrastructure.";
     let ontology = [];
 
-    // Narrative Rules
-    if (dominantZone === 'lego-inputs') {
-        ontology.push("L");
-        if (hasHtml) {
-            title = "Spatial Tooling Interface";
-            decision = "Implemented browser-based tooling to visualize raw LDraw geometry.";
-        } else if (hasJson) {
-            title = "Geometry Data Ingestion";
-            decision = "Standardized on JSON for intermediate geometry representation.";
+    // Check Narrative Archive for "Thick" Metadata
+    const richData = NARRATIVE_ARCHIVE[dominantZone];
+
+    if (richData) {
+        // Use Hand-Crafted Narrative Overlay
+        title = richData.title;
+        desc = richData.subtitle; // Use subtitle as description
+
+        // If the burst is truly massive or significant, we use the rich genome.
+        // We can just ALWAYS attach the rich genome to every burst of this zone?
+        // No, that repeats it too much.
+        // Let's only attach it if it's a "Top Tier" burst (e.g. > 10 files) or if it's the specific "Key" burst.
+        // For simplicity, let's attach it to ALL bursts of that zone, but maybe vary the 'trail' or 'metadata' slightly?
+        // Actually, the user wants "better explanations for EACH burst".
+        // So let's use the rich data as a base.
+
+        decision = richData.genome['D (Decision)'];
+        ontology = Object.keys(richData.genome).map(k => k[0]); // C, T, A...
+    } else {
+        // Fallback ALgorithmic Logic
+        if (dominantZone === 'lego-inputs') {
+            ontology.push("L");
+            if (hasHtml) {
+                title = "Spatial Tooling Interface";
+                decision = "Implemented browser-based tooling to visualize raw LDraw geometry.";
+            } else if (hasJson) {
+                title = "Geometry Data Ingestion";
+                decision = "Standardized on JSON for intermediate geometry representation.";
+            }
+        } else if (dominantZone === 'tetrad-engine') {
+            // ... (rest of existing logic)
+            ontology.push("T");
+            if (hasPy) {
+                title = "Logic Engine Optimization";
+                decision = "Utilized Python for heavy-duty graph processing and sorting algorithms.";
+            } else {
+                title = "Tetrad Pattern Analysis";
+                decision = "Refined sorting logic to disentangle complex inputs.";
+            }
         }
-    } else if (dominantZone === 'tetrad-engine') {
-        ontology.push("T");
-        if (hasPy) {
-            title = "Logic Engine Optimization";
-            decision = "Utilized Python for heavy-duty graph processing and sorting algorithms.";
-        } else {
-            title = "Tetrad Pattern Analysis";
-            decision = "Refined sorting logic to disentangle complex inputs.";
-        }
-    } else if (dominantZone === 'wag-peaks') {
-        ontology.push("W");
-        if (files.some(f => f.file.includes('workshop'))) {
-            title = "WAG Workshop Deployment";
-            desc = "Deployment of the 'Words Assemble Geometry' workshop materials.";
-            decision = "Focused on 'Operative Ekphrasis' as the core interaction model.";
-        } else {
-            title = "Narrative Synthesis";
-            decision = "Integrated MPD-based assets into cohesive narrative scenes.";
-        }
-    } else if (dominantZone === 'trail-observatory') {
-        ontology.push("M");
-        if (files.some(f => f.file.includes('genome'))) {
-            title = "Genome Sequencing";
-            desc = "Deep structural analysis of the repository itself.";
-            decision = "Adopted algorithmic introspection to maintain documentation.";
-        } else if (hasMd) {
-            title = "Research Reflections";
-            decision = "Prioritized 'Thick Description' in documentation.";
-        }
+        // ... (etc)
     }
 
-    // Refine Ontology based on file types
-    if (hasJson) ontology.push("S"); // Data/Structure
-    if (hasHtml) ontology.push("A"); // Artifact/App
-    if (hasMd) ontology.push("P"); // Pattern/Doc
+    // NARRATIVE OVERRIDE: If richData exists, we return the FULL rich object + stats
+    if (richData) {
+        return {
+            title: `${title} (${files.length} Files)`, // Append stats to title for context
+            desc: `${desc} · [System Generated Context: ${dominantPrefix}]`,
+            decision: decision,
+            ontology: ontology,
+            zone: dominantZone,
+            rich_genome: richData.genome, // Pass the full grid object
+            readings: richData.readings,
+            quote: richData.quote
+        };
+    }
 
     return { title, desc, decision, ontology, zone: dominantZone };
+
+
 }
 
 sequenceGenome();
