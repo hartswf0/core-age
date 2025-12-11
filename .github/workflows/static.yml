@@ -34,12 +34,21 @@ jobs:
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
-        
+
+      # Create a clean deploy folder with only web-ready files
+      - name: Prepare deployment folder
+        run: |
+          mkdir -p _deploy
+          # Copy only essential files (html, js, css, json, md, svg, images)
+          find . -maxdepth 1 -type f \( -name "*.html" -o -name "*.js" -o -name "*.css" -o -name "*.json" -o -name "*.md" -o -name "*.svg" -o -name "*.png" -o -name "*.jpg" -o -name "*.ico" \) -exec cp {} _deploy/ \;
+          # Ensure .nojekyll exists
+          touch _deploy/.nojekyll
+          ls -la _deploy/
+
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Upload entire repository
-          path: '.'
+          path: '_deploy'
 
       - name: Deploy to GitHub Pages
         id: deployment
