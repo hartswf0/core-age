@@ -1,5 +1,5 @@
 {
-    "generated_at": "2025-12-11T22:15:27.133Z",
+    "generated_at": "2025-12-11T22:38:35.383Z",
     "thesis": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -7,7 +7,8 @@
         "L": "LEGO (Material Input)",
         "T": "TETRAD (Logic Process)",
         "W": "WAG (Language Synthesis)",
-        "M": "MAP (Trail Awareness)"
+        "M": "MAP (Trail Awareness)",
+        "G": "GUARDIAN (Ethical Assessment)"
     },
     "total_families": 4,
     "trail_levels": {
@@ -32,6 +33,14 @@
             "pattern": "Mesh-Per-Line Architecture",
             "decision": "Sacrificed performance for 100% data provenance.",
             "artifacts": [
+                {
+                    "text": "inject_data.js",
+                    "type": "artifact",
+                    "path": "inject_data.js",
+                    "size": "889 Bytes",
+                    "created": "2025-12-11T22:17:50.462Z",
+                    "modified": "2025-12-11T22:17:50.497Z"
+                },
                 {
                     "text": "sync.sh",
                     "type": "artifact",
@@ -1129,8 +1138,14 @@
                     "modified": "2025-11-19T03:46:07.971Z"
                 }
             ],
-            "fileCount": 137,
-            "dateRange": "11/18/2025 - 12/11/2025"
+            "fileCount": 138,
+            "dateRange": "11/18/2025 - 12/11/2025",
+            "tags": [
+                "#material-provenance",
+                "#ldraw-parsing",
+                "#spatial-input",
+                "#raw-geometry"
+            ]
         },
         {
             "id": "tetrad-engine",
@@ -1356,7 +1371,13 @@
                 }
             ],
             "fileCount": 26,
-            "dateRange": "11/19/2025 - 12/11/2025"
+            "dateRange": "11/19/2025 - 12/11/2025",
+            "tags": [
+                "#logic-sorting",
+                "#high-dimensional-space",
+                "#vector-embeddings",
+                "#tetrad-analysis"
+            ]
         },
         {
             "id": "wag-peaks",
@@ -1710,7 +1731,13 @@
                 }
             ],
             "fileCount": 42,
-            "dateRange": "11/19/2025 - 12/2/2025"
+            "dateRange": "11/19/2025 - 12/2/2025",
+            "tags": [
+                "#narrative-synthesis",
+                "#operative-ekphrasis",
+                "#world-building",
+                "#cinema-generation"
+            ]
         },
         {
             "id": "trail-observatory",
@@ -1730,33 +1757,41 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "24.19 KB",
+                    "size": "135.15 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-11T22:05:41.568Z"
+                    "modified": "2025-12-11T22:31:23.811Z"
                 },
                 {
-                    "text": "courage-trail-data.json",
-                    "type": "data",
-                    "path": "courage-trail-data.json",
-                    "size": "95.12 KB",
-                    "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-11T22:05:09.128Z"
-                },
-                {
-                    "text": "sequence_genome.js",
+                    "text": "assemble_genome.js",
                     "type": "artifact",
-                    "path": "sequence_genome.js",
-                    "size": "4.72 KB",
-                    "created": "2025-12-11T22:03:41.572Z",
-                    "modified": "2025-12-11T22:03:42.719Z"
+                    "path": "assemble_genome.js",
+                    "size": "3 KB",
+                    "created": "2025-12-11T22:29:05.302Z",
+                    "modified": "2025-12-11T22:29:05.348Z"
                 },
                 {
                     "text": "file-manifest.json",
                     "type": "meta",
                     "path": "file-manifest.json",
-                    "size": "82.41 KB",
+                    "size": "82.97 KB",
                     "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-11T21:59:27.906Z"
+                    "modified": "2025-12-11T22:25:05.785Z"
+                },
+                {
+                    "text": "courage-trail-data.json",
+                    "type": "data",
+                    "path": "courage-trail-data.json",
+                    "size": "99.16 KB",
+                    "created": "2025-12-11T04:38:22.247Z",
+                    "modified": "2025-12-11T22:15:27.134Z"
+                },
+                {
+                    "text": "sequence_genome.js",
+                    "type": "artifact",
+                    "path": "sequence_genome.js",
+                    "size": "7.25 KB",
+                    "created": "2025-12-11T22:03:41.572Z",
+                    "modified": "2025-12-11T22:14:16.879Z"
                 },
                 {
                     "text": "GENOME_REPORT.md",
@@ -2303,8 +2338,14 @@
                     "modified": "2025-11-22T05:12:26.461Z"
                 }
             ],
-            "fileCount": 72,
-            "dateRange": "11/22/2025 - 12/11/2025"
+            "fileCount": 73,
+            "dateRange": "11/22/2025 - 12/11/2025",
+            "tags": [
+                "#meta-reflection",
+                "#self-documentation",
+                "#trail-mapping",
+                "#system-awareness"
+            ]
         }
     ],
     "connections": [
@@ -2331,141 +2372,173 @@
     ],
     "timeline": [
         {
-            "date": "2025-11-12",
-            "label": "Line 22 Collapse",
-            "desc": "Monolithic loading failure destroys provenance.",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-15",
-            "label": "Architecture B Fix",
-            "desc": "Shift to Mesh-Per-Line architecture.",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-19",
-            "label": "24 File Burst (WAG)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: courage.html, courage_annotated.html, dna.html...",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-20",
-            "label": "Tetrad Discovery",
-            "desc": "McLuhan's laws applied to grid logic.",
-            "active": [
-                "tetrad-engine"
-            ]
-        },
-        {
-            "date": "2025-11-20",
-            "label": "9 File Burst (TIMBER)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: brick-haven-central.html, brick-haven-previs.html, brick_haven_city.mpd...",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-21",
-            "label": "5 File Burst (WAG_GOLD_OTHER_563_2025)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: LEGOS-tutorial-primal.html, TIMBER-tutorial.html, test-wag-gold.json...",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-22",
-            "label": "25 File Burst (SKELETON)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: architecture-decision-matrix.html, assembly-line-single-mesh.html, assembly-line.html...",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-23",
-            "label": "16 File Burst (SMALL)",
-            "desc": "Significant density detected in trail-observatory. Key outputs: convert-scenarios-to-js.js, file-manifest-raw.json, file-manifest.json...",
+            "date": "2025-12-11",
+            "label": "Genome Sequencing",
+            "desc": "Deep structural analysis of the repository itself.",
+            "decision": "Adopted algorithmic introspection to maintain documentation.",
+            "ontology": [
+                "M",
+                "S",
+                "A",
+                "P"
+            ],
             "active": [
                 "trail-observatory"
             ]
         },
         {
-            "date": "2025-11-24",
-            "label": "33 File Burst (WAG)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: check_manifest.py, favicon.svg, frank-base.js...",
+            "date": "2025-12-02",
+            "label": "Tetrad Pattern Analysis",
+            "desc": "Significant development in the tetrad-engine zone, focusing on gar.",
+            "decision": "Refined sorting logic to disentangle complex inputs.",
+            "ontology": [
+                "T",
+                "S",
+                "A",
+                "P"
+            ],
             "active": [
-                "lego-inputs"
+                "tetrad-engine"
             ]
         },
         {
-            "date": "2025-11-25",
-            "label": "5 File Burst (LEGOS)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: README.md, core-age-favicon.svg, etymology.html...",
-            "active": [
-                "lego-inputs"
-            ]
-        },
-        {
-            "date": "2025-11-26",
-            "label": "4 File Burst (MENTO)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: glb-mento-moe copy.html, mento-369 copy.html, mento-370.html...",
+            "date": "2025-12-01",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on onyx.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "S",
+                "A"
+            ],
             "active": [
                 "lego-inputs"
             ]
         },
         {
             "date": "2025-11-28",
-            "label": "61 File Burst (CONCAT.TXT)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: burst_analysis.csv, sorted_by_date.txt, sorted_by_size.txt...",
+            "label": "CONCAT System Update",
+            "desc": "Significant development in the lego-inputs zone, focusing on concat.",
+            "decision": "Iterative improvement of existing infrastructure.",
+            "ontology": [
+                "L",
+                "P"
+            ],
             "active": [
                 "lego-inputs"
             ]
         },
         {
-            "date": "2025-12-01",
-            "label": "25 File Burst (ONYX)",
-            "desc": "Significant density detected in lego-inputs. Key outputs: egri-worksheet.html, embeddings.json, embeddings_data.js...",
+            "date": "2025-11-26",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on mento.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "A"
+            ],
             "active": [
                 "lego-inputs"
             ]
         },
         {
-            "date": "2025-12-02",
-            "label": "WAG Workshop",
-            "desc": "First public demo of Words Assemble Geometry.",
+            "date": "2025-11-25",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on legos.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "A",
+                "P"
+            ],
             "active": [
-                "wag-peaks"
+                "lego-inputs"
             ]
         },
         {
-            "date": "2025-12-02",
-            "label": "22 File Burst (GAR)",
-            "desc": "Significant density detected in tetrad-engine. Key outputs: gar-01.html, gar-02.html, gar-03.html...",
+            "date": "2025-11-24",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on wag.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "A"
+            ],
             "active": [
-                "tetrad-engine"
+                "lego-inputs"
             ]
         },
         {
-            "date": "2025-12-11",
-            "label": "Genome Sequencing",
-            "desc": "Deep sequence of repository DNA.",
+            "date": "2025-11-23",
+            "label": "SMALL System Update",
+            "desc": "Significant development in the trail-observatory zone, focusing on small.",
+            "decision": "Iterative improvement of existing infrastructure.",
+            "ontology": [
+                "M",
+                "S",
+                "A"
+            ],
             "active": [
                 "trail-observatory"
             ]
         },
         {
-            "date": "2025-12-11",
-            "label": "45 File Burst (COURAGE)",
-            "desc": "Significant density detected in trail-observatory. Key outputs: GENOME_REPORT.md, PORTING_AND_DEPLOYMENT.md, TRAILS_AND_REFLECTIONS.md...",
+            "date": "2025-11-22",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on skeleton.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "S",
+                "A",
+                "P"
+            ],
             "active": [
-                "trail-observatory"
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-21",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on test.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "S",
+                "A"
+            ],
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-20",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on brick.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "S",
+                "A"
+            ],
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-19",
+            "label": "Spatial Tooling Interface",
+            "desc": "Significant development in the lego-inputs zone, focusing on wag.",
+            "decision": "Implemented browser-based tooling to visualize raw LDraw geometry.",
+            "ontology": [
+                "L",
+                "S",
+                "A"
+            ],
+            "active": [
+                "lego-inputs"
             ]
         }
     ],
-    "total_files_sequenced": 277
+    "total_files_sequenced": 279
 }

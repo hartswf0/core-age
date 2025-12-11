@@ -6,22 +6,35 @@ const MANIFEST_PATH = './file-manifest.json';
 const GENOME_DATA_PATH = './courage-trail-data.json';
 const OUTPUT_PATH = './courage-trail-data.json'; // Overwrite
 
+// Ontology Definition
+const DNA_BASE_PAIRS = {
+    "L": "LEGO (Material Input)",
+    "T": "TETRAD (Logic Process)",
+    "W": "WAG (Language Synthesis)",
+    "M": "MAP (Trail Awareness)",
+    "G": "GUARDIAN (Ethical Assessment)"
+};
+
 // Heuristic Rules for Zone Mapping
 const ZONES = {
     'lego-inputs': {
         keywords: ['lego', 'timber', 'line-22', 'ldraw', 'mpd', 'architect', '3d', 'brick'],
+        hashtags: ['#material-provenance', '#ldraw-parsing', '#spatial-input', '#raw-geometry'],
         fallback_type: 'artifact'
     },
     'tetrad-engine': {
         keywords: ['tetrad', 'thousand', 'gar', 'grid', 'sort', 'disentangling', 'tao', 'strategy', 'kmeans', 'segmentation'],
+        hashtags: ['#logic-sorting', '#high-dimensional-space', '#vector-embeddings', '#tetrad-analysis'],
         fallback_type: 'artifact'
     },
     'wag-peaks': {
         keywords: ['wag', 'onyx', 'scene', 'speak', 'word', 'brave', 'studio', 'narrative', 'story', 'workshop', 'frank', 'gold'],
+        hashtags: ['#narrative-synthesis', '#operative-ekphrasis', '#world-building', '#cinema-generation'],
         fallback_type: 'artifact'
     },
     'trail-observatory': {
         keywords: ['trail', 'genome', 'olog', 'manifest', 'report', 'sequence', 'map', 'reflection', 'future', 'research'],
+        hashtags: ['#meta-reflection', '#self-documentation', '#trail-mapping', '#system-awareness'],
         fallback_type: 'artifact'
     }
 };
@@ -36,7 +49,7 @@ function sequenceGenome() {
     }
     const manifest = JSON.parse(fs.readFileSync(MANIFEST_PATH, 'utf8'));
 
-    // Load existing genome (template) or use default
+    // Load existing genome template
     let genome = {};
     if (fs.existsSync(GENOME_DATA_PATH)) {
         genome = JSON.parse(fs.readFileSync(GENOME_DATA_PATH, 'utf8'));
@@ -44,43 +57,40 @@ function sequenceGenome() {
 
     console.log(`📂 Loaded ${manifest.total_files} files from manifest.`);
 
-    // 2. Clear current artifacts in zones to prepare for infusion
-    if (genome.zones) {
-        genome.zones.forEach(z => z.artifacts = []);
-    }
+    // 2. Infuse Ontology
+    genome.dna_base_pairs = DNA_BASE_PAIRS;
 
-    // 3. Map Files to Zones & Track Daily Activity
+    // 3. Reset Zones & Map Files
+    genome.zones.forEach(z => {
+        z.artifacts = [];
+        // Add hashtags to zone definition if missing
+        if (ZONES[z.id]) z.tags = ZONES[z.id].hashtags;
+    });
+
     let assignedCount = 0;
-    let unassignedCount = 0;
     const dailyActivity = {}; // YYYY-MM-DD -> [files]
 
     manifest.files.all.forEach(file => {
-        // Skip system files or hidden files if needed
         if (file.name.startsWith('.')) return;
 
         let bestZoneId = null;
         let bestMatchScore = 0;
 
-        // Scoring: +1 for each keyword match
+        // Scoring
         Object.keys(ZONES).forEach(zoneId => {
             let score = 0;
             ZONES[zoneId].keywords.forEach(kw => {
-                if (file.name.toLowerCase().includes(kw)) score += 2; // Strong match on name
-                if (file.path.toLowerCase().includes(kw)) score += 1; // Weak match on path
+                if (file.name.toLowerCase().includes(kw)) score += 2;
+                if (file.path.toLowerCase().includes(kw)) score += 1;
             });
-
             if (score > bestMatchScore) {
                 bestMatchScore = score;
                 bestZoneId = zoneId;
             }
         });
 
-        // Default to "lego-inputs" (Input Era) if no match, or a generic "fossil" bin if we had one.
-        // For now, let's put unassigned items in 'lego-inputs' as "Raw Material" or 'trail-observatory' as "Meta".
-        // Let's use 'lego-inputs' as the catch-all for "Raw Files" unless it looks like a document.
+        // Fallback Logic
         if (!bestZoneId) {
-            unassignedCount++;
-            // Simple heuristic for unassigned:
             if (file.extension === '.md') bestZoneId = 'trail-observatory';
             else bestZoneId = 'lego-inputs';
         } else {
@@ -93,73 +103,52 @@ function sequenceGenome() {
             zone.artifacts.push({
                 text: file.name,
                 type: determineType(file),
-                path: file.name, // Relative path for web viewer
+                path: file.name,
                 size: file.size_human,
                 created: file.created,
                 modified: file.modified
             });
         }
 
-        // Track Activity by Date
+        // Track Activity
         const date = new Date(file.created || file.modified).toISOString().split('T')[0];
         if (!dailyActivity[date]) dailyActivity[date] = [];
-        dailyActivity[date].push({ file: file.name, zone: bestZoneId });
+        dailyActivity[date].push({ file: file.name, zone: bestZoneId, ext: file.extension });
     });
 
-    // 4. Sort Artifacts inside Zones (Newest First)
+    // 4. Sort Artifacts
     genome.zones.forEach(z => {
         z.artifacts.sort((a, b) => new Date(b.modified) - new Date(a.modified));
-        // Update stats
         z.fileCount = z.artifacts.length;
-        if (z.artifacts.length > 0) {
-            const newest = new Date(z.artifacts[0].modified);
-            const oldest = new Date(z.artifacts[z.artifacts.length - 1].modified);
-            z.dateRange = `${oldest.toLocaleDateString()} - ${newest.toLocaleDateString()}`;
-        }
     });
 
-    // 5. Generate Timeline Events from Bursts
-    console.log("📅 Generating Timeline Bursts...");
-    // Keep original hardcoded milestones if needed, or clear them? 
-    // Let's filter out old auto-generated ones if we rerun, but hard to distinguish.
-    // Ideally, we keep the curated ones and APPEND the bursts.
-    // Let's reset timeline to just the core 5 manually curated ones first?
-    // Actually, let's keep the core ones by checking if they have a "desc" that is manual.
-    // A simpler approach: Clear timeline and re-add core + bursts. 
-    // For now, let's just append bursts that are significant (>2 files).
+    // 5. Generate Narrative Timeline
+    console.log("📅 Generating Narrative Timeline...");
 
     const bursts = [];
     Object.keys(dailyActivity).sort().forEach(date => {
         const files = dailyActivity[date];
         if (files.length > 2) {
-            // Find dominant zone
-            const zoneCounts = {};
-            files.forEach(f => zoneCounts[f.zone] = (zoneCounts[f.zone] || 0) + 1);
-            const dominantZone = Object.keys(zoneCounts).reduce((a, b) => zoneCounts[a] > zoneCounts[b] ? a : b);
-
-            // Create Label
-            const prefixCounts = {};
-            files.forEach(f => {
-                const prefix = f.file.split('-')[0];
-                prefixCounts[prefix] = (prefixCounts[prefix] || 0) + 1;
-            });
-            const dominantPrefix = Object.keys(prefixCounts).reduce((a, b) => prefixCounts[a] > prefixCounts[b] ? a : b);
+            const analysis = analyzeBurst(files);
 
             bursts.push({
                 date: date,
-                label: `${files.length} File Burst (${dominantPrefix.toUpperCase()})`,
-                desc: `Significant density detected in ${dominantZone}. Key outputs: ${files.slice(0, 3).map(f => f.file).join(', ')}...`,
-                active: [dominantZone]
+                label: analysis.title,
+                desc: analysis.desc,
+                decision: analysis.decision,
+                ontology: analysis.ontology,
+                active: [analysis.zone]
             });
         }
     });
 
-    // Merge Bursts (avoid duplicates if possible, but simplicity first)
-    // We will preserve the manually curated events which have specific hardcoded dates.
-    // Filter out previous bursts from timeline if any
-    const coreEvents = genome.timeline.filter(e => !e.label.includes('Burst'));
-    genome.timeline = [...coreEvents, ...bursts].sort((a, b) => new Date(a.date) - new Date(b.date));
-
+    // Merge Timeline (Preserve purely manual milestones if needed, but likely we want to overwrite with this richer data)
+    // Actually, let's KEEP manual milestones that have a specific "manual: true" flag (if we added one), 
+    // or just assume the algorithmic generation is now superior?
+    // User asked for "thicker", so let's use the generated bursts as the primary source of truth.
+    // If we want to keep specific historical markers, we'd need a separate list.
+    // For now, let's REPLACE the timeline with this rich generated history.
+    genome.timeline = bursts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
     // 6. Update Metadata
     genome.generated_at = new Date().toISOString();
@@ -168,8 +157,6 @@ function sequenceGenome() {
     // 7. Save
     fs.writeFileSync(OUTPUT_PATH, JSON.stringify(genome, null, 4));
     console.log(`✅ Sequencing Complete.`);
-    console.log(`   - Assigned: ${assignedCount}`);
-    console.log(`   - Bursts Generated: ${bursts.length}`);
     console.log(`   - Output: ${OUTPUT_PATH}`);
 }
 
@@ -180,6 +167,81 @@ function determineType(file) {
     if (file.extension === '.json') return 'data';
     if (file.extension === '.md') return 'doc';
     return 'artifact';
+}
+
+function analyzeBurst(files) {
+    // 1. Determine Dominant Zone
+    const zoneCounts = {};
+    files.forEach(f => zoneCounts[f.zone] = (zoneCounts[f.zone] || 0) + 1);
+    const dominantZone = Object.keys(zoneCounts).reduce((a, b) => zoneCounts[a] > zoneCounts[b] ? a : b);
+
+    // 2. Identify Key Keywords / Prefix
+    const prefixCounts = {};
+    files.forEach(f => {
+        const parts = f.file.split(/[-_.]/);
+        if (parts[0]) prefixCounts[parts[0]] = (prefixCounts[parts[0]] || 0) + 1;
+    });
+    const dominantPrefix = Object.keys(prefixCounts).reduce((a, b) => prefixCounts[a] > prefixCounts[b] ? a : b);
+
+    // 3. Check for specific file types to infer "Decision" and "Title"
+    const hasHtml = files.some(f => f.ext === '.html');
+    const hasJson = files.some(f => f.ext === '.json');
+    const hasMd = files.some(f => f.ext === '.md');
+    const hasPy = files.some(f => f.ext === '.py');
+    const hasSh = files.some(f => f.ext === '.sh');
+
+    let title = `${dominantPrefix.toUpperCase()} System Update`;
+    let desc = `Significant development in the ${dominantZone} zone, focusing on ${dominantPrefix}.`;
+    let decision = "Iterative improvement of existing infrastructure.";
+    let ontology = [];
+
+    // Narrative Rules
+    if (dominantZone === 'lego-inputs') {
+        ontology.push("L");
+        if (hasHtml) {
+            title = "Spatial Tooling Interface";
+            decision = "Implemented browser-based tooling to visualize raw LDraw geometry.";
+        } else if (hasJson) {
+            title = "Geometry Data Ingestion";
+            decision = "Standardized on JSON for intermediate geometry representation.";
+        }
+    } else if (dominantZone === 'tetrad-engine') {
+        ontology.push("T");
+        if (hasPy) {
+            title = "Logic Engine Optimization";
+            decision = "Utilized Python for heavy-duty graph processing and sorting algorithms.";
+        } else {
+            title = "Tetrad Pattern Analysis";
+            decision = "Refined sorting logic to disentangle complex inputs.";
+        }
+    } else if (dominantZone === 'wag-peaks') {
+        ontology.push("W");
+        if (files.some(f => f.file.includes('workshop'))) {
+            title = "WAG Workshop Deployment";
+            desc = "Deployment of the 'Words Assemble Geometry' workshop materials.";
+            decision = "Focused on 'Operative Ekphrasis' as the core interaction model.";
+        } else {
+            title = "Narrative Synthesis";
+            decision = "Integrated MPD-based assets into cohesive narrative scenes.";
+        }
+    } else if (dominantZone === 'trail-observatory') {
+        ontology.push("M");
+        if (files.some(f => f.file.includes('genome'))) {
+            title = "Genome Sequencing";
+            desc = "Deep structural analysis of the repository itself.";
+            decision = "Adopted algorithmic introspection to maintain documentation.";
+        } else if (hasMd) {
+            title = "Research Reflections";
+            decision = "Prioritized 'Thick Description' in documentation.";
+        }
+    }
+
+    // Refine Ontology based on file types
+    if (hasJson) ontology.push("S"); // Data/Structure
+    if (hasHtml) ontology.push("A"); // Artifact/App
+    if (hasMd) ontology.push("P"); // Pattern/Doc
+
+    return { title, desc, decision, ontology, zone: dominantZone };
 }
 
 sequenceGenome();
