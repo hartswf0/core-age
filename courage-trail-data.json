@@ -1,5 +1,5 @@
 {
-    "generated_at": "2025-12-11T22:05:09.127Z",
+    "generated_at": "2025-12-11T22:15:27.133Z",
     "thesis": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -721,22 +721,6 @@
                     "modified": "2025-11-24T09:23:20.265Z"
                 },
                 {
-                    "text": "frank-unified.css",
-                    "type": "artifact",
-                    "path": "frank-unified.css",
-                    "size": "6.27 KB",
-                    "created": "2025-11-24T06:30:08.398Z",
-                    "modified": "2025-11-24T06:30:08.549Z"
-                },
-                {
-                    "text": "frank-base.js",
-                    "type": "artifact",
-                    "path": "frank-base.js",
-                    "size": "13.14 KB",
-                    "created": "2025-11-24T05:16:51.670Z",
-                    "modified": "2025-11-24T06:04:37.334Z"
-                },
-                {
                     "text": "legos-worldbuilding-tutorial.html",
                     "type": "tool",
                     "path": "legos-worldbuilding-tutorial.html",
@@ -817,36 +801,12 @@
                     "modified": "2025-11-23T08:59:14.262Z"
                 },
                 {
-                    "text": "small-future-scenarios-inject.js",
-                    "type": "artifact",
-                    "path": "small-future-scenarios-inject.js",
-                    "size": "2.03 MB",
-                    "created": "2025-11-23T08:24:55.840Z",
-                    "modified": "2025-11-23T08:24:55.841Z"
-                },
-                {
                     "text": "convert-scenarios-to-js.js",
                     "type": "artifact",
                     "path": "convert-scenarios-to-js.js",
                     "size": "1.22 KB",
                     "created": "2025-11-23T08:24:24.770Z",
                     "modified": "2025-11-23T08:24:24.912Z"
-                },
-                {
-                    "text": "small-future-scenarios.json",
-                    "type": "data",
-                    "path": "small-future-scenarios.json",
-                    "size": "1.86 MB",
-                    "created": "2025-11-23T08:23:52.146Z",
-                    "modified": "2025-11-23T08:23:52.147Z"
-                },
-                {
-                    "text": "generate-small-futures.js",
-                    "type": "artifact",
-                    "path": "generate-small-futures.js",
-                    "size": "2.9 KB",
-                    "created": "2025-11-23T08:22:15.251Z",
-                    "modified": "2025-11-23T08:22:15.412Z"
                 },
                 {
                     "text": "trubador-archive.html",
@@ -1001,14 +961,6 @@
                     "modified": "2025-11-21T05:58:06.140Z"
                 },
                 {
-                    "text": "gold_test.json",
-                    "type": "data",
-                    "path": "gold_test.json",
-                    "size": "24.7 KB",
-                    "created": "2025-11-20T09:57:25.180Z",
-                    "modified": "2025-11-20T09:57:25.180Z"
-                },
-                {
                     "text": "timber-master.html",
                     "type": "tool",
                     "path": "timber-master.html",
@@ -1087,14 +1039,6 @@
                     "size": "17.05 KB",
                     "created": "2025-11-19T21:58:55.737Z",
                     "modified": "2025-11-19T21:58:56.936Z"
-                },
-                {
-                    "text": "gold-nba.json",
-                    "type": "data",
-                    "path": "gold-nba.json",
-                    "size": "371.96 KB",
-                    "created": "2025-11-19T14:19:24.875Z",
-                    "modified": "2025-11-19T14:19:25.809Z"
                 },
                 {
                     "text": "wag_courage_calibration_compass.mpd",
@@ -1185,7 +1129,7 @@
                     "modified": "2025-11-19T03:46:07.971Z"
                 }
             ],
-            "fileCount": 144,
+            "fileCount": 137,
             "dateRange": "11/18/2025 - 12/11/2025"
         },
         {
@@ -1291,28 +1235,12 @@
                     "modified": "2025-12-02T05:13:11.122Z"
                 },
                 {
-                    "text": "gar-onyx-research-olog.md",
-                    "type": "doc",
-                    "path": "gar-onyx-research-olog.md",
-                    "size": "10.9 KB",
-                    "created": "2025-12-02T05:13:02.398Z",
-                    "modified": "2025-12-02T05:13:02.413Z"
-                },
-                {
                     "text": "gar-onyx-bridge.js",
                     "type": "artifact",
                     "path": "gar-onyx-bridge.js",
                     "size": "7.92 KB",
                     "created": "2025-12-02T05:06:15.760Z",
                     "modified": "2025-12-02T05:06:15.822Z"
-                },
-                {
-                    "text": "wag-frank-tetrad.html",
-                    "type": "tool",
-                    "path": "wag-frank-tetrad.html",
-                    "size": "675.85 KB",
-                    "created": "2025-11-23T07:32:08.574Z",
-                    "modified": "2025-12-02T04:18:30.546Z"
                 },
                 {
                     "text": "gar-00.html",
@@ -1379,44 +1307,12 @@
                     "modified": "2025-11-28T09:07:43.515Z"
                 },
                 {
-                    "text": "wag-frank-tetrad-inception.html",
-                    "type": "tool",
-                    "path": "wag-frank-tetrad-inception.html",
-                    "size": "702.79 KB",
-                    "created": "2025-11-24T08:46:23.366Z",
-                    "modified": "2025-11-24T11:19:25.648Z"
-                },
-                {
                     "text": "inception-tetrad-code-editor.html",
                     "type": "tool",
                     "path": "inception-tetrad-code-editor.html",
                     "size": "19.33 KB",
                     "created": "2025-11-24T10:37:05.146Z",
                     "modified": "2025-11-24T10:37:57.299Z"
-                },
-                {
-                    "text": "wag-frank-tetrad-term.html",
-                    "type": "tool",
-                    "path": "wag-frank-tetrad-term.html",
-                    "size": "21.57 KB",
-                    "created": "2025-11-24T06:56:42.785Z",
-                    "modified": "2025-11-24T08:25:04.331Z"
-                },
-                {
-                    "text": "wag-frank-tetrad-olog.html",
-                    "type": "tool",
-                    "path": "wag-frank-tetrad-olog.html",
-                    "size": "20.95 KB",
-                    "created": "2025-11-24T06:59:00.118Z",
-                    "modified": "2025-11-24T08:08:31.078Z"
-                },
-                {
-                    "text": "wag-frank-tetrad-unif.html",
-                    "type": "tool",
-                    "path": "wag-frank-tetrad-unif.html",
-                    "size": "19.62 KB",
-                    "created": "2025-11-24T06:57:49.891Z",
-                    "modified": "2025-11-24T08:05:22.073Z"
                 },
                 {
                     "text": "thousand-tetrad.html",
@@ -1459,7 +1355,7 @@
                     "modified": "2025-11-19T07:18:30.671Z"
                 }
             ],
-            "fileCount": 32,
+            "fileCount": 26,
             "dateRange": "11/19/2025 - 12/11/2025"
         },
         {
@@ -1507,6 +1403,14 @@
                     "size": "604.36 KB",
                     "created": "2025-12-02T04:56:27.469Z",
                     "modified": "2025-12-02T04:56:27.474Z"
+                },
+                {
+                    "text": "wag-frank-tetrad.html",
+                    "type": "tool",
+                    "path": "wag-frank-tetrad.html",
+                    "size": "675.85 KB",
+                    "created": "2025-11-23T07:32:08.574Z",
+                    "modified": "2025-12-02T04:18:30.546Z"
                 },
                 {
                     "text": "onyx_research_statement.md",
@@ -1613,6 +1517,38 @@
                     "modified": "2025-12-01T05:20:04.438Z"
                 },
                 {
+                    "text": "wag-frank-tetrad-inception.html",
+                    "type": "tool",
+                    "path": "wag-frank-tetrad-inception.html",
+                    "size": "702.79 KB",
+                    "created": "2025-11-24T08:46:23.366Z",
+                    "modified": "2025-11-24T11:19:25.648Z"
+                },
+                {
+                    "text": "wag-frank-tetrad-term.html",
+                    "type": "tool",
+                    "path": "wag-frank-tetrad-term.html",
+                    "size": "21.57 KB",
+                    "created": "2025-11-24T06:56:42.785Z",
+                    "modified": "2025-11-24T08:25:04.331Z"
+                },
+                {
+                    "text": "wag-frank-tetrad-olog.html",
+                    "type": "tool",
+                    "path": "wag-frank-tetrad-olog.html",
+                    "size": "20.95 KB",
+                    "created": "2025-11-24T06:59:00.118Z",
+                    "modified": "2025-11-24T08:08:31.078Z"
+                },
+                {
+                    "text": "wag-frank-tetrad-unif.html",
+                    "type": "tool",
+                    "path": "wag-frank-tetrad-unif.html",
+                    "size": "19.62 KB",
+                    "created": "2025-11-24T06:57:49.891Z",
+                    "modified": "2025-11-24T08:05:22.073Z"
+                },
+                {
                     "text": "wag-frank-tetrad-studio.html",
                     "type": "tool",
                     "path": "wag-frank-tetrad-studio.html",
@@ -1653,12 +1589,28 @@
                     "modified": "2025-11-24T06:30:43.456Z"
                 },
                 {
+                    "text": "frank-unified.css",
+                    "type": "artifact",
+                    "path": "frank-unified.css",
+                    "size": "6.27 KB",
+                    "created": "2025-11-24T06:30:08.398Z",
+                    "modified": "2025-11-24T06:30:08.549Z"
+                },
+                {
                     "text": "wag-frank-studio.html",
                     "type": "tool",
                     "path": "wag-frank-studio.html",
                     "size": "16.38 KB",
                     "created": "2025-11-24T04:11:56.508Z",
                     "modified": "2025-11-24T06:24:50.183Z"
+                },
+                {
+                    "text": "frank-base.js",
+                    "type": "artifact",
+                    "path": "frank-base.js",
+                    "size": "13.14 KB",
+                    "created": "2025-11-24T05:16:51.670Z",
+                    "modified": "2025-11-24T06:04:37.334Z"
                 },
                 {
                     "text": "line-aware-scene-graph.md",
@@ -1709,6 +1661,14 @@
                     "modified": "2025-11-21T21:18:09.041Z"
                 },
                 {
+                    "text": "gold_test.json",
+                    "type": "data",
+                    "path": "gold_test.json",
+                    "size": "24.7 KB",
+                    "created": "2025-11-20T09:57:25.180Z",
+                    "modified": "2025-11-20T09:57:25.180Z"
+                },
+                {
                     "text": "wag-were-twilight.html",
                     "type": "tool",
                     "path": "wag-were-twilight.html",
@@ -1723,6 +1683,14 @@
                     "size": "25.47 KB",
                     "created": "2025-11-19T22:29:41.167Z",
                     "modified": "2025-11-19T22:29:41.169Z"
+                },
+                {
+                    "text": "gold-nba.json",
+                    "type": "data",
+                    "path": "gold-nba.json",
+                    "size": "371.96 KB",
+                    "created": "2025-11-19T14:19:24.875Z",
+                    "modified": "2025-11-19T14:19:25.809Z"
                 },
                 {
                     "text": "wag-gold-scene.json",
@@ -1741,7 +1709,7 @@
                     "modified": "2025-11-19T09:20:56.794Z"
                 }
             ],
-            "fileCount": 33,
+            "fileCount": 42,
             "dateRange": "11/19/2025 - 12/2/2025"
         },
         {
@@ -1762,17 +1730,33 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "23.49 KB",
+                    "size": "24.19 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-11T21:59:12.400Z"
+                    "modified": "2025-12-11T22:05:41.568Z"
                 },
                 {
                     "text": "courage-trail-data.json",
                     "type": "data",
                     "path": "courage-trail-data.json",
-                    "size": "6.44 KB",
+                    "size": "95.12 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-11T21:58:14.003Z"
+                    "modified": "2025-12-11T22:05:09.128Z"
+                },
+                {
+                    "text": "sequence_genome.js",
+                    "type": "artifact",
+                    "path": "sequence_genome.js",
+                    "size": "4.72 KB",
+                    "created": "2025-12-11T22:03:41.572Z",
+                    "modified": "2025-12-11T22:03:42.719Z"
+                },
+                {
+                    "text": "file-manifest.json",
+                    "type": "meta",
+                    "path": "file-manifest.json",
+                    "size": "82.41 KB",
+                    "created": "2025-11-23T03:28:22.206Z",
+                    "modified": "2025-12-11T21:59:27.906Z"
                 },
                 {
                     "text": "GENOME_REPORT.md",
@@ -1781,14 +1765,6 @@
                     "size": "3.53 KB",
                     "created": "2025-12-11T21:30:25.242Z",
                     "modified": "2025-12-11T21:56:06.253Z"
-                },
-                {
-                    "text": "file-manifest.json",
-                    "type": "meta",
-                    "path": "file-manifest.json",
-                    "size": "82.41 KB",
-                    "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-11T21:53:18.863Z"
                 },
                 {
                     "text": "TRAIL_OLOG_SEQUENCER.md",
@@ -2103,6 +2079,14 @@
                     "modified": "2025-12-03T22:41:06.742Z"
                 },
                 {
+                    "text": "gar-onyx-research-olog.md",
+                    "type": "doc",
+                    "path": "gar-onyx-research-olog.md",
+                    "size": "10.9 KB",
+                    "created": "2025-12-02T05:13:02.398Z",
+                    "modified": "2025-12-02T05:13:02.413Z"
+                },
+                {
                     "text": "YouTube_Description.md",
                     "type": "doc",
                     "path": "YouTube_Description.md",
@@ -2189,6 +2173,30 @@
                     "size": "791 Bytes",
                     "created": "2025-11-24T12:02:49.918Z",
                     "modified": "2025-11-24T12:02:50.199Z"
+                },
+                {
+                    "text": "small-future-scenarios-inject.js",
+                    "type": "artifact",
+                    "path": "small-future-scenarios-inject.js",
+                    "size": "2.03 MB",
+                    "created": "2025-11-23T08:24:55.840Z",
+                    "modified": "2025-11-23T08:24:55.841Z"
+                },
+                {
+                    "text": "small-future-scenarios.json",
+                    "type": "data",
+                    "path": "small-future-scenarios.json",
+                    "size": "1.86 MB",
+                    "created": "2025-11-23T08:23:52.146Z",
+                    "modified": "2025-11-23T08:23:52.147Z"
+                },
+                {
+                    "text": "generate-small-futures.js",
+                    "type": "artifact",
+                    "path": "generate-small-futures.js",
+                    "size": "2.9 KB",
+                    "created": "2025-11-23T08:22:15.251Z",
+                    "modified": "2025-11-23T08:22:15.412Z"
                 },
                 {
                     "text": "ontology-conveyor.html",
@@ -2295,7 +2303,7 @@
                     "modified": "2025-11-22T05:12:26.461Z"
                 }
             ],
-            "fileCount": 67,
+            "fileCount": 72,
             "dateRange": "11/22/2025 - 12/11/2025"
         }
     ],
@@ -2339,11 +2347,91 @@
             ]
         },
         {
+            "date": "2025-11-19",
+            "label": "24 File Burst (WAG)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: courage.html, courage_annotated.html, dna.html...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
             "date": "2025-11-20",
             "label": "Tetrad Discovery",
             "desc": "McLuhan's laws applied to grid logic.",
             "active": [
                 "tetrad-engine"
+            ]
+        },
+        {
+            "date": "2025-11-20",
+            "label": "9 File Burst (TIMBER)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: brick-haven-central.html, brick-haven-previs.html, brick_haven_city.mpd...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-21",
+            "label": "5 File Burst (WAG_GOLD_OTHER_563_2025)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: LEGOS-tutorial-primal.html, TIMBER-tutorial.html, test-wag-gold.json...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-22",
+            "label": "25 File Burst (SKELETON)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: architecture-decision-matrix.html, assembly-line-single-mesh.html, assembly-line.html...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-23",
+            "label": "16 File Burst (SMALL)",
+            "desc": "Significant density detected in trail-observatory. Key outputs: convert-scenarios-to-js.js, file-manifest-raw.json, file-manifest.json...",
+            "active": [
+                "trail-observatory"
+            ]
+        },
+        {
+            "date": "2025-11-24",
+            "label": "33 File Burst (WAG)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: check_manifest.py, favicon.svg, frank-base.js...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-25",
+            "label": "5 File Burst (LEGOS)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: README.md, core-age-favicon.svg, etymology.html...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-26",
+            "label": "4 File Burst (MENTO)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: glb-mento-moe copy.html, mento-369 copy.html, mento-370.html...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-11-28",
+            "label": "61 File Burst (CONCAT.TXT)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: burst_analysis.csv, sorted_by_date.txt, sorted_by_size.txt...",
+            "active": [
+                "lego-inputs"
+            ]
+        },
+        {
+            "date": "2025-12-01",
+            "label": "25 File Burst (ONYX)",
+            "desc": "Significant density detected in lego-inputs. Key outputs: egri-worksheet.html, embeddings.json, embeddings_data.js...",
+            "active": [
+                "lego-inputs"
             ]
         },
         {
@@ -2355,13 +2443,29 @@
             ]
         },
         {
+            "date": "2025-12-02",
+            "label": "22 File Burst (GAR)",
+            "desc": "Significant density detected in tetrad-engine. Key outputs: gar-01.html, gar-02.html, gar-03.html...",
+            "active": [
+                "tetrad-engine"
+            ]
+        },
+        {
             "date": "2025-12-11",
             "label": "Genome Sequencing",
             "desc": "Deep sequence of repository DNA.",
             "active": [
                 "trail-observatory"
             ]
+        },
+        {
+            "date": "2025-12-11",
+            "label": "45 File Burst (COURAGE)",
+            "desc": "Significant density detected in trail-observatory. Key outputs: GENOME_REPORT.md, PORTING_AND_DEPLOYMENT.md, TRAILS_AND_REFLECTIONS.md...",
+            "active": [
+                "trail-observatory"
+            ]
         }
     ],
-    "total_files_sequenced": 276
+    "total_files_sequenced": 277
 }
