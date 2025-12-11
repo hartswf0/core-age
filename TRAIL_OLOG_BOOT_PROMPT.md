@@ -1,82 +1,75 @@
 # TRAIL OLOG: LLM Boot Prompt
 
-> **Purpose**: Give this entire document to any LLM to enable it to build, customize, or extend a Trail Olog visualization for any repository.
+> **You are a Trail Olog Builder.** This prompt contains everything you need. Do NOT explore or ask clarifying questions. Execute the steps below in order.
 
 ---
 
-## CONTEXT
+## STOP. READ THIS FIRST.
 
-You are working with the **Trail Olog** system—a visual narrative map that displays a project's evolution as interconnected zones on a spatial canvas. Each zone represents a cluster of work (files, decisions, artifacts), and connections show dependencies and flow.
+**DO NOT:**
+- ❌ Explore the repository aimlessly
+- ❌ Ask "what project is this?"
+- ❌ Get confused by existing data files
+- ❌ Mix up source repo and target repo
 
-The system consists of:
-1. **`courage-trail-olog.html`** — Self-contained visualization app (HTML/CSS/JS)
-2. **`courage-trail-data.json`** — Project data (zones, connections, timeline)
-3. **Supporting scripts** — Deployment automation, manifest generation
-
----
-
-## YOUR TASK
-
-You have been given a repository with files already copied. Your job is to:
-
-1. **Analyze the files** as evidence of the project's structure
-2. **Generate or update `courage-trail-data.json`** to map the project
-3. **Deploy** via the provided GitHub Action workflow
-4. **Customize** the visualization as needed
+**DO:**
+- ✅ Treat ALL `.html`, `.js`, `.json`, `.md` files as **evidence** of the project
+- ✅ Follow the **EXACT SEQUENCE** below
+- ✅ Output valid JSON that matches the schema
+- ✅ Use the file list YOU ARE GIVEN (don't search for more)
 
 ---
 
-## FILE EVIDENCE FORMAT
+## THE SEQUENCE (Follow in Order)
 
-When analyzing a repository, categorize files into **zones**. Each zone should represent a logical cluster:
-
+### Step 1: LIST FILES
+Run this command and capture output:
+```bash
+find . -maxdepth 2 -type f \( -name "*.html" -o -name "*.js" -o -name "*.json" -o -name "*.md" \) | grep -v node_modules | sort
 ```
-ZONE TEMPLATE:
-{
-  "id": "kebab-case-id",
-  "label": "Human Readable Name",
-  "col": 0-9,           // X position on 10-column grid
-  "row": 0-7,           // Y position on 8-row grid  
-  "color": "#hex",      // Zone color
-  "level": 0-4,         // Layer depth (0=foreground, 4=background)
-  "intent": "One sentence describing this zone's purpose",
-  "artifacts": [
-    { "text": "filename.ext", "type": "artifact", "size_human": "10 KB" }
-  ],
-  "decisions": ["Key decision made in this zone"],
-  "obstacles": ["Challenge faced"]
-}
+
+### Step 2: CATEGORIZE INTO ZONES
+Group the files into 5-8 logical zones. Use this table:
+
+| File Pattern | Assign to Zone |
+|--------------|----------------|
+| `*index*`, `*app*`, `*main*` | "Core Application" |
+| `*data*`, `*config*`, `*.json` | "Data Layer" |
+| `README*`, `*.md`, `*guide*` | "Documentation" |
+| `*test*`, `*spec*` | "Testing" |
+| `*deploy*`, `*.sh`, `*workflow*` | "Infrastructure" |
+| `*component*`, `*ui*`, `*view*` | "UI Components" |
+| Everything else | "Utilities" |
+
+### Step 3: GENERATE JSON
+Output a complete `courage-trail-data.json` using the schema below. Do NOT reference any existing `courage-trail-data.json` — you are REPLACING it.
+
+### Step 4: VERIFY
+Confirm:
+- [ ] All zone IDs are unique (kebab-case)
+- [ ] All connections reference existing zone IDs
+- [ ] Timeline dates are in chronological order
+- [ ] JSON is valid (no trailing commas)
+
+### Step 5: SAVE AND DEPLOY
+```bash
+# Save your JSON to courage-trail-data.json
+# Then run:
+./sync.sh "generated trail olog for this project"
 ```
 
 ---
 
-## COMMANDS
+## CONTEXT (Reference Only)
 
-### Generate Data
-Scan the repository and output a `courage-trail-data.json`:
+The **Trail Olog** is a visual map showing a project's zones (clusters of work) connected on a spatial canvas. You are building the data file that powers it.
 
-```bash
-# List all trackable files
-find . -type f \( -name "*.html" -o -name "*.js" -o -name "*.json" -o -name "*.md" -o -name "*.py" \) | head -100
+The visualization app (`courage-trail-olog.html`) reads `courage-trail-data.json` and renders:
+- **Zones** as colored nodes on a grid
+- **Connections** as lines between zones
+- **Timeline** as playable dots showing project evolution
 
-# Use this output to populate zones
-```
-
-### Local Development
-```bash
-python3 -m http.server 8000
-# Open http://localhost:8000/courage-trail-olog.html
-```
-
-### Deploy to GitHub Pages
-```bash
-./sync.sh "your commit message"
-```
-
-### Regenerate File Manifest (for Index)
-```bash
-node generate_manifest.js
-```
+---
 
 ---
 
