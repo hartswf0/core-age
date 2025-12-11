@@ -1,0 +1,1875 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <!-- Deployed: 2025-12-11 T04:38 -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>COURAGE Trail Map</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;600&family=EB+Garamond:ital,wght@0,400;0,600;1,400&display=swap');
+
+        :root {
+            --bg: #0d0d12;
+            --surface: #18181b;
+            --surface-alt: #27272a;
+            --ink: #fafafa;
+            --ink-dim: #a1a1aa;
+            --ink-faint: #52525b;
+            --accent: #f59e0b;
+            --accent-dim: rgba(245, 158, 11, 0.15);
+        }
+
+        [data-theme="light"] {
+            --bg: #f5f5f4;
+            --surface: #ffffff;
+            --surface-alt: #e7e5e4;
+            --ink: #1c1917;
+            --ink-dim: #57534e;
+            --ink-faint: #a8a29e;
+            --accent: #b45309;
+            --accent-dim: rgba(180, 83, 9, 0.1);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', system-ui, sans-serif;
+            overflow: hidden;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        #viewport {
+            position: absolute;
+            inset: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .texture-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.03;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        #labels {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        #connections {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Place names - pure typography, no buttons */
+        .place-name {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-family: 'Inter', sans-serif;
+            /* Cleaner font */
+            font-size: 11px;
+            font-weight: 600;
+            letter-spacing: 0.03em;
+            text-transform: uppercase;
+            color: var(--ink);
+            opacity: 0.9;
+            text-shadow: 0 0 10px var(--bg), 0 0 20px var(--bg);
+            pointer-events: auto;
+            cursor: pointer;
+            text-align: center;
+            transition: opacity 0.2s, color 0.2s, transform 0.2s;
+            white-space: nowrap;
+            z-index: 10;
+        }
+
+        .place-name:hover {
+            opacity: 1;
+            color: var(--accent);
+            transform: translate(-50%, -50%) scale(1.05);
+        }
+
+        .place-name .file-count {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            font-weight: 400;
+            opacity: 0.6;
+            margin-top: 2px;
+            color: var(--ink-dim);
+        }
+
+        /* Hitbox for easier dot clicking */
+        .dot-hitbox {
+            position: absolute;
+            width: 44px;
+            height: 44px;
+            transform: translate(-50%, -50%);
+            border-radius: 50%;
+            cursor: pointer;
+            z-index: 20;
+            pointer-events: auto;
+            /* CRITICAL FIX */
+        }
+
+        /* Map controls - top left */
+        .map-controls {
+            position: fixed;
+            top: 24px;
+            left: 24px;
+            z-index: 50;
+            display: flex;
+            flex-direction: row;
+            /* Horizontal row */
+            gap: 12px;
+        }
+
+        .ctrl-btn {
+            width: 48px;
+            /* Fitts Law: larger targets */
+            height: 48px;
+            border-radius: 8px;
+            /* Softer */
+            border: 1px solid var(--ink-faint);
+            background: var(--surface);
+            color: var(--ink-dim);
+            cursor: pointer;
+            font-size: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.15s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .ctrl-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+            transform: translateY(-1px);
+        }
+
+        /* Timeline - bottom */
+        #timeline {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            /* Taller area for labels */
+            background: linear-gradient(to top, var(--bg), transparent);
+            z-index: 40;
+            padding: 12px 60px;
+            pointer-events: none;
+            /* Let clicks pass through empty space */
+        }
+
+        .timeline-track {
+            position: absolute;
+            bottom: 24px;
+            left: 60px;
+            right: 60px;
+            height: 4px;
+            background: var(--ink-faint);
+            border-radius: 2px;
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        .timeline-fill {
+            position: absolute;
+            left: 0;
+            top: 0;
+            height: 100%;
+            background: var(--accent);
+            border-radius: 2px;
+            width: 0%;
+            transition: width 0.4s ease-out;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            top: -6px;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            transform: translateX(-50%);
+            cursor: pointer;
+            transition: all 0.15s;
+        }
+
+        .timeline-dot:hover {
+            transform: translateX(-50%) scale(1.25);
+            background: var(--ink);
+        }
+
+        .timeline-dot.active {
+            background: var(--ink);
+        }
+
+        .timeline-tooltip {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            background: transparent;
+            color: var(--ink-dim);
+            padding: 0;
+            font-size: 10px;
+            white-space: nowrap;
+            opacity: 1;
+            /* Always visible */
+            pointer-events: none;
+            text-shadow: 0 1px 2px var(--bg);
+            font-weight: 600;
+        }
+
+        /* Alternate Labels Up/Down */
+        .timeline-dot:nth-child(odd) .timeline-tooltip {
+            bottom: 24px;
+        }
+
+        .timeline-dot:nth-child(even) .timeline-tooltip {
+            top: 24px;
+        }
+
+        /* Modal backdrop */
+        .modal-backdrop {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.7);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out;
+        }
+
+        .modal-backdrop.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        /* Zone info modal */
+        .zone-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 90%;
+            max-width: 500px;
+            max-height: 80vh;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 101;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+        }
+
+        .zone-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* LEGOS Dossier Header - Unified Style */
+        .lego-header {
+            padding: 16px 20px;
+            background: var(--surface);
+            border-bottom: 1px solid var(--ink-faint);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .lego-title-block {
+            flex: 1;
+        }
+
+        .lego-type {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 10px;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 4px;
+        }
+
+        .lego-title {
+            font-family: 'EB Garamond', serif;
+            font-size: 22px;
+            font-weight: 600;
+            line-height: 1.1;
+            color: var(--ink);
+        }
+
+        .lego-subtitle {
+            font-family: 'Inter', sans-serif;
+            font-size: 11px;
+            color: var(--ink-dim);
+            margin-top: 4px;
+            max-width: 400px;
+        }
+
+        /* Date Overlay for Playback */
+        #date-overlay {
+            position: absolute;
+            top: 60px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-family: 'EB Garamond', serif;
+            font-size: 32px;
+            font-style: italic;
+            color: var(--accent);
+            text-shadow: 0 2px 10px var(--bg);
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s;
+            z-index: 50;
+        }
+
+        #date-overlay.active {
+            opacity: 1;
+        }
+
+        /* Dossier Style (LEGOS Grammar) */
+        .dossier-grid {
+            display: grid;
+            grid-template-columns: 100px 1fr;
+            gap: 12px 24px;
+            margin-bottom: 24px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 11px;
+            border-top: 1px solid var(--ink-faint);
+            padding-top: 16px;
+        }
+
+        .dossier-label {
+            color: var(--ink-dim);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            text-align: right;
+            font-weight: 600;
+        }
+
+        .dossier-value {
+            color: var(--ink);
+        }
+
+        .dossier-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            background: var(--surface-alt);
+            border-radius: 3px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+            border: 1px solid var(--ink-faint);
+        }
+
+        .file-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 8px;
+        }
+
+        .file-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px;
+            background: var(--surface-alt);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: background 0.15s;
+        }
+
+        .file-item:hover {
+            background: var(--accent-dim);
+        }
+
+        .file-ext {
+            font-size: 9px;
+            font-weight: 600;
+            font-family: 'JetBrains Mono', monospace;
+            padding: 3px 6px;
+            border-radius: 3px;
+        }
+
+        .file-ext.html {
+            background: rgba(249, 115, 22, 0.2);
+            color: #fb923c;
+        }
+
+        .file-ext.json {
+            background: rgba(34, 197, 94, 0.2);
+            color: #4ade80;
+        }
+
+        .file-ext.md {
+            background: rgba(59, 130, 246, 0.2);
+            color: #60a5fa;
+        }
+
+        .file-ext.mpd {
+            background: rgba(236, 72, 153, 0.2);
+            color: #f472b6;
+        }
+
+        .file-name {
+            font-size: 11px;
+            flex: 1;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+
+        /* Iframe viewer - constrained modal */
+        .iframe-viewer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 95%;
+            height: 92%;
+            max-width: 1400px;
+            z-index: 200;
+            background: var(--bg);
+            border-radius: 12px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--surface-alt);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-out, transform 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .iframe-viewer.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        /* Minimap context */
+        .minimap-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            display: inline-block;
+            margin-right: 6px;
+        }
+
+        .iframe-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+            color: var(--bg);
+        }
+
+        .iframe-btn.icon-only {
+            width: 32px;
+            padding: 0;
+            justify-content: center;
+        }
+
+        .iframe-container {
+            flex: 1;
+            background: #fff;
+            position: relative;
+        }
+
+        .iframe-container iframe {
+            position: absolute;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            border: none;
+            opacity: 0;
+            transition: opacity 0.3s ease-out;
+        }
+
+        .iframe-container iframe.loaded {
+            opacity: 1;
+        }
+
+        .iframe-viewer {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 90vw;
+            height: 85vh;
+            background: var(--paper);
+            border: 1px solid var(--ink-dim);
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease, transform 0.3s ease;
+            border-radius: 4px;
+        }
+
+        .iframe-viewer.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .iframe-playlist {
+            width: 200px;
+            background: var(--bg-dim);
+            border-right: 1px solid var(--ink-dim);
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            padding: 8px 0;
+        }
+
+        .playlist-item {
+            padding: 8px 12px;
+            font-size: 11px;
+            color: var(--ink-secondary);
+            border-bottom: 1px solid var(--border);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            transition: background 0.1s;
+        }
+
+        .playlist-item:hover {
+            background: var(--bg-hover);
+        }
+
+        .playlist-item.active {
+            background: var(--accent);
+            color: var(--paper);
+        }
+
+        .playlist-idx {
+            font-family: 'JetBrains Mono', monospace;
+            opacity: 0.5;
+            font-size: 9px;
+            width: 16px;
+        }
+
+        .playlist-name {
+            overflow: hidden;
+            white-space: nowrap;
+            text-overflow: ellipsis;
+        }
+
+        .iframe-frame {
+            flex: 1;
+            border: none;
+            width: 100%;
+            height: 100%;
+            background: white;
+            /* opacity: 0; Removing to ensure visibility */
+            /* transition: opacity 0.5s ease; */
+        }
+
+        .lego-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 16px;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-dim);
+            height: 60px;
+            /* Fixed height for consistency */
+        }
+
+        .lego-title-block {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        .lego-title {
+            font-size: 16px;
+            font-weight: 600;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            color: var(--ink);
+        }
+
+        .iframe-nav {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            flex-shrink: 0;
+        }
+
+        .iframe-btn {
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 4px;
+            cursor: pointer;
+            color: var(--ink);
+            transition: all 0.1s;
+            text-decoration: none;
+            /* For the 'a' tag */
+            font-size: 14px;
+        }
+
+        .iframe-btn:hover {
+            background: var(--accent);
+            color: white;
+            border-color: var(--accent);
+        }
+
+        /* Ontology modal (in-map) */
+        .onto-modal {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.95);
+            width: 90%;
+            max-width: 700px;
+            max-height: 85vh;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            z-index: 101;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.25s ease-out, transform 0.25s ease-out;
+        }
+
+        .onto-modal.active {
+            opacity: 1;
+            pointer-events: auto;
+            transform: translate(-50%, -50%) scale(1);
+        }
+
+        .onto-modal-header {
+            padding: 14px 20px;
+            border-bottom: 1px solid var(--ink-faint);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .onto-modal-header h2 {
+            font-size: 16px;
+            font-weight: 600;
+        }
+
+        .onto-modal-body {
+            padding: 20px;
+            max-height: calc(85vh - 60px);
+            overflow-y: auto;
+        }
+
+        .onto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 10px;
+            margin-bottom: 24px;
+        }
+
+        .onto-card {
+            padding: 12px;
+            background: var(--surface-alt);
+            border-radius: 8px;
+        }
+
+        .onto-sym {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .onto-name {
+            font-size: 12px;
+            font-weight: 600;
+            margin-bottom: 2px;
+        }
+
+        .onto-desc {
+            font-size: 10px;
+            color: var(--ink-dim);
+            line-height: 1.4;
+        }
+
+        .morphism-item {
+            padding: 10px 0;
+            border-bottom: 1px solid var(--surface-alt);
+        }
+
+        .morphism-formula {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 12px;
+            color: var(--accent);
+            margin-bottom: 4px;
+        }
+
+        .morphism-text {
+            font-size: 11px;
+            color: var(--ink-dim);
+        }
+
+        /* Reflection Stream (AR Timeline Attachment) */
+        #reflection-stream {
+            position: absolute;
+            /* Relative to viewport/timeline container if possible, or body with top/left set */
+            bottom: 140px;
+            /* Floating well above timeline */
+            left: 0;
+            /* Set by JS */
+            transform: translateX(-50%);
+            /* Center on the point */
+            width: 400px;
+            /* narrower, more focused */
+            text-align: center;
+            pointer-events: none;
+            z-index: 45;
+            opacity: 0;
+            transition: opacity 0.3s ease, left 0.8s cubic-bezier(0.25, 1, 0.5, 1);
+            /* Smooth slide */
+        }
+
+        .reflection-content {
+            background: rgba(13, 13, 18, 0.9);
+            backdrop-filter: blur(4px);
+            padding: 12px 16px;
+            border-radius: 4px;
+            /* Tech/AR feel */
+            border-left: 2px solid var(--accent);
+            border-top: 1px solid var(--ink-faint);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+            display: inline-block;
+            position: relative;
+        }
+
+        /* AR connecting line */
+        .reflection-content::after {
+            content: '';
+            position: absolute;
+            bottom: -40px;
+            /* Reach down towards timeline */
+            left: 50%;
+            height: 40px;
+            width: 1px;
+            background: linear-gradient(to bottom, var(--accent), transparent);
+            transform: translateX(-50%);
+        }
+
+        [data-theme="light"] .reflection-content {
+            background: rgba(255, 255, 255, 0.95);
+            border-color: var(--accent);
+        }
+
+        .refl-title {
+            font-family: 'Inter', sans-serif;
+            /* Clean header */
+            font-size: 11px;
+            font-weight: 700;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            margin-bottom: 6px;
+        }
+
+        .refl-text {
+            font-family: 'EB Garamond', serif;
+            font-size: 20px;
+            /* Larger, more readable */
+            font-weight: 500;
+            font-style: italic;
+            color: var(--ink);
+            line-height: 1.4;
+        }
+
+        /* Timeline Tweaks for Legibility */
+        #timeline {
+            /* Add subtle gradient to ensure text contrast */
+            background: linear-gradient(to top, var(--bg) 20%, rgba(0, 0, 0, 0));
+            height: 100px;
+            /* Taller */
+            padding-bottom: 20px;
+        }
+
+        [data-theme="light"] #timeline {
+            background: linear-gradient(to top, var(--bg) 40%, rgba(255, 255, 255, 0));
+        }
+
+        .timeline-tooltip {
+            font-size: 12px;
+            /* Bigger text */
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            /* Stroke effect for readability against map lines? */
+            text-shadow: 0 2px 4px var(--bg), 0 0 4px var(--bg), 0 0 8px var(--bg);
+            z-index: 55;
+        }
+
+        /* Stronger Stagger */
+        .timeline-dot:nth-child(odd) .timeline-tooltip {
+            bottom: 32px;
+            /* Higher up */
+        }
+
+        .timeline-dot:nth-child(even) .timeline-tooltip {
+            top: 32px;
+            /* Lower down */
+        }
+
+        /* Mobile / Responsive Tweaks */
+        @media (max-width: 768px) {
+
+            /* Fix Header/Reflection Clash */
+            #reflection-stream {
+                bottom: 90px;
+                width: 95vw;
+                left: 50% !important;
+                /* Lock to center on mobile */
+            }
+
+            .refl-text {
+                font-size: 16px;
+                /* Smaller on mobile */
+            }
+
+            .reflection-content {
+                padding: 12px 20px;
+            }
+
+            /* Fix Timeline Scrunching */
+            #timeline {
+                height: 80px;
+            }
+
+            .timeline-dot {
+                width: 14px;
+                /* Larger touch target */
+                height: 14px;
+            }
+
+            /* Hide every other label on mobile unless active or hovered */
+            .timeline-dot:nth-child(even) .timeline-tooltip,
+            .timeline-dot:nth-child(3n) .timeline-tooltip {
+                /* More aggressive culling for very small screens? Just even for now */
+                display: none;
+            }
+
+            /* Always show active one */
+            .timeline-dot.active .timeline-tooltip {
+                display: block !important;
+                font-size: 14px;
+                top: auto;
+                bottom: 24px;
+                /* Force to top style for visibility */
+                color: var(--accent);
+            }
+
+            /* Move map controls slightly */
+            .map-controls {
+                left: 10px;
+                top: 10px;
+            }
+
+            .zone-modal {
+                /* Override desktop centering - force fullscreen */
+                position: fixed !important;
+                top: 0 !important;
+                left: 0 !important;
+                right: 0 !important;
+                bottom: 0 !important;
+                transform: none !important;
+                width: 100% !important;
+                max-width: 100% !important;
+                max-height: 100% !important;
+                height: 100% !important;
+                border-radius: 0 !important;
+                margin: 0 !important;
+            }
+
+            .zone-modal.active {
+                transform: none !important;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewport">
+        <canvas id="c"></canvas>
+        <div class="texture-overlay"></div>
+        <svg id="connections"></svg>
+        <div id="labels"></div>
+    </div>
+
+    <!-- Reflection Stream -->
+    <div id="reflection-stream">
+        <div class="reflection-content">
+            <div class="refl-title">&lt;SHIFTING CONTEXT&gt;</div>
+            <div class="refl-text" id="refl-body">...</div>
+        </div>
+    </div>
+
+    <!-- Map controls -->
+    <div class="map-controls">
+        <button class="ctrl-btn" id="btn-play" title="Play History">▶</button>
+        <button class="ctrl-btn" id="btn-theme" title="Toggle theme">☀</button>
+        <button class="ctrl-btn" id="btn-onto" title="Ontology">◎</button>
+        <button class="ctrl-btn" id="btn-conn" title="Connections">⊶</button>
+        <button class="ctrl-btn" id="btn-legend" title="Toggle Key">K</button>
+    </div>
+
+    <!-- Legend/Key (Simple) -->
+    <div id="map-legend"
+        style="position:fixed; top:80px; left:24px; background:var(--surface); padding:12px; border-radius:8px; border:1px solid var(--ink-faint); display:none; z-index:45;">
+        <div
+            style="font-size:11px; font-weight:600; margin-bottom:8px; text-transform:uppercase; color:var(--ink-dim);">
+            Map Key</div>
+        <div style="display:flex; flex-direction:column; gap:6px;">
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#ef4444;"></span><span
+                    style="font-size:11px;">Language</span></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#3b82f6;"></span><span
+                    style="font-size:11px;">Snapshot</span></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#10b981;"></span><span
+                    style="font-size:11px;">Ontology</span></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#d97706;"></span><span
+                    style="font-size:11px;">Segmentation</span></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#8b5cf6;"></span><span
+                    style="font-size:11px;">Structure</span></div>
+            <div style="display:flex; align-items:center; gap:8px;"><span
+                    style="width:8px; height:8px; border-radius:50%; background:#f59e0b;"></span><span
+                    style="font-size:11px;">Temporal</span></div>
+        </div>
+    </div>
+
+    <!-- Timeline -->
+    <div id="timeline">
+        <div class="timeline-track" id="track">
+            <div class="timeline-fill" id="tl-fill"></div>
+        </div>
+    </div>
+
+    <!-- Modal backdrop -->
+    <div class="modal-backdrop" id="backdrop"></div>
+
+    <div id="date-overlay"></div>
+
+    <!-- Zone modal (Unified) -->
+    <div class="zone-modal" id="zone-modal">
+        <div class="lego-header">
+            <div class="lego-title-block">
+                <div class="lego-type">&lt;LOCATION&gt;</div>
+                <div class="lego-title" id="z-title">Zone</div>
+                <div class="lego-subtitle" id="z-intent"></div>
+            </div>
+            <button class="zone-close" id="z-close">×</button>
+        </div>
+        <div class="zone-body" id="z-body"></div>
+    </div>
+
+    <!-- Ontology modal -->
+    <div class="onto-modal" id="onto-modal">
+        <div class="onto-modal-header">
+            <h2>Trail Ontology</h2>
+            <button class="zone-close" id="onto-close">×</button>
+        </div>
+        <div class="onto-modal-body">
+            <div class="onto-grid">
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#b45309">C</div>
+                    <div class="onto-name">Creator</div>
+                    <div class="onto-desc">Person producing content</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#1d4ed8">T</div>
+                    <div class="onto-name">Trail</div>
+                    <div class="onto-desc">Evolving history</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#047857">A</div>
+                    <div class="onto-name">Artifact</div>
+                    <div class="onto-desc">Drafts, versions, exports</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#be185d">M</div>
+                    <div class="onto-name">Metadata</div>
+                    <div class="onto-desc">Timestamps, tags</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#6d28d9">D</div>
+                    <div class="onto-name">Decision</div>
+                    <div class="onto-desc">Edits, choices, branches</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#c2410c">S*</div>
+                    <div class="onto-name">Trail-Aware Tool</div>
+                    <div class="onto-desc">Tool leveraging trails</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#0891b2">P</div>
+                    <div class="onto-name">Pattern</div>
+                    <div class="onto-desc">Recurring behavior</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#dc2626">I</div>
+                    <div class="onto-name">Intent</div>
+                    <div class="onto-desc">Creator's goals</div>
+                </div>
+            </div>
+            <h3
+                style="font-size:11px;color:var(--accent);margin-bottom:12px;text-transform:uppercase;letter-spacing:0.1em">
+                Morphisms</h3>
+            <div class="morphism-item">
+                <div class="morphism-formula">generates : C → T</div>
+                <div class="morphism-text">Creator generates Trail</div>
+            </div>
+            <div class="morphism-item">
+                <div class="morphism-formula">contains : T → {A, M, D}</div>
+                <div class="morphism-text">Trail contains Artifacts, Metadata, Decisions</div>
+            </div>
+            <div class="morphism-item">
+                <div class="morphism-formula">observes : S* → T</div>
+                <div class="morphism-text">Tool observes Trail</div>
+            </div>
+            <div class="morphism-item">
+                <div class="morphism-formula">infers : S* × T → P</div>
+                <div class="morphism-text">Tool + Trail reveals Pattern</div>
+            </div>
+            <div class="morphism-item">
+                <div class="morphism-formula">adapts : S* × P → S*</div>
+                <div class="morphism-text">Tool adapts via Pattern</div>
+            </div>
+            <div class="morphism-item">
+                <div class="morphism-formula">supports : S* → I</div>
+                <div class="morphism-text">Tool supports Intent</div>
+            </div>
+            <div style="margin-top:16px; font-size:10px; color:var(--ink-dim); text-align:center; padding:0 20px;">
+                Theory based on <strong>Fuzzy Linkography</strong> (Smith et al., 2025), treating design moves as fuzzy
+                sets and links as probabilistic connections.
+            </div>
+            <div style="margin-top:16px;text-align:center">
+                <a href="pattern-glossary.html" target="_blank" style="color:var(--accent);font-size:11px">View full
+                    Pattern Glossary →</a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Iframe viewer (Unified) -->
+    <!-- Iframe viewer (Unified) -->
+    <div class="iframe-viewer" id="iframe-viewer">
+        <div class="lego-header">
+            <!-- Minimap / Context -->
+            <div class="lego-title-block">
+                <div class="lego-type" id="if-context-type">&lt;ENTITY&gt;</div>
+                <div class="lego-title" id="iframe-name">file.html</div>
+                <div class="lego-subtitle">
+                    <span class="minimap-dot" id="if-dot"></span><span id="if-location">Location</span>
+                </div>
+            </div>
+
+            <!-- Nav -->
+            <div class="iframe-nav">
+                <span id="iframe-ext" class="file-ext" style="margin-right:8px; font-size:10px;">HTML</span>
+
+                <a class="iframe-btn" id="if-open" href="#" target="_blank" title="Open in New Tab"
+                    style="text-decoration:none;">↗</a>
+                <div style="width:1px; height:16px; background:var(--ink-dim); opacity:0.3; margin:0 4px;"></div>
+
+                <button class="iframe-btn" id="if-prev" title="Previous File">←</button>
+                <button class="iframe-btn" id="if-next" title="Next File">→</button>
+                <div style="width:1px; height:16px; background:var(--ink-dim); opacity:0.3; margin:0 4px;"></div>
+
+                <button class="iframe-btn" id="if-close" title="Close Viewer">×</button>
+            </div>
+        </div>
+
+        <div style="display:flex; flex:1; overflow:hidden;">
+            <!-- PLAYLIST SIDEBAR -->
+            <div class="iframe-playlist" id="if-playlist">
+                <!-- items go here -->
+            </div>
+
+            <iframe id="iframe-frame" class="iframe-frame"
+                sandbox="allow-scripts allow-same-origin allow-popups"></iframe>
+        </div>
+    </div>
+
+    <script>
+        (function () {
+            let TRAIL_DATA = null;
+            let currentZone = null;
+            let currentFileIndex = 0;
+            let isDark = true;
+            let isPlaying = false;
+            let playInterval = null;
+            let pathHistory = []; // For visualizing the walked path
+
+            async function loadTrailData() {
+                // If running locally (file://), skip fetch to avoid scary CORS errors.
+                if (window.location.protocol === 'file:') {
+                    console.log("Running locally (file://). Loading embedded data directly.");
+                    TRAIL_DATA = getEmbeddedData();
+                    init();
+                    spawnPilgrims();
+                    return;
+                }
+
+                try {
+                    const resp = await fetch('courage-trail-data.json');
+                    if (!resp.ok) throw new Error("Fetch failed");
+                    const data = await resp.json();
+
+                    // Merge external data into TRAIL_DATA if needed, or just replace
+                    TRAIL_DATA.zones = data.zones;
+                    TRAIL_DATA.connections = data.connections || [];
+                    TRAIL_DATA.timeline = data.timeline || [];
+
+                    // Handle Unsorted Zone logic if relevant (already in data usually)
+
+                } catch (e) {
+                    // Local file fetch often fails due to CORS, which is expected.
+                    console.log("Loading embedded data (Local/CORS fallback)");
+                    TRAIL_DATA = getEmbeddedData();
+                }
+
+                init(); // Init canvas size FIRST
+                spawnPilgrims(); // Then spawn using correct W/H
+            }
+
+            function getEmbeddedData() {
+                return {
+                    zones: [
+                        { id: "wag", label: "Words Assemble Geometry", color: "#ef4444", position: { x: 0.42, y: 0.18 }, fileCount: 12, artifacts: ["wag-brave.html", "wag-grid-walk.html", "wag-workshop.html", "wag-were-twilight.html", "wag-yark.html", "wag-frank-tetrad.html", "wag-frank-olog.html", "wag-frank-studio.html", "wag-frank-terminal.html", "wag-frank-unified.html", "wag-frank-tetrad-olog.html", "wag-frank-tetrad-inception.html"], decisions: ["9×9 grid", "Ring memory"], patterns: ["anti-tool", "spatial-language"], intent: "Spatial word assembly on a 9×9 grid" },
+                        { id: "gold", label: "Gold Snapshots", color: "#3b82f6", position: { x: 0.18, y: 0.32 }, fileCount: 4, artifacts: ["gold-nba.json", "wag-gold-scene.json", "gold_test.json", "test-wag-gold.json"], decisions: ["JSON format"], patterns: ["scene-snapshot"], intent: "Persist WAG state as JSON" },
+                        { id: "onyx", label: "Narrative Ontology", color: "#10b981", position: { x: 0.78, y: 0.22 }, fileCount: 10, artifacts: ["onyx.html", "onyx-builder.html", "onyx-scenes.html", "onyx-branch.html", "onyx-unified.html", "onyx-presentation.html", "onyx-reactor.html", "onyx-remade.html", "onyx-storytelling.html", "onyx-media.html"], decisions: ["8 narrative types"], patterns: ["narrative-ontology"], intent: "Formalize story structure" },
+                        { id: "gar", label: "Grid Assembles Reality", color: "#d97706", position: { x: 0.55, y: 0.38 }, fileCount: 12, artifacts: ["gar-00.html", "gar-01.html", "gar-02.html", "gar-03.html", "gar-04.html", "gar-05.html", "gar-06.html", "gar-07.html", "gar-tao.html", "gar-tao-explainer.html", "gar-onyx-studio.html", "gar-onyx-research-olog.md"], decisions: ["K-means", "9×9 downsample"], patterns: ["visual-segmentation"], intent: "Bridge visual and narrative" },
+                        { id: "skeleton", label: "Skeleton Control", color: "#8b5cf6", position: { x: 0.25, y: 0.52 }, fileCount: 6, artifacts: ["skeleton-control-room.html", "skeleton-ontology-explorer.html", "skeleton-pathology-diagnosis.md", "skeleton-pathology-studio.html", "stud-skeleton-binding-demo.html", "stud-skeleton-binding-enhanced.html"], decisions: ["Hierarchy"], patterns: ["parent-child-binding"], intent: "Articulated structure control" },
+                        { id: "timber", label: "Timber Hierarchy", color: "#22c55e", position: { x: 0.85, y: 0.45 }, fileCount: 3, artifacts: ["timber-master.html", "timber-master-v2.html", "TIMBER-tutorial.html"], decisions: ["Tree viz"], patterns: ["tree-hierarchy"], intent: "Hierarchical data exploration" },
+                        { id: "brick", label: "Brick Haven", color: "#ec4899", position: { x: 0.12, y: 0.70 }, fileCount: 4, artifacts: ["brick-haven-central.html", "brick-haven-previs.html", "brick_haven_city.mpd", "brick_haven_tutorial.html"], decisions: ["LDraw MPD"], patterns: ["ldraw-composition"], intent: "3D LEGO city building" },
+                        { id: "mesh", label: "Temporal Mesh", color: "#f59e0b", position: { x: 0.48, y: 0.62 }, fileCount: 7, artifacts: ["temporal-mesh-lab.html", "temporal-mesh-encoding.md", "temporal-mesh-instrumentation.md", "mesh-compilation-data-flow.md", "mesh-primitive-breakdown.md", "assembly-line.html", "assembly-line-single-mesh.html"], decisions: ["Temporal encode"], patterns: ["temporal-encoding"], intent: "Time-aware geometry" },
+                        { id: "legos", label: "LEGOS Tutorials", color: "#fbbf24", position: { x: 0.88, y: 0.15 }, fileCount: 7, artifacts: ["LEGOS-tutorial-primal.html", "legos-gpt-manual.html", "legos-to-ldraw-bridge.html", "legos-worldbuilding-tutorial.html", "lego-3d-architect.html", "lego-code-builder.html", "lego-meta-builder.html"], decisions: ["Anti-tool"], patterns: ["anti-tool"], intent: "LEGOS education" },
+                        { id: "pathology", label: "System Pathology", color: "#f43f5e", position: { x: 0.35, y: 0.78 }, fileCount: 4, artifacts: ["pathology-report-schema.md", "pathology-report-verification.md", "pathology-report-viewer.html", "line-22-autopsy.html"], decisions: ["Schema"], patterns: ["diagnostic-report"], intent: "System health analysis" },
+                        { id: "inception", label: "Inception Harness", color: "#a855f7", position: { x: 0.72, y: 0.72 }, fileCount: 4, artifacts: ["inception-editor.html", "inception-harness.html", "inception-horseman.html", "inception-tetrad-code-editor.html"], decisions: ["Meta-edit"], patterns: ["inception-harness"], intent: "Tools that make tools" },
+                        { id: "hubs", label: "Knowledge Hubs", color: "#06b6d4", position: { x: 0.08, y: 0.42 }, fileCount: 7, artifacts: ["knowledge-hub.html", "lab-hub.html", "system-monitor.html", "l-system-ontology-weaver.html", "index.html", "training-manual.html", "courage-trail-olog.html"], decisions: ["Library cards"], patterns: ["library-navigation"], intent: "Central navigation" }
+                    ],
+                    connections: [
+                        { from: "wag", to: "gold" }, { from: "wag", to: "onyx" }, { from: "gar", to: "onyx" },
+                        { from: "skeleton", to: "timber" }, { from: "brick", to: "legos" }, { from: "mesh", to: "skeleton" },
+                        { from: "pathology", to: "skeleton" }, { from: "inception", to: "legos" }, { from: "hubs", to: "legos" }
+                    ],
+                    timeline: [
+                        { date: "2025-11-18", label: "Genesis", active: ["hubs"] },
+                        { date: "2025-11-19", label: "WAG + Brick", active: ["wag", "brick"] },
+                        { date: "2025-11-20", label: "Timber", active: ["timber"] },
+                        { date: "2025-11-21", label: "Skeleton", active: ["skeleton"] },
+                        { date: "2025-11-22", label: "Mesh", active: ["mesh"] },
+                        { date: "2025-11-24", label: "Inception", active: ["inception"] },
+                        { date: "2025-11-30", label: "GAR", active: ["gar"] },
+                        { date: "2025-12-01", label: "ONYX", active: ["onyx"] },
+                        { date: "2025-12-02", label: "GAR-ONYX", active: ["gar", "onyx"] },
+                        { date: "2025-12-10", label: "Trail", active: ["hubs", "legos"] }
+                    ]
+                };
+            }
+
+            const canvas = document.getElementById('c');
+            const ctx = canvas.getContext('2d');
+            const CONFIG = { GRID_W: 140, GRID_H: 90, LEVELS: 20 };
+            let heatGrid, W, H;
+
+            function noise(x, y) { const s = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return s - Math.floor(s); }
+            function smoothNoise(x, y) {
+                const corners = (noise(x - 1, y - 1) + noise(x + 1, y - 1) + noise(x - 1, y + 1) + noise(x + 1, y + 1)) / 16;
+                const sides = (noise(x - 1, y) + noise(x + 1, y) + noise(x, y - 1) + noise(x, y + 1)) / 8;
+                return corners + sides + noise(x, y) / 4;
+            }
+            function fbm(x, y, oct) { let v = 0, a = 0.5; for (let i = 0; i < oct; i++) { v += smoothNoise(x, y) * a; x *= 2; y *= 2; a *= 0.5; } return v; }
+
+            function init() {
+                W = window.innerWidth; H = window.innerHeight;
+                const dpr = Math.min(devicePixelRatio || 1, 2);
+                canvas.width = W * dpr; canvas.height = H * dpr;
+                ctx.scale(dpr, dpr);
+                CONFIG.GRID_H = Math.floor(CONFIG.GRID_W * (H / W));
+                heatGrid = new Float32Array(CONFIG.GRID_W * CONFIG.GRID_H);
+
+                const zones = TRAIL_DATA.zones;
+                for (let y = 0; y < CONFIG.GRID_H; y++) {
+                    for (let x = 0; x < CONFIG.GRID_W; x++) {
+                        const nx = x / CONFIG.GRID_W, ny = y / CONFIG.GRID_H;
+                        let h = fbm(nx * 4, ny * 4, 5) * 0.3;
+                        zones.forEach(z => {
+                            const dx = nx - z.position.x, dy = ny - z.position.y;
+                            const d = Math.sqrt(dx * dx + dy * dy);
+                            const weight = Math.log10((z.fileCount || 1) + 1) * 1.5;
+                            if (d < 0.18) h += (0.18 - d) * weight * 2.5;
+                        });
+                        heatGrid[y * CONFIG.GRID_W + x] = Math.min(h, 3.5);
+                    }
+                }
+                renderLabels();
+                renderConnections();
+                renderTimeline();
+                draw();
+            }
+
+            // --- PILGRIM TOKENS (FLOW PARTICLES) ---
+            let connectionsActive = true; // Global toggle state
+            const pilgrims = []; // Restored array
+
+            class Pilgrim {
+                constructor(pathPoints, color) {
+                    this.path = pathPoints;
+                    this.progress = Math.random(); // Start randomly
+                    this.speed = 0.0005 + Math.random() * 0.001; // Slower ("peaceful")
+                    this.currSpeed = this.speed;
+                    this.color = color || '#fbbf24'; // Inherit color
+                    this.size = 1.6; // Smaller
+                    this.offsetPhase = Math.random() * Math.PI * 2;
+
+                    // Wandering state
+                    this.drift = { x: 0, y: 0 };
+                    this.driftVel = { x: (Math.random() - 0.5) * 0.2, y: (Math.random() - 0.5) * 0.2 };
+                }
+                update() {
+                    if (connectionsActive) {
+                        // Normal path following
+                        this.currSpeed = this.speed;
+                        this.progress += this.currSpeed;
+                        if (this.progress >= 1) this.progress = 0;
+
+                        // Return to path (dampen drift)
+                        this.drift.x *= 0.95;
+                        this.drift.y *= 0.95;
+                    } else {
+                        // Disconnected: Wander off
+                        this.currSpeed *= 0.98; // Slow down logic execution
+                        // Add random drift
+                        this.drift.x += this.driftVel.x + (Math.random() - 0.5) * 0.5;
+                        this.drift.y += this.driftVel.y + (Math.random() - 0.5) * 0.5;
+                    }
+                }
+                draw(ctx) {
+                    if (!this.path || this.path.length < 2) return;
+                    const totalLen = this.path.length - 1;
+                    const idx = Math.floor(this.progress * totalLen);
+                    const nextIdx = Math.min(idx + 1, totalLen);
+                    const subProg = (this.progress * totalLen) - idx;
+
+                    const p1 = this.path[idx];
+                    const p2 = this.path[nextIdx];
+
+                    // Linear base position
+                    let x = p1.x + (p2.x - p1.x) * subProg;
+                    let y = p1.y + (p2.y - p1.y) * subProg;
+
+                    // Add standard "wandering" sine wave offset (always on)
+                    x += Math.cos(this.progress * 10 + this.offsetPhase) * 3;
+                    y += Math.sin(this.progress * 10 + this.offsetPhase) * 3;
+
+                    // Add disconnect drift
+                    x += this.drift.x;
+                    y += this.drift.y;
+
+                    ctx.beginPath();
+                    ctx.arc(x, y, this.size, 0, Math.PI * 2);
+                    ctx.fillStyle = this.color;
+                    ctx.fill();
+
+                    // Soft glow
+                    ctx.shadowBlur = 3;
+                    ctx.shadowColor = this.color;
+                    ctx.fill();
+                    ctx.shadowBlur = 0;
+                }
+            }
+
+            function getBezierPoints(p0, p1, num) {
+                const pts = [];
+                // Gentle curve control point
+                const midX = (p0.x + p1.x) / 2;
+                const midY = (p0.y + p1.y) / 2;
+                // Add some randomness to control point for organic feel? 
+                // Let's stick to straight line interpolation for path foundation, 
+                // and let the Pilgrim "wander" logic handle the organic movement.
+                // Or use the quadratic logic seen in renderConnections (mid + offset)
+                // Let's use simple linear for the 'rail' and let them wander off it.
+
+                for (let i = 0; i <= num; i++) {
+                    const t = i / num;
+                    pts.push({
+                        x: p0.x + (p1.x - p0.x) * t,
+                        y: p0.y + (p1.y - p0.y) * t
+                    });
+                }
+                return pts;
+            }
+
+            function spawnPilgrims() {
+                pilgrims.length = 0;
+                TRAIL_DATA.connections.forEach(conn => {
+                    const z1 = TRAIL_DATA.zones.find(z => z.id === conn.from);
+                    const z2 = TRAIL_DATA.zones.find(z => z.id === conn.to);
+                    if (z1 && z2) {
+                        const pts = getBezierPoints(
+                            { x: z1.position.x * canvas.width, y: z1.position.y * canvas.height },
+                            { x: z2.position.x * canvas.width, y: z2.position.y * canvas.height },
+                            60
+                        );
+
+                        // Spawn count based on FROM zone file count
+                        const count = z1.fileCount || 1;
+                        // Limit excessively high counts for performance?
+                        // User said "however many files there are". 
+                        // Let's respect it but cap gently if > 20 per connection? 
+                        // Actually, total pilgrims = connections * ~5-10. It fits.
+
+                        for (let i = 0; i < count; i++) {
+                            pilgrims.push(new Pilgrim(pts, z1.color));
+                        }
+                    }
+                });
+            }
+
+            function draw() {
+                if (!TRAIL_DATA || !TRAIL_DATA.zones) {
+                    // Throttle logging?
+                    if (Math.random() < 0.01) console.warn("Draw loop running but TRAIL_DATA missing/incomplete.");
+                    requestAnimationFrame(draw);
+                    return;
+                }
+                ctx.clearRect(0, 0, W, H);
+                const cw = W / CONFIG.GRID_W, ch = H / CONFIG.GRID_H;
+
+                for (let l = CONFIG.LEVELS; l >= 1; l--) {
+                    const t = l * 0.12;
+                    const hue = isDark ? 22 + (l / CONFIG.LEVELS) * 12 : 30 + (l / CONFIG.LEVELS) * 10;
+                    const sat = isDark ? 60 : 35;
+                    const lum = isDark ? 45 : 55;
+                    const alpha = 0.015 + (l / CONFIG.LEVELS) * 0.04;
+                    ctx.fillStyle = `hsla(${hue}, ${sat}%, ${lum}%, ${alpha})`;
+                    for (let y = 0; y < CONFIG.GRID_H; y++) {
+                        for (let x = 0; x < CONFIG.GRID_W; x++) {
+                            if (heatGrid[y * CONFIG.GRID_W + x] >= t) ctx.fillRect(x * cw, y * ch, cw + 1, ch + 1);
+                        }
+                    }
+                }
+
+                ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+                for (let l = 1; l <= CONFIG.LEVELS; l++) {
+                    const t = l * 0.12, major = l % 4 === 0;
+                    ctx.beginPath();
+                    ctx.lineWidth = major ? 1.2 : 0.4;
+                    ctx.strokeStyle = isDark ? '#d97706' : '#92400e';
+                    ctx.globalAlpha = major ? 0.5 : 0.15;
+                    for (let y = 0; y < CONFIG.GRID_H - 1; y++) {
+                        for (let x = 0; x < CONFIG.GRID_W - 1; x++) {
+                            const idx = y * CONFIG.GRID_W + x;
+                            const v0 = heatGrid[idx], v1 = heatGrid[idx + 1];
+                            const v2 = heatGrid[idx + CONFIG.GRID_W + 1], v3 = heatGrid[idx + CONFIG.GRID_W];
+                            let bits = 0;
+                            if (v0 >= t) bits |= 1; if (v1 >= t) bits |= 2;
+                            if (v2 >= t) bits |= 4; if (v3 >= t) bits |= 8;
+                            if (bits === 0 || bits === 15) continue;
+                            const lx = x * cw, ly = y * ch;
+                            const a = { x: lx + cw * 0.5, y: ly }, b = { x: lx + cw, y: ly + ch * 0.5 };
+                            const c = { x: lx + cw * 0.5, y: ly + ch }, d = { x: lx, y: ly + ch * 0.5 };
+                            switch (bits) {
+                                case 1: case 14: ctx.moveTo(d.x, d.y); ctx.lineTo(a.x, a.y); break;
+                                case 2: case 13: ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); break;
+                                case 4: case 11: ctx.moveTo(b.x, b.y); ctx.lineTo(c.x, c.y); break;
+                                case 8: case 7: ctx.moveTo(c.x, c.y); ctx.lineTo(d.x, d.y); break;
+                                case 3: case 12: ctx.moveTo(d.x, d.y); ctx.lineTo(b.x, b.y); break;
+                                case 6: case 9: ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); break;
+                                case 5: ctx.moveTo(d.x, d.y); ctx.lineTo(a.x, a.y); ctx.moveTo(b.x, b.y); ctx.lineTo(c.x, c.y); break;
+                                case 10: ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.moveTo(c.x, c.y); ctx.lineTo(d.x, d.y); break;
+                            }
+                        }
+                    }
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1;
+
+                TRAIL_DATA.zones.forEach(z => {
+                    const px = z.position.x * W, py = z.position.y * H;
+                    const r = 4 + Math.sqrt(z.fileCount || 1) * 0.8;
+                    const isActive = z.highlight;
+
+                    // Highlight ring
+                    if (isActive) {
+                        ctx.beginPath();
+                        ctx.arc(px, py, r * 2.5, 0, Math.PI * 2);
+                        ctx.strokeStyle = z.color;
+                        ctx.lineWidth = 2;
+                        ctx.globalAlpha = 0.6;
+                        ctx.stroke();
+                        ctx.globalAlpha = 1;
+                    }
+
+                    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+                    ctx.fillStyle = z.color; ctx.fill();
+                    ctx.strokeStyle = isDark ? 'rgba(255,255,255,0.4)' : 'rgba(0,0,0,0.3)';
+                    ctx.lineWidth = 1.5; ctx.stroke();
+
+                    // File Particles
+                    const fCount = z.fileCount || 0;
+                    const particleR = 1.2;
+                    ctx.fillStyle = z.color;
+                    for (let i = 0; i < fCount; i++) {
+                        const angle = (i / fCount) * Math.PI * 2 + (performance.now() * 0.0002);
+                        const dist = r + 6 + Math.cos(angle * 3) * 2;
+                        const fx = px + Math.cos(angle) * dist;
+                        const fy = py + Math.sin(angle) * dist;
+
+                        ctx.beginPath();
+                        ctx.arc(fx, fy, particleR, 0, Math.PI * 2);
+                        ctx.globalAlpha = 0.6;
+                        ctx.fill();
+                        ctx.globalAlpha = 1;
+                    }
+                });
+
+                // Visualize Walking Path (Organic Bezier)
+                // Visualize Walking Path (Organic Bezier) if playing
+                if (pathHistory.length > 1) {
+                    // Collect points
+                    let points = [];
+                    pathHistory.forEach(ids => {
+                        // ids is array of zone IDs active at that step
+                        if (Array.isArray(ids)) {
+                            ids.forEach(id => {
+                                const z = TRAIL_DATA.zones.find(z => z.id === id);
+                                if (z) points.push({ x: z.position.x * W, y: z.position.y * H });
+                            });
+                        } else {
+                            // Legacy check if single ID
+                            const z = TRAIL_DATA.zones.find(z => z.id === ids);
+                            if (z) points.push({ x: z.position.x * W, y: z.position.y * H });
+                        }
+                    });
+
+                    if (points.length > 1) {
+                        ctx.beginPath();
+                        ctx.strokeStyle = isDark ? '#fff' : '#000';
+                        ctx.lineWidth = 2.5;
+                        ctx.setLineDash([8, 6]);
+                        ctx.lineDashOffset = -performance.now() * 0.03;
+
+                        ctx.moveTo(points[0].x, points[0].y);
+                        for (let i = 0; i < points.length - 1; i++) {
+                            const p0 = points[i];
+                            const p1 = points[i + 1];
+                            const midX = (p0.x + p1.x) / 2;
+                            const midY = (p0.y + p1.y) / 2;
+                            ctx.quadraticCurveTo(p0.x, p0.y, midX, midY); // Simple curve
+                        }
+                        // Connect to last
+                        ctx.lineTo(points[points.length - 1].x, points[points.length - 1].y);
+
+                        ctx.stroke();
+                        ctx.setLineDash([]);
+                    }
+                }
+
+                // Draw Pilgrims
+                if (pilgrims && pilgrims.length) {
+                    pilgrims.forEach(p => {
+                        p.update();
+                        p.draw(ctx);
+                    });
+                }
+
+                requestAnimationFrame(draw);
+            }
+
+            function renderLabels() {
+                const layer = document.getElementById('labels');
+                layer.innerHTML = '';
+                TRAIL_DATA.zones.forEach(z => {
+                    // Clickable hitbox on top of dot
+                    const hitbox = document.createElement('div');
+                    hitbox.className = 'dot-hitbox';
+                    hitbox.style.left = (z.position.x * 100) + '%';
+                    hitbox.style.top = (z.position.y * 100) + '%';
+                    hitbox.title = z.label;
+                    hitbox.onclick = () => openZoneModal(z);
+                    layer.appendChild(hitbox);
+
+                    // Text label
+                    const el = document.createElement('div');
+                    el.className = 'place-name';
+                    if (z.highlight) el.style.color = z.color; // Highlight active
+                    el.style.left = (z.position.x * 100) + '%';
+                    el.style.top = (z.position.y * 100 + 4) + '%'; // clear of dot
+                    el.innerHTML = `${z.label}<span class="file-count">${z.fileCount} FILES</span>`;
+                    el.onclick = () => openZoneModal(z);
+                    layer.appendChild(el);
+
+                    z.el = el; // Store reference
+                });
+            }
+
+            function renderConnections() {
+                const svg = document.getElementById('connections');
+                svg.innerHTML = '';
+                svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+                svg.style.width = W + 'px'; svg.style.height = H + 'px';
+                TRAIL_DATA.connections.forEach(c => {
+                    const fromZ = TRAIL_DATA.zones.find(z => z.id === c.from);
+                    const toZ = TRAIL_DATA.zones.find(z => z.id === c.to);
+                    if (!fromZ || !toZ) return;
+                    const x1 = fromZ.position.x * W, y1 = fromZ.position.y * H;
+                    const x2 = toZ.position.x * W, y2 = toZ.position.y * H;
+                    const mx = (x1 + x2) / 2 + (Math.random() - 0.5) * 30;
+                    const my = (y1 + y2) / 2 + (Math.random() - 0.5) * 30;
+                    const path = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+                    path.setAttribute('d', `M${x1},${y1} Q${mx},${my} ${x2},${y2}`);
+                    path.setAttribute('stroke', isDark ? 'rgba(245,158,11,0.2)' : 'rgba(180,83,9,0.2)');
+                    path.setAttribute('stroke-width', '1.5');
+                    path.setAttribute('fill', 'none');
+                    svg.appendChild(path);
+                });
+            }
+
+            function renderTimeline() {
+                const track = document.getElementById('track');
+                track.querySelectorAll('.timeline-dot').forEach(d => d.remove());
+                const startDate = new Date('2025-11-18').getTime();
+                const endDate = new Date('2025-12-10').getTime();
+                const range = endDate - startDate;
+                TRAIL_DATA.timeline.forEach((t, i) => {
+                    const d = new Date(t.date).getTime();
+                    const pct = ((d - startDate) / range) * 100;
+                    const dot = document.createElement('div');
+                    dot.className = 'timeline-dot';
+                    dot.style.left = pct + '%';
+                    dot.innerHTML = `<span class="timeline-tooltip">${t.label}<br>${t.date}</span>`;
+                    dot.onclick = () => setTimelinePosition(i);
+                    track.appendChild(dot);
+                });
+            }
+
+            function setTimelinePosition(idx) {
+                const t = TRAIL_DATA.timeline[idx];
+                const startDate = new Date('2025-11-18').getTime();
+                const endDate = new Date('2025-12-10').getTime();
+                const d = new Date(t.date).getTime();
+                const pct = ((d - startDate) / (endDate - startDate)) * 100;
+                document.getElementById('tl-fill').style.width = pct + '%';
+
+                document.querySelectorAll('.timeline-dot').forEach((dot, i) => {
+                    dot.classList.toggle('active', i === idx);
+                });
+
+                // Highlight Zones
+                TRAIL_DATA.zones.forEach(z => z.highlight = false);
+                if (t.active) {
+                    t.active.forEach(id => {
+                        const z = TRAIL_DATA.zones.find(z => z.id === id);
+                        if (z) z.highlight = true;
+                    });
+                }
+
+                // Re-render labels to update highlights
+                const layer = document.getElementById('labels');
+                // Updating class of existing labels is better than re-rendering everything
+                Array.from(layer.children).forEach(child => {
+                    if (child.classList.contains('place-name')) child.style.color = '';
+                });
+
+                TRAIL_DATA.zones.forEach(z => {
+                    if (z.highlight && z.el) z.el.style.color = z.color;
+                });
+
+                // Update Path History / Date Overlay
+                const dateEl = document.getElementById('date-overlay');
+                const reflEl = document.getElementById('reflection-stream');
+
+                if (isPlaying) {
+                    dateEl.textContent = t.date;
+                    dateEl.classList.add('active');
+                    reflEl.style.opacity = '1';
+                    reflEl.style.left = pct + '%'; // Move with timeline
+                } else {
+                    dateEl.classList.remove('active');
+                    reflEl.style.opacity = '0'; // Hide when paused/stopped
+                }
+
+                if (t.active) {
+                    // If we jumped, reset history. If sequential, add to it.
+                    // Simple heuristic: if idx is 0 or we aren't playing, reset
+                    // But actually, for "walking the path", we just want the history up to this point?
+                    // Let's just keep the last 5 steps for a "trail" effect if playing
+                    if (isPlaying) {
+                        pathHistory.push(t.active);
+                        if (pathHistory.length > 5) pathHistory.shift();
+
+                        // Update Reflection text
+                        // t.active is array of IDs. Take first one.
+                        const activeId = Array.isArray(t.active) ? t.active[0] : t.active;
+                        const z = TRAIL_DATA.zones.find(z => z.id === activeId);
+                        if (z) {
+                            document.getElementById('refl-body').textContent = `"${z.intent}"`;
+                            document.querySelector('.refl-title').textContent = `<SHIFT: ${z.label}>`;
+                        }
+                    } else {
+                        pathHistory = [t.active];
+                    }
+                }
+            }
+
+            // Playback Controls
+            function togglePlay() {
+                isPlaying = !isPlaying;
+                const btn = document.getElementById('btn-play');
+                btn.textContent = isPlaying ? '❚❚' : '▶';
+
+                if (isPlaying) {
+                    pathHistory = []; // Reset visual trail
+                    let idx = TRAIL_DATA.timeline.findIndex(t => {
+                        // Find current active index based on tl-fill width approx, or just store it
+                        // Simplified: find first dot with 'active' class
+                        return document.querySelector('.timeline-dot.active')
+                    });
+
+                    // If at end, restart
+                    const dots = document.querySelectorAll('.timeline-dot');
+                    let currentIdx = -1;
+                    dots.forEach((d, i) => { if (d.classList.contains('active')) currentIdx = i; });
+
+                    if (currentIdx >= TRAIL_DATA.timeline.length - 1) currentIdx = -1;
+
+                    playInterval = setInterval(() => {
+                        currentIdx++;
+                        if (currentIdx >= TRAIL_DATA.timeline.length) {
+                            togglePlay(); // Stop at end
+                            return;
+                        }
+                        setTimelinePosition(currentIdx);
+                    }, 800); // 800ms per step
+                } else {
+                    clearInterval(playInterval);
+                    pathHistory = [];
+                }
+            }
+
+            document.getElementById('btn-play').onclick = togglePlay;
+
+            // Modal handling
+            // Modal handling
+            function openZoneModal(z) {
+                currentZone = z;
+                document.getElementById('z-title').textContent = z.label;
+                document.getElementById('z-intent').textContent = z.intent;
+
+                // Priority keywords
+                const priorities = ['tutorial', 'explainer', 'readme', 'index', 'hub', 'manual', 'start', 'guide'];
+
+                // Map to preserve original index, then sort
+                const items = z.artifacts.map((item, i) => ({ item, i }));
+
+                items.sort((a, b) => {
+                    const nameA = (typeof a.item === 'string' ? a.item : a.item.text).toLowerCase();
+                    const nameB = (typeof b.item === 'string' ? b.item : b.item.text).toLowerCase();
+
+                    const pA = priorities.some(k => nameA.includes(k));
+                    const pB = priorities.some(k => nameB.includes(k));
+
+                    if (pA && !pB) return -1;
+                    if (!pA && pB) return 1;
+                    return 0; // Keep relative order otherwise
+                });
+
+                const filesHTML = items.map(({ item: fileObj, i }) => {
+                    // Handle both legacy strings and new objects
+                    const fileName = typeof fileObj === 'string' ? fileObj : fileObj.text;
+                    const meta = typeof fileObj === 'string' ? '' :
+                        `<div style="font-size:9px; color:var(--ink-dim); margin-top:2px;">
+                           Born: ${fileObj.timestamp ? fileObj.timestamp.split('T')[0] : '???'} • ${fileObj.size_human || ''}
+                         </div>`;
+
+                    const ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+                    const isPriority = priorities.some(k => fileName.toLowerCase().includes(k));
+                    const badge = isPriority ? `<span style="font-size:9px; background:var(--accent); color:var(--bg); padding:1px 4px; border-radius:2px; margin-left:6px; font-weight:600;">START HERE</span>` : '';
+
+                    return `<div class="file-item" data-index="${i}" ${isPriority ? 'style="background:rgba(251,191,36,0.1); border-left:2px solid var(--accent);"' : ''}>
+                        <span class="file-ext ${ext}">${ext.toUpperCase()}</span>
+                        <div style="flex:1">
+                            <span class="file-name">${fileName} ${badge}</span>
+                            ${meta}
+                        </div>
+                    </div>`;
+                }).join('');
+
+                document.getElementById('z-body').innerHTML = `
+                    <div class="dossier-grid">
+                        <div class="dossier-label">&lt;GOAL / INTENT&gt;</div>
+                        <div class="dossier-value" style="font-style:italic;">"${z.intent}"</div>
+
+                        <div class="dossier-label">[DECISIONS / SHIFTS]</div>
+                        <div class="dossier-value">
+                            ${z.decisions.map(d => `<span class="dossier-tag">${d}</span>`).join('')}
+                        </div>
+
+                        <div class="dossier-label">&lt;PATTERNS / SOLUTIONS&gt;</div>
+                        <div class="dossier-value">
+                            ${z.patterns.map(p => `<span class="dossier-tag">${p}</span>`).join('')}
+                        </div>
+                    </div >
+                    <div style="font-family:'JetBrains Mono'; font-size:10px; color:var(--ink-dim); margin-bottom:8px; text-transform:uppercase;">&lt;ENTITIES&gt; (${z.artifacts.length})</div>
+                    <div class="file-grid">${filesHTML}</div>
+                `;
+
+                document.querySelectorAll('.file-item').forEach(item => {
+                    item.onclick = () => openIframe(parseInt(item.dataset.index));
+                });
+
+                document.getElementById('backdrop').classList.add('active');
+                document.getElementById('zone-modal').classList.add('active');
+            }
+
+            function closeZoneModal() {
+                document.getElementById('backdrop').classList.remove('active');
+                document.getElementById('zone-modal').classList.remove('active');
+            }
+
+            function openIframe(idx) {
+                if (!currentZone) return;
+                currentFileIndex = idx;
+                if (!currentZone) return;
+                currentFileIndex = idx;
+                const fileObj = currentZone.artifacts[idx];
+                const fileName = typeof fileObj === 'string' ? fileObj : fileObj.text;
+                const ext = fileName.substring(fileName.lastIndexOf('.') + 1);
+
+                document.getElementById('iframe-name').textContent = fileName;
+                document.getElementById('iframe-ext').textContent = ext.toUpperCase();
+                document.getElementById('iframe-ext').className = 'file-ext ' + ext;
+
+                const openBtn = document.getElementById('if-open');
+                openBtn.href = fileName;
+                openBtn.title = "Open in new tab (if blocked)";
+                openBtn.style.display = "inline-block"; // Ensure visible
+
+                document.getElementById('if-location').textContent = currentZone.label;
+                document.getElementById('if-dot').style.backgroundColor = currentZone.color;
+
+                const frame = document.getElementById('iframe-frame');
+                frame.classList.remove('loaded');
+                frame.onload = () => frame.classList.add('loaded');
+                frame.src = fileName;
+
+                // PLAYLIST GENERATION
+                const playlist = document.getElementById('if-playlist');
+                if (playlist) {
+                    playlist.innerHTML = currentZone.artifacts.map((art, i) => {
+                        const n = typeof art === 'string' ? art : art.text;
+                        const isAct = i === idx ? 'active' : '';
+                        return `<div class="playlist-item ${isAct}" onclick="openIframe(${i})">
+                            <span class="playlist-idx">${i + 1}</span>
+                            <span class="playlist-name">${n}</span>
+                         </div>`;
+                    }).join('');
+                }
+
+                document.getElementById('iframe-viewer').classList.add('active');
+            }
+
+            function closeIframe() {
+                document.getElementById('iframe-viewer').classList.remove('active');
+                document.getElementById('iframe-frame').src = '';
+            }
+
+            document.getElementById('if-prev').onclick = () => {
+                if (!currentZone) return;
+                currentFileIndex = (currentFileIndex - 1 + currentZone.artifacts.length) % currentZone.artifacts.length;
+                openIframe(currentFileIndex);
+            };
+
+            document.getElementById('if-next').onclick = () => {
+                if (!currentZone) return;
+                currentFileIndex = (currentFileIndex + 1) % currentZone.artifacts.length;
+                openIframe(currentFileIndex);
+            };
+
+            document.getElementById('if-close').onclick = closeIframe;
+            document.getElementById('z-close').onclick = closeZoneModal;
+            document.getElementById('backdrop').onclick = closeZoneModal;
+
+            // Ontology modal
+            document.getElementById('btn-onto').onclick = () => {
+                document.getElementById('backdrop').classList.add('active');
+                document.getElementById('onto-modal').classList.add('active');
+            };
+
+            document.getElementById('onto-close').onclick = () => {
+                document.getElementById('backdrop').classList.remove('active');
+                document.getElementById('onto-modal').classList.remove('active');
+            };
+
+            // Toggle connections
+            // Toggle connections
+            document.getElementById('btn-conn').onclick = () => {
+                const svg = document.getElementById('connections');
+                const isOn = svg.style.display !== 'none';
+                svg.style.display = isOn ? 'none' : 'block';
+                connectionsActive = !isOn; // Update global state for Pilgrims
+            };
+
+            // Toggle Legend
+            document.getElementById('btn-legend').onclick = () => {
+                const leg = document.getElementById('map-legend');
+                leg.style.display = leg.style.display === 'none' ? 'block' : 'none';
+            };
+
+            // Theme toggle
+            document.getElementById('btn-theme').onclick = () => {
+                isDark = !isDark;
+                document.documentElement.setAttribute('data-theme', isDark ? 'dark' : 'light');
+                document.getElementById('btn-theme').textContent = isDark ? '☀' : '☽';
+                draw();
+                renderConnections();
+            };
+
+            window.openIframe = openIframe;
+            window.togglePlay = togglePlay;
+
+            window.onresize = init;
+            loadTrailData();
+        })();
+    </script>
+</body>
+
+</html>
