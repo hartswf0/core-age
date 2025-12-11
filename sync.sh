@@ -10,6 +10,13 @@ if [ -z "$MSG" ]; then
 fi
 
 echo "🚀 Syncing logic to origin..."
+
+# Regenerate static manifest to ensure live site is up to date
+if [ -f "generate_manifest.js" ]; then
+    echo "📄 Generating static file manifest..."
+    node generate_manifest.js
+fi
+
 git add .
 git commit -m "$MSG"
 git push origin main
