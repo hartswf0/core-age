@@ -1,20 +1,20 @@
 {
-  "generated": "2025-12-11T10:20:16.657Z",
-  "total_files": 247,
-  "total_size": 68957731,
-  "total_size_human": "65.76 MB",
+  "generated": "2025-12-11T10:26:53.516Z",
+  "total_files": 265,
+  "total_size": 69326366,
+  "total_size_human": "66.11 MB",
   "summary": {
     "extensions": {
-      ".html": 112,
+      ".html": 115,
       ".csv": 2,
       ".txt": 45,
-      ".sh": 15,
-      ".md": 18,
+      ".sh": 17,
+      ".md": 25,
       ".mpd": 9,
-      ".py": 6,
-      ".js": 12,
+      ".py": 8,
+      ".js": 14,
       ".svg": 2,
-      ".json": 15,
+      ".json": 17,
       ".css": 1,
       ".png": 7,
       ".backup": 1,
@@ -538,6 +538,15 @@
         "created": "2025-12-11T08:42:14.935Z"
       },
       {
+        "name": "TRAIL_OLOG_BOOT_PROMPT.md",
+        "path": "/Users/gaia/COURAGE/TRAIL_OLOG_BOOT_PROMPT.md",
+        "extension": ".md",
+        "size": 6893,
+        "size_human": "6.73 KB",
+        "modified": "2025-12-11T10:26:33.042Z",
+        "created": "2025-12-11T10:26:33.007Z"
+      },
+      {
         "name": "TRAIL_OLOG_STARTER_KIT.md",
         "path": "/Users/gaia/COURAGE/TRAIL_OLOG_STARTER_KIT.md",
         "extension": ".md",
@@ -581,6 +590,15 @@
         "size_human": "97.25 KB",
         "modified": "2025-11-22T09:25:14.632Z",
         "created": "2025-11-22T09:24:25.865Z"
+      },
+      {
+        "name": "atg-core-genome.html",
+        "path": "/Users/gaia/COURAGE/atg-core-genome.html",
+        "extension": ".html",
+        "size": 49268,
+        "size_human": "48.11 KB",
+        "modified": "2025-12-11T10:23:19.525Z",
+        "created": "2025-12-11T10:23:18.320Z"
       },
       {
         "name": "brick-haven-central.html",
@@ -793,9 +811,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 74639,
-        "size_human": "72.89 KB",
-        "modified": "2025-12-11T10:06:31.064Z",
+        "size": 75261,
+        "size_human": "73.5 KB",
+        "modified": "2025-12-11T10:20:16.658Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
@@ -1994,6 +2012,150 @@
         "size_human": "49.82 KB",
         "modified": "2025-11-20T08:38:17.895Z",
         "created": "2025-11-20T07:30:08.955Z"
+      },
+      {
+        "name": "PORTING_AND_DEPLOYMENT.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/PORTING_AND_DEPLOYMENT.md",
+        "extension": ".md",
+        "size": 4225,
+        "size_human": "4.13 KB",
+        "modified": "2025-12-11T09:57:58.000Z",
+        "created": "2025-12-11T09:57:58.000Z"
+      },
+      {
+        "name": "TRAILS_AND_REFLECTIONS.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/TRAILS_AND_REFLECTIONS.md",
+        "extension": ".md",
+        "size": 2701,
+        "size_human": "2.64 KB",
+        "modified": "2025-12-11T08:42:15.000Z",
+        "created": "2025-12-11T08:42:15.000Z"
+      },
+      {
+        "name": "TRAIL_OLOG_STARTER_KIT.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/TRAIL_OLOG_STARTER_KIT.md",
+        "extension": ".md",
+        "size": 5072,
+        "size_human": "4.95 KB",
+        "modified": "2025-12-11T10:18:59.000Z",
+        "created": "2025-12-11T10:18:59.000Z"
+      },
+      {
+        "name": "courage-trail-data.json",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/courage-trail-data.json",
+        "extension": ".json",
+        "size": 58959,
+        "size_human": "57.58 KB",
+        "modified": "2025-12-11T08:44:14.000Z",
+        "created": "2025-12-11T08:44:14.000Z"
+      },
+      {
+        "name": "courage-trail-olog.html",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/courage-trail-olog.html",
+        "extension": ".html",
+        "size": 76774,
+        "size_human": "74.97 KB",
+        "modified": "2025-12-11T10:06:03.000Z",
+        "created": "2025-12-11T10:06:03.000Z"
+      },
+      {
+        "name": "enrich_trail_data.py",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/enrich_trail_data.py",
+        "extension": ".py",
+        "size": 3718,
+        "size_human": "3.63 KB",
+        "modified": "2025-12-11T06:48:39.000Z",
+        "created": "2025-12-11T06:48:39.000Z"
+      },
+      {
+        "name": "generate_manifest.js",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/generate_manifest.js",
+        "extension": ".js",
+        "size": 3936,
+        "size_human": "3.84 KB",
+        "modified": "2025-12-11T09:23:19.000Z",
+        "created": "2025-12-11T09:23:19.000Z"
+      },
+      {
+        "name": "sync.sh",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter/sync.sh",
+        "extension": ".sh",
+        "size": 541,
+        "size_human": "541 Bytes",
+        "modified": "2025-12-11T09:24:00.000Z",
+        "created": "2025-12-11T09:24:00.000Z"
+      },
+      {
+        "name": "PORTING_AND_DEPLOYMENT.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/PORTING_AND_DEPLOYMENT.md",
+        "extension": ".md",
+        "size": 4225,
+        "size_human": "4.13 KB",
+        "modified": "2025-12-11T09:57:58.000Z",
+        "created": "2025-12-11T09:57:58.000Z"
+      },
+      {
+        "name": "TRAILS_AND_REFLECTIONS.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/TRAILS_AND_REFLECTIONS.md",
+        "extension": ".md",
+        "size": 2701,
+        "size_human": "2.64 KB",
+        "modified": "2025-12-11T08:42:15.000Z",
+        "created": "2025-12-11T08:42:15.000Z"
+      },
+      {
+        "name": "TRAIL_OLOG_STARTER_KIT.md",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/TRAIL_OLOG_STARTER_KIT.md",
+        "extension": ".md",
+        "size": 5072,
+        "size_human": "4.95 KB",
+        "modified": "2025-12-11T10:18:59.000Z",
+        "created": "2025-12-11T10:18:59.000Z"
+      },
+      {
+        "name": "courage-trail-data.json",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/courage-trail-data.json",
+        "extension": ".json",
+        "size": 58959,
+        "size_human": "57.58 KB",
+        "modified": "2025-12-11T08:44:14.000Z",
+        "created": "2025-12-11T08:44:14.000Z"
+      },
+      {
+        "name": "courage-trail-olog.html",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/courage-trail-olog.html",
+        "extension": ".html",
+        "size": 76774,
+        "size_human": "74.97 KB",
+        "modified": "2025-12-11T10:06:03.000Z",
+        "created": "2025-12-11T10:06:03.000Z"
+      },
+      {
+        "name": "enrich_trail_data.py",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/enrich_trail_data.py",
+        "extension": ".py",
+        "size": 3718,
+        "size_human": "3.63 KB",
+        "modified": "2025-12-11T06:48:39.000Z",
+        "created": "2025-12-11T06:48:39.000Z"
+      },
+      {
+        "name": "generate_manifest.js",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/generate_manifest.js",
+        "extension": ".js",
+        "size": 3936,
+        "size_human": "3.84 KB",
+        "modified": "2025-12-11T09:23:19.000Z",
+        "created": "2025-12-11T09:23:19.000Z"
+      },
+      {
+        "name": "sync.sh",
+        "path": "/Users/gaia/COURAGE/trail-olog-starter copy/sync.sh",
+        "extension": ".sh",
+        "size": 541,
+        "size_human": "541 Bytes",
+        "modified": "2025-12-11T09:24:00.000Z",
+        "created": "2025-12-11T09:24:00.000Z"
       },
       {
         "name": "trail-olog-starter.zip",

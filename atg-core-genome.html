@@ -1,0 +1,1111 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Project Genome | LMC-6650 Creator Trail</title>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@400;600&family=JetBrains+Mono:wght@400;600&family=Inter:wght@300;400;600&display=swap"
+        rel="stylesheet">
+    <style>
+        :root {
+            --bg: #0d0d12;
+            --surface: #14141a;
+            --surface-2: #1a1a22;
+            --ink: #e8e8e8;
+            --ink-dim: #888;
+            --ink-muted: #555;
+            --accent: #d97706;
+            --accent-dim: rgba(217, 119, 6, 0.2);
+            --week1: #ef4444;
+            --week3: #3b82f6;
+            --week4: #10b981;
+            --week5: #f59e0b;
+            --week7: #8b5cf6;
+            --workshop: #ec4899;
+            --final: #06b6d4;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.7;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        /* Header */
+        header {
+            text-align: center;
+            padding: 60px 0 40px;
+            border-bottom: 1px solid var(--surface-2);
+            margin-bottom: 50px;
+        }
+
+        h1 {
+            font-family: 'Crimson Pro', serif;
+            font-size: 2.8rem;
+            font-weight: 600;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .subtitle {
+            font-size: 1.1rem;
+            color: var(--ink-dim);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        .course-info {
+            margin-top: 20px;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+        }
+
+        /* Arc Diagram */
+        .arc-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 30px;
+            margin-bottom: 50px;
+        }
+
+        .arc-title {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.4rem;
+            color: var(--accent);
+            margin-bottom: 20px;
+        }
+
+        .arc-flow {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 10px;
+            padding: 20px 0;
+        }
+
+        .arc-node {
+            text-align: center;
+            flex: 1;
+            min-width: 120px;
+        }
+
+        .arc-node .name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            font-weight: 600;
+            color: var(--accent);
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+        }
+
+        .arc-node .phase {
+            font-size: 0.65rem;
+            color: var(--ink-dim);
+            margin-top: 4px;
+        }
+
+        .arc-arrow {
+            color: var(--ink-muted);
+            font-size: 1.2rem;
+        }
+
+        /* Olog Legend */
+        .olog-legend {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+            gap: 12px;
+            margin-top: 25px;
+            padding-top: 20px;
+            border-top: 1px dashed var(--surface-2);
+        }
+
+        .olog-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.75rem;
+        }
+
+        .olog-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 600;
+            color: var(--accent);
+            width: 24px;
+        }
+
+        .olog-label {
+            color: var(--ink-dim);
+        }
+
+        /* Timeline */
+        .timeline {
+            position: relative;
+            padding-left: 30px;
+        }
+
+        .timeline::before {
+            content: '';
+            position: absolute;
+            left: 8px;
+            top: 0;
+            bottom: 0;
+            width: 2px;
+            background: linear-gradient(to bottom, var(--week1), var(--week3), var(--week4), var(--week5), var(--week7), var(--workshop), var(--final));
+        }
+
+        /* Project Cards */
+        .project {
+            margin-bottom: 50px;
+            position: relative;
+        }
+
+        .project::before {
+            content: '';
+            position: absolute;
+            left: -22px;
+            top: 8px;
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+        }
+
+        .project.week1::before {
+            background: var(--week1);
+        }
+
+        .project.week3::before {
+            background: var(--week3);
+        }
+
+        .project.week4::before {
+            background: var(--week4);
+        }
+
+        .project.week5::before {
+            background: var(--week5);
+        }
+
+        .project.week7::before {
+            background: var(--week7);
+        }
+
+        .project.workshop::before {
+            background: var(--workshop);
+        }
+
+        .project.final::before {
+            background: var(--final);
+        }
+
+        .project-header {
+            display: flex;
+            align-items: baseline;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-bottom: 12px;
+        }
+
+        .project-name {
+            font-family: 'Crimson Pro', serif;
+            font-size: 1.6rem;
+            font-weight: 600;
+            color: var(--ink);
+        }
+
+        .project-week {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+        }
+
+        .project.week1 .project-week {
+            background: rgba(239, 68, 68, 0.2);
+            color: var(--week1);
+        }
+
+        .project.week3 .project-week {
+            background: rgba(59, 130, 246, 0.2);
+            color: var(--week3);
+        }
+
+        .project.week4 .project-week {
+            background: rgba(16, 185, 129, 0.2);
+            color: var(--week4);
+        }
+
+        .project.week5 .project-week {
+            background: rgba(245, 158, 11, 0.2);
+            color: var(--week5);
+        }
+
+        .project.week7 .project-week {
+            background: rgba(139, 92, 246, 0.2);
+            color: var(--week7);
+        }
+
+        .project.workshop .project-week {
+            background: rgba(236, 72, 153, 0.2);
+            color: var(--workshop);
+        }
+
+        .project.final .project-week {
+            background: rgba(6, 182, 212, 0.2);
+            color: var(--final);
+        }
+
+        .project-tagline {
+            font-size: 1rem;
+            color: var(--ink-dim);
+            margin-bottom: 16px;
+            font-style: italic;
+        }
+
+        /* Genome Table */
+        .genome {
+            background: var(--surface);
+            border-radius: 10px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+
+        .genome-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.15em;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .genome-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 14px;
+        }
+
+        .genome-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .genome-key {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            font-weight: 600;
+            color: var(--accent);
+            min-width: 24px;
+        }
+
+        .genome-value {
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            line-height: 1.5;
+        }
+
+        /* About Section */
+        .about {
+            margin-bottom: 20px;
+        }
+
+        .about h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 8px;
+        }
+
+        .about p {
+            font-size: 0.9rem;
+            color: var(--ink-dim);
+        }
+
+        .about ul {
+            margin-left: 20px;
+            margin-top: 8px;
+        }
+
+        .about li {
+            font-size: 0.85rem;
+            color: var(--ink-dim);
+            margin-bottom: 6px;
+        }
+
+        .about li strong {
+            color: var(--ink);
+        }
+
+        /* Readings */
+        .readings {
+            background: var(--surface-2);
+            border-radius: 8px;
+            padding: 16px;
+            margin-top: 16px;
+        }
+
+        .readings-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            margin-bottom: 10px;
+        }
+
+        .reading {
+            font-size: 0.8rem;
+            color: var(--ink-dim);
+            margin-bottom: 8px;
+            padding-left: 12px;
+            border-left: 2px solid var(--accent-dim);
+        }
+
+        .reading .author {
+            color: var(--ink);
+        }
+
+        /* Links */
+        a {
+            color: var(--accent);
+            text-decoration: none;
+        }
+
+        a:hover {
+            text-decoration: underline;
+        }
+
+        .project-links {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+            margin-top: 16px;
+        }
+
+        .project-link {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            padding: 6px 12px;
+            background: var(--accent-dim);
+            color: var(--accent);
+            border-radius: 6px;
+            transition: all 0.2s;
+        }
+
+        .project-link:hover {
+            background: var(--accent);
+            color: var(--bg);
+            text-decoration: none;
+        }
+
+        /* Collaborators */
+        .collaborators {
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px dashed var(--surface-2);
+        }
+
+        .collab-title {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-muted);
+            margin-bottom: 8px;
+        }
+
+        .collab-list {
+            display: flex;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+
+        .collab-tag {
+            font-size: 0.75rem;
+            padding: 4px 10px;
+            background: var(--surface-2);
+            border-radius: 12px;
+            color: var(--ink-dim);
+        }
+
+        /* Journey Section */
+        .journey-section {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 30px;
+            margin: 50px 0;
+        }
+
+        .journey-insight {
+            background: var(--surface-2);
+            border-left: 3px solid var(--accent);
+            padding: 16px 20px;
+            margin: 20px 0;
+            border-radius: 0 8px 8px 0;
+        }
+
+        .journey-insight p {
+            font-size: 0.95rem;
+            color: var(--ink);
+            font-style: italic;
+        }
+
+        .journey-insight .source {
+            font-size: 0.75rem;
+            color: var(--ink-muted);
+            margin-top: 8px;
+        }
+
+        /* Footer */
+        footer {
+            text-align: center;
+            padding: 40px 0;
+            border-top: 1px solid var(--surface-2);
+            margin-top: 60px;
+        }
+
+        .footer-text {
+            font-size: 0.8rem;
+            color: var(--ink-muted);
+        }
+
+        .credits {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.7rem;
+            color: var(--ink-dim);
+            margin-top: 12px;
+        }
+
+        @media (max-width: 600px) {
+            h1 {
+                font-size: 2rem;
+            }
+
+            .arc-flow {
+                flex-direction: column;
+            }
+
+            .arc-arrow {
+                transform: rotate(90deg);
+            }
+
+            .genome-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Project Genome</h1>
+            <p class="subtitle">An integrated narrative of toolkits, trails, and transformations—each project encoded
+                with its Creator Trail DNA.</p>
+            <p class="course-info">LMC-6650 Project Studio: Creating Toolkits & Engagements with Social Values<br>Fall
+                2025 · Richmond Y. Wong, PhD</p>
+        </header>
+
+        <!-- Arc Section -->
+        <section class="arc-section">
+            <h2 class="arc-title">The Arc: From Failure to Synthesis</h2>
+            <div class="arc-flow">
+                <div class="arc-node">
+                    <div class="name">TILTH</div>
+                    <div class="phase">Failure</div>
+                </div>
+                <div class="arc-arrow">→</div>
+                <div class="arc-node">
+                    <div class="name">Thousand-Tetrad</div>
+                    <div class="phase">Discovery</div>
+                </div>
+                <div class="arc-arrow">→</div>
+                <div class="arc-node">
+                    <div class="name">HOLO</div>
+                    <div class="phase">Transition</div>
+                </div>
+                <div class="arc-arrow">→</div>
+                <div class="arc-node">
+                    <div class="name">Tractor</div>
+                    <div class="phase">Synthesis</div>
+                </div>
+            </div>
+
+            <div class="olog-legend">
+                <div class="olog-item"><span class="olog-symbol">C</span><span class="olog-label">Creator</span></div>
+                <div class="olog-item"><span class="olog-symbol">T</span><span class="olog-label">Trail</span></div>
+                <div class="olog-item"><span class="olog-symbol">A</span><span class="olog-label">Artifact</span></div>
+                <div class="olog-item"><span class="olog-symbol">M</span><span class="olog-label">Metadata</span></div>
+                <div class="olog-item"><span class="olog-symbol">D</span><span class="olog-label">Decision</span></div>
+                <div class="olog-item"><span class="olog-symbol">S</span><span class="olog-label">Tool</span></div>
+                <div class="olog-item"><span class="olog-symbol">P</span><span class="olog-label">Pattern</span></div>
+                <div class="olog-item"><span class="olog-symbol">I</span><span class="olog-label">Intent</span></div>
+            </div>
+        </section>
+
+        <!-- Timeline -->
+        <div class="timeline">
+
+            <!-- Week 1: dirty-disclosure -->
+            <article class="project week1">
+                <div class="project-header">
+                    <h2 class="project-name">dirty-disclosure</h2>
+                    <span class="project-week">Week 1 · Aug 19</span>
+                </div>
+                <p class="project-tagline">AI disclosure theatre through Bateson's double bind framework</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Week 1 →
+                                Toolkit critique</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">Double bind
+                                scenarios, disclosure flows</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span
+                                class="genome-value">everydayethics.uxp2.com activity logs</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Expose
+                                double binds in ethics tools</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Disclosure
+                                analysis interface</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Double bind:
+                                hide=deceit, reveal=impure</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Question
+                                when ethics tools create traps</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>Key Concepts</h4>
+                    <ul>
+                        <li><strong>Turing Test as legibility performance</strong></li>
+                        <li><strong>Proof-of-transparency as proof-of-guilt</strong></li>
+                        <li><strong>Disclosure theatre</strong> — performance of openness within constrained systems
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="readings">
+                    <div class="readings-title">Week 1 Activity</div>
+                    <div class="reading">Explore <a href="https://everydayethics.uxp2.com/methods/"
+                            target="_blank">everydayethics.uxp2.com/methods</a> and try one or two activities. What is
+                        the intended "theory of change"? What are the barriers?</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/dirty-disclosure/" class="project-link" target="_blank">View
+                        Project →</a>
+                </div>
+            </article>
+
+            <!-- Week 3: privacy-value-labels -->
+            <article class="project week3">
+                <div class="project-header">
+                    <h2 class="project-name">privacy-value-labels</h2>
+                    <span class="project-week">Week 3 · Sep 2</span>
+                </div>
+                <p class="project-tagline">Mobile-first Contextual Integrity interface with Label, Deck, and Learn views
+                </p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Week 3 →
+                                Privacy as case study</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">Label cards,
+                                14-dimension deck, CI learning modules</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span
+                                class="genome-value">Offline-first, canonical dataset</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Turn
+                                analytic into practical worksheet</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Privacy
+                                Nutrition Label interface</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span
+                                class="genome-value">Multi-dimensional privacy mapping</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Make CI
+                                usable on phone, in meeting, in field</span></div>
+                    </div>
+                </div>
+
+                <div class="readings">
+                    <div class="readings-title">Week 3 Readings</div>
+                    <div class="reading"><span class="author">Malkin, Nathan.</span> "Contextual Integrity, Explained."
+                        IEEE Security & Privacy 21, no. 01 (2023). doi:10.1109/MSEC.2022.3201585</div>
+                    <div class="reading"><span class="author">Mulligan, Koopman, Doty.</span> "Privacy Is an Essentially
+                        Contested Concept." Phil Trans Royal Soc A 374 (2016). doi:10.1098/rsta.2016.0118</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/privacy-value-labels/" class="project-link" target="_blank">View
+                        Project →</a>
+                </div>
+            </article>
+
+            <!-- Week 4: liberty-machines -->
+            <article class="project week4">
+                <div class="project-header">
+                    <h2 class="project-name">liberty-machines</h2>
+                    <span class="project-week">Week 4 · Sep 9</span>
+                </div>
+                <p class="project-tagline">Lessig's Pathetic Dot—Law, Norms, Market, Code as interactive forces</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Week 4 →
+                                Modes of action</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">Cigarette
+                                pack scenarios, modality maps</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">"freedom
+                                theatre's curtain opens"</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Four
+                                modalities as values levers</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Freedom
+                                theatre simulator</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Second-order
+                                control shapes first-order freedom</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Make
+                                regulatory forces tangible and interactive</span></div>
+                    </div>
+                </div>
+
+                <div class="readings">
+                    <div class="readings-title">Week 4 Readings</div>
+                    <div class="reading"><span class="author">Lessig, Lawrence.</span> "What Things Regulate." Code
+                        v2.0, Ch. 7 (2006). <a href="https://upload.wikimedia.org/wikipedia/commons/f/fd/Code_v2.pdf"
+                            target="_blank">PDF</a></div>
+                    <div class="reading"><span class="author">Shilton, Katie.</span> "Values Levers: Building Ethics
+                        into Design." Science, Technology, & Human Values 38, no. 3 (2013). doi:10.1177/0162243912436985
+                    </div>
+                    <div class="reading"><span class="author">Spitzberg, Danny.</span> "Creating Standards: Our Secret
+                        Job as Researchers." Interactions 30, no. 5 (2023). doi:10.1145/3615670</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/liberty-machines/" class="project-link" target="_blank">View
+                        Project →</a>
+                </div>
+            </article>
+
+            <!-- Week 5: haunted-tools -->
+            <article class="project week5">
+                <div class="project-header">
+                    <h2 class="project-name">haunted-tools</h2>
+                    <span class="project-week">Week 5 · Sep 16</span>
+                </div>
+                <p class="project-tagline">Barthesian mythology catalog—forms that look like work but avoid transfers
+                </p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Week 5 →
+                                Toolkits and their limits</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">7 Barthesian
+                                tools, retro catalog format</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">Print-first
+                                design, paper aesthetics</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Expose
+                                mythology in tool-form itself</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Semiotic
+                                Scalpel: form, concept, twist</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Tools avoid
+                                transfers of budget, time, rights, risk</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Reveal
+                                ideological freight in institutional tools</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>The 7 Barthesian Tools</h4>
+                    <ul>
+                        <li><strong>Makita Ethics Driver</strong> — Ethics as calibration rather than structure</li>
+                        <li><strong>Ryobi Access Drill Kit</strong> — Access as aesthetic, not infrastructure</li>
+                        <li><strong>DeWalt Citation Hammer</strong> — Citation as blunt force</li>
+                        <li><strong>Milwaukee Messiness Grinder</strong> — Innovation as performance</li>
+                        <li><strong>FLEXVOLT Justice Battery</strong> — Capacity substitutes for connectivity</li>
+                        <li><strong>Cordless Academic Drill</strong> — Academic freedom becomes precarity</li>
+                        <li><strong>Infinite Punch List</strong> — Progress becomes permanent process</li>
+                    </ul>
+                </div>
+
+                <div class="readings">
+                    <div class="readings-title">Week 5 Readings</div>
+                    <div class="reading"><span class="author">Mattern, Shannon.</span> "Unboxing the Toolkit." Toolshed
+                        (2021). <a href="https://tool-shed.org/unboxing-the-toolkit/" target="_blank">Link</a></div>
+                    <div class="reading"><span class="author">Petterson, Cheng, Chandra.</span> "Playing with Power
+                        Tools: Design Toolkits and the Framing of Equity." CHI '23. doi:10.1145/3544548.3581490</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/haunted-tools/" class="project-link" target="_blank">View
+                        Project →</a>
+                </div>
+            </article>
+
+            <!-- Week 7: role-deck -->
+            <article class="project week7">
+                <div class="project-header">
+                    <h2 class="project-name">role-deck</h2>
+                    <span class="project-week">Week 7 · Sep 30</span>
+                </div>
+                <p class="project-tagline">Ethical Identity Cards using Bartle Taxonomy for practitioner roles</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Week 7 →
+                                Social networks & emotional work</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">Role cards,
+                                HUB, PLoT calculator, TILTH investigation</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span
+                                class="genome-value">Collaboration logs, workshop feedback</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Map identity
+                                formations visibly</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Ethical
+                                Identity Card deck</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Soft
+                                resistance tactics, affective labor</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Navigate
+                                organizational power structures</span></div>
+                    </div>
+                </div>
+
+                <div class="journey-insight">
+                    <p>"TILTH became convoluted speculation—a world inside of a world. As project context grew, ability
+                        to finish it got exponentially more challenging."</p>
+                    <div class="source">— The Failure of TILTH</div>
+                </div>
+
+                <div class="readings">
+                    <div class="readings-title">Week 7 Readings</div>
+                    <div class="reading"><span class="author">Chivukula et al.</span> "Identity Claims That Underlie
+                        Ethical Awareness and Action." CHI '21. doi:10.1145/3411764.3445375</div>
+                    <div class="reading"><span class="author">Rattay et al.</span> "'Why Do We Do This?': Moral Stress."
+                        CHI '25. doi:10.1145/3706598.3713264</div>
+                    <div class="reading"><span class="author">Wong, Richmond Y.</span> "Tactics of Soft Resistance."
+                        CSCW '21. doi:10.1145/3479499</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/role-deck/HUB.html" class="project-link" target="_blank">HUB
+                        →</a>
+                    <a href="https://hartswf0.github.io/role-deck/tilth-investigation.html" class="project-link"
+                        target="_blank">TILTH Investigation →</a>
+                    <a href="https://hartswf0.github.io/role-deck/tetrad-pad.html" class="project-link"
+                        target="_blank">Tetrad Pad →</a>
+                </div>
+            </article>
+
+            <!-- Workshops: 1000-small-futures -->
+            <article class="project workshop">
+                <div class="project-header">
+                    <h2 class="project-name">1000-small-futures</h2>
+                    <span class="project-week">Weeks 10–14 · Oct–Nov</span>
+                </div>
+                <p class="project-tagline">LEGOS framework, McLuhan tetrad, anti-tool design philosophy</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">TILTH
+                                failure → Invariant substrate discovery</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">100+ test
+                                scenes, tetrad engine, ring memory</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">API costs,
+                                session logs, branch trees</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">9×9 grid as
+                                invariant design pattern</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span
+                                class="genome-value">Thousand-Tetrad engine</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Tetrad
+                                operators (Enhance/Obsolesce/Retrieve/Reverse)</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Bounded
+                                speculation that gets richer with use</span></div>
+                    </div>
+                </div>
+
+                <div class="journey-insight">
+                    <p>"Much better speculative worlds had already been created. I could be parasitic off of them—focus
+                        on technical tool-building instead of keeping track of the world itself."</p>
+                    <div class="source">— Thousand-Tetrad Discovery</div>
+                </div>
+
+                <div class="about">
+                    <h4>The Invariant Substrate</h4>
+                    <p>BUILD A DESIGN PATTERN that can be scaled across any scenario-building and stays invariant:</p>
+                    <ul>
+                        <li>9×9 grid with chat beneath, header with operators, footer with scene selector</li>
+                        <li>Any new UI loads through the chat</li>
+                        <li>Any entity can be controlled via chat or grid</li>
+                        <li>Anything can easily be branched</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/1000-small-futures/thousand-tetrad.html" class="project-link"
+                        target="_blank">Thousand-Tetrad →</a>
+                    <a href="https://hartswf0.github.io/LEGOS/" class="project-link" target="_blank">LEGOS Framework
+                        →</a>
+                    <a href="https://hartswf0.github.io/nexadoc-jar/" class="project-link" target="_blank">Nexadoc Jar
+                        →</a>
+                    <a href="https://hartswf0.github.io/nexadoc-jar/epir.html" class="project-link"
+                        target="_blank">Anecdote of a Jar →</a>
+                </div>
+
+                <div class="collaborators">
+                    <div class="collab-title">Collaborators</div>
+                    <div class="collab-list">
+                        <span class="collab-tag">Shuruq Tramontini</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Workshops: the-fork -->
+            <article class="project workshop">
+                <div class="project-header">
+                    <h2 class="project-name">the-fork</h2>
+                    <span class="project-week">Weeks 11–14 · Nov</span>
+                </div>
+                <p class="project-tagline">Ethical negotiation through conversation with moral agents</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe + Kayla Uleah Evans</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Responsible
+                                AI Summit → Negotiation simulations</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">Railway
+                                Game, 9×9 grids, 3D train scenes</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">Prompt
+                                guides, friction documentation</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Moral
+                                frameworks as negotiable agents</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Ethical
+                                negotiation interface</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Trolley
+                                problem as 40-ton weight</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Ethics as
+                                dialogue, not puzzle</span></div>
+                    </div>
+                </div>
+
+                <div class="journey-insight">
+                    <p>"She had a sense of being creative director. I told her I could hardly keep the codebase
+                        together. I wouldn't be of much help to such a role. Not trying to act like I had a real
+                        platform."</p>
+                    <div class="source">— Collaboration with Kayla</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/the-fork/" class="project-link" target="_blank">The Fork →</a>
+                </div>
+
+                <div class="collaborators">
+                    <div class="collab-title">Collaborators</div>
+                    <div class="collab-list">
+                        <span class="collab-tag">Kayla Uleah Evans</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Workshops: func-sub -->
+            <article class="project workshop">
+                <div class="project-header">
+                    <h2 class="project-name">func-sub (Training Grounds)</h2>
+                    <span class="project-week">Weeks 11–14 · Nov</span>
+                </div>
+                <p class="project-tagline">6-axis spatial reasoning substrate—intensity, clarity, catharsis</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe + Jordan Caldwell</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Black Metal
+                                worldbuilding → Operator framework</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">6-axis
+                                grids, SHED-INTEGRATE-GROUND operators</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">Workshop
+                                notes, physical book constraints</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span
+                                class="genome-value">Operationalize speculative world</span></div>
+                        <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">Training
+                                Grounds interface</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">12 scalars
+                                across 6 dual-polar axes</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span
+                                class="genome-value">Self-alignment through spatial reasoning</span></div>
+                    </div>
+                </div>
+
+                <div class="about">
+                    <h4>The Six Axes of Being</h4>
+                    <ul>
+                        <li><strong>Identity</strong> — Self ↔ Other</li>
+                        <li><strong>Experience</strong> — Comfort ↔ Challenge</li>
+                        <li><strong>Language</strong> — Explicit ↔ Implicit</li>
+                        <li><strong>Domain</strong> — Abstract ↔ Concrete</li>
+                        <li><strong>Purpose</strong> — Play ↔ Work</li>
+                        <li><strong>Order</strong> — Chaos ↔ Structure</li>
+                    </ul>
+                </div>
+
+                <div class="journey-insight">
+                    <p>"System could not adequately absorb the variety of her world so quickly. The world had primarily
+                        been built for a physical book."</p>
+                    <div class="source">— Workshop with Jordan Caldwell</div>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/func-sub/func-index.html" class="project-link"
+                        target="_blank">Func-Sub →</a>
+                </div>
+
+                <div class="collaborators">
+                    <div class="collab-title">Collaborators</div>
+                    <div class="collab-list">
+                        <span class="collab-tag">Jordan Caldwell</span>
+                        <span class="collab-tag">Tehri Marttila</span>
+                    </div>
+                </div>
+            </article>
+
+            <!-- Final: tractor-dce-gyo -->
+            <article class="project final">
+                <div class="project-header">
+                    <h2 class="project-name">tractor-dce-gyo</h2>
+                    <span class="project-week">Week 16 · Dec 2–9</span>
+                </div>
+                <p class="project-tagline">WAG: Words Assemble Geometries—central hub synthesizing all experiments</p>
+
+                <div class="genome">
+                    <div class="genome-title">Project Genome</div>
+                    <div class="genome-grid">
+                        <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson
+                                Hartsoe</span></div>
+                        <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">TILTH →
+                                Tetrad → HOLO → TRACTOR synthesis</span></div>
+                        <div class="genome-row"><span class="genome-key">A</span><span class="genome-value">WAG
+                                Workshop, Onyx Studio, Homer, Core-Age</span></div>
+                        <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">50+ commits,
+                                LDraw experiments, linear algebra</span></div>
+                        <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">LLM manages
+                                void, not scene</span></div>
+                        <div class="genome-row"><span class="genome-key">S*</span><span class="genome-value">ONYX STUDIO
+                                — trail-aware export</span></div>
+                        <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Operative
+                                Ekphrasis, Freirean pedagogy</span></div>
+                        <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Meaningful
+                                exports without LLM access</span></div>
+                    </div>
+                </div>
+
+                <div class="journey-insight">
+                    <p>"Using LLM to construct scene led to frustration with fine-grain controls. Assembly of the scene
+                        was the issue. This was resolved by seeing places where LLMs got in the way. Shifted to the LLM
+                        managing a void instead of a scene."</p>
+                    <div class="source">— The Crucial Insight</div>
+                </div>
+
+                <div class="about">
+                    <h4>The Synthesis</h4>
+                    <ul>
+                        <li><strong>Weeks 3–5</strong> foundations (privacy, modes of action, toolkit critique) → inform
+                            the ethics layer</li>
+                        <li><strong>Weeks 6–7</strong> organizational realities → shape collaborative workflow design
+                        </li>
+                        <li><strong>Weeks 10–14</strong> workshopping → produced component projects now integrated</li>
+                    </ul>
+                </div>
+
+                <div class="project-links">
+                    <a href="https://hartswf0.github.io/tractor-dce-gyo/" class="project-link" target="_blank">Tractor
+                        DCE-GYO →</a>
+                    <a href="https://hartswf0.github.io/holo-project/holo-project.html" class="project-link"
+                        target="_blank">HOLO Project →</a>
+                </div>
+
+                <div class="collaborators">
+                    <div class="collab-title">Collaborators</div>
+                    <div class="collab-list">
+                        <span class="collab-tag">Jordan Caldwell</span>
+                        <span class="collab-tag">Kayla Uleah Evans</span>
+                        <span class="collab-tag">Shuruq Tramontini</span>
+                        <span class="collab-tag">Tehri Marttila</span>
+                    </div>
+                </div>
+            </article>
+
+        </div><!-- end timeline -->
+
+        <!-- Journey Synthesis -->
+        <section class="journey-section">
+            <h2 class="arc-title">Key Learnings</h2>
+
+            <div class="journey-insight">
+                <p>"As project context grew, ability to finish it got exponentially more challenging."</p>
+                <div class="source">Solution: Invariant design patterns that scale without accumulating complexity.
+                </div>
+            </div>
+
+            <div class="journey-insight">
+                <p>"Not trying to act like I had a real platform."</p>
+                <div class="source">Solution: Documents, prompt guides, hands-on friction exposure. Get out of the way.
+                </div>
+            </div>
+
+            <div class="journey-insight">
+                <p>"Did not meet the threshold YET! But learned a lot about context engineering."</p>
+                <div class="source">Aspiration: <a href="https://emergentic.ai" target="_blank">emergentic.ai</a>, <a
+                        href="https://neurips.cc/virtual/2025/loc/san-diego/panel/131735" target="_blank">NeurIPS
+                        Emergent Stories panel</a></div>
+            </div>
+
+            <div class="journey-insight">
+                <p>"Bigger issue is how to export something generated with LLM collaboration that is not just a
+                    vibe-coded website."</p>
+                <div class="source">Solution: ONYX STUDIO, disc-data.json, prebaked narratives.</div>
+            </div>
+        </section>
+
+        <footer>
+            <p class="footer-text">Project Genome · LMC-6650 Project Studio · Fall 2025</p>
+            <p class="credits">Project Lead: Watson Hartsoe · Instructor: Richmond Y. Wong, PhD<br>Development: GPT-5,
+                Claude, Gemini · December 2025</p>
+        </footer>
+    </div>
+</body>
+
+</html>
