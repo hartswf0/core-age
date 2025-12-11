@@ -400,34 +400,18 @@
 
 <body>
     <div class="container">
-        <header>
+        <header id="header-section">
+            <!-- Dynamic Header -->
             <h1>Project <span>Genome</span></h1>
-            <p class="subtitle">Deep Sequence of the <strong>CORE-AGE</strong> Repository</p>
-            <p class="meta-info">Sequenced: Dec 11, 2025 · Version: 2.0 (Deep Time)</p>
+            <p class="subtitle">Loading DNA Sequence...</p>
         </header>
 
         <!-- Global Genome -->
-        <section class="global-genome">
+        <section class="global-genome" id="global-genome-section">
             <div class="genome">
-                <div class="genome-title">MASTER SEQUENCE (C-T-A-M-D-S-P-I)</div>
-                <div class="genome-grid">
-                    <div class="genome-row"><span class="genome-key">C</span><span class="genome-value">Watson Hartsoe
-                            (ATG Lineage)</span></div>
-                    <div class="genome-row"><span class="genome-key">T</span><span class="genome-value">Input (LEGO) →
-                            Process (Tetrad) → Synthesis (WAG)</span></div>
-                    <div class="genome-row"><span class="genome-key">A</span><span
-                            class="genome-value">courage-trail-olog.html, gar-onyx-studio.html,
-                            thousand-tetrad.html</span></div>
-                    <div class="genome-row"><span class="genome-key">M</span><span class="genome-value">275 files, 9x9
-                            invariant grid, Autopsy reports</span></div>
-                    <div class="genome-row"><span class="genome-key">D</span><span class="genome-value">Local-First (No
-                            Build), Operative Ekphrasis</span></div>
-                    <div class="genome-row"><span class="genome-key">S</span><span class="genome-value">CORE-AGE
-                            (Spatial Computing Suite)</span></div>
-                    <div class="genome-row"><span class="genome-key">P</span><span class="genome-value">Recursive Grids,
-                            Mesh-Per-Line, Narrative Ontology</span></div>
-                    <div class="genome-row"><span class="genome-key">I</span><span class="genome-value">Prove that
-                            language can spatially assemble worlds.</span></div>
+                <div class="genome-title">MASTER SEQUENCE</div>
+                <div class="genome-grid" id="master-genome-grid">
+                    <!-- Dynamic Genome Keys -->
                 </div>
             </div>
         </section>
@@ -435,176 +419,285 @@
         <!-- Arc Section -->
         <section class="arc-section">
             <h2 class="arc-title">The Evolutionary Arc</h2>
-            <div class="arc-flow">
-                <div class="arc-node lego">
-                    <div class="name">LEGO ERA</div>
-                    <div class="phase">INPUT (Material)</div>
-                </div>
-                <div class="arc-arrow">→</div>
-                <div class="arc-node tetrad">
-                    <div class="name">TETRAD ERA</div>
-                    <div class="phase">PROCESS (Logic)</div>
-                </div>
-                <div class="arc-arrow">→</div>
-                <div class="arc-node wag">
-                    <div class="name">WAG ERA</div>
-                    <div class="phase">TRANSITION (Language)</div>
-                </div>
-                <div class="arc-arrow">→</div>
-                <div class="arc-node trail">
-                    <div class="name">TRAIL ERA</div>
-                    <div class="phase">SYNTHESIS (Map)</div>
-                </div>
+            <div class="arc-flow" id="arc-flow-container">
+                <!-- Dynamic Arc Nodes -->
             </div>
         </section>
 
         <!-- Timeline / Eras -->
-        <div class="timeline">
-
-            <!-- ERA 1: LEGO -->
-            <article class="era lego">
-                <div class="era-header">
-                    <h2 class="era-name">The LEGO Era</h2>
-                    <span class="era-meta">Phase 1: Material Inputs</span>
-                </div>
-                <p class="era-tagline">"Line 22 Collapse" and the birth of Mesh-Per-Line architecture.</p>
-
-                <div class="genome">
-                    <div class="genome-title">Era Genome</div>
-                    <div class="genome-grid">
-                        <div class="genome-row"><span class="genome-key">Decision</span><span
-                                class="genome-value">Sacrificed 50x performance for 100% data provenance
-                                (Mesh-Per-Line).</span></div>
-                        <div class="genome-row"><span class="genome-key">Pattern</span><span class="genome-value">LDraw
-                                Parsing, Assembly Logic, Autopsy Reports.</span></div>
-                    </div>
-                </div>
-
-                <div class="artifacts-list">
-                    <div class="artifact-card">
-                        <a href="line-22-autopsy.html">line-22-autopsy.html</a>
-                        <span>Use: Failure Analysis</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="timber-master.html">timber-master.html</a>
-                        <span>Use: Skeleton System</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="lego-3d-architect.html">lego-3d-architect.html</a>
-                        <span>Use: Proto-Builder</span>
-                    </div>
-                </div>
-            </article>
-
-            <!-- ERA 2: TETRAD -->
-            <article class="era tetrad">
-                <div class="era-header">
-                    <h2 class="era-name">The Tetrad Era</h2>
-                    <span class="era-meta">Phase 2: Logic & Sorting</span>
-                </div>
-                <p class="era-tagline">Disentangling the mess via McLuhan's Laws and the 9x9 Grid.</p>
-
-                <div class="genome">
-                    <div class="genome-title">Era Genome</div>
-                    <div class="genome-grid">
-                        <div class="genome-row"><span class="genome-key">Decision</span><span class="genome-value">The
-                                9x9 Grid becomes the invariant substrate for all tools.</span></div>
-                        <div class="genome-row"><span class="genome-key">Pattern</span><span class="genome-value">GAR
-                                (Grid-Aware Recursion), Tetrad Sorting.</span></div>
-                    </div>
-                </div>
-
-                <div class="artifacts-list">
-                    <div class="artifact-card">
-                        <a href="thousand-tetrad.html">thousand-tetrad.html</a>
-                        <span>Use: Sorting Engine</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="gar-tao.html">gar-tao.html</a>
-                        <span>Use: Grid Logic</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="disentangling-strategy.html">disentangling-strategy.html</a>
-                        <span>Use: Strategy Doc</span>
-                    </div>
-                </div>
-            </article>
-
-            <!-- ERA 3: WAG -->
-            <article class="era wag">
-                <div class="era-header">
-                    <h2 class="era-name">The WAG Era</h2>
-                    <span class="era-meta">Phase 3: Language & World</span>
-                </div>
-                <p class="era-tagline">"Words Become Worlds" — The Text IS the World.</p>
-
-                <div class="genome">
-                    <div class="genome-title">Era Genome</div>
-                    <div class="genome-grid">
-                        <div class="genome-row"><span class="genome-key">Decision</span><span
-                                class="genome-value">Operative Ekphrasis: Text commands generate 3D geometry
-                                instantly.</span></div>
-                        <div class="genome-row"><span class="genome-key">Pattern</span><span
-                                class="genome-value">Narrative Ontology, ONYX, Studio Interfaces.</span></div>
-                    </div>
-                </div>
-
-                <div class="artifacts-list">
-                    <div class="artifact-card">
-                        <a href="wag-workshop.html">wag-workshop.html</a>
-                        <span>Use: Manifesto</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="gar-onyx-studio.html">gar-onyx-studio.html</a>
-                        <span>Use: Main Studio</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="wag-brave.html">wag-brave.html</a>
-                        <span>Use: Experimental</span>
-                    </div>
-                </div>
-            </article>
-
-            <!-- ERA 4: TRAIL -->
-            <article class="era trail">
-                <div class="era-header">
-                    <h2 class="era-name">The Trail Era</h2>
-                    <span class="era-meta">Phase 4: Map & Synthesis</span>
-                </div>
-                <p class="era-tagline">Mapping the creator's journey through all previous eras.</p>
-
-                <div class="genome">
-                    <div class="genome-title">Era Genome</div>
-                    <div class="genome-grid">
-                        <div class="genome-row"><span class="genome-key">Decision</span><span
-                                class="genome-value">Visualize the metadata itself as a playable territory.</span></div>
-                        <div class="genome-row"><span class="genome-key">Pattern</span><span class="genome-value">Trail
-                                Olog, Genome Sequencing, Pilgrims.</span></div>
-                    </div>
-                </div>
-
-                <div class="artifacts-list">
-                    <div class="artifact-card">
-                        <a href="courage-trail-olog.html">courage-trail-olog.html</a>
-                        <span>Use: The Map</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="GENOME_REPORT.md">GENOME_REPORT.md</a>
-                        <span>Use: The Sequence</span>
-                    </div>
-                    <div class="artifact-card">
-                        <a href="TRAILS_AND_REFLECTIONS.md">TRAILS_AND_REFLECTIONS.md</a>
-                        <span>Use: The Guide</span>
-                    </div>
-                </div>
-            </article>
-
+        <div class="timeline" id="timeline-container">
+            <!-- Dynamic Era Cards -->
         </div>
 
         <footer>
-            <p>Generated by Trail Olog Sequencer 2.0 · CORE-AGE Repository Genome</p>
+            <p id="footer-text">Generated by Trail Olog Sequencer 2.0</p>
         </footer>
     </div>
+
+    <!-- Embedded Data Fallback -->
+    <script>
+        const FALLBACK_GENOME_DATA = {
+            "generated_at": "2025-12-11T16:55:00Z",
+            "thesis": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
+            "repository": "CORE-AGE",
+            "genome_version": "2.0 (Deep Time)",
+            "dna_base_pairs": {
+                "L": "LEGO (Material Input)",
+                "T": "TETRAD (Logic Process)",
+                "W": "WAG (Language Synthesis)",
+                "M": "MAP (Trail Awareness)"
+            },
+            "total_families": 4,
+            "trail_levels": {
+                "0": "FOSSIL - Historical artifacts",
+                "1": "INPUT - Raw materials and parsing",
+                "2": "PROCESS - Logic and sorting engines",
+                "3": "SYNTHESIS - Narrative worldbuilding",
+                "4": "OBSERVATORY - Meta-visualization"
+            },
+            "zones": [
+                {
+                    "id": "lego-inputs",
+                    "label": "LEGO INPUTS",
+                    "type": "valley",
+                    "color": "#ef4444",
+                    "position": { "x": 0.15, "y": 0.5 },
+                    "trailLevel": 1,
+                    "intent": "Parse raw LDraw geometry into 3D meshes.",
+                    "pattern": "Mesh-Per-Line Architecture",
+                    "decision": "Sacrificed performance for 100% data provenance.",
+                    "artifacts": [
+                        { "text": "lego-3d-architect.html", "type": "artifact", "path": "lego-3d-architect.html" },
+                        { "text": "timber-master.html", "type": "artifact", "path": "timber-master.html" },
+                        { "text": "line-22-autopsy.html", "type": "fossil", "path": "line-22-autopsy.html" }
+                    ]
+                },
+                {
+                    "id": "tetrad-engine",
+                    "label": "TETRAD ENGINE",
+                    "type": "plateau",
+                    "color": "#8b5cf6",
+                    "position": { "x": 0.4, "y": 0.3 },
+                    "trailLevel": 2,
+                    "intent": "Sort complexity using McLuhan's four laws.",
+                    "pattern": "9x9 Invariant Grid",
+                    "decision": "The Grid is the physics engine for all knowledge.",
+                    "artifacts": [
+                        { "text": "thousand-tetrad.html", "type": "artifact", "path": "thousand-tetrad.html" },
+                        { "text": "gar-tao.html", "type": "artifact", "path": "gar-tao.html" },
+                        { "text": "disentangling-strategy.html", "type": "artifact", "path": "disentangling-strategy.html" }
+                    ]
+                },
+                {
+                    "id": "wag-peaks",
+                    "label": "WAG PEAKS",
+                    "type": "mountain",
+                    "color": "#ec4899",
+                    "position": { "x": 0.65, "y": 0.2 },
+                    "trailLevel": 3,
+                    "intent": "Translate natural language into spatial worlds.",
+                    "pattern": "Operative Ekphrasis",
+                    "decision": "Text IS the World (No database required).",
+                    "artifacts": [
+                        { "text": "wag-workshop.html", "type": "artifact", "path": "wag-workshop.html" },
+                        { "text": "gar-onyx-studio.html", "type": "artifact", "path": "gar-onyx-studio.html" },
+                        { "text": "wag-brave.html", "type": "artifact", "path": "wag-brave.html" }
+                    ]
+                },
+                {
+                    "id": "trail-observatory",
+                    "label": "TRAIL OBSERVATORY",
+                    "type": "satellite",
+                    "color": "#06b6d4",
+                    "position": { "x": 0.85, "y": 0.1 },
+                    "trailLevel": 4,
+                    "intent": "Visualize the creator's journey as a map.",
+                    "pattern": "Genome Sequencing",
+                    "decision": "Visualize metadata as a playable territory.",
+                    "artifacts": [
+                        { "text": "courage-trail-olog.html", "type": "artifact", "path": "courage-trail-olog.html" },
+                        { "text": "courage-genome.html", "type": "artifact", "path": "courage-genome.html" },
+                        { "text": "GENOME_REPORT.md", "type": "artifact", "path": "GENOME_REPORT.md" }
+                    ]
+                }
+            ],
+            "connections": [
+                { "from": "lego-inputs", "to": "tetrad-engine", "label": "Raw Materials" },
+                { "from": "tetrad-engine", "to": "wag-peaks", "label": "Sorted Logic" },
+                { "from": "wag-peaks", "to": "trail-observatory", "label": "Synthesized World" },
+                { "from": "trail-observatory", "to": "lego-inputs", "label": "Recursive Observation" }
+            ],
+            "timeline": [
+                {
+                    "date": "2025-11-12",
+                    "label": "Line 22 Collapse",
+                    "desc": "Monolithic loading failure destroys provenance.",
+                    "active": ["lego-inputs"]
+                },
+                {
+                    "date": "2025-11-15",
+                    "label": "Architecture B Fix",
+                    "desc": "Shift to Mesh-Per-Line architecture.",
+                    "active": ["lego-inputs"]
+                },
+                {
+                    "date": "2025-11-20",
+                    "label": "Tetrad Discovery",
+                    "desc": "McLuhan's laws applied to grid logic.",
+                    "active": ["tetrad-engine"]
+                },
+                {
+                    "date": "2025-12-02",
+                    "label": "WAG Workshop",
+                    "desc": "First public demo of Words Assemble Geometry.",
+                    "active": ["wag-peaks"]
+                },
+                {
+                    "date": "2025-12-11",
+                    "label": "Genome Sequencing",
+                    "desc": "Deep sequence of repository DNA.",
+                    "active": ["trail-observatory"]
+                }
+            ]
+        };
+    </script>
+
+    <script>
+        async function loadGenome() {
+            try {
+                const response = await fetch('courage-trail-data.json');
+                if (!response.ok) throw new Error('Failed to load genome data');
+                const data = await response.json();
+                renderGenome(data);
+            } catch (err) {
+                console.warn("Fetch failed, using embedded fallback data:", err);
+                if (typeof FALLBACK_GENOME_DATA !== 'undefined') {
+                    renderGenome(FALLBACK_GENOME_DATA);
+                    // Add a small note about fallback mode
+                    const footer = document.getElementById('footer-text');
+                    footer.innerHTML += ' <span style="color:var(--ink-muted)">(Offline Mode)</span>';
+                } else {
+                    document.querySelector('.subtitle').innerHTML = `<span style="color:var(--lego)">Error loading genome data: ${err.message}.<br>This viewer requires a local server (python3 -m http.server) or correct file path.</span>`;
+                }
+            }
+        }
+
+        function renderGenome(data) {
+            // 1. Render Header
+            const header = document.getElementById('header-section');
+            header.querySelector('.subtitle').innerHTML = `Deep Sequence of the <strong>${data.repository}</strong> Repository`;
+            const metaInfo = document.createElement('p');
+            metaInfo.className = 'meta-info';
+            metaInfo.innerHTML = `Sequenced: ${new Date(data.generated_at).toLocaleDateString()} · Version: ${data.genome_version || 'Unknown'}`;
+            header.appendChild(metaInfo);
+
+            // 2. Render Master Genome (Base Pairs)
+            const grid = document.getElementById('master-genome-grid');
+            grid.innerHTML = '';
+
+            // Render Base Pairs first
+            if (data.dna_base_pairs) {
+                Object.entries(data.dna_base_pairs).forEach(([key, value]) => {
+                    grid.innerHTML += `
+                        <div class="genome-row">
+                            <span class="genome-key">${key}</span>
+                            <span class="genome-value">${value}</span>
+                        </div>`;
+                });
+            }
+
+            // Render Core Thesis/Intent if available in root or mapped
+            if (data.thesis) {
+                grid.innerHTML += `
+                        <div class="genome-row">
+                            <span class="genome-key">THESIS</span>
+                            <span class="genome-value">${data.thesis}</span>
+                        </div>`;
+            }
+
+
+            // 3. Render Arc Diagram
+            const arcContainer = document.getElementById('arc-flow-container');
+            arcContainer.innerHTML = '';
+
+            // Sort zones by trailLevel to ensure correct flow
+            const sortedZones = data.zones.sort((a, b) => (a.trailLevel || 0) - (b.trailLevel || 0));
+
+            sortedZones.forEach((zone, index) => {
+                const node = document.createElement('div');
+                node.className = `arc-node ${getZoneClass(zone.id)}`;
+                node.innerHTML = `
+                    <div class="name">${zone.label}</div>
+                    <div class="phase">LEVEL ${zone.trailLevel}</div>
+                `;
+                arcContainer.appendChild(node);
+
+                // Add arrow if not last
+                if (index < sortedZones.length - 1) {
+                    const arrow = document.createElement('div');
+                    arrow.className = 'arc-arrow';
+                    arrow.textContent = '→';
+                    arcContainer.appendChild(arrow);
+                }
+            });
+
+            // 4. Render Timeline / Eras (Zones as Eras)
+            const timelineContainer = document.getElementById('timeline-container');
+            timelineContainer.innerHTML = '';
+
+            sortedZones.forEach(zone => {
+                const article = document.createElement('article');
+                article.className = `era ${getZoneClass(zone.id)}`;
+
+                // Construct Artifacts List
+                const artifactsHtml = (zone.artifacts || []).map(art => `
+                    <div class="artifact-card">
+                        <a href="${art.path}" target="_blank">${art.text}</a>
+                        <span>Type: ${art.type}</span>
+                    </div>
+                `).join('');
+
+                // Find relevant timeline events for this zone
+                const events = (data.timeline || []).filter(e => e.active && e.active.includes(zone.id));
+                const eventHtml = events.length ? events.map(e => `<div style="margin-bottom:8px; font-size:0.8rem; color:var(--ink-dim)"><strong>${e.date}</strong>: ${e.label}</div>`).join('') : '';
+
+                article.innerHTML = `
+                    <div class="era-header">
+                        <h2 class="era-name">${zone.label}</h2>
+                        <span class="era-meta">Trails Level ${zone.trailLevel}</span>
+                    </div>
+                    <p class="era-tagline">${zone.intent || zone.desc || 'No intent defined.'}</p>
+                    
+                    <div class="genome">
+                        <div class="genome-title">Zone Genome</div>
+                        <div class="genome-grid">
+                            ${zone.decision ? `<div class="genome-row"><span class="genome-key">Decision</span><span class="genome-value">${zone.decision}</span></div>` : ''}
+                            ${zone.pattern ? `<div class="genome-row"><span class="genome-key">Pattern</span><span class="genome-value">${zone.pattern}</span></div>` : ''}
+                            <div class="genome-row" style="margin-top:10px; display:block;">
+                                ${eventHtml}
+                            </div>
+                        </div>
+                    </div>
+
+                    ${artifactsHtml ? `<div class="artifacts-list">${artifactsHtml}</div>` : ''}
+                `;
+                timelineContainer.appendChild(article);
+            });
+
+            document.getElementById('footer-text').textContent = `Generated by Trail Olog Sequencer 2.0 · ${data.repository} Repository Genome`;
+        }
+
+        function getZoneClass(id) {
+            if (id.includes('lego')) return 'lego';
+            if (id.includes('tetrad')) return 'tetrad';
+            if (id.includes('wag')) return 'wag';
+            if (id.includes('trail')) return 'trail';
+            return ''; // default
+        }
+
+        // Initialize
+        loadGenome();
+    </script>
 </body>
 
 </html>

@@ -2,6 +2,11 @@
 
 **Sequenced**: 2025-12-11 | **Arc**: LEGOS → WAG → TRAIL | **Identity**: Spatial Epistemology
 
+> [!IMPORTANT]
+> **New Interactive Viewer Available**
+> The full genome data is now rendered dynamically in [courage-genome.html](courage-genome.html).
+> It pulls real-time data from `courage-trail-data.json`, ensuring the report matches the visualization.
+
 ## 🏛️ The Three Ages (Trail Map)
 
 This repository is not just "WAG". It preserves three distinct geological eras of development:
