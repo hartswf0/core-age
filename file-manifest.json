@@ -1,8 +1,8 @@
 {
-  "generated": "2025-12-11T22:20:29.652Z",
+  "generated": "2025-12-11T22:25:05.784Z",
   "total_files": 278,
-  "total_size": 69675927,
-  "total_size_human": "66.45 MB",
+  "total_size": 69694757,
+  "total_size_human": "66.47 MB",
   "summary": {
     "extensions": {
       ".md": 30,
@@ -694,9 +694,9 @@
         "name": "courage-genome.html",
         "path": "/Users/gaia/COURAGE/courage-genome.html",
         "extension": ".html",
-        "size": 120150,
-        "size_human": "117.33 KB",
-        "modified": "2025-12-11T22:18:08.433Z",
+        "size": 138694,
+        "size_human": "135.44 KB",
+        "modified": "2025-12-11T22:23:29.387Z",
         "created": "2025-12-11T21:42:17.067Z"
       },
       {
@@ -838,9 +838,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 84678,
-        "size_human": "82.69 KB",
-        "modified": "2025-12-11T22:12:12.253Z",
+        "size": 84964,
+        "size_human": "82.97 KB",
+        "modified": "2025-12-11T22:20:29.653Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
