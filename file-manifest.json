@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-11T22:25:05.784Z",
-  "total_files": 278,
-  "total_size": 69694757,
+  "generated": "2025-12-11T22:32:48.686Z",
+  "total_files": 279,
+  "total_size": 69697525,
   "total_size_human": "66.47 MB",
   "summary": {
     "extensions": {
@@ -10,9 +10,9 @@
       ".csv": 2,
       ".txt": 45,
       ".sh": 18,
+      ".js": 18,
       ".mpd": 9,
       ".py": 9,
-      ".js": 17,
       ".svg": 2,
       ".json": 18,
       ".css": 1,
@@ -592,6 +592,15 @@
         "created": "2025-11-22T23:03:56.388Z"
       },
       {
+        "name": "assemble_genome.js",
+        "path": "/Users/gaia/COURAGE/assemble_genome.js",
+        "extension": ".js",
+        "size": 3068,
+        "size_human": "3 KB",
+        "modified": "2025-12-11T22:29:05.348Z",
+        "created": "2025-12-11T22:29:05.302Z"
+      },
+      {
         "name": "assembly-line-single-mesh.html",
         "path": "/Users/gaia/COURAGE/assembly-line-single-mesh.html",
         "extension": ".html",
@@ -694,9 +703,9 @@
         "name": "courage-genome.html",
         "path": "/Users/gaia/COURAGE/courage-genome.html",
         "extension": ".html",
-        "size": 138694,
-        "size_human": "135.44 KB",
-        "modified": "2025-12-11T22:23:29.387Z",
+        "size": 138394,
+        "size_human": "135.15 KB",
+        "modified": "2025-12-11T22:31:23.811Z",
         "created": "2025-12-11T21:42:17.067Z"
       },
       {
@@ -840,7 +849,7 @@
         "extension": ".json",
         "size": 84964,
         "size_human": "82.97 KB",
-        "modified": "2025-12-11T22:20:29.653Z",
+        "modified": "2025-12-11T22:25:05.785Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
