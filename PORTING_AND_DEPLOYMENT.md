@@ -55,15 +55,51 @@ The system is built as a **Static Web Application** (HTML/JS/CSS), but it **requ
 
 ---
 
-## 3. Web Deployment (GitHub Pages / Vercel)
-This system is ready for **GitHub Pages**.
+## 3. Web Deployment (GitHub Pages via Actions)
 
-1.  **Push to GitHub**: Ensure your `main` branch is up to date (as you have done).
-2.  **Settings**: Go to Repo Settings -> Pages -> Deploy from Branch: `main`.
-3.  **Limitations**:
-    *   Dynamic file scanning (which updates `index.html` automatically locally) **will not work** on static hosting because it relies on the local Node server.
-    *   However, the static `file-manifest.json` will serve as a snapshot. You must run `node generate_manifest.js` (if available) or `gar-onyx-server.js` locally to update this JSON before pushing.
+This system uses a **Custom GitHub Action** for robust, transparent deployments.
 
-## 4. Troubleshooting
-*   **"CORS Error"**: You are likely trying to open `.html` files directly by double-clicking. Use a server (Step 2).
-*   **Missing Icons/Parts**: You might be missing the excluded `wag-viewer` assets. Check `.gitignore` to see what was left behind.
+### Initial Setup (One-Time)
+1.  Go to **Repo Settings → Pages** (`/settings/pages`).
+2.  Under **"Build and deployment" → "Source"**, change from "Deploy from a branch" to **"GitHub Actions"**.
+3.  Done! The workflow file (`.github/workflows/static.yml`) handles the rest.
+
+### How the Workflow Works
+The `static.yml` file:
+1.  **Triggers** on every push to `main`.
+2.  **Creates a clean `_deploy` folder** containing only web-ready files (`.html`, `.js`, `.css`, `.json`, `.md`, images).
+3.  **Uploads** this filtered folder as an artifact.
+4.  **Deploys** it to GitHub Pages.
+
+This avoids errors from uploading large/hidden files (like `.git` or video assets).
+
+### Monitoring Deployments
+*   Go to the **Actions** tab (`/actions`) to see deployment status.
+*   Green ✅ = Success. Red ❌ = Failed (click to see logs).
+
+### Troubleshooting
+| Issue | Solution |
+|-------|----------|
+| **"Nothing to commit"** | Your files are already synced. This is fine. |
+| **404 on a specific file** | Check casing (GitHub is case-sensitive). Wait 5 mins for cache. |
+| **Workflow fails (Artifact too large)** | The `static.yml` should be filtering. Check that it's updated. |
+| **"Last deployed X weeks ago"** | Your Source is set to "Branch", not "GitHub Actions". Fix in Settings. |
+
+## 4. The `sync.sh` Command
+Run this from your repo root to push changes:
+```bash
+./sync.sh "Your commit message"
+```
+This script:
+1.  Regenerates `file-manifest.json` (so the Index is up to date).
+2.  Adds, commits, and pushes all changes.
+3.  Triggers the deployment action on GitHub.
+
+## 5. Files Explained
+| File | Purpose |
+|------|---------|
+| `.github/workflows/static.yml` | Deployment automation script |
+| `.nojekyll` | Disables Jekyll (legacy fix, still useful) |
+| `sync.sh` | One-command sync tool |
+| `generate_manifest.js` | Scans repo and builds `file-manifest.json` |
+| `.gitignore` | Excludes large media/parts libraries |

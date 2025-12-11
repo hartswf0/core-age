@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-11T09:54:16.629Z",
+  "generated": "2025-12-11T10:03:36.078Z",
   "total_files": 245,
-  "total_size": 68915109,
+  "total_size": 68916757,
   "total_size_human": "65.72 MB",
   "summary": {
     "extensions": {
@@ -504,9 +504,9 @@
         "name": "PORTING_AND_DEPLOYMENT.md",
         "path": "/Users/gaia/COURAGE/PORTING_AND_DEPLOYMENT.md",
         "extension": ".md",
-        "size": 3076,
-        "size_human": "3 KB",
-        "modified": "2025-12-11T08:56:39.088Z",
+        "size": 4225,
+        "size_human": "4.13 KB",
+        "modified": "2025-12-11T09:57:58.943Z",
         "created": "2025-12-11T08:56:39.052Z"
       },
       {
@@ -657,9 +657,9 @@
         "name": "courage-trail-olog.html",
         "path": "/Users/gaia/COURAGE/courage-trail-olog.html",
         "extension": ".html",
-        "size": 76204,
-        "size_human": "74.42 KB",
-        "modified": "2025-12-11T09:38:13.945Z",
+        "size": 76703,
+        "size_human": "74.91 KB",
+        "modified": "2025-12-11T09:58:38.631Z",
         "created": "2025-12-11T04:41:04.308Z"
       },
       {
@@ -785,7 +785,7 @@
         "extension": ".json",
         "size": 74636,
         "size_human": "72.89 KB",
-        "modified": "2025-12-11T09:52:25.437Z",
+        "modified": "2025-12-11T09:54:16.630Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {

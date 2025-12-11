@@ -899,8 +899,24 @@
             }
 
             .zone-modal {
-                inset: 10px;
-                /* Full screen-ish on mobile */
+                /* Override desktop centering */
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                transform: none;
+                /* Remove the translate centering */
+                width: 100%;
+                max-width: 100%;
+                max-height: 100%;
+                border-radius: 0;
+                /* Full screen = no radius */
+                margin: 0;
+            }
+
+            .zone-modal.active {
+                transform: none;
+                /* Override the scale animation too */
             }
         }
     </style>
