@@ -1,0 +1,666 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>COURAGE Training Manual | Complete System Guide</title>
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3E%3Crect width='16' height='16' fill='%23FFD700'/%3E%3C/svg%3E">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=JetBrains+Mono:wght@400;600&display=swap');
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111117;
+            --surface-alt: #1a1a22;
+            --ink: #e5e5e5;
+            --ink-dim: #888;
+            --accent: #d97706;
+            --accent-glow: rgba(217, 119, 6, 0.3);
+            --level1: #22c55e;
+            --level2: #3b82f6;
+            --level3: #8b5cf6;
+            --level4: #ef4444;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            line-height: 1.6;
+        }
+
+        .header {
+            background: linear-gradient(135deg, var(--surface), var(--surface-alt));
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 40px 24px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 32px;
+            color: var(--accent);
+            margin-bottom: 12px;
+        }
+
+        .header .tagline {
+            font-size: 14px;
+            color: var(--ink-dim);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        .nav {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 24px;
+            flex-wrap: wrap;
+        }
+
+        .nav-btn {
+            padding: 8px 16px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 6px;
+            color: var(--ink);
+            text-decoration: none;
+            font-size: 12px;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: var(--accent);
+            border-color: var(--accent);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 40px 24px;
+        }
+
+        .intro {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .intro h2 {
+            font-size: 20px;
+            margin-bottom: 16px;
+        }
+
+        .intro p {
+            color: var(--ink-dim);
+            max-width: 700px;
+            margin: 0 auto;
+        }
+
+        /* Learning Layers */
+        .layer {
+            margin-bottom: 60px;
+        }
+
+        .layer-header {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+            margin-bottom: 24px;
+            padding-bottom: 12px;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .layer-number {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .layer-title h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .layer-title p {
+            font-size: 12px;
+            color: var(--ink-dim);
+        }
+
+        .card-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr));
+            gap: 20px;
+        }
+
+        .card {
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.08);
+            border-radius: 12px;
+            padding: 20px;
+            transition: all 0.2s;
+            text-decoration: none;
+            color: inherit;
+            display: block;
+        }
+
+        .card:hover {
+            border-color: var(--accent);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 12px;
+        }
+
+        .card-title {
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .card-tag {
+            font-size: 9px;
+            padding: 3px 8px;
+            border-radius: 12px;
+            background: rgba(217, 119, 6, 0.15);
+            color: var(--accent);
+            font-family: 'JetBrains Mono', monospace;
+            text-transform: uppercase;
+        }
+
+        .card-tag.tutorial {
+            background: rgba(34, 197, 94, 0.15);
+            color: var(--level1);
+        }
+
+        .card-tag.research {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--level3);
+        }
+
+        .card-tag.explainer {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--level2);
+        }
+
+        .card-desc {
+            font-size: 13px;
+            color: var(--ink-dim);
+            margin-bottom: 16px;
+            line-height: 1.5;
+        }
+
+        .card-meta {
+            display: flex;
+            justify-content: space-between;
+            font-size: 10px;
+            color: var(--ink-dim);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Trail Map Link */
+        .trail-link {
+            background: linear-gradient(135deg, var(--accent), #b45309);
+            border-radius: 12px;
+            padding: 24px;
+            margin-bottom: 40px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            text-decoration: none;
+            color: #fff;
+        }
+
+        .trail-link:hover {
+            transform: scale(1.01);
+        }
+
+        .trail-link h3 {
+            font-size: 18px;
+            margin-bottom: 4px;
+        }
+
+        .trail-link p {
+            font-size: 12px;
+            opacity: 0.8;
+        }
+
+        .trail-link .arrow {
+            font-size: 28px;
+        }
+
+        /* Ontology Quick Ref */
+        .ontology-ref {
+            background: var(--surface);
+            border-radius: 12px;
+            padding: 24px;
+            margin-top: 60px;
+        }
+
+        .ontology-ref h3 {
+            font-size: 16px;
+            margin-bottom: 20px;
+            color: var(--accent);
+        }
+
+        .ontology-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+            gap: 12px;
+        }
+
+        .ontology-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 10px 12px;
+            background: rgba(255, 255, 255, 0.03);
+            border-radius: 8px;
+        }
+
+        .ontology-symbol {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 700;
+            font-size: 16px;
+            width: 28px;
+            text-align: center;
+        }
+
+        .ontology-name {
+            font-size: 12px;
+        }
+
+        .ontology-desc {
+            font-size: 10px;
+            color: var(--ink-dim);
+        }
+
+        footer {
+            text-align: center;
+            padding: 40px;
+            border-top: 1px solid rgba(255, 255, 255, 0.1);
+            margin-top: 60px;
+            color: var(--ink-dim);
+            font-size: 12px;
+        }
+
+        footer a {
+            color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <header class="header">
+        <h1>📚 COURAGE Training Manual</h1>
+        <p class="tagline">Complete documentation for the COURAGE knowledge infrastructure. Learn by layer, from
+            foundations to applications.</p>
+        <nav class="nav">
+            <a href="index.html" class="nav-btn">← Home</a>
+            <a href="courage-trail-olog.html" class="nav-btn">🗺️ Trail Map</a>
+            <a href="knowledge-hub.html" class="nav-btn">📖 Knowledge Hub</a>
+            <a href="l-system-ontology-weaver.html" class="nav-btn">🧬 L-System Weaver</a>
+            <a href="system-monitor.html" class="nav-btn">🖥️ System Monitor</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        <a href="courage-trail-olog.html" class="trail-link">
+            <div>
+                <h3>Explorer the Trail Olog</h3>
+                <p>Interactive topographic map of all 12 file families with ADPI provenance</p>
+            </div>
+            <span class="arrow">→</span>
+        </a>
+
+        <section class="intro">
+            <h2>Learning Path Overview</h2>
+            <p>The COURAGE system is organized into four progressive layers. Start with the Foundation to understand
+                core concepts, then move through Bridge, Integration, and Application layers as your understanding
+                deepens.</p>
+        </section>
+
+        <!-- LAYER 1: FOUNDATION -->
+        <section class="layer">
+            <div class="layer-header">
+                <div class="layer-number" style="background: var(--level1)">1</div>
+                <div class="layer-title">
+                    <h3>Foundation Layer</h3>
+                    <p>Core concepts: spatial hierarchies, grid thinking, philosophy</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <a href="TIMBER-tutorial.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🌲 TIMBER Tutorial</span>
+                        <span class="card-tag tutorial">Tutorial</span>
+                    </div>
+                    <p class="card-desc">Learn hierarchical data visualization through tree structures. Master
+                        parent-child relationships and spatial hierarchies.</p>
+                    <div class="card-meta">
+                        <span>Family: timber-trees</span>
+                        <span>~10 min read</span>
+                    </div>
+                </a>
+
+                <a href="LEGOS-tutorial-primal.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🧱 LEGOS Quickstart</span>
+                        <span class="card-tag tutorial">Tutorial</span>
+                    </div>
+                    <p class="card-desc">Introduction to the 9×9 spatial grid and anti-tool design philosophy. The
+                        foundation of WAG thinking.</p>
+                    <div class="card-meta">
+                        <span>Family: legos-tutorials</span>
+                        <span>~15 min read</span>
+                    </div>
+                </a>
+
+                <a href="legos-worldbuilding-tutorial.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🌍 Worldbuilding Philosophy</span>
+                        <span class="card-tag explainer">Explainer</span>
+                    </div>
+                    <p class="card-desc">Deep dive into anti-tool design theory. Understand why LEGOS makes tools that
+                        resist becoming tools.</p>
+                    <div class="card-meta">
+                        <span>Family: legos-tutorials</span>
+                        <span>~20 min read</span>
+                    </div>
+                </a>
+
+                <a href="brick_haven_tutorial.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🏙️ Brick Haven Architecture</span>
+                        <span class="card-tag tutorial">Tutorial</span>
+                    </div>
+                    <p class="card-desc">Build modular cities with LDraw MPD format. Learn construction patterns and
+                        previs workflows.</p>
+                    <div class="card-meta">
+                        <span>Family: brick-construction</span>
+                        <span>~12 min read</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- LAYER 2: BRIDGE -->
+        <section class="layer">
+            <div class="layer-header">
+                <div class="layer-number" style="background: var(--level2)">2</div>
+                <div class="layer-title">
+                    <h3>Bridge Layer</h3>
+                    <p>Format translation, visual-narrative connection, category theory</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <a href="legos-to-ldraw-bridge.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🔄 LEGOS ↔ LDraw Bridge</span>
+                        <span class="card-tag tutorial">Tutorial</span>
+                    </div>
+                    <p class="card-desc">Translate between LEGOS conceptual models and LDraw physical formats. Semantic
+                        translation patterns.</p>
+                    <div class="card-meta">
+                        <span>Family: legos-tutorials</span>
+                        <span>~25 min read</span>
+                    </div>
+                </a>
+
+                <a href="gar-tao-explainer.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🎨 GAR-TAO Explainer</span>
+                        <span class="card-tag explainer">Explainer</span>
+                    </div>
+                    <p class="card-desc">Visual segmentation philosophy. How GAR breaks images into meaningful segments
+                        using K-means.</p>
+                    <div class="card-meta">
+                        <span>Family: gar-segmentation</span>
+                        <span>~15 min read</span>
+                    </div>
+                </a>
+
+                <a href="gar-onyx-research-olog.md" class="card">
+                    <div class="card-header">
+                        <span class="card-title">📐 Category Theory Olog</span>
+                        <span class="card-tag research">Research</span>
+                    </div>
+                    <p class="card-desc">Formal category-theoretic framework for visual→narrative translation. Functors,
+                        natural transformations.</p>
+                    <div class="card-meta">
+                        <span>Family: gar-segmentation</span>
+                        <span>~30 min read</span>
+                    </div>
+                </a>
+
+                <a href="neuro-tutorial.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🧠 Neurosymbolic Loop</span>
+                        <span class="card-tag tutorial">Tutorial</span>
+                    </div>
+                    <p class="card-desc">Bridge symbol-level and subsymbol-level processing. ML explainability through
+                        visualization.</p>
+                    <div class="card-meta">
+                        <span>Family: neural</span>
+                        <span>~18 min read</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- LAYER 3: INTEGRATION -->
+        <section class="layer">
+            <div class="layer-header">
+                <div class="layer-number" style="background: var(--level3)">3</div>
+                <div class="layer-title">
+                    <h3>Integration Layer</h3>
+                    <p>Architecture decisions, code organization, deep analysis</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <a href="architecture-decision-matrix.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">📊 Architecture Decision Matrix</span>
+                        <span class="card-tag explainer">ADR</span>
+                    </div>
+                    <p class="card-desc">Review all major architectural decisions across the COURAGE system. Trade-offs
+                        and rationale.</p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>~20 min read</span>
+                    </div>
+                </a>
+
+                <a href="disentangling-strategy.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🧵 Disentangling Strategy</span>
+                        <span class="card-tag explainer">Best Practices</span>
+                    </div>
+                    <p class="card-desc">Code separation patterns. How to keep complex systems from becoming tangled
+                        messes.</p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>~15 min read</span>
+                    </div>
+                </a>
+
+                <a href="line-22-autopsy.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🔬 Line 22 Autopsy</span>
+                        <span class="card-tag research">Technical Deep-Dive</span>
+                    </div>
+                    <p class="card-desc">Detailed analysis of a specific implementation challenge. Learn debugging and
+                        analysis patterns.</p>
+                    <div class="card-meta">
+                        <span>Family: pathology</span>
+                        <span>~25 min read</span>
+                    </div>
+                </a>
+
+                <a href="skeleton-pathology-diagnosis.md" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🩺 Skeleton Pathology</span>
+                        <span class="card-tag research">Diagnostic</span>
+                    </div>
+                    <p class="card-desc">System health analysis patterns. Diagnose structural issues in hierarchical
+                        systems.</p>
+                    <div class="card-meta">
+                        <span>Family: skeleton-structure</span>
+                        <span>~15 min read</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- LAYER 4: APPLICATION -->
+        <section class="layer">
+            <div class="layer-header">
+                <div class="layer-number" style="background: var(--level4)">4</div>
+                <div class="layer-title">
+                    <h3>Application Layer</h3>
+                    <p>Reference tools, system navigation, meta-level creation</p>
+                </div>
+            </div>
+            <div class="card-grid">
+                <a href="knowledge-hub.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">📚 Master Builder's Library</span>
+                        <span class="card-tag">Hub</span>
+                    </div>
+                    <p class="card-desc">Central index for all documentation. Library card interface with quick
+                        navigation.</p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>Reference</span>
+                    </div>
+                </a>
+
+                <a href="system-monitor.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🖥️ WeaverOS System Monitor</span>
+                        <span class="card-tag">Tool</span>
+                    </div>
+                    <p class="card-desc">TUI-style file tree explorer. Navigate the entire COURAGE system as an OS
+                        metaphor.</p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>Interactive</span>
+                    </div>
+                </a>
+
+                <a href="l-system-ontology-weaver.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🧬 L-System Ontology Weaver</span>
+                        <span class="card-tag">Tool</span>
+                    </div>
+                    <p class="card-desc">Categorize files using L-System grammar. Generators, Rules, Structures,
+                        Manifestations.</p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>Interactive</span>
+                    </div>
+                </a>
+
+                <a href="courage-trail-olog.html" class="card">
+                    <div class="card-header">
+                        <span class="card-title">🗺️ Trail Olog Map</span>
+                        <span class="card-tag">Visualization</span>
+                    </div>
+                    <p class="card-desc">Topographic visualization of all 12 file families. ADPI provenance tracking.
+                    </p>
+                    <div class="card-meta">
+                        <span>Family: knowledge-hubs</span>
+                        <span>Interactive</span>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Ontology Quick Reference -->
+        <section class="ontology-ref">
+            <h3>Ontology Quick Reference (ADPI)</h3>
+            <div class="ontology-grid">
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#10b981">A</span>
+                    <div>
+                        <div class="ontology-name">Artifacts</div>
+                        <div class="ontology-desc">Files, versions, exports</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#3b82f6">D</span>
+                    <div>
+                        <div class="ontology-name">Decisions</div>
+                        <div class="ontology-desc">Architecture choices</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#8b5cf6">P</span>
+                    <div>
+                        <div class="ontology-name">Patterns</div>
+                        <div class="ontology-desc">Recurring behaviors</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#ef4444">I</span>
+                    <div>
+                        <div class="ontology-name">Intent</div>
+                        <div class="ontology-desc">Goals, vision</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#d97706">C</span>
+                    <div>
+                        <div class="ontology-name">Creator</div>
+                        <div class="ontology-desc">Content producer</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#06b6d4">T</span>
+                    <div>
+                        <div class="ontology-name">Trail</div>
+                        <div class="ontology-desc">Process history</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#f59e0b">S*</span>
+                    <div>
+                        <div class="ontology-name">Trail-Aware Tool</div>
+                        <div class="ontology-desc">Trail-centric tool</div>
+                    </div>
+                </div>
+                <div class="ontology-item">
+                    <span class="ontology-symbol" style="color:#ec4899">M</span>
+                    <div>
+                        <div class="ontology-name">Metadata</div>
+                        <div class="ontology-desc">Timestamps, tags</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <footer>
+        <p>COURAGE Training Manual · Generated Dec 10, 2025</p>
+        <p><a href="courage-trail-data.json">Trail Data JSON</a> · <a href="file-manifest.json">File Manifest</a> · <a
+                href="manifest-ontology-analysis.json">Ontology Analysis</a></p>
+    </footer>
+</body>
+
+</html>

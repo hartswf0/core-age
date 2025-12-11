@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATG Unified Terrain | All Data Sources</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700&family=Inter:wght@300;400;600&family=JetBrains+Mono:wght@400;600&display=swap');
+
+        :root {
+            --bg: #0a0a0f;
+            --surface: #111117;
+            --ink: #e5e5e5;
+            --ink-dim: #666;
+            --accent: #d97706;
+            --water: #3b82f6;
+            --forest: #10b981;
+            --peak: #ef4444;
+            --valley: #8b5cf6;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        #viewport {
+            position: absolute;
+            inset: 0;
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        .texture-overlay {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            opacity: 0.12;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+        }
+
+        #labels {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+        }
+
+        .zone-label {
+            position: absolute;
+            transform: translate(-50%, -50%);
+            font-family: 'Cinzel', serif;
+            font-weight: 700;
+            font-size: 11px;
+            letter-spacing: 0.12em;
+            color: var(--ink);
+            opacity: 0.8;
+            text-shadow: 0 0 20px var(--bg), 0 0 40px var(--bg);
+            pointer-events: auto;
+            cursor: pointer;
+            text-align: center;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .zone-label:hover {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1.15);
+            color: var(--accent);
+        }
+
+        .zone-label .meta {
+            display: block;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 8px;
+            font-weight: 400;
+            margin-top: 3px;
+            opacity: 0.5;
+        }
+
+        /* Connection lines layer */
+        #connections {
+            position: absolute;
+            inset: 0;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        /* Timeline bar */
+        #timeline-bar {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(to top, rgba(17, 17, 23, 0.98), transparent);
+            z-index: 40;
+            padding: 16px 24px;
+        }
+
+        .timeline-track {
+            position: relative;
+            height: 4px;
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 2px;
+            margin-top: 20px;
+        }
+
+        .timeline-event {
+            position: absolute;
+            top: -6px;
+            width: 16px;
+            height: 16px;
+            background: var(--accent);
+            border-radius: 50%;
+            border: 2px solid var(--bg);
+            cursor: pointer;
+            transition: all 0.2s;
+            transform: translateX(-50%);
+        }
+
+        .timeline-event:hover {
+            transform: translateX(-50%) scale(1.4);
+            background: #fff;
+        }
+
+        .timeline-event.major {
+            width: 20px;
+            height: 20px;
+            top: -8px;
+        }
+
+        .timeline-labels {
+            display: flex;
+            justify-content: space-between;
+            font-size: 9px;
+            color: var(--ink-dim);
+            margin-top: 8px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Header */
+        .page-header {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            z-index: 50;
+        }
+
+        .page-header h1 {
+            font-family: 'Cinzel', serif;
+            font-size: 20px;
+            color: var(--accent);
+        }
+
+        .page-header .sub {
+            font-size: 10px;
+            color: var(--ink-dim);
+            margin-top: 4px;
+        }
+
+        /* Legend */
+        .legend {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            z-index: 50;
+            font-size: 9px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            margin-bottom: 6px;
+        }
+
+        .legend-dot {
+            width: 10px;
+            height: 10px;
+            border-radius: 2px;
+        }
+
+        /* Controls */
+        .controls {
+            position: fixed;
+            bottom: 100px;
+            right: 20px;
+            z-index: 50;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+        }
+
+        .btn-ctrl {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            background: rgba(17, 17, 23, 0.9);
+            color: var(--ink);
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 14px;
+            transition: all 0.2s;
+        }
+
+        .btn-ctrl:hover {
+            background: var(--accent);
+            border-color: transparent;
+        }
+
+        /* Detail Modal */
+        #modal {
+            position: fixed;
+            inset: 0;
+            z-index: 100;
+            background: rgba(0, 0, 0, 0.92);
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+
+        #modal.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-box {
+            width: 100%;
+            max-width: 700px;
+            max-height: 85vh;
+            background: var(--surface);
+            border-radius: 12px;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+        }
+
+        .modal-head {
+            padding: 16px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, var(--accent), #b45309);
+        }
+
+        .modal-head h2 {
+            font-family: 'Cinzel', serif;
+            font-size: 18px;
+            color: #fff;
+        }
+
+        .modal-head button {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: #fff;
+            padding: 6px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .modal-body {
+            padding: 20px;
+            overflow-y: auto;
+            max-height: calc(85vh - 60px);
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 16px;
+            margin-bottom: 16px;
+        }
+
+        .info-block h4 {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 9px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin-bottom: 6px;
+        }
+
+        .info-block p {
+            font-size: 12px;
+            color: var(--ink-dim);
+            line-height: 1.5;
+        }
+
+        .tag-row {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 4px;
+            margin-top: 6px;
+        }
+
+        .tag {
+            padding: 3px 8px;
+            background: rgba(217, 119, 6, 0.15);
+            color: var(--accent);
+            border-radius: 12px;
+            font-size: 9px;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .tag.move {
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--water);
+        }
+
+        .tag.pattern {
+            background: rgba(139, 92, 246, 0.15);
+            color: var(--valley);
+        }
+
+        .btn-link {
+            display: inline-block;
+            margin-top: 12px;
+            padding: 8px 16px;
+            background: var(--accent);
+            color: #fff;
+            text-decoration: none;
+            border-radius: 6px;
+            font-size: 11px;
+        }
+
+        .btn-link:hover {
+            background: #b45309;
+        }
+
+        /* Timeline tooltip */
+        .tt {
+            position: fixed;
+            background: var(--surface);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 8px 12px;
+            border-radius: 6px;
+            font-size: 10px;
+            pointer-events: none;
+            z-index: 200;
+            display: none;
+        }
+
+        .tt.show {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="viewport">
+        <canvas id="c"></canvas>
+        <div class="texture-overlay"></div>
+        <svg id="connections"></svg>
+        <div id="labels"></div>
+    </div>
+
+    <div class="page-header">
+        <h1>ATG Unified Terrain</h1>
+        <div class="sub">wag-atlas · creator-trail-olog · commit-timeline</div>
+    </div>
+
+    <div class="legend">
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--peak)"></div> Mountain/Peak
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--water)"></div> River/Stream
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--forest)"></div> Highlands
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--valley)"></div> Valley/Basin
+        </div>
+        <div class="legend-item">
+            <div class="legend-dot" style="background:var(--accent)"></div> Plateau/Islands
+        </div>
+    </div>
+
+    <div class="controls">
+        <button class="btn-ctrl" id="btn-conn" title="Toggle Connections">⊶</button>
+        <button class="btn-ctrl" id="btn-reset" title="Reset">⟲</button>
+    </div>
+
+    <div id="timeline-bar">
+        <div class="timeline-track" id="track"></div>
+        <div class="timeline-labels"><span>Sep 2025</span><span>Oct</span><span>Nov</span><span>Dec 2025</span></div>
+    </div>
+
+    <div id="modal">
+        <div class="modal-box">
+            <div class="modal-head">
+                <h2 id="m-title">Zone</h2><button id="m-close">×</button>
+            </div>
+            <div class="modal-body" id="m-body"></div>
+        </div>
+    </div>
+    <div class="tt" id="tt"></div>
+
+    <script>
+        (function () {
+            // ═══════════════════════════════════════════════════════════════════
+            // INTEGRATED DATA FROM ALL THREE SOURCES
+            // ═══════════════════════════════════════════════════════════════════
+            const ZONES = [
+                {
+                    id: "FullyConnected", label: "CONNEX PEAKS", type: "mountain", color: "#ef4444", pos: { x: 0.45, y: 0.22 },
+                    url: "https://hartswf0.github.io/tractor-dce-gyo/onyx-studio.html",
+                    desc: "Onyx Studio - Fully connected project planning",
+                    moves: ["Words Assemble Geometries", "Operative Ekphrasis", "Words Become Worlds", "Natural Language → 3D Models", "Democratize Design"],
+                    repo: "tractor-dce-gyo", commits: 50, dateRange: "Nov 14-Dec 7",
+                    patterns: ["word-assembly", "ai-legos"], trailLevel: 2
+                },
+
+                {
+                    id: "StreamDelta", label: "STREAM DELTA", type: "river", color: "#3b82f6", pos: { x: 0.22, y: 0.38 },
+                    url: "https://hartswf0.github.io/func-sub/func-index.html",
+                    desc: "Training Ground - Operator upgrade flow",
+                    moves: ["Experience Designer", "Black Metal aesthetic", "operator upgrade", "training ground", "embodied knowledge"],
+                    repo: "func-sub", commits: 20, dateRange: "Nov 4-10",
+                    patterns: ["6-axis-decomposition", "operator-triad", "bayesian-update"], trailLevel: 2
+                },
+
+                {
+                    id: "DevHighlands", label: "DEV HIGHLANDS", type: "highlands", color: "#10b981", pos: { x: 0.55, y: 0.48 },
+                    url: "https://hartswf0.github.io/1000-small-futures/",
+                    desc: "Thousand-Tetrad - Procedural open-ended sims",
+                    moves: ["Procedurally generated worlds", "Web-friendly simulations", "Branching paths", "Agent model integration", "Ian Cheng inspiration"],
+                    repo: "1000-small-futures", commits: 15, dateRange: "Oct 21-Nov 10",
+                    patterns: ["anti-tool-design", "ring-memory", "tetrad-analysis"], trailLevel: 2
+                },
+
+                {
+                    id: "BinaryBasin", label: "BINARY BASIN", type: "valley", color: "#8b5cf6", pos: { x: 0.78, y: 0.3 },
+                    url: "https://hartswf0.github.io/the-fork/",
+                    desc: "The Fork - Ethical choices in NLP research",
+                    moves: ["Active Decisions", "Passive Decisions", "Ethical Choices", "Human-Centered Computing"],
+                    repo: "the-fork", commits: 10, dateRange: "Nov 3-19",
+                    patterns: ["ethical-cartridge", "moral-agent-dialogue"], trailLevel: 2
+                },
+
+                {
+                    id: "EkphrasisRange", label: "EKPHRASIS RANGE", type: "plateau", color: "#d97706", pos: { x: 0.68, y: 0.62 },
+                    url: "https://hartswf0.github.io/tractor-dce-gyo/grecian-urn.html",
+                    desc: "Words describing objects that become worlds",
+                    moves: ["Grecian Urn", "Shield of Achilles", "Homer", "Words → Objects → Worlds", "Multimodal synthetic agency"],
+                    repo: "tractor-dce-gyo", commits: 50, dateRange: "Nov 14-Dec 7",
+                    patterns: ["ekphrasis", "inverse-storyboarding"], trailLevel: 2
+                },
+
+                {
+                    id: "IsolationIsles", label: "ISOLATION ISLES", type: "islands", color: "#f59e0b", pos: { x: 0.12, y: 0.18 },
+                    url: "https://chatgpt.com/g/g-6928ce54fbe48191a18ecd544414675f-legos-cognitive-architect-v8-0",
+                    desc: "GPT Tools - Standalone cognitive architectures",
+                    moves: ["LEGOS Cognitive Architect v8.0", "Complex Ideas → LEGO Files", "Words Assemble Grids"],
+                    repo: null, commits: 0, dateRange: "",
+                    patterns: ["cognitive-architecture"], trailLevel: 1
+                },
+
+                {
+                    id: "RoleDeck", label: "TILTH TERRACE", type: "plateau", color: "#d97706", pos: { x: 0.15, y: 0.65 },
+                    url: "https://hartswf0.github.io/role-deck/HUB.html",
+                    desc: "Role Deck - Ethical Design & Workplace Negotiation",
+                    moves: ["FarmOS Ecosystem", "Tetrad Gamepad", "Feed Loop", "Identity Cards"],
+                    repo: "role-deck", commits: 8, dateRange: "Sep 30-Oct 13",
+                    patterns: ["design-ethics", "tetrad-gamepad"], trailLevel: 1
+                },
+
+                {
+                    id: "CollabPeaks", label: "COLLABORATOR PEAKS", type: "settlement", color: "#ec4899", pos: { x: 0.88, y: 0.55 },
+                    desc: "The team building WAG",
+                    moves: ["Jordan Caldwell", "Kayla Uleah Evans", "Shuruq Tramontini", "Terhi Marttila", "So-youn Jang"],
+                    repo: null, commits: 0, dateRange: "",
+                    patterns: [], trailLevel: 0
+                },
+
+                {
+                    id: "CinemaBasin", label: "CINEMA BASIN", type: "valley", color: "#8b5cf6", pos: { x: 0.4, y: 0.75 },
+                    desc: "Video demonstrations and showcases",
+                    moves: ["Carrot Uprising 4Grid", "Grid 47", "Undaunted Courage"],
+                    repo: null, commits: 0, dateRange: "",
+                    patterns: ["documentation"], trailLevel: 0
+                }
+            ];
+
+            const CONNECTIONS = [
+                { from: "BinaryBasin", to: "DevHighlands" },
+                { from: "BinaryBasin", to: "StreamDelta" },
+                { from: "BinaryBasin", to: "FullyConnected" },
+                { from: "BinaryBasin", to: "RoleDeck" },
+                { from: "FullyConnected", to: "EkphrasisRange" },
+                { from: "FullyConnected", to: "StreamDelta" },
+                { from: "DevHighlands", to: "StreamDelta" }
+            ];
+
+            const TIMELINE = [
+                { date: "2025-09-02", label: "Project Genesis", sig: "minor" },
+                { date: "2025-09-30", label: "Role Deck starts", sig: "minor" },
+                { date: "2025-10-21", label: "1000 Futures begins", sig: "minor" },
+                { date: "2025-11-03", label: "The Fork created", sig: "major" },
+                { date: "2025-11-04", label: "Training Grounds", sig: "minor" },
+                { date: "2025-11-10", label: "Black Metal method", sig: "major" },
+                { date: "2025-11-14", label: "WAG/Onyx/Homer begins", sig: "major" },
+                { date: "2025-11-19", label: "Research unified", sig: "major" },
+                { date: "2025-12-07", label: "Latest updates", sig: "major" }
+            ];
+
+            // ═══════════════════════════════════════════════════════════════════
+            // CANVAS RENDERING
+            // ═══════════════════════════════════════════════════════════════════
+            const canvas = document.getElementById('c');
+            const ctx = canvas.getContext('2d');
+            const CONFIG = { GRID_W: 140, GRID_H: 90, LEVELS: 16 };
+            let heatGrid, W, H;
+
+            function noise(x, y) { const s = Math.sin(x * 12.9898 + y * 78.233) * 43758.5453; return s - Math.floor(s); }
+            function fbm(x, y, oct) { let v = 0, a = 0.5; for (let i = 0; i < oct; i++) { v += noise(x, y) * a; x *= 2; y *= 2; a *= 0.5; } return v; }
+
+            function init() {
+                W = window.innerWidth; H = window.innerHeight;
+                const dpr = Math.min(devicePixelRatio || 1, 2);
+                canvas.width = W * dpr; canvas.height = H * dpr;
+                ctx.scale(dpr, dpr);
+                CONFIG.GRID_H = Math.floor(CONFIG.GRID_W * (H / W));
+                heatGrid = new Float32Array(CONFIG.GRID_W * CONFIG.GRID_H);
+
+                // Generate terrain with peaks at zone positions, weighted by commits
+                for (let y = 0; y < CONFIG.GRID_H; y++) {
+                    for (let x = 0; x < CONFIG.GRID_W; x++) {
+                        const nx = x / CONFIG.GRID_W, ny = y / CONFIG.GRID_H;
+                        let h = fbm(nx * 3.5, ny * 3.5, 5) * 0.25;
+                        ZONES.forEach(z => {
+                            const dx = nx - z.pos.x, dy = ny - z.pos.y;
+                            const d = Math.sqrt(dx * dx + dy * dy);
+                            const weight = Math.max(1, Math.log10(z.commits + 1) * 2);
+                            if (d < 0.18) h += (0.18 - d) * weight * (z.trailLevel + 1);
+                        });
+                        heatGrid[y * CONFIG.GRID_W + x] = Math.min(h, 4);
+                    }
+                }
+                renderLabels();
+                renderConnections();
+                renderTimeline();
+                draw();
+            }
+
+            function draw() {
+                ctx.clearRect(0, 0, W, H);
+                const cw = W / CONFIG.GRID_W, ch = H / CONFIG.GRID_H;
+
+                // Elevation bands with color gradients
+                for (let l = CONFIG.LEVELS; l >= 1; l--) {
+                    const t = l * 0.2;
+                    const hue = 25 + (l / CONFIG.LEVELS) * 10;
+                    const alpha = 0.015 + (l / CONFIG.LEVELS) * 0.05;
+                    ctx.fillStyle = `hsla(${hue}, 80%, 50%, ${alpha})`;
+                    for (let y = 0; y < CONFIG.GRID_H; y++) {
+                        for (let x = 0; x < CONFIG.GRID_W; x++) {
+                            if (heatGrid[y * CONFIG.GRID_W + x] >= t) ctx.fillRect(x * cw, y * ch, cw + 0.5, ch + 0.5);
+                        }
+                    }
+                }
+
+                // Contour lines
+                ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+                for (let l = 1; l <= CONFIG.LEVELS; l++) {
+                    const t = l * 0.2, major = l % 3 === 0;
+                    ctx.beginPath();
+                    ctx.lineWidth = major ? 1.2 : 0.4;
+                    ctx.strokeStyle = '#d97706';
+                    ctx.globalAlpha = major ? 0.45 : 0.12;
+                    for (let y = 0; y < CONFIG.GRID_H - 1; y++) {
+                        for (let x = 0; x < CONFIG.GRID_W - 1; x++) {
+                            const idx = y * CONFIG.GRID_W + x;
+                            const v0 = heatGrid[idx], v1 = heatGrid[idx + 1], v2 = heatGrid[idx + CONFIG.GRID_W + 1], v3 = heatGrid[idx + CONFIG.GRID_W];
+                            let bits = 0;
+                            if (v0 >= t) bits |= 1; if (v1 >= t) bits |= 2; if (v2 >= t) bits |= 4; if (v3 >= t) bits |= 8;
+                            if (bits === 0 || bits === 15) continue;
+                            const lx = x * cw, ly = y * ch;
+                            const a = { x: lx + cw * 0.5, y: ly }, b = { x: lx + cw, y: ly + ch * 0.5 }, c = { x: lx + cw * 0.5, y: ly + ch }, d = { x: lx, y: ly + ch * 0.5 };
+                            switch (bits) {
+                                case 1: case 14: ctx.moveTo(d.x, d.y); ctx.lineTo(a.x, a.y); break;
+                                case 2: case 13: ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); break;
+                                case 4: case 11: ctx.moveTo(b.x, b.y); ctx.lineTo(c.x, c.y); break;
+                                case 8: case 7: ctx.moveTo(c.x, c.y); ctx.lineTo(d.x, d.y); break;
+                                case 3: case 12: ctx.moveTo(d.x, d.y); ctx.lineTo(b.x, b.y); break;
+                                case 6: case 9: ctx.moveTo(a.x, a.y); ctx.lineTo(c.x, c.y); break;
+                                case 5: ctx.moveTo(d.x, d.y); ctx.lineTo(a.x, a.y); ctx.moveTo(b.x, b.y); ctx.lineTo(c.x, c.y); break;
+                                case 10: ctx.moveTo(a.x, a.y); ctx.lineTo(b.x, b.y); ctx.moveTo(c.x, c.y); ctx.lineTo(d.x, d.y); break;
+                            }
+                        }
+                    }
+                    ctx.stroke();
+                }
+                ctx.globalAlpha = 1;
+
+                // Zone markers
+                ZONES.forEach(z => {
+                    const px = z.pos.x * W, py = z.pos.y * H;
+                    const r = 4 + z.trailLevel * 2 + Math.sqrt(z.commits) * 0.5;
+                    ctx.beginPath(); ctx.arc(px, py, r, 0, Math.PI * 2);
+                    ctx.fillStyle = z.color; ctx.fill();
+                    ctx.strokeStyle = '#fff'; ctx.lineWidth = 1.5; ctx.stroke();
+                });
+            }
+
+            function renderLabels() {
+                const layer = document.getElementById('labels');
+                layer.innerHTML = '';
+                ZONES.forEach(z => {
+                    const el = document.createElement('div');
+                    el.className = 'zone-label';
+                    el.style.left = (z.pos.x * 100) + '%';
+                    el.style.top = (z.pos.y * 100) + '%';
+                    const meta = z.commits ? `${z.commits} commits · ${z.dateRange}` : z.type;
+                    el.innerHTML = `${z.label}<span class="meta">${meta}</span>`;
+                    el.onclick = () => showModal(z);
+                    layer.appendChild(el);
+                });
+            }
+
+            function renderConnections() {
+                const svg = document.getElementById('connections');
+                svg.innerHTML = '';
+                svg.setAttribute('viewBox', `0 0 ${W} ${H}`);
+                svg.style.width = W + 'px'; svg.style.height = H + 'px';
+                CONNECTIONS.forEach(c => {
+                    const fromZ = ZONES.find(z => z.id === c.from);
+                    const toZ = ZONES.find(z => z.id === c.to);
+                    if (!fromZ || !toZ) return;
+                    const line = document.createElementNS('http://www.w3.org/2000/svg', 'line');
+                    line.setAttribute('x1', fromZ.pos.x * W);
+                    line.setAttribute('y1', fromZ.pos.y * H);
+                    line.setAttribute('x2', toZ.pos.x * W);
+                    line.setAttribute('y2', toZ.pos.y * H);
+                    line.setAttribute('stroke', 'rgba(217,119,6,0.3)');
+                    line.setAttribute('stroke-width', '1.5');
+                    line.setAttribute('stroke-dasharray', '4,4');
+                    svg.appendChild(line);
+                });
+            }
+
+            function renderTimeline() {
+                const track = document.getElementById('track');
+                const startDate = new Date('2025-09-01').getTime();
+                const endDate = new Date('2025-12-10').getTime();
+                const range = endDate - startDate;
+                TIMELINE.forEach(t => {
+                    const d = new Date(t.date).getTime();
+                    const pct = ((d - startDate) / range) * 100;
+                    const dot = document.createElement('div');
+                    dot.className = 'timeline-event' + (t.sig === 'major' ? ' major' : '');
+                    dot.style.left = pct + '%';
+                    dot.onmouseenter = e => showTooltip(e, `${t.date}: ${t.label}`);
+                    dot.onmouseleave = hideTooltip;
+                    track.appendChild(dot);
+                });
+            }
+
+            function showModal(z) {
+                document.getElementById('m-title').textContent = z.label;
+                document.getElementById('m-body').innerHTML = `
+                <div class="info-grid">
+                    <div class="info-block"><h4>Description</h4><p>${z.desc}</p></div>
+                    <div class="info-block"><h4>Terrain Type</h4><p>${z.type} · Trail Level ${z.trailLevel}</p></div>
+                </div>
+                ${z.repo ? `<div class="info-block"><h4>Repository</h4><p>${z.repo} · ${z.commits} commits · ${z.dateRange}</p></div>` : ''}
+                <div class="info-block"><h4>Moves / Concepts</h4><div class="tag-row">${z.moves.map(m => `<span class="tag move">${m}</span>`).join('')}</div></div>
+                <div class="info-block"><h4>Patterns</h4><div class="tag-row">${z.patterns.map(p => `<span class="tag pattern">${p}</span>`).join('')}</div></div>
+                ${z.url ? `<a href="${z.url}" target="_blank" class="btn-link">Visit Live Demo →</a>` : ''}
+            `;
+                document.getElementById('modal').classList.add('active');
+            }
+
+            function showTooltip(e, text) {
+                const tt = document.getElementById('tt');
+                tt.textContent = text;
+                tt.style.left = (e.clientX + 10) + 'px';
+                tt.style.top = (e.clientY - 30) + 'px';
+                tt.classList.add('show');
+            }
+            function hideTooltip() { document.getElementById('tt').classList.remove('show'); }
+
+            // Events
+            document.getElementById('m-close').onclick = () => document.getElementById('modal').classList.remove('active');
+            document.getElementById('modal').onclick = e => { if (e.target.id === 'modal') e.target.classList.remove('active'); };
+            document.getElementById('btn-conn').onclick = () => document.getElementById('connections').style.display = document.getElementById('connections').style.display === 'none' ? 'block' : 'none';
+            document.getElementById('btn-reset').onclick = () => location.reload();
+            window.onresize = init;
+            init();
+        })();
+    </script>
+</body>
+
+</html>

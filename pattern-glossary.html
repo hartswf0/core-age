@@ -1,0 +1,1194 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pattern Glossary | COURAGE Knowledge Infrastructure</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Source+Serif+4:ital,wght@0,400;0,600;1,400&family=JetBrains+Mono:wght@400;500&family=Inter:wght@400;500;600&display=swap');
+
+        :root {
+            /* Light mode (default) */
+            --bg: #fafafa;
+            --surface: #ffffff;
+            --surface-alt: #f5f5f5;
+            --card-border: #e5e5e5;
+            --ink: #1a1a1a;
+            --ink-secondary: #525252;
+            --ink-tertiary: #737373;
+            --accent: #b45309;
+            --accent-bg: #fef3c7;
+            --link: #1d4ed8;
+            --pattern-color: #6d28d9;
+            --decision-color: #047857;
+            --morphism-bg: #fffbeb;
+        }
+
+        [data-theme="dark"] {
+            --bg: #0d0d12;
+            --surface: #18181b;
+            --surface-alt: #27272a;
+            --card-border: #3f3f46;
+            --ink: #fafafa;
+            --ink-secondary: #a1a1aa;
+            --ink-tertiary: #71717a;
+            --accent: #f59e0b;
+            --accent-bg: rgba(245, 158, 11, 0.12);
+            --link: #60a5fa;
+            --pattern-color: #a78bfa;
+            --decision-color: #34d399;
+            --morphism-bg: rgba(245, 158, 11, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html {
+            font-size: 18px;
+            scroll-behavior: smooth;
+        }
+
+        @media (max-width: 768px) {
+            html {
+                font-size: 16px;
+            }
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--ink);
+            font-family: 'Source Serif 4', Georgia, serif;
+            line-height: 1.7;
+            padding: 0 1rem;
+            transition: background 0.3s, color 0.3s;
+        }
+
+        /* Typography - optimized for reading */
+        h1,
+        h2,
+        h3,
+        h4 {
+            font-family: 'Inter', sans-serif;
+            line-height: 1.3;
+        }
+
+        h1 {
+            font-size: 2rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        h2 {
+            font-size: 0.75rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--accent);
+            margin: 2.5rem 0 1rem;
+            border-bottom: 1px solid var(--card-border);
+            padding-bottom: 0.5rem;
+        }
+
+        h3 {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        p {
+            margin-bottom: 1rem;
+            max-width: 65ch;
+        }
+
+        code {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.9em;
+            background: var(--surface-alt);
+            padding: 0.15em 0.4em;
+            border-radius: 3px;
+        }
+
+        .container {
+            max-width: 48rem;
+            margin: 0 auto;
+            padding: 2rem 0 4rem;
+        }
+
+        /* Header */
+        header {
+            margin-bottom: 2rem;
+        }
+
+        .subtitle {
+            font-size: 1rem;
+            color: var(--ink-secondary);
+            font-style: italic;
+        }
+
+        .meta {
+            font-size: 0.8rem;
+            color: var(--ink-tertiary);
+            margin-top: 0.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .back-nav {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: var(--ink-secondary);
+            text-decoration: none;
+            font-size: 0.8rem;
+            margin-bottom: 1.5rem;
+            font-family: 'Inter', sans-serif;
+        }
+
+        .back-nav:hover {
+            color: var(--accent);
+        }
+
+        /* Theme toggle */
+        .theme-toggle {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            width: 44px;
+            height: 44px;
+            border-radius: 50%;
+            border: 1px solid var(--card-border);
+            background: var(--surface);
+            color: var(--ink);
+            cursor: pointer;
+            font-size: 1.25rem;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .theme-toggle:hover {
+            background: var(--accent-bg);
+        }
+
+        /* Table of Contents */
+        .toc {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1.25rem;
+            margin-bottom: 2rem;
+        }
+
+        .toc-title {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--ink-tertiary);
+            margin-bottom: 0.75rem;
+        }
+
+        .toc-list {
+            list-style: none;
+            columns: 2;
+            column-gap: 1.5rem;
+        }
+
+        @media (max-width: 480px) {
+            .toc-list {
+                columns: 1;
+            }
+        }
+
+        .toc-list a {
+            color: var(--link);
+            text-decoration: none;
+            font-size: 0.85rem;
+            display: block;
+            padding: 0.25rem 0;
+        }
+
+        .toc-list a:hover {
+            text-decoration: underline;
+        }
+
+        /* Ontology Grid */
+        .onto-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+            gap: 0.75rem;
+            margin: 1rem 0 2rem;
+        }
+
+        .onto-card {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            padding: 1rem;
+        }
+
+        .onto-sym {
+            font-family: 'JetBrains Mono', monospace;
+            font-weight: 500;
+            font-size: 1.5rem;
+            margin-bottom: 0.25rem;
+        }
+
+        .onto-name {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+        }
+
+        .onto-desc {
+            font-size: 0.8rem;
+            color: var(--ink-secondary);
+            line-height: 1.5;
+        }
+
+        /* Morphisms */
+        .morphism {
+            background: var(--morphism-bg);
+            border-left: 3px solid var(--accent);
+            padding: 1rem 1.25rem;
+            margin: 1rem 0;
+            border-radius: 0 6px 6px 0;
+        }
+
+        .morphism-formula {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.95rem;
+            color: var(--accent);
+            margin-bottom: 0.5rem;
+        }
+
+        .morphism-plain {
+            font-size: 0.9rem;
+            margin-bottom: 0.75rem;
+        }
+
+        .morphism-example {
+            font-size: 0.85rem;
+            color: var(--ink-secondary);
+            font-style: italic;
+        }
+
+        /* Pattern Cards */
+        .pattern-card {
+            background: var(--surface);
+            border: 1px solid var(--card-border);
+            border-radius: 8px;
+            margin: 1.5rem 0;
+            overflow: hidden;
+        }
+
+        .pattern-head {
+            padding: 1rem 1.25rem;
+            border-bottom: 1px solid var(--card-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            gap: 1rem;
+            flex-wrap: wrap;
+        }
+
+        .pattern-name {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 1.1rem;
+            font-weight: 500;
+            color: var(--pattern-color);
+        }
+
+        .pattern-zones {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.35rem;
+        }
+
+        .zone-chip {
+            font-family: 'Inter', sans-serif;
+            font-size: 0.65rem;
+            font-weight: 500;
+            padding: 0.2rem 0.5rem;
+            border-radius: 4px;
+            background: var(--surface-alt);
+            color: var(--ink-secondary);
+        }
+
+        .pattern-body {
+            padding: 1.25rem;
+        }
+
+        .pattern-def {
+            font-size: 1rem;
+            margin-bottom: 1rem;
+            border-left: 3px solid var(--pattern-color);
+            padding-left: 1rem;
+        }
+
+        .pattern-meta {
+            display: grid;
+            grid-template-columns: auto 1fr;
+            gap: 0.5rem 1rem;
+            font-size: 0.85rem;
+        }
+
+        .pattern-meta dt {
+            font-weight: 600;
+            color: var(--ink-tertiary);
+            font-family: 'Inter', sans-serif;
+        }
+
+        .pattern-meta dd {
+            color: var(--ink-secondary);
+        }
+
+        .pattern-refs {
+            margin-top: 1rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.8rem;
+        }
+
+        .pattern-refs-title {
+            font-family: 'Inter', sans-serif;
+            font-weight: 600;
+            color: var(--ink-tertiary);
+            margin-bottom: 0.5rem;
+        }
+
+        .pattern-refs cite {
+            font-style: normal;
+            display: block;
+            color: var(--ink-secondary);
+            margin-bottom: 0.25rem;
+        }
+
+        /* Footer */
+        footer {
+            margin-top: 4rem;
+            padding-top: 1.5rem;
+            border-top: 1px solid var(--card-border);
+            font-size: 0.8rem;
+            color: var(--ink-tertiary);
+            text-align: center;
+            font-family: 'Inter', sans-serif;
+        }
+
+        footer a {
+            color: var(--accent);
+        }
+    </style>
+</head>
+
+<body>
+    <button class="theme-toggle" id="theme-toggle" aria-label="Toggle theme">☀</button>
+
+    <div class="container">
+        <a href="courage-trail-olog.html" class="back-nav">← Trail Map</a>
+
+        <header>
+            <h1>Pattern Glossary</h1>
+            <p class="subtitle">Recurring behaviors and design patterns across the COURAGE repository, grounded in HCI,
+                CSCW, and computational narratology.</p>
+            <p class="meta">Last updated: December 2025 · 14 patterns · 8 ontology types</p>
+        </header>
+
+        <nav class="toc">
+            <div class="toc-title">Contents</div>
+            <ul class="toc-list">
+                <li><a href="#ontology">Ontology Types</a></li>
+                <li><a href="#morphisms">Morphisms</a></li>
+                <li><a href="#anti-tool">anti-tool</a></li>
+                <li><a href="#ring-memory">ring-memory</a></li>
+                <li><a href="#spatial-language">spatial-language</a></li>
+                <li><a href="#scene-snapshot">scene-snapshot</a></li>
+                <li><a href="#narrative-ontology">narrative-ontology</a></li>
+                <li><a href="#visual-segmentation">visual-segmentation</a></li>
+                <li><a href="#category-theory">category-theory</a></li>
+                <li><a href="#parent-child-binding">parent-child-binding</a></li>
+                <li><a href="#tree-hierarchy">tree-hierarchy</a></li>
+                <li><a href="#ldraw-composition">ldraw-composition</a></li>
+                <li><a href="#temporal-encoding">temporal-encoding</a></li>
+                <li><a href="#inception-harness">inception-harness</a></li>
+                <li><a href="#library-navigation">library-navigation</a></li>
+                <li><a href="#l-system-ontology">l-system-ontology</a></li>
+            </ul>
+        </nav>
+
+        <!-- ONTOLOGY SECTION -->
+        <section id="ontology">
+            <h2>Ontology Types (Objects)</h2>
+            <p>These types form a <em>trail ontology</em> for tracking creative provenance—who made what, when, why, and
+                how. This structure draws from David Spivak's <em>Ontology Logs</em> (ologs) for knowledge
+                representation.</p>
+
+            <div class="onto-grid">
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#b45309">C</div>
+                    <div class="onto-name">Creator</div>
+                    <div class="onto-desc">The human author whose decisions shape the trail. cf. Geertz's
+                        "author-function" in cultural production.</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#1d4ed8">T</div>
+                    <div class="onto-name">Trail</div>
+                    <div class="onto-desc">The evolving history of a creative work. A temporal sequence of artifacts and
+                        decisions.</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#047857">A</div>
+                    <div class="onto-name">Artifact</div>
+                    <div class="onto-desc">Concrete outputs: HTML files, JSON snapshots, MPD models. The "objectified"
+                        creative moment.</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#be185d">M</div>
+                    <div class="onto-name">Metadata</div>
+                    <div class="onto-desc">Timestamps, extensions, tags. "Data about data"—the context surrounding
+                        artifacts.</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#6d28d9">D</div>
+                    <div class="onto-name">Decision</div>
+                    <div class="onto-desc">Architectural choices: "use 9×9 grid," "adopt ring buffer." What Schön calls
+                        "reflection-in-action."</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#c2410c">S*</div>
+                    <div class="onto-name">Trail-Aware Tool</div>
+                    <div class="onto-desc">Software that observes and leverages creator history. Second-order tool:
+                        tools aware of tooling.</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#0891b2">P</div>
+                    <div class="onto-name">Pattern</div>
+                    <div class="onto-desc">Recurring structure detected across artifacts. Emergent regularity; cf.
+                        Alexander's "pattern language."</div>
+                </div>
+                <div class="onto-card">
+                    <div class="onto-sym" style="color:#dc2626">I</div>
+                    <div class="onto-name">Intent</div>
+                    <div class="onto-desc">The creator's purpose. The "why" behind artifacts—what Geertz calls the
+                        "thick" layer of meaning.</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- MORPHISMS SECTION -->
+        <section id="morphisms">
+            <h2>Morphisms (Relationships)</h2>
+            <p>Following category theory (cf. Spivak's <em>Category Theory for the Sciences</em>), these are
+                structure-preserving maps between types.</p>
+
+            <div class="morphism">
+                <div class="morphism-formula">generates : C → T</div>
+                <div class="morphism-plain">A Creator generates a Trail through sustained practice.</div>
+                <div class="morphism-example">Example: The developer creates the WAG system over Nov 18 – Dec 10,
+                    generating a trail of 12 HTML artifacts from <code>wag-brave.html</code> to
+                    <code>wag-frank-unified.html</code>.
+                </div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">contains : T → {A, M, D}</div>
+                <div class="morphism-plain">A Trail contains Artifacts, Metadata, and Decisions.</div>
+                <div class="morphism-example">Example: The GAR trail contains 12 artifacts (<code>gar-00.html</code>
+                    through <code>gar-07.html</code>), metadata (dateRange: "Nov 30 – Dec 2"), and decisions (K-means
+                    clustering, 9×9 downsample).</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">observes : S* → T</div>
+                <div class="morphism-plain">A Trail-Aware Tool observes the Trail.</div>
+                <div class="morphism-example">Example: <code>courage-trail-olog.html</code> reads
+                    <code>file-manifest.json</code> and <code>courage-trail-data.json</code> to render the terrain
+                    visualization. The tool is reflexive: it observes its own creation trail.
+                </div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">infers : S* × T → P</div>
+                <div class="morphism-plain">A Tool combined with Trail data infers Patterns.</div>
+                <div class="morphism-example">Example: Analyzing the trail reveals <code>anti-tool</code> appears in
+                    both WAG and LEGOS zones; <code>parent-child-binding</code> connects SKELETON to TIMBER. Patterns
+                    emerge from cross-artifact analysis.</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">adapts : S* × P → S*</div>
+                <div class="morphism-plain">A Tool adapts itself based on discovered Patterns (autopoiesis).</div>
+                <div class="morphism-example">Example: <code>knowledge-hub.html</code> adopts the "library-cards"
+                    pattern discovered in tutorials. The system exhibits reflexive self-modification—what Maturana &
+                    Varela call "structural coupling."</div>
+            </div>
+
+            <div class="morphism">
+                <div class="morphism-formula">supports : S* → I</div>
+                <div class="morphism-plain">A Trail-Aware Tool supports the Creator's Intent.</div>
+                <div class="morphism-example">Example: <code>TIMBER-tutorial.html</code> supports the intent
+                    "hierarchical data exploration" by providing an interactive tree view. Tool design aligns with
+                    creator vision.</div>
+            </div>
+        </section>
+
+        <!-- PATTERNS SECTION -->
+        <section id="patterns">
+            <h2>Pattern Definitions</h2>
+
+            <!-- anti-tool -->
+            <article class="pattern-card" id="anti-tool">
+                <div class="pattern-head">
+                    <div class="pattern-name">anti-tool</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fef2f2;color:#dc2626">WAG</span>
+                        <span class="zone-chip" style="background:#fefce8;color:#ca8a04">LEGOS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A design philosophy where the interface minimizes administrative overhead
+                        (menus, toolbars) to allow the user's spatial thinking to dominate. The tool becomes
+                        "ready-to-hand," visible only when it breaks down.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Instrumental Interaction:</strong> Aligns with
+                            Beaudouin-Lafon's model, specifically <em>reification</em>, where commands are turned into
+                            first-class manipulable objects rather than hidden in menus.</p>
+                        <p style="margin-bottom:0.5rem"><strong>Phenomenology:</strong> Realizes Heidegger’s distinction
+                            between <em>Zuhandenheit</em> (ready-to-hand) and <em>Vorhandenheit</em> (present-at-hand).
+                            An "anti-tool" interface strives for transparency.</p>
+                        <p><strong>UX Strategy:</strong> Resists "tool fetishism," prioritizing the negotiation of
+                            intent over rigid procedural wizards.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Remove menus, toolbars, options. Provide only direct manipulation on a constrained grid
+                            (9×9). The grid itself becomes the cognitive scaffold.</dd>
+                        <dt>Source verification</dt>
+                        <dd>In <code>training-manual.html</code>: "Introduction to the 9×9 spatial grid and anti-tool
+                            design philosophy."</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-1">Beaudouin-Lafon, M. (2000). Instrumental Interaction.</a></cite>
+                        <cite><a href="#ref-3">Heidegger, M. (1927). Being and Time.</a></cite>
+                        <cite><a href="#ref-4">Dourish, P. (2001). Where the Action Is.</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ring-memory -->
+            <article class="pattern-card" id="ring-memory">
+                <div class="pattern-head">
+                    <div class="pattern-name">ring-memory</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fef2f2;color:#dc2626">WAG</span>
+                        <span class="zone-chip" style="background:#ecfdf5;color:#047857">ONYX</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A circular buffer mechanism for storing recent operations, enabling
+                        undo/redo functionality without unbounded memory growth.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Selective Undo Models:</strong> Relates to Script Models or Selective Undo in
+                            creative tools. In collaborative or exploratory environments (CSCW), a ring buffer supports
+                            non-destructive experimentation, allowing users to "replay" or "loop" recent states—critical
+                            in systems that treat history as a manipulable dimension.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Fixed-size array with modular index arithmetic: <code>idx = (idx + 1) % bufferSize</code>.
+                            O(1) write, bounded space.</dd>
+                        <dt>Source verification</dt>
+                        <dd>In <code>onyx-scenes.html</code>: "Add ring memory indicator if this message is bound" (line
+                            8644).</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-12">Selective Undo Support for Painting Applications</a></cite>
+                        <cite><a href="#ref-14">Backtracking Support in Code Editing</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- spatial-language -->
+            <article class="pattern-card" id="spatial-language">
+                <div class="pattern-head">
+                    <div class="pattern-name">spatial-language</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fef2f2;color:#dc2626">WAG</span>
+                        <span class="zone-chip" style="background:#fefce8;color:#ca8a04">LEGOS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Treating textual or abstract elements as physical objects that occupy
+                        specific grid positions (x, y), enabling spatial reasoning about semantic content.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Spatial Hypertext:</strong> Mirrors Shipman and
+                            Marshall's findings where users express implicit ambiguity and emergent structure through
+                            visual proximity rather than links.</p>
+                        <p style="margin-bottom:0.5rem"><strong>Image Schemas:</strong> Relies on Lakoff & Johnson's
+                            CONTAINER and SOURCE-PATH-GOAL schemas, mapping bodily spatial experience to abstract
+                            conceptual reasoning.</p>
+                        <p><strong>Spatial Parsing:</strong> Fred Lakin’s work demonstrates how visual arrangements
+                            (stacking, alignment) can be rigorously parsed into syntactic structures (Picture Layout
+                            Grammars).</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Map textual tokens to (x, y) coordinates on 9×9 grid. Spatial proximity encodes semantic
+                            relationship.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-6">Shipman & Marshall (1993). Discovering Implicit Structure.</a></cite>
+                        <cite><a href="#ref-8">Lakoff & Johnson (1980). Metaphors We Live By.</a></cite>
+                        <cite><a href="#ref-10">Lakin, F. (1987). Spatial Parsing.</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- scene-snapshot -->
+            <article class="pattern-card" id="scene-snapshot">
+                <div class="pattern-head">
+                    <div class="pattern-name">scene-snapshot</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#eff6ff;color:#1d4ed8">GOLD</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Capturing complete application state as a serializable JSON object to
+                        enable persistence and sharing.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Deep Provenance:</strong> Relates to W3C PROV Provenance Tracking—capturing not just
+                            the final state but the history of actions (the "trail") that led to it.</p>
+                        <p><strong>State Persistence:</strong> Mirrors the Memento Pattern but applied architecturally
+                            to support "time travel" in creative workflows.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Serialize grid state, cursor position, metadata to JSON. Load by parsing and hydrating
+                            application state.</dd>
+                        <dt>Source verification</dt>
+                        <dd>GOLD files: <code>gold-nba.json</code>, <code>wag-gold-scene.json</code>.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-35">Towards Complete Tracking of Provenance</a></cite>
+                        <cite><a href="#ref-37">Behavioral Creative State Engine</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- narrative-ontology -->
+            <article class="pattern-card" id="narrative-ontology">
+                <div class="pattern-head">
+                    <div class="pattern-name">narrative-ontology</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#ecfdf5;color:#047857">ONYX</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The formalization of story elements (Entities, Goals, Obstacles, Shifts) as
+                        typed objects with defined morphisms, bridging creative writing and formal logic.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Computational Narratology:</strong> Implements the
+                            separation of Fabula (facts) and Syuzhet (presentation).</p>
+                        <p style="margin-bottom:0.5rem"><strong>Thick Description:</strong> Following Geertz, captures
+                            the semiotic and cultural context, not just mechanics.</p>
+                        <p><strong>Event Calculus:</strong> Aspires to logic formalisms (Kowalski/Sergot) that track
+                            fluents and events to ensure narrative consistency.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>8 narrative types form category ℕ. Morphisms include Causation, Conflict, Support, Sequence.
+                            See <code>gar-onyx-research-olog.md</code> §2.2.</dd>
+                        <dt>Source verification</dt>
+                        <dd>"ONYX, a narrative ontology framework… 8 narrative types" —
+                            <code>gar-onyx-research-olog.md</code>.
+                        </dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-15">Steps Towards a Formal Ontology of Narratives</a></cite>
+                        <cite><a href="#ref-17">Geertz, C. (1973). Thick Description.</a></cite>
+                        <cite><a href="#ref-19">Kowalski, R. (1986). Event Calculus.</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- visual-segmentation -->
+            <article class="pattern-card" id="visual-segmentation">
+                <div class="pattern-head">
+                    <div class="pattern-name">visual-segmentation</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fffbeb;color:#b45309">GAR</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Dividing visual input into meaningful regions using clustering algorithms
+                        to extract semantic zones from images or grids.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Visual Narrative Grammar (VNG):</strong> Aligns with
+                            Neil Cohn’s framework where sequential images have constituent structure (Establisher,
+                            Initial, Peak, Release).</p>
+                        <p><strong>Scene Graphs:</strong> Generates structured representations (e.g.
+                            <code>man holding knife</code>) serving as the intermediate language between pixels and
+                            ontology.
+                        </p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>K-means clustering on (R, G, B, x, y) feature vectors. Cluster centroids become segment
+                            colors. 20×20 input → 9×9 output via spatial downsampling functor.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>gar-onyx-research-olog.md</code>: "Spatial downsampling functor: 20×20 visual grid →
+                            9×9 narrative grid."</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-21">Cohn, N. (2013). The Visual Language of Comics.</a></cite>
+                        <cite><a href="#ref-24">Scene Graphs for Automated Reasoning.</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- category-theory -->
+            <article class="pattern-card" id="category-theory">
+                <div class="pattern-head">
+                    <div class="pattern-name">category-theory</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fffbeb;color:#b45309">GAR</span>
+                        <span class="zone-chip" style="background:#ecfdf5;color:#047857">ONYX</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Using mathematical category theory (objects, morphisms, functors) to
+                        formalize relationships and preserve structure when translating between domains (e.g., Visual →
+                        Narrative).</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Ologs:</strong> Spivak’s Ontology Logs provide the
+                            rigorous mathematical foundation for knowledge representation.</p>
+                        <p><strong>Functorial Mapping:</strong> The bridge describes a Functor—a mapping that preserves
+                            the structure of relationships across domains.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Define category 𝒱 (visual segments) and ℕ (narrative types). Translation functor F: 𝒱 → ℕ
+                            maps visual features to narrative types while preserving composition.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>gar-onyx-research-olog.md</code>: "bidirectional functor between the category of
+                            visual features and the category of narrative types."</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-26">Spivak, D. (2012). Ologs: A Categorical Framework.</a></cite>
+                        <cite><a href="#ref-27">Spivak, D. (2014). Category Theory for the Sciences.</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- parent-child-binding -->
+            <article class="pattern-card" id="parent-child-binding">
+                <div class="pattern-head">
+                    <div class="pattern-name">parent-child-binding</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#f5f3ff;color:#6d28d9">SKELETON</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Hierarchical structure where child elements inherit transforms from parents
+                        (articulated movement).</div>
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Scene Graphs:</strong> Standard in computer graphics (OpenGL, Three.js) for managing
+                            Forward Kinematics and transform hierarchies.</p>
+                    </div>
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Scene graph traversal: child.worldMatrix = parent.worldMatrix × child.localMatrix. Moving
+                            parent moves all descendants.</dd>
+                        <dt>Source verification</dt>
+                        <dd>SKELETON files bind LEGO studs to parent bricks. <code>skeleton-control-room.html</code>
+                            manages hierarchical transforms.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-24">Scene Graphs for Automated Reasoning</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- tree-hierarchy -->
+            <article class="pattern-card" id="tree-hierarchy">
+                <div class="pattern-head">
+                    <div class="pattern-name">tree-hierarchy</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#ecfdf5;color:#047857">TIMBER</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Organizing data as nested trees with expandable nodes for exploration.
+                    </div>
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Hierarchical Visualization:</strong> Classic information visualization technique
+                            (e.g., SpaceTrees) for managing complexity in large datasets.</p>
+                    </div>
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Recursive DOM generation from tree data. Click to toggle visibility of children. Depth-first
+                            traversal for rendering.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>timber-master.html</code>, <code>TIMBER-tutorial.html</code> render MPD file
+                            structures as interactive trees.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-45">Visual Programming and Modeling</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- ldraw-composition -->
+            <article class="pattern-card" id="ldraw-composition">
+                <div class="pattern-head">
+                    <div class="pattern-name">ldraw-composition</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fdf2f8;color:#be185d">BRICK</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Using the LDraw MPD (Multi-Part Document) format for multi-part
+                        composition.</div>
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Component-Based Design:</strong> Validated by Parnas’s principles of Modular
+                            Architecture and the open-source LDraw standard.</p>
+                    </div>
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>MPD files contain multiple submodels; reference via
+                            <code>1 color x y z ... submodel.ldr</code>. Parse recursively to build scene graph.
+                        </dd>
+                        <dt>Source verification</dt>
+                        <dd><code>brick_haven_city.mpd</code> contains multiple submodels (buildings, vehicles) that
+                            reference each other.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-39">Shape grammar in architectural theory</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- temporal-encoding -->
+            <article class="pattern-card" id="temporal-encoding">
+                <div class="pattern-head">
+                    <div class="pattern-name">temporal-encoding</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fffbeb;color:#b45309">MESH</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Embedding time information directly into geometric data structures.</div>
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>4D Geometry:</strong> Relates to Spatiotemporal Data Models in GIS and CAD, where
+                            history is a first-class dimension of the data.</p>
+                    </div>
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Each vertex/face carries creation timestamp. Query "what existed at time T?" by filtering.
+                        </dd>
+                        <dt>Source verification</dt>
+                        <dd><code>temporal-mesh-encoding.md</code> documents the scheme.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-46">Geospatial Narratives</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- inception-harness -->
+            <article class="pattern-card" id="inception-harness">
+                <div class="pattern-head">
+                    <div class="pattern-name">inception-harness</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#f5f3ff;color:#6d28d9">INCEPTION</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A meta-level tool pattern where the editor can edit its own code, enabling
+                        self-modification and the creation of "tools for making tools."</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p style="margin-bottom:0.5rem"><strong>Second-Order Cybernetics:</strong> The system includes
+                            the observer within the loop—the tool changes the user, who then changes the tool.</p>
+                        <p style="margin-bottom:0.5rem"><strong>Meta-Design:</strong> Fischer’s framework for
+                            "underdesigning" systems to foster End-User Development.</p>
+                        <p><strong>Autopoiesis:</strong> The system is self-producing and self-maintaining (Maturana &
+                            Varela).</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Load arbitrary HTML into iframe. Expose source for editing. Save modified version. The
+                            harness is self-applicable.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>inception-harness.html</code> modifies other tools.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-28">Second Order Cybernetics</a></cite>
+                        <cite><a href="#ref-30">Meta-Design: A Manifesto</a></cite>
+                        <cite><a href="#ref-33">Autopoiesis and Cognition</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- fuzzy-linkography -->
+            <article class="pattern-card" id="fuzzy-linkography">
+                <div class="pattern-head">
+                    <div class="pattern-name">fuzzy-linkography</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#fefce8;color:#a16207">METHOD</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Automatic graphical summarization of creative activity traces, treating
+                        design moves as fuzzy sets.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Design Moves:</strong> Discrete actions in a design episode (Schön).</p>
+                        <p><strong>Linkography:</strong> Visualizing design process via links between moves
+                            (Goldschmidt).</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Computes cosine similarity between move embeddings to infer links.</dd>
+                        <dt>Source</dt>
+                        <dd>Smith et al., 2025 (arXiv:2502.04599)</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="https://arxiv.org/abs/2502.04599">Fuzzy Linkography (Smith et al.,
+                                2025)</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <article class="pattern-card" id="library-navigation">
+                <div class="pattern-head">
+                    <div class="pattern-name">library-navigation</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#ecfeff;color:#0891b2">HUBS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Presenting documentation and tools as browsable "library cards" with visual
+                        hierarchies, enabling discovery through spatial arrangement.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>Information Landscapes:</strong> Knowledge is navigated spatially rather than through
+                            keyword search.</p>
+                        <p><strong>Card-based UI:</strong> Facilitates modular consumption of information.</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Grid layout of card components grouped by topic.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>knowledge-hub.html</code> displays tutorials as cards.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-42">Spatial, temporal and thematic navigation</a></cite>
+                        <cite><a href="#ref-43">From Latent Semantics to Spatial Hypertext</a></cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- l-system-ontology -->
+            <article class="pattern-card" id="l-system-ontology">
+                <div class="pattern-head">
+                    <div class="pattern-name">l-system-ontology</div>
+                    <div class="pattern-zones">
+                        <span class="zone-chip" style="background:#ecfeff;color:#0891b2">HUBS</span>
+                    </div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Organizing files by their role in a generative grammar: Axioms, Rules,
+                        Structures, Manifestations.</div>
+
+                    <div class="pattern-grounding"
+                        style="margin-bottom: 1rem; font-size: 0.9rem; color: var(--ink-secondary); border-left: 2px solid var(--accent); padding-left: 0.75rem;">
+                        <strong>Academic Grounding:</strong>
+                        <p><strong>L-Systems:</strong> Treating the repository as a living organism governed by rewrite
+                            rules (Lindenmayer).</p>
+                        <p><strong>Generative Design:</strong> Design as a result of computing with shapes (Shape
+                            Grammars).</p>
+                    </div>
+
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd>Categorize each file by its generative role.</dd>
+                        <dt>Source verification</dt>
+                        <dd><code>l-system-ontology-weaver.html</code>.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Key Citations</div>
+                        <cite><a href="#ref-38">Auto-Generation System Based on Fractal Geometry</a></cite>
+                        <cite><a href="#ref-40">Shape grammar in contemporary architectural theory</a></cite>
+                    </div>
+                </div>
+            </article>
+        </section>
+
+        <!-- BIBLIOGRAPHY -->
+        <section id="bibliography"
+            style="margin-top: 3rem; border-top: 1px solid var(--card-border); padding-top: 2rem;">
+            <h2>Works Cited</h2>
+            <div style="font-size: 0.8rem; color: var(--ink-secondary); columns: 1;">
+                <p id="ref-1">1. Beaudouin-Lafon, M. (2000). <a
+                        href="https://scispace.com/pdf/instrumental-interaction-an-interaction-model-for-designing-1weq6u5ip1.pdf">Instrumental
+                        Interaction: An Interaction Model for Designing Post-WIMP Interfaces.</a> CHI '00.</p>
+                <p id="ref-3">3. Heidegger, M. (1927). <em>Being and Time</em>. (Concept of Zuhandenheit/Vorhandenheit).
+                </p>
+                <p id="ref-4">4. Dourish, P. (2001). <a href="https://www.dourish.com/embodied/embodied99.pdf">Where the
+                        Action Is: The Foundations of Embodied Interaction.</a></p>
+                <p id="ref-6">6. Shipman, F. & Marshall, C. (1993). <a
+                        href="https://people.engr.tamu.edu/shipman/viki/papers/ht93/ht93.html">Discovering Implicit
+                        Structure in Spatial Hypertext.</a></p>
+                <p id="ref-8">8. Lakoff, G. & Johnson, M. (1980). <em>Metaphors We Live By</em>. (Image Schemas).</p>
+                <p id="ref-10">10. Lakin, F. (1987). <a
+                        href="https://cs.brown.edu/research/pubs/pdfs/1989/Golin-1989-SVL.pdf">Spatial Parsing.</a>
+                    Visual Languages.</p>
+                <p id="ref-12">12. Myers, B. et al. <a
+                        href="https://www.researchgate.net/publication/279205436_Selective_Undo_Support_for_Painting_Applications">Selective
+                        Undo Support for Painting Applications.</a></p>
+                <p id="ref-14">14. Yoon, Y. et al. <a
+                        href="http://reports-archive.adm.cs.cmu.edu/anon/isr2015/CMU-ISR-15-103.pdf">Backtracking
+                        Support in Code Editing.</a></p>
+                <p id="ref-15">15. Meister, J.C. <a href="https://d-nb.info/1365193373/34">Steps Towards a Formal
+                        Ontology of Narratives.</a></p>
+                <p id="ref-17">17. Geertz, C. (1973). <a
+                        href="https://www.hortussemioticus.ut.ee/blog/speak-semiotics/what-is-a-thick-description/">Thick
+                        Description: Toward an Interpretive Theory of Culture.</a></p>
+                <p id="ref-19">19. Kowalski, R. (1986). <a href="https://sw4ch2017.ensma.fr/SW4CH-0.pdf">Narratives in
+                        Digital Libraries (Event Calculus).</a></p>
+                <p id="ref-21">21. Cohn, N. (2013). <a
+                        href="https://www.researchgate.net/publication/265860502_The_grammar_of_visual_narrative_Neural_evidence_for_constituent_structure_in_sequential_image_comprehension">The
+                        Visual Language of Comics.</a></p>
+                <p id="ref-24">24. Armeni, I. et al. <a href="https://arxiv.org/html/2510.16643v1">Structured Interfaces
+                        for Automated Reasoning with 3D Scene Graphs.</a></p>
+                <p id="ref-26">26. Spivak, D. (2012). <a href="https://lmcs.episciences.org/4793/pdf">Ologs: A
+                        Categorical Framework for Knowledge Representation.</a></p>
+                <p id="ref-27">27. Spivak, D. (2014). <em>Category Theory for the Sciences</em>.</p>
+                <p id="ref-28">28. von Foerster, H. (2003). <a
+                        href="https://www.scribd.com/document/12986198/Second-Order-Cybernetics">Understanding
+                        Understanding.</a></p>
+                <p id="ref-30">30. Fischer, G. <a
+                        href="https://www.researchgate.net/publication/220427813_Meta-Design_A_manifesto_for_End-User_Development">Meta-Design:
+                        A Manifesto for End-User Development.</a></p>
+                <p id="ref-33">33. Maturana, H. & Varela, F. (1980). <a
+                        href="https://research.vu.nl/files/2673200/Autopoiesis%20and%20the%20Evolution%20of%20Information%20Systems.pdf">Autopoiesis
+                        and Cognition.</a></p>
+                <p id="ref-35">35. Muniswamy-Reddy, K. et al. <a
+                        href="https://www.researchgate.net/publication/281499440_Towards_Complete_Tracking_of_Provenance_in_Experimental_Distributed_Systems_Research">Towards
+                        Complete Tracking of Provenance.</a></p>
+                <p id="ref-37">37. Adobe Research. <a
+                        href="https://unpatentable.org/innovation/industry-impact-report-behavioral-creative-state-engine-automatic-file-state-recognition-without-manual-naming/">Behavioral
+                        Creative State Engine.</a></p>
+                <p id="ref-38">38. Prusinkiewicz, P. & Lindenmayer, A. (1990). <em>The Algorithmic Beauty of
+                        Plants</em>.</p>
+                <p id="ref-39">39. Parnas, D.L. (1972). On the Criteria To Be Used in Decomposing Systems into Modules.
+                </p>
+                <p id="ref-40">40. Stiny, G. (2006). <a
+                        href="https://www.researchgate.net/publication/275921708_Shape_grammar_in_contemporary_architectural_theory_and_design">Shape
+                        Grammars.</a></p>
+                <p id="ref-42">42. Dieberger, A. <a
+                        href="https://www.research-collection.ethz.ch/server/api/core/bitstreams/baa88f64-a3f6-435c-8390-a3e71764a073/content">Spatial,
+                        temporal and thematic navigation.</a></p>
+                <p id="ref-43">43. Chen, C. <a
+                        href="https://www.microsoft.com/en-us/research/wp-content/uploads/2016/12/p77-chen.pdf">From
+                        Latent Semantics to Spatial Hypertext.</a></p>
+                <p id="ref-45">45. Plaisant, C. et al. <a
+                        href="https://www.aut.upt.ro/~adrianaa/teaching/VPM/Visual%20Programming%20and%20Modeling.pdf">Tree
+                        Visualization.</a></p>
+                <p id="ref-46">46. Yuan, M. <a
+                        href="https://scispace.com/pdf/geospatial-narratives-and-their-spatio-temporal-dynamics-4s7cxe22ze.pdf">Geospatial
+                        Narratives and their Spatio-Temporal Dynamics.</a></p>
+            </div>
+        </section>
+
+        <footer>
+            Part of the <a href="courage-trail-olog.html">COURAGE Trail Olog</a> knowledge infrastructure.<br>
+            Patterns verified against source code December 2025.
+        </footer>
+    </div>
+
+    <script>
+        // Theme toggle
+        const toggle = document.getElementById('theme-toggle');
+        const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+        let isDark = localStorage.getItem('theme') === 'dark' || (localStorage.getItem('theme') === null && prefersDark);
+
+        function setTheme(dark) {
+            document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+            toggle.textContent = dark ? '☀' : '☽';
+            localStorage.setItem('theme', dark ? 'dark' : 'light');
+            isDark = dark;
+        }
+
+        setTheme(isDark);
+        toggle.onclick = () => setTheme(!isDark);
+    </script>
+</body>
+
+</html>

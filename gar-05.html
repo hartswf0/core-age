@@ -439,7 +439,16 @@
                 const im = new Image();
                 im.crossOrigin = 'anonymous';
                 im.onload = () => { coverDraw(im, CTX, CANVAS.width, CANVAS.height); resolve({ ok: true, img: im }); };
-                im.onerror = () => resolve({ ok: false });
+                im.onerror = () => {
+                    // Fallback for CORS/file:// 
+                    CTX.fillStyle = '#1e293b';
+                    CTX.fillRect(0, 0, CANVAS.width, CANVAS.height);
+                    for (let i = 0; i < 30; i++) {
+                        CTX.fillStyle = `hsl(${Math.random() * 360}, 60%, 50%)`;
+                        CTX.fillRect(Math.random() * CANVAS.width, Math.random() * CANVAS.height, 40, 40);
+                    }
+                    resolve({ ok: true, placeholder: true });
+                };
                 im.src = url;
             });
         }
