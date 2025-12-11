@@ -410,18 +410,31 @@ function analyzeBurst(files, date) {
     const hasPy = files.some(f => f.ext === '.py');
 
     if (richData) {
-        title = richData.title;
-        desc = richData.subtitle;
+        // HYBRID APPROACH: Dynamic Title + Contextual Subtitle + Specific Artifacts
+
+        // 1. Title: From Prefix (e.g. "TIMBER OPERATIONS")
+        title = `${dominantPrefix.toUpperCase()} OPERATIONS`;
+
+        // 2. Subtitle: From Zone (e.g. "Context: The Invariant Substrate")
+        desc = `Context: ${richData.title} · ${richData.subtitle}`;
+
+        // 3. Decision: From Zone
         decision = richData.genome['D (Decision)'];
         ontology = Object.keys(richData.genome).map(k => k[0]);
 
+        // 4. Genome: Clone and Patch with Specifics
+        const hybridGenome = { ...richData.genome };
+        hybridGenome['A (Artifact)'] = files.slice(0, 3).map(f => f.file).join(', ') + (files.length > 3 ? '...' : '');
+        // Optional: Patch Trail or other fields if desired
+        // hybridGenome['T (Trail)'] = `${dominantPrefix.toUpperCase()} Focus · ` + (hybridGenome['T (Trail)'].split('→')[1] || hybridGenome['T (Trail)']);
+
         return {
             title: `${title} (${files.length} Files)`,
-            desc: `${desc} · [System Generated Context: ${dominantPrefix}]`,
+            desc: desc, // Specific file context is also appended by caller? No, caller uses what I return.
             decision: decision,
             ontology: ontology,
             zone: dominantZone,
-            rich_genome: richData.genome,
+            rich_genome: hybridGenome,
             readings: richData.readings,
             quote: richData.quote
         };
