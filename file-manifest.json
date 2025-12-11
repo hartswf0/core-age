@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-11T21:31:17.787Z",
+  "generated": "2025-12-11T21:35:54.183Z",
   "total_files": 275,
-  "total_size": 69501261,
+  "total_size": 69504040,
   "total_size_human": "66.28 MB",
   "summary": {
     "extensions": {
@@ -28,9 +28,9 @@
         "name": "GENOME_REPORT.md",
         "path": "/Users/gaia/COURAGE/GENOME_REPORT.md",
         "extension": ".md",
-        "size": 3410,
-        "size_human": "3.33 KB",
-        "modified": "2025-12-11T21:30:25.260Z",
+        "size": 3358,
+        "size_human": "3.28 KB",
+        "modified": "2025-12-11T21:34:47.748Z",
         "created": "2025-12-11T21:30:25.242Z"
       },
       {
@@ -829,9 +829,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 81261,
-        "size_human": "79.36 KB",
-        "modified": "2025-12-11T11:00:12.805Z",
+        "size": 84092,
+        "size_human": "82.12 KB",
+        "modified": "2025-12-11T21:31:17.788Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {

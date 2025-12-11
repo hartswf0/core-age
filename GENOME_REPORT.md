@@ -1,94 +1,81 @@
-# 🧬 Genome: CORE-AGE
+# 🧬 Genome: CORE-AGE (Deep Sequence)
 
-**Sequenced**: 2025-12-11 | **Arc Phase**: Synthesis (Tractor/WAG) | **Commits**: Active
+**Sequenced**: 2025-12-11 | **Arc**: LEGOS → WAG → TRAIL | **Identity**: Spatial Epistemology
 
-## Identity
-- **Creator**: Watson Hartsoe (ATG Lineage)
-- **System**: CORE-AGE (Words Become Worlds)
-- **Mission**: Translate natural language into 3D spatial geometries and narrative ontologies.
+## 🏛️ The Three Ages (Trail Map)
 
-## Core Decision
-> "Operative Ekphrasis."
-The text **is** the world. 9x9 Grids are the invariant substrate for all tools.
+This repository is not just "WAG". It preserves three distinct geological eras of development:
 
-## Patterns Detected (The "GAR" Motif)
-- **Structural**: "Static Web App" suite (no build step, run-anywhere HTML).
-- **Behavioral**: "Trail-Aware" tooling (tools track their own usage/provenance).
-- **Semantic**:
-    - **WAG** (Words Assemble Geometry)
-    - **GAR** (Grid-Aware Recursion)
-    - **ONYX** (Narrative Ontology)
-    - **MENTO** (Cinematography)
+### 1. The LEGO Era (The "Line 22" Phase)
+> *Focus: LDraw Parsing, Mesh Optimization, Assembly Logic*
+- **Artifacts**: `lego-3d-architect.html`, `timber-master.html`, `wag-viewer-prime-integration...`
+- **Key Event: The "Line 22 Collapse"**
+    - A critical failure where monolithic mesh loading destroyed lineage data.
+    - **Decision**: Shifted from "Blob Load" (Arch A) to **"Mesh-Per-Line" (Arch B)**.
+    - **Result**: Validated the principle that *provenance > performance*.
 
-## Artifacts
-| Type | Name | Purpose |
-|------|------|---------|
-| **Map** | `courage-trail-olog.html` | The central visualizer of the "Trail". |
-| **Studio** | `gar-onyx-studio.html` | The primary editor for narrative ontologies. |
-| **WAG** | `wag-workshop.html` | The interactive manifesto/presentation. |
-| **Index** | `index.html` | The main hub/entry point. |
-| **Docs** | `TRAILS_AND_REFLECTIONS.md` | Core philosophy and user guide. |
+### 2. The Tetrad Era (The "Disentangling" Phase)
+> *Focus: McLuhan's Laws, Ontological Mapping, 9x9 Grids*
+- **Artifacts**: `thousand-tetrad.html`, `gar-tao.html`, `disentangling-strategy.html`
+- **Pattern**: **The Tetrad** (Enhance, Reverse, Retrieve, Obsolesce) became the sorting algorithm for all knowledge.
+- **Invention**: **GAR** (Grid-Aware Recursion) — the 9x9 invariant substrate.
 
-## Mutations (Recent Evolution)
-- **[Deployment]**: Shifted from manual `git` to automated `sync.sh` + GitHub Actions.
-- **[Visualization]**: Evolved from "Knowledge Hubs" to "Trail Olog" (dynamic paths/pilgrims).
-- **[Documentation]**: Added "Genome" concept and "Boot Prompts" for LLM reproduction.
-
-## Related Genomes
-- `role-deck` (Sibling: Shared 9x9 grid pattern)
-- `1000-small-futures` (Upstream: Origin of the Tetrad engine)
+### 3. The WAG Era (Current Synthesis)
+> *Focus: Words Become Worlds, Narrative Ontology*
+- **Artifacts**: `wag-workshop.html`, `gar-onyx-studio.html`, `courage-trail-olog.html`
+- **Synthesis**: Merged the "Mesh-Per-Line" precision of LEGO with the "Grid Logic" of Tetrads to create **Operative Ekphrasis**.
 
 ---
 
-## 🧬 Raw Genome Sequence (JSON)
+## 🧬 The 8-Codon Genome (Expanded)
 
 ```json
 {
   "project": "CORE-AGE",
-  "version": "WAG-Tractor-Synthesis",
-  "sequenced_at": "2025-12-11T16:30:00Z",
   "genome": {
-    "C": {
-      "primary": "Watson Hartsoe",
-      "lineage": "ATG / Georgia Tech LMC",
-      "collaborators": ["Kayla Uleah Evans", "Jordan Caldwell", "Shuruq Tramontini"]
+    "Intent": {
+      "primary": "To prove 'Operative Ekphrasis'—that text can assemble worlds.",
+      "evolution": "LEGO Assembly -> Concept Assembly -> Narrative Assembly"
     },
-    "T": {
-      "origin": "2025-08 (Fall Semester)",
-      "arc": "Synthesis",
-      "milestones": ["TILTH Failure", "Tetrad Discovery", "WAG Workshop", "Trail Olog"]
+    "Pattern": {
+      "structural": ["9x9 Grid (GAR)", "Mesh-Per-Line (Architecture B)"],
+      "semantic": ["Tetrad", "Sinking/Sintering", "Void vs. Scene"],
+      "motif": "The Pilgrim (Data Walker)"
     },
-    "A": {
-      "primary": "courage-trail-olog.html",
-      "secondary": ["gar-onyx-studio.html", "wag-workshop.html", "wag-brave.html"],
-      "exports": ["file-manifest.json", "courage-trail-data.json"]
+    "Decision": {
+      "critical": "Line 22 Fix: Sacrificed 50x draw call performance for 100% data integrity.",
+      "architectural": "Single-File HTML (No Build Step) to ensure long-term archival survival."
     },
-    "M": {
-      "commits": "Freq: High",
-      "files": 266,
-      "languages": ["HTML", "JavaScript", "Markdown", "JSON", "Python"],
-      "infrastructure": "GitHub Actions (Static)"
+    "System": {
+      "tools": [
+        "TIMBER (Skeleton System)",
+        "ONYX (Narrative Engine)",
+        "MENTO (Cinematography)",
+        "TRAIL (Provenance Map)"
+      ]
     },
-    "D": {
-      "core": "Static HTML/JS Architecture (Localhost Required)",
-      "trade_offs": ["No Backend DB vs. Portability"],
-      "constraints": ["CORS requires local server"]
+    "Artifacts": {
+      "living": ["courage-trail-olog.html", "wag-workshop.html"],
+      "fossils": ["line-22-autopsy.html", "thousand-tetrad.html"]
     },
-    "S": {
-      "name": "CORE-AGE",
-      "type": "Suite of Spatial Computing Tools",
-      "entry": "index.html"
-    },
-    "P": {
-      "structural": ["Grid-Aware Recursion (GAR)", "Single-File Tools"],
-      "behavioral": ["Trail-Tracking", "Manifest Generation"],
-      "semantic": ["WAG", "ONYX", "MENTO", "LEGO", "Pilgrims"]
-    },
-    "I": {
-      "mission": "To demonstrate 'Operative Ekphrasis'—making language spatially executable.",
-      "audience": "Design Researchers, Spatial Computers, Narratologists",
-      "differentiation": "Inverts the 'Chat' paradigm; Text builds Worlds."
-    }
+    "Creator": "Watson Hartsoe (ATG Lineage)",
+    "Trail": "LEGOs (Input) -> Tetrad (Process) -> WAG (Synthesis)",
+    "Metadata": "High density of 'Autopsy' reports and 'Manifestos' alongside code."
   }
 }
 ```
+
+## 🔍 Deep Patterns Detected
+
+### 1. "Autopsy Culture"
+The repository contains detailed post-mortems of failures (e.g., `line-22-autopsy.html`). The creator treats bugs as *pathologies* to be dissected, not just fixed.
+
+### 2. "Invariant Substrate" (The 9x9 Grid)
+From `grid-walk.html` to `gar-tao.html`, the **Grid** is constant. It is the repository's "physics engine"—everything must map to it.
+
+### 3. "Fractal Tooling"
+New tools are built *inside* the debris of old ones. `wag-viewer-prime` contains the seeds of `gar-onyx-studio`.
+
+---
+
+**Status**: Deep Sequencing Complete. The "Ghost Layers" (LEGO, Tetrad) are now mapped.
