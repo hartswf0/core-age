@@ -3362,6 +3362,24 @@
                     return artDate.toISOString().split('T')[0] === event.date;
                 });
 
+                // PRIORITIZATION LOGIC
+                // 1. Presentations (*-presentation.html)
+                // 2. Tutorials (*-tutorial.html)
+                // 3. Tools (*.html)
+                // 4. Docs (*.md)
+                // 5. Data/Other
+                relevantArtifacts.sort((a, b) => {
+                    const getScore = (art) => {
+                        const name = art.text.toLowerCase();
+                        if (name.includes('presentation')) return 5;
+                        if (name.includes('tutorial') || name.includes('guide')) return 4;
+                        if (art.type === 'tool') return 3;
+                        if (art.type === 'doc') return 2;
+                        return 1;
+                    };
+                    return getScore(b) - getScore(a);
+                });
+
                 const article = document.createElement('article');
                 article.className = `era ${activeZone}`; // Re-use era styling
                 article.style.borderColor = color;
@@ -3369,52 +3387,29 @@
                 // Construct Artifacts List for this Date
                 let artifactsHtml = '';
                 if (relevantArtifacts.length > 0) {
-
-                    // Prioritize: HTML files first (Playable), then others
-                    const playable = relevantArtifacts.filter(art => art.path.endsWith('.html'));
-                    const passive = relevantArtifacts.filter(art => !art.path.endsWith('.html'));
-
-                    // Sort "Tutorials" to the top of Playable
-                    playable.sort((a, b) => (b.path.includes('tutorial') ? 1 : 0) - (a.path.includes('tutorial') ? 1 : 0));
-
                     artifactsHtml = `
-                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:10px;">
-                            
-                            <!-- PLAYABLE TOOLS (Brick Grid) -->
-                            ${playable.length > 0 ? `
-                                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:6px; margin-bottom:10px;">
-                                    ${playable.map(art => {
-                        const isTutorial = art.text.toLowerCase().includes('tutorial');
-                        return `
-                                        <a href="${art.path}" target="_blank" class="artifact-brick" style="
-                                            display:flex; align-items:center; gap:6px;
-                                            background:var(--surface-3); color:var(--text-main); 
-                                            padding:6px 10px; border-radius:4px; text-decoration:none;
-                                            border:1px solid ${isTutorial ? color : 'var(--surface-4)'}; 
-                                            font-size:0.75rem; font-family:monospace; white-space:nowrap; overflow:hidden;
-                                            transition:all 0.1s;
-                                        " onmouseover="this.style.background='${color}'; this.style.color='var(--bg)'" onmouseout="this.style.background='var(--surface-3)'; this.style.color='var(--text-main)'">
-                                            <span style="font-size:0.8rem;">${isTutorial ? '🎓' : '▶'}</span>
-                                            <span style="text-overflow:ellipsis; overflow:hidden;">${art.text}</span>
-                                        </a>
-                                        `;
-                    }).join('')}
-                                </div>
-                            ` : ''}
+                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:15px; display:flex; flex-wrap:wrap; gap:8px;">
+                            ${relevantArtifacts.map(art => {
+                        const isPriority = art.text.toLowerCase().includes('tutorial') || art.text.toLowerCase().includes('presentation');
+                        const bg = isPriority ? color : 'var(--surface-3)';
+                        const fg = isPriority ? 'var(--bg)' : 'var(--text-main)';
+                        const border = isPriority ? 'none' : `1px solid ${color}`;
+                        const icon = isPriority ? '🎓' : (art.type === 'tool' ? '🛠️' : '📄');
 
-                            <!-- PASSIVE DOCS (Compact List) -->
-                            ${passive.length > 0 ? `
-                                <div style="display:flex; flex-wrap:wrap; gap:8px 16px; opacity:0.75;">
-                                    ${passive.map(art => `
-                                        <a href="${art.path}" target="_blank" style="
-                                            color:var(--ink-muted); text-decoration:none; font-size:0.7rem; font-family:monospace;
-                                            display:flex; align-items:center; gap:4px;
-                                        " onmouseover="this.style.color='${color}'" onmouseout="this.style.color='var(--ink-muted)'">
-                                            📄 ${art.text} <span style="opacity:0.5; font-size:0.6rem;">${art.type.toUpperCase()}</span>
-                                        </a>
-                                    `).join('')}
-                                </div>
-                            ` : ''}
+                        return `
+                                <a href="${art.path}" target="_blank" style="text-decoration:none;">
+                                    <div class="artifact-card" style="
+                                        background:${bg}; color:${fg}; border:${border};
+                                        padding:6px 12px; border-radius:16px; font-size:0.85rem;
+                                        display:flex; align-items:center; gap:6px; transition:transform 0.2s;
+                                        font-family:monospace; cursor:pointer;
+                                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
+                                        <span>${icon}</span>
+                                        <span style="font-weight:bold;">${art.text}</span>
+                                    </div>
+                                </a>
+                                `;
+                    }).join('')}
                         </div>
                      `;
                 }
