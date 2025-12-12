@@ -1,56 +1,72 @@
-# CORE-AGE: Words Become Worlds
-### Operative Ekphrasis & Spatial Computing Research
+# The CORE-AGE Protocol: Ontological Engineering in the Era of Recursive Generation
 
-**CORE-AGE** is a multidisciplinary research initiative exploring the intersection of Computational Ontology, Recursive Ecology, and Agentic Generation. Spearheaded by **Watson Hartsoe**, the project seeks to solve the "crisis of the object" in digital media by imposing strict ontological structures upon generative workflows.
+### Executive Summary
+The **CORE-AGE** project (Computational Ontology, Recursive Ecology, Agentic GEneration) represents a paradigm shift in spatial computing. Spearheaded by **Watson Hartsoe** at Georgia Tech, it seeks to solve the "crisis of the object" in digital media by imposing rigorous semantic structures upon generative workflows.
 
-## Core Theoretical Frameworks
-
-### 1. The Repository Manifest (Constitutional Reality)
-Drawing from **Yuk Hui's *On the Existence of Digital Objects***, the project posits that digital entities must be defined not just by metadata, but by their existential relations. The **Repository Manifest** (`file-manifest.json`) serves as the "constitution" of this reality, tracking the provenance and "birth" of every artifact in the system.
-
-### 2. Ologs (Ontology Logs)
-Utilizing **David Spivak's Category Theory**, the system maps knowledge relationships (e.g., `Creator → Generates → Artifact`) to ensure logical consistency. This is visualized in the **Trail Olog** (`courage-trail-olog.html`), a topographic map of the project's creative history.
-
-### 3. Words Become Worlds
-Inspired by semantic analysis (and the concept of "Operative Ekphrasis"), the project treats language as a construction material for 3D space. This is realized in the **WAG (Words Assemble Geometry)** system, where narrative text is directly translated into spatial layouts.
+This protocol analyzes the project's **Repository Manifests**—constitutional documents that govern the birth and behavior of digital objects. It synthesizes the project's practical systems—**WAG**, **GAR**, and **MENTO**—with a robust theoretical framework drawing from David Spivak’s *Category Theory*, Yuk Hui’s *Philosophy of Digital Objects*, and Hannes Bajohr’s concept of *Operative Ekphrasis*.
 
 ---
 
-## Key Systems (Verified)
+## 1. The Genesis: From Governance to Generation
 
-### GAR (Grid Assembles Reality)
-*Refuting the "Galactic Arms Race" interpretation.*
-**GAR** is a visual analysis engine that segments images into semantic narrative graphs using K-Means clustering and grid-based logic. It translates pixels into "Entities," "Goals," and "Obstacles."
-- **Reference**: `gar-tao-explainer.html`
-
-### MENTO (Cinematography & Path Planning)
-*Refuting the "OCR Glitch" theory.*
-**MENTO** is a sophisticated 3D cinematography tool ("Mento Master") for defining camera paths, shots, and frustums within the GLB environments. It handles the "temporal" aspect of the spatial computing stack.
-- **Reference**: `mento-385.html`
-
-### WAG (Words Assemble Geometry)
-The central synthesis engine that connects the "Word" (LLM output) to the "World" (LDraw/GLB geometry).
-- **Reference**: `wag-brave.html`
-
+### 1.1 The Architect: Watson Hartsoe
+The structural ambitions of the CORE-AGE project are rooted in the trajectory of its lead researcher, **Watson Hartsoe**. Currently a PhD student in Digital Media at Georgia Tech, Hartsoe’s work focuses on **Virtual Placemaking** and the intersection of narrative and geometry. 
+- **Governance**: His background (Sewanee Honor Council) suggests a deep concern for integrity, translated here into "Data Integrity" and "Ontological Consistency."
+- **Portfolio**: Projects like *Future Oceans* and *Hubs Cloud* demonstrate a commitment to immersive, participatory environments. CORE-AGE synthesizes these interests, using computational tools to address the compelling concerns of human inhabitants.
 
 ---
 
-## Novel Research Contributions
+## 2. Theoretical Pillars
 
-### 1. The Categorical Duality of Vision & Narrative (𝒱 ≃ ℕᵒᵖ)
-*Novel Theoretical Framework*
-Contrary to traditional multi-modal models that treat image and text as separate embeddings, CORE-AGE demonstrates that **Visual Segmentation (𝒱)** and **Narrative Ontology (ℕ)** are categorically dual.
-- **Insight**: Visual "boundaries" (edges) map inversely to Narrative "relations" (connections).
-- **Formalism**: We establish a bidirectional **Functor** where *Warm Colors* (Hue 0-60°) map to *Goals* (Narrative Attractors) and *Cool Colors* (Hue 180-300°) map to *Shifts* (Narrative Transitions).
-- **Citation**: Extends **Spivak, D. (2014)** *Category Theory for the Sciences* into the domain of computational narratology.
+### Pillar I: Operative Ekphrasis ("Words Become Worlds")
+Drawing from **Hannes Bajohr**, CORE-AGE redefines text in digital systems not as description, but as **operation**.
+- **The Collapse**: In generative AI, the distinction between the "word" (prompt) and the "world" (object) collapses. Text is the causal agent.
+- **WAG System**: **Words Assemble Geometry** is the practical implementation. It translates natural language into LDraw/GLB geometry, ensuring the resulting world is a rigorous translation of intent, not a hallucination.
 
-### 2. Spatial Downsampling as Natural Transformation
-*Non-Obvious Technical Implementation*
-The compression of the 20×20 Visual Grid (GAR) into the 9×9 Narrative Grid (ONYX) is not merely a lossy jpeg-like operation. It is implemented as a **Natural Transformation** ($η$) that preserves the topological invariants (adjacency, containment) of the original scene.
-- **Result**: A "low-res" story graph that mathematically guarantees the preservation of the original image's structural semantics.
+### Pillar II: The Ontology Log ("Building Code")
+To prevent unbounded chaos, the system employs **Ologs** (David Spivak/Robert Kent).
+- **Structure**: Knowledge is structured as a Category where Objects are "Types" and Arrows are "Functional Relationships."
+- **Trail Olog**: The `courage-trail-olog.html` acts as the topographic map. It validates that the relationships between entities (e.g., `Player → has → Goal`) adhere to the **Project Genome**.
+- **Commutative Diagrams**: Facts are verified by checking if different paths through the graph yield the same result (e.g., `Woman → Mother` vs `Woman → Parent`).
 
-### 3. Operative Ekphrasis via "Speech Acts"
-*Methodological Innovation*
-The WAG System redefines "Prompt Engineering" as **Operative Ekphrasis**.
-- **Theory**: Drawing from **J.L. Austin's** *Speech Act Theory*, WAG treats LLM outputs not as "descriptions" of a scene, but as *performative utterances* that instantiate 3D geometry (LDraw).
-- **Contribution**: A pivot from "Generative AI as Author" to "Generative AI as Architect," where words literally become worlds through a rigorous ontological compiler.
+### Pillar III: Digital Existence ("The Repository Manifest")
+Drawing from **Yuk Hui**, the project argues that digital objects must have "Existential Relations," not just metadata.
+- **The Manifest**: `file-manifest.json` serves as the Constitution. It tracks the provenance/birth of every artifact.
+- **Tertiary Protention**: The repository does not just store the past; it seeds the future, allowing for recursive generation that remains ontologically grounded.
+
+---
+
+## 3. The Verified System Architecture
+
+Contrary to earlier interpretations, the CORE-AGE stack is defined by three specific, interlocked tools:
+
+### GAR: Grid Assembles Reality
+*Refuting the "Galactic Arms Race" Interpretation*
+While sharing an acronym with other systems, **GAR** in this context stands for **Grid Assembles Reality**.
+- **Function**: A visual analysis engine using K-Means clustering to segment images into semantic narrative graphs.
+- **Ontology**: The "Eye" of the system, translating pixels into Categories (Entity, Goal, Obstacle).
+
+### MENTO: Cinematography & Path Planning
+*Refuting the "OCR Glitch" Theory*
+**MENTO** is a sophisticated 3D cinematography tool ("Mento Master"), not a glitch.
+- **Function**: Defines camera paths, shots, and frustums (`mento-385.html`).
+- **Role**: Handles the **Temporal** aspect (Time/Attention) of the spatial stack.
+
+### WAG: The Synthesis Engine
+**Words Assemble Geometry** connects the linguistic logic of the Olog to the spatial reality of the Grid.
+- **Role**: The Bridge between **Word** (Operative Ekphrasis) and **World** (Geometry).
+
+---
+
+## 4. Media Ecologies
+The friction between the rigid logic of the Olog and the fluid generation of AI creates a **Media Ecology** (Matthew Fuller). The "Repository Manifest" acts as the stabilizer, ensuring that the "mutability of media objects" does not degenerate into incoherence. By enforcing **LDraw standards**, the system inherits a "community geometry" that acts as a stable substrate.
+
+---
+
+## Conclusion: The Protocol of the Future
+CORE-AGE is a rigorous attempt to engineer a "Constitution" for virtual worlds.
+- **WAG** (Space)
+- **GAR** (Ontology)
+- **MENTO** (Time)
+
+These form a complete ontological stack, ensuring that words do not just describe worlds—they assemble, validate, and inhabit them.

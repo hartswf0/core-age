@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-12T03:37:19.417Z",
+  "generated": "2025-12-12T03:42:29.010Z",
   "total_files": 280,
-  "total_size": 69738863,
+  "total_size": 69739878,
   "total_size_human": "66.51 MB",
   "summary": {
     "extensions": {
@@ -28,9 +28,9 @@
         "name": "ABOUT_PROJECT.md",
         "path": "/Users/gaia/COURAGE/ABOUT_PROJECT.md",
         "extension": ".md",
-        "size": 4115,
-        "size_human": "4.02 KB",
-        "modified": "2025-12-12T03:36:38.147Z",
+        "size": 5129,
+        "size_human": "5.01 KB",
+        "modified": "2025-12-12T03:41:48.140Z",
         "created": "2025-12-12T03:32:00.464Z"
       },
       {
@@ -856,9 +856,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 85538,
+        "size": 85539,
         "size_human": "83.53 KB",
-        "modified": "2025-12-12T03:33:31.783Z",
+        "modified": "2025-12-12T03:37:19.418Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
