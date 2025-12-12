@@ -267,12 +267,53 @@
             margin-bottom: 4px;
         }
 
+
         .lego-brick:hover {
             transform: translateY(2px);
             /* Press down */
             border-bottom-width: 1px;
             filter: brightness(1.1);
         }
+
+        /* Just Visited Highlight Animation */
+        @keyframes flashHighlight {
+            0% {
+                background: var(--accent);
+                color: var(--bg);
+                transform: scale(1.1);
+            }
+
+            100% {
+                background: var(--surface-2);
+                color: var(--text-main);
+                transform: scale(1);
+            }
+        }
+
+        .just-visited {
+            animation: flashHighlight 1s ease-out;
+            z-index: 10;
+            position: relative;
+            border-color: var(--accent) !important;
+        }
+
+        /* Timeline Date as Brick */
+        .era-meta {
+            display: inline-block;
+            background: #333;
+            color: #fff;
+            padding: 4px 12px;
+            font-family: 'Courier New', monospace;
+            font-size: 0.75rem;
+            font-weight: 900;
+            border: 1px solid rgba(0, 0, 0, 0.3);
+            border-bottom-width: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 2px;
+            margin-right: 12px;
+        }
+
 
         /* Legend Styling - Compact & Modular */
         #genome-legend {
@@ -3482,13 +3523,21 @@
             const arcSection = document.querySelector('.arc-section');
             if (arcSection) arcSection.style.display = 'none';
 
-            // 3. Render Timeline
+
+            // 3. Render Timeline as the MAIN Experience
             const timelineContainer = document.getElementById('timeline-container');
             timelineContainer.innerHTML = '';
 
+            // Global Context for Modal
+            window.GENOME_CONTEXT = {};
+
+            // Collect ALL timeline events (Manual + Bursts)
             let allEvents = [...(data.timeline || [])];
+
+            // Sort by Date Descending
             allEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
 
+            // Map Zone Colors
             const zoneColors = {
                 'lego-inputs': 'var(--lego)',
                 'tetrad-engine': 'var(--tetrad)',
@@ -3496,52 +3545,102 @@
                 'trail-observatory': 'var(--trail)'
             };
 
+            // Collect all artifacts
             const allArtifacts = [];
             data.zones.forEach(z => {
                 if (z.artifacts) allArtifacts.push(...z.artifacts.map(a => ({ ...a, zone: z.id })));
             });
 
             allEvents.forEach(event => {
-                const eventDate = new Date(event.date);
+                const eventDateKey = event.date; // Use date as ID
                 const activeZone = event.active ? event.active[0] : 'trail-observatory';
-                const color = zoneColors[activeZone] || 'var(--ink)';
+                // Base color from zone
+                const baseColor = zoneColors[activeZone] || 'var(--ink)';
 
+                // Find artifacts that match this event's date (approx)
                 const relevantArtifacts = allArtifacts.filter(art => {
                     const artDate = new Date(art.modified || art.created);
                     return artDate.toISOString().split('T')[0] === event.date;
                 });
 
-                // Prioritization
+                // Sort: HTML/Tools first, then others
                 relevantArtifacts.sort((a, b) => {
-                    const getScore = (art) => {
-                        const name = art.text.toLowerCase();
-                        if (name.includes('presentation')) return 5;
-                        if (name.includes('tutorial') || name.includes('guide')) return 4;
-                        if (art.type === 'tool') return 3;
-                        if (art.type === 'doc') return 2;
+                    const typeScore = (item) => {
+                        const t = item.text.toLowerCase();
+                        if (t.includes('presentation')) return 10;
+                        if (t.includes('tutorial') || t.includes('guide')) return 9;
+                        if (item.path.endsWith('.html')) return 8;
+                        if (item.type === 'tool') return 7;
                         return 1;
                     };
-                    return getScore(b) - getScore(a);
+                    return typeScore(b) - typeScore(a);
                 });
 
-                const article = document.createElement('article');
-                article.className = `era ${activeZone}`;
-                article.style.borderColor = color;
+                // Store in Context for Ribbon
+                if (relevantArtifacts.length > 0) {
+                    window.GENOME_CONTEXT[eventDateKey] = relevantArtifacts;
+                }
 
-                // Construct Artifacts List (BRICKS, No Emoji)
+                const article = document.createElement('article');
+                article.className = `era ${activeZone}`; // Re-use era styling
+                article.style.borderColor = baseColor;
+
+                // Era Header
+                // Title
+                const title = event.title || "ACTIVITY BURST";
+                // Meta showing Zone + Count
+                // Using .era-meta (styled as brick)
+
+                let headerHtml = `
+                    <div class="era-header">
+                        <div class="era-name">${title}</div>
+                        <div class="era-meta" style="background:${baseColor}; border-color:rgba(0,0,0,0.2);">
+                            ${eventDateKey} · ${relevantArtifacts.length} ARTIFACTS
+                        </div>
+                    </div>
+                    <div class="era-tagline">${event.description || "Systemic activity detected."}</div>
+                `;
+
+                if (event.readings && event.readings.length > 0) {
+                    headerHtml += `<div style="margin-bottom:15px; font-size:0.9rem; color:var(--ink-dim);">
+                        <strong>📚 Readings:</strong>
+                        <ul style="margin:5px 0 0 20px; padding:0;">${event.readings.map(r => `<li>${r}</li>`).join('')}</ul>
+                    </div>`;
+                }
+
+                // Construct Artifacts List (BRICKS + COLOR CODING)
                 let artifactsHtml = '';
                 if (relevantArtifacts.length > 0) {
                     artifactsHtml = `
-                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:15px; display:flex; flex-wrap:wrap; gap:0;">
-                            ${relevantArtifacts.map(art => {
-                        // Decide background color based on priority or type?
-                        // User said "put word on brick".
-                        // Let's use the zone color as background.
+                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${baseColor}; padding-top:15px; display:flex; flex-wrap:wrap; gap:0;">
+                            ${relevantArtifacts.map((art, idx) => {
+                        // Color Logic
+                        let brickColor = baseColor;
+                        let textColor = "var(--bg)"; // Default to light text on dark zone color
 
+                        // Override for HTML/Tutorials
+                        if (art.path.endsWith('.html')) {
+                            // HTMLs get a special highlight (Gold/Amber) if they are significant
+                            // Or maybe just lighter variant?
+                            // User said "better color style html"
+                            brickColor = "#d97706"; // Amber
+                        }
+                        if (art.text.toLowerCase().includes('presentation')) {
+                            brickColor = "#ef4444"; // Red (Important)
+                        }
+                        if (art.path.endsWith('.md')) {
+                            brickColor = "#4b5563"; // Gray for docs
+                        }
+                        if (art.path.endsWith('.json') || art.path.endsWith('.js') || art.path.endsWith('.py')) {
+                            brickColor = "#1f2937"; // Dark for code/data
+                            textColor = "#9ca3af";
+                        }
 
                         return `
-                                <a href="#" onclick="openIframe('${art.path}', '${art.text}'); return false;" class="lego-brick" 
-                                   style="background:${color}; color:var(--bg); border-color:rgba(0,0,0,0.3);">
+                                <a href="#" 
+                                   onclick="openIframe('${art.path}', '${art.text}', '${eventDateKey}'); return false;" 
+                                   class="lego-brick" 
+                                   style="background:${brickColor}; color:${textColor}; border-color:rgba(0,0,0,0.3);">
                                     ${art.text}
                                 </a>
                                 `;
@@ -3550,42 +3649,12 @@
                     `;
                 }
 
-                article.innerHTML = `
-    <div class="era-header" style="border-bottom-color: ${color}">
-        <div>
-            <span class="era-meta" style="background:${color}; color:var(--bg); font-weight:bold;">${event.date}</span>
-            ${event.ontology ? `<span class="era-meta"
-                style="margin-left:8px; background:var(--ink-muted); color:var(--bg);">${event.ontology.join('')}</span>`
-                        : ''}
-            <h2 class="era-name" style="color:${color}; margin-top:8px; font-size:1.6rem;">${event.label}</h2>
-        </div>
-    </div>
-
-    ${event.quote ? `<blockquote
-        style="font-style:italic; border-left:3px solid ${color}; padding-left:15px; color:var(--ink-dim); margin-bottom:15px;">
-        "${event.quote}"</blockquote>` : ''}
-
-    ${event.rich_genome ? renderRichGenome(event.rich_genome, color) :
-                        (event.decision ? `
-    <div
-        style="margin-bottom:12px; padding:8px 12px; border-left:3px solid var(--accent); background:var(--surface-2);">
-        <strong style="color:var(--accent); font-size:0.8rem; text-transform:uppercase;">Decision</strong>
-        <p style="font-size:0.9rem; margin-top:4px; font-style:italic;">${event.decision}</p>
-    </div>` : '')
-                    }
-
-    <p class="era-tagline" style="border-left-color:${color}">${event.desc}</p>
-
-    ${event.readings ? `
-    <div style="margin-top:10px; font-size:0.85rem; color:var(--ink-dim);">
-        <strong>📚 Readings:</strong>
-        <ul style="margin:5px 0 0 20px; padding:0;">${event.readings.map(r => `<li>${r}</li>`).join('')}</ul>
-    </div>` : ''}
-
-    ${artifactsHtml}
-    `;
+                article.innerHTML = headerHtml + artifactsHtml;
                 timelineContainer.appendChild(article);
             });
+
+
+
 
             document.getElementById('footer-text').textContent = `Generated by Trail Olog Sequencer 2.0 · ${data.repository}
     Repository Genome`;
@@ -3594,41 +3663,120 @@
 
     </script>
 
+
     <!-- Iframe Viewer Modal -->
     <div id="iframe-modal"
-        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.9); z-index:1000; flex-direction:column;">
+        style="display:none; position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.95); z-index:1000; flex-direction:column; opacity:0; transition:opacity 0.2s ease;">
+
+        <!-- Modal Header -->
         <div
-            style="display:flex; justify-content:space-between; align-items:center; padding:15px 24px; background:var(--surface); border-bottom:1px solid var(--surface-2);">
-            <div style="font-family:monospace; font-weight:bold; color:var(--text-main);" id="iframe-title">VIEWER</div>
+            style="display:flex; justify-content:space-between; align-items:center; padding:12px 24px; background:var(--surface); border-bottom:1px solid var(--surface-2);">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <div style="font-family:monospace; font-weight:bold; color:var(--text-main); font-size:1.1rem;"
+                    id="iframe-title">VIEWER</div>
+                <!-- Open New Tab Button -->
+                <a id="iframe-external-link" href="#" target="_blank"
+                    style="font-size:0.8rem; color:var(--accent); text-decoration:none; border:1px solid var(--accent); padding:2px 8px; border-radius:4px;">
+                    OPEN NEW TAB ↗
+                </a>
+            </div>
             <button onclick="closeIframe()"
-                style="background:transparent; border:none; color:var(--text-main); font-size:1.5rem; cursor:pointer;">×</button>
+                style="background:transparent; border:none; color:var(--ink-muted); font-size:2rem; line-height:1; cursor:pointer;">&times;</button>
         </div>
-        <iframe id="content-frame" style="flex:1; border:none; width:100%; height:100%; bg:white;"></iframe>
+
+        <!-- Sibling Ribbon (Horizontal Scroll) -->
+        <div id="iframe-ribbon" style="
+            display:flex; gap:10px; padding:10px 24px; 
+            background:var(--surface-2); border-bottom:1px solid rgba(0,0,0,0.2);
+            overflow-x:auto; white-space:nowrap; align-items:center;
+            min-height: 50px;
+        ">
+            <!-- Populated dynamically -->
+        </div>
+
+        <!-- Content -->
+        <div style="flex:1; position:relative; width:100%; height:100%;">
+            <iframe id="content-frame" style="width:100%; height:100%; border:none; background:#fff;"></iframe>
+        </div>
     </div>
 
     <script>
+        // Global State
+        let currentArtifactsContext = [];
+        let currentArtifactIndex = -1;
+        let lastFocusedElement = null;
+
         // Modal Logic
-        function openIframe(url, title) {
+        function openIframe(url, title, contextKey) {
             const modal = document.getElementById('iframe-modal');
             const frame = document.getElementById('content-frame');
             const titleEl = document.getElementById('iframe-title');
+            const extLink = document.getElementById('iframe-external-link');
+            const ribbon = document.getElementById('iframe-ribbon');
 
-            // Adjust path if relative? Data paths are usually relative to root or same dir.
-            // Assuming flat struct or correct rel path.
+            // Store focus for return
+            lastFocusedElement = document.activeElement;
+
+            // Set Content
             frame.src = url;
-            titleEl.textContent = title.toUpperCase();
+            titleEl.textContent = title;
+            extLink.href = url;
 
+            // Show Modal
             modal.style.display = 'flex';
+            void modal.offsetWidth;
+            modal.style.opacity = '1';
             document.body.style.overflow = 'hidden';
+
+            // Populate Ribbon from Context
+            if (contextKey && window.GENOME_CONTEXT && window.GENOME_CONTEXT[contextKey]) {
+                const siblings = window.GENOME_CONTEXT[contextKey];
+                ribbon.innerHTML = siblings.map(idxArt => {
+                    const isCurrent = idxArt.path === url; // Simple match
+
+                    // Re-use brick styling but smaller
+                    // Same color logic? We can fetch it or just use generic.
+                    // For speed, let's use a generic dark brick with highlight for current.
+                    const bg = isCurrent ? 'var(--accent)' : 'var(--surface)';
+                    const color = isCurrent ? 'var(--bg)' : 'var(--ink)';
+                    const border = isCurrent ? 'var(--accent)' : 'rgba(255,255,255,0.1)';
+
+                    return `
+                    <button onclick="openIframe('${idxArt.path}', '${idxArt.text}', '${contextKey}')" 
+                        class="lego-brick"
+                        style="background:${bg}; color:${color}; border-color:${border}; margin-right:8px; cursor:pointer; opacity:${isCurrent ? 1 : 0.7};">
+                        ${idxArt.text}
+                    </button>
+                    `;
+                }).join('');
+
+                // Scroll to active (simple timeout)
+                setTimeout(() => {
+                    // find active button?
+                    // Not strictly implemented but ribbon is scrollable.
+                }, 100);
+            } else {
+                ribbon.innerHTML = `<span style="color:var(--ink-muted); font-size:0.8rem; font-family:monospace;">Viewing: ${title}</span>`;
+            }
         }
 
         function closeIframe() {
             const modal = document.getElementById('iframe-modal');
             const frame = document.getElementById('content-frame');
 
-            modal.style.display = 'none';
-            frame.src = '';
-            document.body.style.overflow = '';
+            modal.style.opacity = '0';
+            setTimeout(() => {
+                modal.style.display = 'none';
+                frame.src = '';
+                document.body.style.overflow = '';
+
+                // Restore Focus & Highlight
+                if (lastFocusedElement) {
+                    lastFocusedElement.focus();
+                    lastFocusedElement.classList.add('just-visited');
+                    setTimeout(() => lastFocusedElement.classList.remove('just-visited'), 2000);
+                }
+            }, 200);
         }
 
         // Legend Toggle Logic
@@ -3637,28 +3785,10 @@
             legend.classList.toggle('open');
         }
 
-        function loadGenome() {
-            // ... (keep existing load logic if needed, or just relying on renderGenome)
-            // The previous code had a loadGenome function that fetched data.
-            // I need to be careful not to overwrite it if I'm replacing the end of the file.
-            // Wait, I am replacing the END of the file.
-            // I need to see where loadGenome was defined. 
-            // It was likely defined BEFORE the previous script blocks.
-            // Actually, the previous VIEW showed `loadGenome` being called at the end.
-            // I should just ADD the new functions to the global scope.
-        }
-
-        // RE-INJECTING loadGenome because I might overwrite it if I replace the script block blindly.
-        // Let's check the lines again.
-        // It seems `renderGenome` calls `loadGenome`? No, `loadGenome` calls `renderGenome`.
-
+        // Loader
         async function loadGenome() {
             try {
-                // Try fetching live data
                 console.log("🧬 Fetching courage-genome.json...");
-                // Note: The file might be named differently in practice, but usually courage-genome.json
-                // or generated on fly. The previous code logic isn't fully visible.
-                // Fallback to FALLBACK_GENOME_DATA if fetch fails.
                 renderGenome(FALLBACK_GENOME_DATA);
             } catch (e) {
                 console.error(e);
