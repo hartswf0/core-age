@@ -351,20 +351,58 @@ function sequenceGenome() {
     genome.total_files_sequenced = manifest.total_files;
 
     // Stats for Header Grid
-    // Estimate LOC based on file count (avg 150 lines per file)
     const estLoc = (manifest.total_files * 130);
     genome.stats = {
         files: manifest.total_files,
         loc: `~${(estLoc / 1000).toFixed(1)}k`,
         zones: Object.keys(ZONES).length,
-        patterns: 24 // Fixed number of design patterns in the system
+        patterns: 24
     };
 
-    // Top-Level Narrative
-    genome.project_title = "cour-age"; // Lowercase serif style requested
-    genome.project_subtitle = "Deep Sequence of the CORE-AGE Repository";
-    genome.thesis = "An integrated narrative of toolkits, trails, and transformations—each project encoded with its Creator Trail DNA.";
-    genome.logline = "Operative Ekphrasis: Text commands generate 3D geometry instantly.";
+    // BOTTOM-UP NARRATIVE: Extract Title & Logline from README.md
+    let readmeContent = "";
+    try {
+        if (fs.existsSync('README.md')) {
+            readmeContent = fs.readFileSync('README.md', 'utf8');
+        }
+    } catch (e) {
+        console.warn("Could not read README.md for narrative extraction.");
+    }
+
+    // Default Fallbacks
+    let projectTitle = "CORE-AGE";
+    let projectSubtitle = "Words Become Worlds";
+    let logline = "A framework for translating natural language into 3D spatial geometries.";
+
+    if (readmeContent) {
+        // Parse Title (# TITLE: Subtitle)
+        const h1Match = readmeContent.match(/^#\s+(.+)$/m);
+        if (h1Match) {
+            const fullTitle = h1Match[1];
+            if (fullTitle.includes(':')) {
+                const parts = fullTitle.split(':');
+                projectTitle = parts[0].trim();
+                projectSubtitle = parts[1].trim();
+            } else {
+                projectTitle = fullTitle.trim();
+            }
+        }
+
+        // Parse Logline (First paragraph of text)
+        const lines = readmeContent.split('\n');
+        for (const line of lines) {
+            // Find first non-header, non-empty line that looks like a sentence
+            if (line.match(/^[A-Za-z]/) && !line.startsWith('#') && line.length > 50) {
+                logline = line.replace(/\*\*/g, '').replace(/\[.*\]/g, '').trim(); // Strip clean
+                break;
+            }
+        }
+    }
+
+    genome.project_title = projectTitle.toLowerCase(); // Style preference: lowercase serif
+    genome.project_subtitle = projectSubtitle;
+    genome.logline = logline;
+    genome.thesis = "Operative Ekphrasis: " + logline; // Synthesis
 
     // 7. Save
     fs.writeFileSync(OUTPUT_PATH, JSON.stringify(genome, null, 4));

@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-12T01:50:05.182Z",
+  "generated": "2025-12-12T02:44:48.905Z",
   "total_files": 279,
-  "total_size": 69725991,
+  "total_size": 69727725,
   "total_size_human": "66.5 MB",
   "summary": {
     "extensions": {
@@ -703,18 +703,18 @@
         "name": "courage-genome.html",
         "path": "/Users/gaia/COURAGE/courage-genome.html",
         "extension": ".html",
-        "size": 137725,
-        "size_human": "134.5 KB",
-        "modified": "2025-12-12T01:49:33.795Z",
+        "size": 138001,
+        "size_human": "134.77 KB",
+        "modified": "2025-12-12T02:05:28.886Z",
         "created": "2025-12-11T21:42:17.067Z"
       },
       {
         "name": "courage-trail-data.json",
         "path": "/Users/gaia/COURAGE/courage-trail-data.json",
         "extension": ".json",
-        "size": 114434,
-        "size_human": "111.75 KB",
-        "modified": "2025-12-12T01:49:33.769Z",
+        "size": 114710,
+        "size_human": "112.02 KB",
+        "modified": "2025-12-12T02:05:28.846Z",
         "created": "2025-12-11T04:38:22.247Z"
       },
       {
@@ -847,9 +847,9 @@
         "name": "file-manifest.json",
         "path": "/Users/gaia/COURAGE/file-manifest.json",
         "extension": ".json",
-        "size": 85254,
-        "size_human": "83.26 KB",
-        "modified": "2025-12-12T01:45:18.954Z",
+        "size": 85252,
+        "size_human": "83.25 KB",
+        "modified": "2025-12-12T01:50:05.182Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
@@ -1810,9 +1810,9 @@
         "name": "sequence_genome.js",
         "path": "/Users/gaia/COURAGE/sequence_genome.js",
         "extension": ".js",
-        "size": 23374,
-        "size_human": "22.83 KB",
-        "modified": "2025-12-12T01:47:56.035Z",
+        "size": 24558,
+        "size_human": "23.98 KB",
+        "modified": "2025-12-12T01:56:52.560Z",
         "created": "2025-12-11T22:03:41.572Z"
       },
       {
