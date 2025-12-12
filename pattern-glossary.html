@@ -405,6 +405,14 @@
             <ul class="toc-list">
                 <li><a href="#ontology">Ontology Types</a></li>
                 <li><a href="#morphisms">Morphisms</a></li>
+                <li style="font-weight:600; margin-top:8px;">Core Tools</li>
+                <li><a href="#swiss">Swiss (Launcher)</a></li>
+                <li><a href="#courage">Courage (Viewer)</a></li>
+                <li><a href="#gold">Gold (Editor)</a></li>
+                <li><a href="#frank">Frank (Router)</a></li>
+                <li><a href="#mento">Mento (Camera)</a></li>
+                <li><a href="#timber">Timber (Shell)</a></li>
+                <li style="font-weight:600; margin-top:8px;">Patterns</li>
                 <li><a href="#anti-tool">anti-tool</a></li>
                 <li><a href="#ring-memory">ring-memory</a></li>
                 <li><a href="#spatial-language">spatial-language</a></li>
@@ -535,12 +543,189 @@
                 <div class="morphism-example">Example: <code>TIMBER-tutorial.html</code> supports the intent
                     "hierarchical data exploration" by providing an interactive tree view. Tool design aligns with
                     creator vision.</div>
-            </div>
+        </section>
+
+        <!-- CORE TOOLS SECTION (HCI-Grade) -->
+        <section id="core-tools">
+            <h2>Core Tools (Apps & Protocols)</h2>
+            <p>These are the primary runnable surfaces of the WAG Studio Suite. Each entry follows a "Function First"
+                structure: what it <em>does</em>, what it <em>accepts</em>, and what it <em>pairs with</em>. When things
+                break, refer to the failure notes.</p>
+
+            <!-- Swiss -->
+            <article class="pattern-card" id="swiss">
+                <div class="pattern-head">
+                    <div class="pattern-name">SWISS<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(App
+                            — Launcher)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">The central hub of the WAG Studio Suite. Opens links to all tools,
+                        providing categorized access based on workflow (View, Edit, Capture, Archive).</div>
+                    <dl class="pattern-meta">
+                        <dt>Inputs</dt>
+                        <dd>None (it's the entrypoint)</dd>
+                        <dt>Outputs</dt>
+                        <dd>URL selection to target app</dd>
+                        <dt>Pairs with</dt>
+                        <dd>Everything (COURAGE, GOLD, MENTO, FRANK)</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes. It is the starting point.</dd>
+                        <dt>Common failure</dt>
+                        <dd>404 links if files moved; check <code>file-manifest.json</code>.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- COURAGE -->
+            <article class="pattern-card" id="courage">
+                <div class="pattern-head">
+                    <div class="pattern-name">COURAGE<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(App
+                            — 3D Viewer)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Renders MPD scenes in Three.js. Syncs selection/editing with GOLD via
+                        Frank. Flagship viewer for LDraw models.</div>
+                    <dl class="pattern-meta">
+                        <dt>Inputs</dt>
+                        <dd>MPD file (+ LDraw parts library path)</dd>
+                        <dt>Outputs</dt>
+                        <dd>Interactive 3D render, selection events via <code>postMessage</code>, optional GLB export.
+                        </dd>
+                        <dt>Pairs with</dt>
+                        <dd>GOLD, MENTO, FRANK</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes, for viewing. Requires GOLD for editing.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Missing LDraw parts library → blank or partial scene. Check console for 404s.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Courage to look closely" — close reading of a scene.</cite>
+                    </div>
+                </div>
+            </article>
+
+            <!-- GOLD -->
+            <article class="pattern-card" id="gold">
+                <div class="pattern-head">
+                    <div class="pattern-name">GOLD<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(App
+                            — MPD Editor)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Line-level MPD editor. Edits individual brick lines (Type 1) including
+                        transforms, colors, and part IDs. Supports stud attribution.</div>
+                    <dl class="pattern-meta">
+                        <dt>Inputs</dt>
+                        <dd>MPD file, selection events from COURAGE (via FRANK)</dd>
+                        <dt>Outputs</dt>
+                        <dd>Edited MPD, stud_skeleton.json (geometry index)</dd>
+                        <dt>Pairs with</dt>
+                        <dd>COURAGE, FRANK, MASTER</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes, as a text editor. Use with COURAGE for visual feedback.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Editing wrong line → geometry misaligns. Use MASTER to validate skeleton integrity.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- FRANK -->
+            <article class="pattern-card" id="frank">
+                <div class="pattern-head">
+                    <div class="pattern-name">FRANK<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(Protocol
+                            — Router)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Coordinates data flow between tools (COURAGE, GOLD, MENTO) using
+                        <code>window.postMessage</code>. The "Frankenstein Assembly" that wires the suite together.
+                    </div>
+                    <dl class="pattern-meta">
+                        <dt>Mechanism</dt>
+                        <dd><code>window.postMessage</code> with specific channels (selection, file-open, line-edit,
+                            camera).</dd>
+                        <dt>Inputs</dt>
+                        <dd>Events from any WAG tool</dd>
+                        <dt>Outputs</dt>
+                        <dd>Routed events to subscribed tools</dd>
+                        <dt>Is it required?</dt>
+                        <dd>No. Tools can run standalone. FRANK is for multi-tool workflows (e.g., edit in GOLD, see in
+                            COURAGE).</dd>
+                        <dt>Guarantee</dt>
+                        <dd>"Edit in GOLD updates selection/render in COURAGE."</dd>
+                        <dt>Common failure</dt>
+                        <dd>Nothing syncs across tools → FRANK bus not active or tab blocked by CORS. Use TIMBER as a
+                            pre-wired shell if you don't want to configure manually.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- MENTO -->
+            <article class="pattern-card" id="mento">
+                <div class="pattern-head">
+                    <div class="pattern-name">MENTO<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(App
+                            — Camera & Capture)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">Camera toolkit for cinematic captures. Controls view position, creates shot
+                        lists/keyframes, and renders video sequences.</div>
+                    <dl class="pattern-meta">
+                        <dt>Inputs</dt>
+                        <dd>Scene from COURAGE (or its own GLB loader), MPD shot definitions</dd>
+                        <dt>Outputs</dt>
+                        <dd>WebM video captures, camera path data</dd>
+                        <dt>Pairs with</dt>
+                        <dd>COURAGE, FRANK</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes (has its own 3D scene loader)</dd>
+                        <dt>Surfaces (versions)</dt>
+                        <dd><code>MENTO-368</code> (basic shots), <code>MENTO-369</code> (keyframes),
+                            <code>MENTO-373</code> (orbit rigs). Start with 368.
+                        </dd>
+                        <dt>Common failure</dt>
+                        <dd>Record blank → browser tab not focused or canvas off-screen.</dd>
+                    </dl>
+                </div>
+            </article>
+
+            <!-- TIMBER -->
+            <article class="pattern-card" id="timber">
+                <div class="pattern-head">
+                    <div class="pattern-name">TIMBER<span
+                            style="font-size:0.7rem; font-weight:400; color:var(--ink-tertiary); margin-left:8px;">(Shell
+                            — Integrated Workspace)</span></div>
+                </div>
+                <div class="pattern-body">
+                    <div class="pattern-def">A pre-wired shell containing COURAGE, GOLD, and hierarchy views. Handles
+                        FRANK bus/routing internally so users don't need to configure tabs manually.</div>
+                    <dl class="pattern-meta">
+                        <dt>Inputs</dt>
+                        <dd>MPD file, LDraw library</dd>
+                        <dt>Outputs</dt>
+                        <dd>Edited MPD (via GOLD), visual feedback (via COURAGE)</dd>
+                        <dt>Works alone?</dt>
+                        <dd>Yes, it IS the integrated mode.</dd>
+                        <dt>Typical workflow</dt>
+                        <dd>Load MPD → Edit lines in GOLD panel → See updates in COURAGE panel → Export.</dd>
+                        <dt>Common failure</dt>
+                        <dd>Panels don't resize → refresh. Hierarchy empty → MPD parse error.</dd>
+                    </dl>
+                    <div class="pattern-refs">
+                        <div class="pattern-refs-title">Name Rationale</div>
+                        <cite>"Timber" as in construction framing — the skeleton that holds the suite together.</cite>
+                    </div>
+                </div>
+            </article>
         </section>
 
         <!-- PATTERNS SECTION -->
         <section id="patterns">
             <h2>Pattern Definitions</h2>
+
 
             <!-- anti-tool -->
             <article class="pattern-card" id="anti-tool">

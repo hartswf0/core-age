@@ -3601,11 +3601,17 @@
                     <div class="era-tagline">${event.description || "Systemic activity detected."}</div>
                 `;
 
+
                 if (event.readings && event.readings.length > 0) {
                     headerHtml += `<div style="margin-bottom:15px; font-size:0.9rem; color:var(--ink-dim);">
                         <strong>📚 Readings:</strong>
                         <ul style="margin:5px 0 0 20px; padding:0;">${event.readings.map(r => `<li>${r}</li>`).join('')}</ul>
                     </div>`;
+                }
+
+                // Render CTAMDSPI Rich Genome if available
+                if (event.rich_genome) {
+                    headerHtml += renderRichGenome(event.rich_genome, baseColor);
                 }
 
                 // Construct Artifacts List (BRICKS + COLOR CODING)
