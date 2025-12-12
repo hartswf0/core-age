@@ -3585,9 +3585,10 @@
                 article.className = `era ${activeZone}`; // Re-use era styling
                 article.style.borderColor = baseColor;
 
+
                 // Era Header
-                // Title
-                const title = event.title || "ACTIVITY BURST";
+                // Title: data uses "label", fallback to "ACTIVITY BURST"
+                const title = event.label || "ACTIVITY BURST";
                 // Meta showing Zone + Count
                 // Using .era-meta (styled as brick)
 
@@ -3598,8 +3599,9 @@
                             ${eventDateKey} · ${relevantArtifacts.length} ARTIFACTS
                         </div>
                     </div>
-                    <div class="era-tagline">${event.description || "Systemic activity detected."}</div>
+                    <div class="era-tagline">${event.desc || "Systemic activity detected."}</div>
                 `;
+
 
 
                 if (event.readings && event.readings.length > 0) {
