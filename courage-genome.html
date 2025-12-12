@@ -246,6 +246,107 @@
             opacity: 0.3;
         }
 
+        /* Sharp 'Lego Brick' Styling */
+        .lego-brick {
+            display: inline-block;
+            background: var(--surface-2);
+            color: var(--text-main);
+            padding: 4px 12px;
+            font-family: 'Courier New', monospace;
+            /* "Coding the lego type" */
+            font-size: 0.75rem;
+            font-weight: 900;
+            text-decoration: none;
+            border: 1px solid rgba(0, 0, 0, 0.1);
+            border-bottom-width: 3px;
+            /* Physicality */
+            transition: all 0.1s;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-right: 4px;
+            margin-bottom: 4px;
+        }
+
+        .lego-brick:hover {
+            transform: translateY(2px);
+            /* Press down */
+            border-bottom-width: 1px;
+            filter: brightness(1.1);
+        }
+
+        /* Legend Styling - Compact & Modular */
+        #genome-legend {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.4s ease-in-out;
+            background: var(--bg);
+            border-bottom: 1px solid var(--surface-3);
+        }
+
+        #genome-legend.open {
+            max-height: 600px;
+        }
+
+        .legend-container {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            /* Two bold columns */
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .legend-col h3 {
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--ink-muted);
+            margin-bottom: 1rem;
+            border-bottom: 2px solid var(--surface-3);
+            padding-bottom: 0.5rem;
+        }
+
+        .zone-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            /* 2x2 grid for zones */
+            gap: 10px;
+        }
+
+        .zone-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px;
+            background: var(--surface-2);
+            border-left: 4px solid var(--ink);
+        }
+
+        .pattern-list {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 8px;
+        }
+
+        .pattern-item {
+            font-family: monospace;
+            font-size: 0.8rem;
+            padding: 6px;
+            border-bottom: 1px dashed var(--surface-3);
+            color: var(--ink);
+        }
+
+        .stat-card {
+            cursor: pointer;
+            transition: transform 0.1s, border-color 0.2s;
+        }
+
+        .stat-card:hover {
+            transform: translateY(-2px);
+            border-color: var(--lego) !important;
+        }
+
         /* Era Cards */
         .era {
             margin-bottom: 80px;
@@ -3283,6 +3384,7 @@
         }
 
 
+
         function renderGenome(data) {
             // 1. Render Header
             const header = document.getElementById('header-section');
@@ -3296,7 +3398,7 @@
                     <div style="margin-bottom:0; padding:3rem 2rem 1rem 2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px 8px 0 0; text-align:center;">
                         
                         <!-- Badge -->
-                        <div style="display:inline-block; background:#332211; color:#ffaa44; padding:4px 12px; border-radius:12px; font-family:monospace; font-size:0.8rem; margin-bottom:1.5rem; border:1px solid #553311;">
+                        <div style="display:inline-block; background:#332211; color:#ffaa44; padding:4px 12px; font-family:monospace; font-size:0.8rem; margin-bottom:1.5rem; border:1px solid #553311;">
                             🧬 GENOME SEQUENCE v2.0
                         </div>
 
@@ -3312,61 +3414,64 @@
 
                         <!-- Stats Grid (Clickable) -->
                         <div onclick="toggleLegend()" style="margin-top:3rem; display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; border-top:1px solid var(--surface-3); padding-top:2rem; cursor:pointer;" title="Click to Expand Legend">
-                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:0; border:1px solid var(--surface-3); border-bottom: 3px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.files}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">TOTAL FILES</div>
                             </div>
-                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:0; border:1px solid var(--surface-3); border-bottom: 3px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.loc}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">LINES OF CODE</div>
                             </div>
-                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:0; border:1px solid var(--surface-3); border-bottom: 3px solid var(--lego);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.zones}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">FUNCTIONAL ZONES ▾</div>
                             </div>
-                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:0; border:1px solid var(--surface-3); border-bottom: 3px solid var(--trail);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.patterns}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">DESIGN PATTERNS ▾</div>
                             </div>
                         </div>
                     </div>
 
-                    <!-- EXPANDABLE LEGEND -->
+                    <!-- EXPANDABLE LEGEND (Compact Grid) -->
                     <div id="genome-legend">
-                        <div class="legend-grid">
-                            <!-- Functional Zones -->
-                            <div>
-                                <h3 style="margin-top:0; color:var(--text-main);">Functional Zones</h3>
-                                <div style="display:grid; gap:8px;">
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:16px; height:16px; background:var(--lego); border-radius:4px;"></div>
-                                        <div><strong>LEGO INPUTS</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Raw Assets & Manifests</span></div>
+                        <div class="legend-container">
+                            <!-- Functional Zones Column -->
+                            <div class="legend-col">
+                                <h3>Functional Zones</h3>
+                                <div class="zone-grid">
+                                    <div class="zone-item" style="border-left-color:var(--lego);">
+                                        <strong>LEGO INPUTS</strong>
                                     </div>
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:16px; height:16px; background:var(--tetrad); border-radius:4px;"></div>
-                                        <div><strong>TETRAD ENGINE</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Ontological Processing</span></div>
+                                    <div class="zone-item" style="border-left-color:var(--tetrad);">
+                                        <strong>TETRAD ENGINE</strong>
                                     </div>
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:16px; height:16px; background:var(--wag); border-radius:4px;"></div>
-                                        <div><strong>WAG PEAKS</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Generative Output</span></div>
+                                    <div class="zone-item" style="border-left-color:var(--wag);">
+                                        <strong>WAG PEAKS</strong>
                                     </div>
-                                    <div style="display:flex; align-items:center; gap:10px;">
-                                        <div style="width:16px; height:16px; background:var(--trail); border-radius:4px;"></div>
-                                        <div><strong>TRAIL OBSERVATORY</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Project Meta-Cognition</span></div>
+                                    <div class="zone-item" style="border-left-color:var(--trail);">
+                                        <strong>TRAIL OBSERVATORY</strong>
                                     </div>
                                 </div>
                             </div>
 
-                            <!-- Design Patterns -->
-                             <div>
-                                <h3 style="margin-top:0; color:var(--text-main);">Design Patterns</h3>
-                                <ul style="margin:0; padding-left:20px; color:var(--ink); font-size:0.9rem; line-height:1.6;">
-                                    <li><strong>Operative Ekphrasis</strong>: Words as Actions.</li>
-                                    <li><strong>Recursive Ecology</strong>: Output becomes Input.</li>
-                                    <li><strong>Ontology Logs (Ologs)</strong>: Category Theory structure.</li>
-                                    <li><strong>Repository Manifest</strong>: Constitutional reality.</li>
-                                    <li><strong>Agentic Generation</strong>: Systems that act.</li>
-                                </ul>
+                            <!-- Design Patterns Column -->
+                            <div class="legend-col">
+                                <h3>Design Patterns</h3>
+                                <div class="pattern-list">
+                                    <div class="pattern-item">
+                                        <strong>Operative Ekphrasis</strong> · Words as Actions
+                                    </div>
+                                    <div class="pattern-item">
+                                        <strong>Recursive Ecology</strong> · Output -> Input
+                                    </div>
+                                    <div class="pattern-item">
+                                        <strong>Ontology Logs (Ologs)</strong> · Category Theory
+                                    </div>
+                                    <div class="pattern-item">
+                                        <strong>Agentic Generation</strong> · Systems Act
+                                    </div>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -3423,21 +3528,22 @@
                 article.className = `era ${activeZone}`;
                 article.style.borderColor = color;
 
-                // Construct Artifacts List
+                // Construct Artifacts List (BRICKS, No Emoji)
                 let artifactsHtml = '';
                 if (relevantArtifacts.length > 0) {
                     artifactsHtml = `
-                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:15px; display:flex; flex-wrap:wrap; gap:8px;">
+                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:15px; display:flex; flex-wrap:wrap; gap:0;">
                             ${relevantArtifacts.map(art => {
-                        const isPriority = art.text.toLowerCase().includes('tutorial') || art.text.toLowerCase().includes('presentation');
-                        const icon = isPriority ? '🎓' : (art.type === 'tool' ? '🛠️' : '📄');
+                        // Decide background color based on priority or type?
+                        // User said "put word on brick".
+                        // Let's use the zone color as background.
 
                         return `
-                                <a href="${art.path}" target="_blank" class="lego-pill" style="color:${color}; border-color:${color};">
-                                    <div class="lego-stud" style="background:${color};">${icon}</div>
-                                    <div class="lego-text">${art.text}</div>
+                                <a href="${art.path}" target="_blank" class="lego-brick" 
+                                   style="background:${color}; color:var(--bg); border-color:rgba(0,0,0,0.3);">
+                                    ${art.text}
                                 </a>
-                        `;
+                                `;
                     }).join('')}
                         </div>
                     `;
