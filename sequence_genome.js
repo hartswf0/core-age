@@ -346,9 +346,18 @@ function sequenceGenome() {
     // For now, let's REPLACE the timeline with this rich generated history.
     genome.timeline = bursts.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-    // 6. Update Metadata
+    // 6. Update Metadata with Narrative Branding
     genome.generated_at = new Date().toISOString();
     genome.total_files_sequenced = manifest.total_files;
+
+    // Top-Level Narrative
+    genome.project_title = "PROJECT GENOME";
+    genome.project_subtitle = "Deep Sequence of the CORE-AGE Repository";
+    genome.thesis = "An integrated narrative of toolkits, trails, and transformations—each project encoded with its Creator Trail DNA.";
+    genome.logline = "Operative Ekphrasis: Text commands generate 3D geometry instantly."; // Keeping original synthesis as secondary or primary?
+    // User requested "best logline". The user provided:
+    // "An integrated narrative of toolkits, trails, and transformations—each project encoded with its Creator Trail DNA."
+    // as the logline. 
 
     // 7. Save
     fs.writeFileSync(OUTPUT_PATH, JSON.stringify(genome, null, 4));

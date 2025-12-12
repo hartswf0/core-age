@@ -448,8 +448,8 @@
     <!-- Embedded Data Fallback -->
     <script>
         const FALLBACK_GENOME_DATA = {
-    "generated_at": "2025-12-11T23:13:20.374Z",
-    "thesis": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
+    "generated_at": "2025-12-12T01:44:56.095Z",
+    "thesis": "An integrated narrative of toolkits, trails, and transformations—each project encoded with its Creator Trail DNA.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
     "dna_base_pairs": {
@@ -2206,25 +2206,25 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "130.51 KB",
+                    "size": "130.53 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-11T23:06:39.730Z"
+                    "modified": "2025-12-11T23:17:39.295Z"
                 },
                 {
                     "text": "courage-trail-data.json",
                     "type": "data",
                     "path": "courage-trail-data.json",
-                    "size": "111.39 KB",
+                    "size": "111.41 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-11T23:06:10.298Z"
+                    "modified": "2025-12-11T23:13:20.375Z"
                 },
                 {
                     "text": "sequence_genome.js",
                     "type": "artifact",
                     "path": "sequence_genome.js",
-                    "size": "20.56 KB",
+                    "size": "22.05 KB",
                     "created": "2025-12-11T22:03:41.572Z",
-                    "modified": "2025-12-11T23:03:02.520Z"
+                    "modified": "2025-12-11T23:11:57.689Z"
                 },
                 {
                     "text": "file-manifest.json",
@@ -2232,7 +2232,7 @@
                     "path": "file-manifest.json",
                     "size": "83.26 KB",
                     "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-11T22:58:08.488Z"
+                    "modified": "2025-12-11T23:07:06.699Z"
                 },
                 {
                     "text": "assemble_genome.js",
@@ -3207,7 +3207,10 @@
             ]
         }
     ],
-    "total_files_sequenced": 279
+    "total_files_sequenced": 279,
+    "project_title": "PROJECT GENOME",
+    "project_subtitle": "Deep Sequence of the CORE-AGE Repository",
+    "logline": "Operative Ekphrasis: Text commands generate 3D geometry instantly."
 };
     </script>
 
@@ -3255,9 +3258,41 @@
         function renderGenome(data) {
             // 1. Render Header
             const header = document.getElementById('header-section');
-            header.querySelector('.subtitle').innerHTML = `Deep Sequence of the <strong>${data.repository}</strong> Repository`;
-            const metaInfo = document.querySelector('.global-genome');
-            if (metaInfo) metaInfo.style.display = 'none'; // Hide the old global genome block for cleaner look
+            if (header) {
+                // Use new specific fields if available, otherwise fallback
+                const title = data.project_title || "Project Genome";
+                const subtitle = data.project_subtitle || `Deep Sequence of the ${data.repository || 'CORE-AGE'} Repository`;
+                const logline = data.logline || data.thesis || "No logline available.";
+
+                header.innerHTML = `
+                    <div style="margin-bottom:2rem; padding:2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px;">
+                        <h1 class="glitch-text" style="font-size:3rem; margin:0;" data-text="${title}">${title}</h1>
+                        <p style="font-size:1.2rem; color:var(--ink-dim); font-family:monospace; margin-top:0.5rem;">${subtitle}</p>
+                        
+                        <div style="margin-top:2rem; padding-left:1.5rem; border-left:4px solid var(--accent);">
+                            <p style="font-size:1.4rem; font-style:italic; font-weight:300; line-height:1.4;">
+                                "${logline}"
+                            </p>
+                            ${data.thesis && data.thesis !== logline ? `<p style="margin-top:0.5rem; font-size:0.9rem; color:var(--ink-muted);">${data.thesis}</p>` : ''}
+                        </div>
+
+                        <div style="margin-top:1.5rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; font-family:monospace; font-size:0.85rem;">
+                            <div>
+                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">GENERATED AT</strong>
+                                ${new Date(data.generated_at).toLocaleString()}
+                            </div>
+                            <div>
+                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">FILES SEQUENCED</strong>
+                                ${data.total_files_sequenced || 0}
+                            </div>
+                            <div>
+                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">SEQUENCER VER</strong>
+                                2.0 (Narrative Engine)
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
 
             // 2. Hide Arc Diagram (User requested simpler view)
             const arcSection = document.querySelector('.arc-section');
