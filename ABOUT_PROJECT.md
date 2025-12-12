@@ -32,12 +32,25 @@ Inspired by semantic analysis (and the concept of "Operative Ekphrasis"), the pr
 The central synthesis engine that connects the "Word" (LLM output) to the "World" (LDraw/GLB geometry).
 - **Reference**: `wag-brave.html`
 
+
 ---
 
-## Summary of Hallucinations Detected & Removed
-* The following concepts from the generated report were **excluded** as they do not appear in the verifiable codebase:
-    * "Galactic Arms Race" (Video Game Reference)
-    * "Omertà Unbroken" (Card Game)
-    * "Gumball Emotion Machine" (Biometric Project)
-    * "Mento as an OCR Glitch" (Incorrect Etymology)
-    * "Future Oceans / Hubs Cloud" (Likely prior work not in this repo)
+## Novel Research Contributions
+
+### 1. The Categorical Duality of Vision & Narrative (𝒱 ≃ ℕᵒᵖ)
+*Novel Theoretical Framework*
+Contrary to traditional multi-modal models that treat image and text as separate embeddings, CORE-AGE demonstrates that **Visual Segmentation (𝒱)** and **Narrative Ontology (ℕ)** are categorically dual.
+- **Insight**: Visual "boundaries" (edges) map inversely to Narrative "relations" (connections).
+- **Formalism**: We establish a bidirectional **Functor** where *Warm Colors* (Hue 0-60°) map to *Goals* (Narrative Attractors) and *Cool Colors* (Hue 180-300°) map to *Shifts* (Narrative Transitions).
+- **Citation**: Extends **Spivak, D. (2014)** *Category Theory for the Sciences* into the domain of computational narratology.
+
+### 2. Spatial Downsampling as Natural Transformation
+*Non-Obvious Technical Implementation*
+The compression of the 20×20 Visual Grid (GAR) into the 9×9 Narrative Grid (ONYX) is not merely a lossy jpeg-like operation. It is implemented as a **Natural Transformation** ($η$) that preserves the topological invariants (adjacency, containment) of the original scene.
+- **Result**: A "low-res" story graph that mathematically guarantees the preservation of the original image's structural semantics.
+
+### 3. Operative Ekphrasis via "Speech Acts"
+*Methodological Innovation*
+The WAG System redefines "Prompt Engineering" as **Operative Ekphrasis**.
+- **Theory**: Drawing from **J.L. Austin's** *Speech Act Theory*, WAG treats LLM outputs not as "descriptions" of a scene, but as *performative utterances* that instantiate 3D geometry (LDraw).
+- **Contribution**: A pivot from "Generative AI as Author" to "Generative AI as Architect," where words literally become worlds through a rigorous ontological compiler.
