@@ -422,16 +422,39 @@ function analyzeBurst(files, date) {
         decision = richData.genome['D (Decision)'];
         ontology = Object.keys(richData.genome).map(k => k[0]);
 
-        // 4. Genome: Clone and Patch with Specifics
+        // 4. Genome: Clone and Patch with Specifics (Micro-Narratives)
         const hybridGenome = { ...richData.genome };
         hybridGenome['A (Artifact)'] = files.slice(0, 3).map(f => f.file).join(', ') + (files.length > 3 ? '...' : '');
-        // Optional: Patch Trail or other fields if desired
-        // hybridGenome['T (Trail)'] = `${dominantPrefix.toUpperCase()} Focus · ` + (hybridGenome['T (Trail)'].split('→')[1] || hybridGenome['T (Trail)']);
+
+        // --- MICRO-NARRATIVE HEURISTICS ---
+        const fileNames = files.map(f => f.file.toLowerCase()).join(' ');
+
+        if (dominantPrefix === 'test' || fileNames.includes('test')) {
+            hybridGenome['D (Decision)'] = "Prioritize regression testing over new feature development.";
+            hybridGenome['I (Intent)'] = "To ensure the system doesn't break under its own weight.";
+            hybridGenome['P (Pattern)'] = "Unit & Integration Testing";
+            hybridGenome['T (Trail)'] = "Bug → Fix → Verification";
+        } else if (dominantPrefix === 'tutorial' || fileNames.includes('tutorial')) {
+            hybridGenome['D (Decision)'] = "Make the tool accessible to non-authors.";
+            hybridGenome['I (Intent)'] = "To externalize tacit knowledge.";
+            hybridGenome['P (Pattern)'] = "Documentation as Code";
+            hybridGenome['T (Trail)'] = "Usage → Confusion → Explanation";
+            desc = `Context: Knowledge Transfer · ${richData.title}`;
+        } else if (dominantPrefix === 'concat' || fileNames.includes('concat')) {
+            hybridGenome['D (Decision)'] = "Flatten structure for LLM consumption.";
+            hybridGenome['I (Intent)'] = "To create a single, token-rich context window.";
+            hybridGenome['P (Pattern)'] = "Context Concatenation";
+        } else if (dominantPrefix === 'mento' || fileNames.includes('mento')) {
+            hybridGenome['D (Decision)'] = "Port the cinematography engine to the web.";
+            hybridGenome['P (Pattern)'] = "Virtual Camera Interface";
+        } else if (dominantPrefix === 'brick' || fileNames.includes('brick')) {
+            hybridGenome['I (Intent)'] = "To simulate physical constraints in digital space.";
+        }
 
         return {
             title: `${title} (${files.length} Files)`,
-            desc: desc, // Specific file context is also appended by caller? No, caller uses what I return.
-            decision: decision,
+            desc: desc,
+            decision: hybridGenome['D (Decision)'], // Use the patched decision
             ontology: ontology,
             zone: dominantZone,
             rich_genome: hybridGenome,
