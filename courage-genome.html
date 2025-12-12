@@ -448,7 +448,7 @@
     <!-- Embedded Data Fallback -->
     <script>
         const FALLBACK_GENOME_DATA = {
-    "generated_at": "2025-12-12T02:50:45.106Z",
+    "generated_at": "2025-12-12T03:02:33.798Z",
     "thesis": "Operative Ekphrasis: This repository contains the tools, artifacts, and research for the CORE-AGE project, focusing on \"Words Become Worlds\" (WAG) — a framework for translating natural language into 3D spatial geometries and narrative ontologies.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -2206,9 +2206,9 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "134.77 KB",
+                    "size": "137.44 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-12T02:05:28.886Z"
+                    "modified": "2025-12-12T02:50:45.187Z"
                 },
                 {
                     "text": "courage-trail-data.json",
@@ -2216,7 +2216,15 @@
                     "path": "courage-trail-data.json",
                     "size": "112.02 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-12T02:05:28.846Z"
+                    "modified": "2025-12-12T02:50:45.108Z"
+                },
+                {
+                    "text": "file-manifest.json",
+                    "type": "meta",
+                    "path": "file-manifest.json",
+                    "size": "83.25 KB",
+                    "created": "2025-11-23T03:28:22.206Z",
+                    "modified": "2025-12-12T02:44:48.906Z"
                 },
                 {
                     "text": "sequence_genome.js",
@@ -2225,14 +2233,6 @@
                     "size": "23.98 KB",
                     "created": "2025-12-11T22:03:41.572Z",
                     "modified": "2025-12-12T01:56:52.560Z"
-                },
-                {
-                    "text": "file-manifest.json",
-                    "type": "meta",
-                    "path": "file-manifest.json",
-                    "size": "83.25 KB",
-                    "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-12T01:50:05.182Z"
                 },
                 {
                     "text": "assemble_genome.js",
@@ -3378,38 +3378,40 @@
                     playable.sort((a, b) => (b.path.includes('tutorial') ? 1 : 0) - (a.path.includes('tutorial') ? 1 : 0));
 
                     artifactsHtml = `
-                        <div class="artifacts-list" style="margin-top:20px; border-top:1px dashed ${color}; padding-top:15px;">
+                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:10px;">
                             
-                            <!-- PLAYABLE TOOLS & TUTORIALS -->
+                            <!-- PLAYABLE TOOLS (Brick Grid) -->
                             ${playable.length > 0 ? `
-                                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap:6px; margin-bottom:10px;">
                                     ${playable.map(art => {
                         const isTutorial = art.text.toLowerCase().includes('tutorial');
                         return `
-                                        <a href="${art.path}" target="_blank" class="artifact-btn" style="
-                                            display:inline-flex; align-items:center; gap:8px;
+                                        <a href="${art.path}" target="_blank" class="artifact-brick" style="
+                                            display:flex; align-items:center; gap:6px;
                                             background:var(--surface-3); color:var(--text-main); 
-                                            padding:8px 16px; border-radius:20px; text-decoration:none;
-                                            border:1px solid ${color}; transition:transform 0.2s;
-                                            font-size:0.9rem; font-weight:bold;
-                                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
-                                            <span style="font-size:1rem;">${isTutorial ? '🎓' : '▶'}</span>
-                                            <span>${art.text}</span>
-                                            ${isTutorial ? `<span style="font-size:0.7rem; background:${color}; color:var(--bg); padding:2px 6px; border-radius:4px; margin-left:4px;">TUTORIAL</span>` : ''}
+                                            padding:6px 10px; border-radius:4px; text-decoration:none;
+                                            border:1px solid ${isTutorial ? color : 'var(--surface-4)'}; 
+                                            font-size:0.75rem; font-family:monospace; white-space:nowrap; overflow:hidden;
+                                            transition:all 0.1s;
+                                        " onmouseover="this.style.background='${color}'; this.style.color='var(--bg)'" onmouseout="this.style.background='var(--surface-3)'; this.style.color='var(--text-main)'">
+                                            <span style="font-size:0.8rem;">${isTutorial ? '🎓' : '▶'}</span>
+                                            <span style="text-overflow:ellipsis; overflow:hidden;">${art.text}</span>
                                         </a>
                                         `;
                     }).join('')}
                                 </div>
                             ` : ''}
 
-                            <!-- PASSIVE DOCS & DATA -->
+                            <!-- PASSIVE DOCS (Compact List) -->
                             ${passive.length > 0 ? `
-                                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:8px; opacity:0.8;">
+                                <div style="display:flex; flex-wrap:wrap; gap:8px 16px; opacity:0.75;">
                                     ${passive.map(art => `
-                                        <div class="artifact-card" style="border-left:2px solid var(--ink-muted); padding:4px 8px; font-size:0.85rem;">
-                                            <a href="${art.path}" target="_blank" style="color:var(--ink-dim); text-decoration:none;">📄 ${art.text}</a>
-                                            <span style="color:var(--ink-muted); font-size:0.7rem; float:right;">${art.type.toUpperCase()}</span>
-                                        </div>
+                                        <a href="${art.path}" target="_blank" style="
+                                            color:var(--ink-muted); text-decoration:none; font-size:0.7rem; font-family:monospace;
+                                            display:flex; align-items:center; gap:4px;
+                                        " onmouseover="this.style.color='${color}'" onmouseout="this.style.color='var(--ink-muted)'">
+                                            📄 ${art.text} <span style="opacity:0.5; font-size:0.6rem;">${art.type.toUpperCase()}</span>
+                                        </a>
                                     `).join('')}
                                 </div>
                             ` : ''}

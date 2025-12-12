@@ -1,5 +1,5 @@
 {
-    "generated_at": "2025-12-12T02:50:45.106Z",
+    "generated_at": "2025-12-12T03:02:33.798Z",
     "thesis": "Operative Ekphrasis: This repository contains the tools, artifacts, and research for the CORE-AGE project, focusing on \"Words Become Worlds\" (WAG) — a framework for translating natural language into 3D spatial geometries and narrative ontologies.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -1757,9 +1757,9 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "134.77 KB",
+                    "size": "137.44 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-12T02:05:28.886Z"
+                    "modified": "2025-12-12T02:50:45.187Z"
                 },
                 {
                     "text": "courage-trail-data.json",
@@ -1767,7 +1767,15 @@
                     "path": "courage-trail-data.json",
                     "size": "112.02 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-12T02:05:28.846Z"
+                    "modified": "2025-12-12T02:50:45.108Z"
+                },
+                {
+                    "text": "file-manifest.json",
+                    "type": "meta",
+                    "path": "file-manifest.json",
+                    "size": "83.25 KB",
+                    "created": "2025-11-23T03:28:22.206Z",
+                    "modified": "2025-12-12T02:44:48.906Z"
                 },
                 {
                     "text": "sequence_genome.js",
@@ -1776,14 +1784,6 @@
                     "size": "23.98 KB",
                     "created": "2025-12-11T22:03:41.572Z",
                     "modified": "2025-12-12T01:56:52.560Z"
-                },
-                {
-                    "text": "file-manifest.json",
-                    "type": "meta",
-                    "path": "file-manifest.json",
-                    "size": "83.25 KB",
-                    "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-12T01:50:05.182Z"
                 },
                 {
                     "text": "assemble_genome.js",
