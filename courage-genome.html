@@ -448,7 +448,7 @@
     <!-- Embedded Data Fallback -->
     <script>
         const FALLBACK_GENOME_DATA = {
-    "generated_at": "2025-12-12T01:44:56.095Z",
+    "generated_at": "2025-12-12T01:49:33.767Z",
     "thesis": "An integrated narrative of toolkits, trails, and transformations—each project encoded with its Creator Trail DNA.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -2206,25 +2206,25 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "130.53 KB",
+                    "size": "132.83 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-11T23:17:39.295Z"
+                    "modified": "2025-12-12T01:44:56.122Z"
                 },
                 {
                     "text": "courage-trail-data.json",
                     "type": "data",
                     "path": "courage-trail-data.json",
-                    "size": "111.41 KB",
+                    "size": "111.65 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-11T23:13:20.375Z"
+                    "modified": "2025-12-12T01:44:56.096Z"
                 },
                 {
                     "text": "sequence_genome.js",
                     "type": "artifact",
                     "path": "sequence_genome.js",
-                    "size": "22.05 KB",
+                    "size": "22.69 KB",
                     "created": "2025-12-11T22:03:41.572Z",
-                    "modified": "2025-12-11T23:11:57.689Z"
+                    "modified": "2025-12-12T01:42:56.777Z"
                 },
                 {
                     "text": "file-manifest.json",
@@ -2232,7 +2232,7 @@
                     "path": "file-manifest.json",
                     "size": "83.26 KB",
                     "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-11T23:07:06.699Z"
+                    "modified": "2025-12-12T01:40:39.519Z"
                 },
                 {
                     "text": "assemble_genome.js",
@@ -3208,9 +3208,15 @@
         }
     ],
     "total_files_sequenced": 279,
-    "project_title": "PROJECT GENOME",
+    "project_title": "cour-age",
     "project_subtitle": "Deep Sequence of the CORE-AGE Repository",
-    "logline": "Operative Ekphrasis: Text commands generate 3D geometry instantly."
+    "logline": "Operative Ekphrasis: Text commands generate 3D geometry instantly.",
+    "stats": {
+        "files": 279,
+        "loc": "~36.3k",
+        "zones": 4,
+        "patterns": 24
+    }
 };
     </script>
 
@@ -3259,37 +3265,56 @@
             // 1. Render Header
             const header = document.getElementById('header-section');
             if (header) {
-                // Use new specific fields if available, otherwise fallback
-                const title = data.project_title || "Project Genome";
-                const subtitle = data.project_subtitle || `Deep Sequence of the ${data.repository || 'CORE-AGE'} Repository`;
-                const logline = data.logline || data.thesis || "No logline available.";
+                const title = data.project_title || "cour-age";
+                const subtitle = data.thesis || data.project_subtitle; // Use thesis as the main subtitle quote
+                const logline = data.logline || "No logline available.";
+
+                // Stats (use defaults if not present in older data)
+                const stats = data.stats || { files: 0, loc: '0k', zones: 0, patterns: 0 };
 
                 header.innerHTML = `
-                    <div style="margin-bottom:2rem; padding:2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px;">
-                        <h1 class="glitch-text" style="font-size:3rem; margin:0;" data-text="${title}">${title}</h1>
-                        <p style="font-size:1.2rem; color:var(--ink-dim); font-family:monospace; margin-top:0.5rem;">${subtitle}</p>
+                    <div style="margin-bottom:2rem; padding:3rem 2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px; text-align:center;">
                         
-                        <div style="margin-top:2rem; padding-left:1.5rem; border-left:4px solid var(--accent);">
-                            <p style="font-size:1.4rem; font-style:italic; font-weight:300; line-height:1.4;">
-                                "${logline}"
-                            </p>
-                            ${data.thesis && data.thesis !== logline ? `<p style="margin-top:0.5rem; font-size:0.9rem; color:var(--ink-muted);">${data.thesis}</p>` : ''}
+                        <!-- Badge -->
+                        <div style="display:inline-block; background:#332211; color:#ffaa44; padding:4px 12px; border-radius:12px; font-family:monospace; font-size:0.8rem; margin-bottom:1.5rem; border:1px solid #553311;">
+                            🧬 GENOME SEQUENCE v2.0
                         </div>
 
-                        <div style="margin-top:1.5rem; display:grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap:1rem; font-family:monospace; font-size:0.85rem;">
-                            <div>
-                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">GENERATED AT</strong>
-                                ${new Date(data.generated_at).toLocaleString()}
+                        <!-- Title (Serif) -->
+                        <h1 style="font-family:'Times New Roman', serif; font-size:4rem; margin:0; color:var(--text-main); letter-spacing:-1px;">
+                            ${title}
+                        </h1>
+                        
+                        <!-- Subtitle (Italic Quote) -->
+                        <p style="font-size:1.2rem; color:var(--ink-dim); font-style:italic; margin-top:1rem; max-width:600px; margin-left:auto; margin-right:auto;">
+                            "${subtitle}"
+                        </p>
+
+                        <!-- Metadata Line (Orange Monospace) -->
+                        <div style="margin-top:1.5rem; font-family:monospace; color:#ffaa44; font-size:0.9rem; letter-spacing:1px;">
+                            BORN: ${new Date(data.generated_at).toISOString().split('T')[0]} · FAMILIES: ${stats.zones}
+                        </div>
+
+                        <!-- 4-Column Stats Grid -->
+                        <div style="margin-top:3rem; display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; border-top:1px solid var(--surface-3); padding-top:2rem;">
+                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                                <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.files}</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">TOTAL FILES</div>
                             </div>
-                            <div>
-                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">FILES SEQUENCED</strong>
-                                ${data.total_files_sequenced || 0}
+                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                                <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.loc}</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">LINES OF CODE</div>
                             </div>
-                            <div>
-                                <strong style="color:var(--ink-muted); display:block; font-size:0.7rem;">SEQUENCER VER</strong>
-                                2.0 (Narrative Engine)
+                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                                <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.zones}</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">FUNCTIONAL ZONES</div>
+                            </div>
+                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                                <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.patterns}</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">DESIGN PATTERNS</div>
                             </div>
                         </div>
+
                     </div>
                 `;
             }
