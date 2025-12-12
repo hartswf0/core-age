@@ -3282,82 +3282,108 @@
             return html;
         }
 
+
         function renderGenome(data) {
             // 1. Render Header
             const header = document.getElementById('header-section');
             if (header) {
                 const title = data.project_title || "cour-age";
-                const subtitle = data.thesis || data.project_subtitle; // Use thesis as the main subtitle quote
+                const subtitle = data.thesis || data.project_subtitle;
                 const logline = data.logline || "No logline available.";
-
-                // Stats (use defaults if not present in older data)
                 const stats = data.stats || { files: 0, loc: '0k', zones: 0, patterns: 0 };
 
                 header.innerHTML = `
-                    <div style="margin-bottom:2rem; padding:3rem 2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px; text-align:center;">
+                    <div style="margin-bottom:0; padding:3rem 2rem 1rem 2rem; border:1px solid var(--surface-3); background:var(--surface-2); border-radius:8px 8px 0 0; text-align:center;">
                         
                         <!-- Badge -->
                         <div style="display:inline-block; background:#332211; color:#ffaa44; padding:4px 12px; border-radius:12px; font-family:monospace; font-size:0.8rem; margin-bottom:1.5rem; border:1px solid #553311;">
                             🧬 GENOME SEQUENCE v2.0
                         </div>
 
-                        <!-- Title (Serif) -->
+                        <!-- Title -->
                         <h1 style="font-family:'Times New Roman', serif; font-size:4rem; margin:0; color:var(--text-main); letter-spacing:-1px;">
                             ${title}
                         </h1>
                         
-                        <!-- Subtitle (Italic Quote) -->
+                        <!-- Subtitle -->
                         <p style="font-size:1.2rem; color:var(--ink-dim); font-style:italic; margin-top:1rem; max-width:600px; margin-left:auto; margin-right:auto;">
                             "${subtitle}"
                         </p>
 
-                        <!-- Metadata Line (Orange Monospace) -->
-                        <div style="margin-top:1.5rem; font-family:monospace; color:#ffaa44; font-size:0.9rem; letter-spacing:1px;">
-                            BORN: ${new Date(data.generated_at).toISOString().split('T')[0]} · FAMILIES: ${stats.zones}
-                        </div>
-
-                        <!-- 4-Column Stats Grid -->
-                        <div style="margin-top:3rem; display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; border-top:1px solid var(--surface-3); padding-top:2rem;">
-                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                        <!-- Stats Grid (Clickable) -->
+                        <div onclick="toggleLegend()" style="margin-top:3rem; display:grid; grid-template-columns: repeat(4, 1fr); gap:1rem; border-top:1px solid var(--surface-3); padding-top:2rem; cursor:pointer;" title="Click to Expand Legend">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.files}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">TOTAL FILES</div>
                             </div>
-                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.loc}</div>
                                 <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">LINES OF CODE</div>
                             </div>
-                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.zones}</div>
-                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">FUNCTIONAL ZONES</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">FUNCTIONAL ZONES ▾</div>
                             </div>
-                            <div style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
+                            <div class="stat-card" style="background:var(--bg); padding:1.5rem; border-radius:6px; border:1px solid var(--surface-3);">
                                 <div style="font-size:2rem; font-weight:bold; color:var(--text-main);">${stats.patterns}</div>
-                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">DESIGN PATTERNS</div>
+                                <div style="font-size:0.75rem; color:var(--ink-muted); letter-spacing:1px; margin-top:5px;">DESIGN PATTERNS ▾</div>
                             </div>
                         </div>
+                    </div>
 
+                    <!-- EXPANDABLE LEGEND -->
+                    <div id="genome-legend">
+                        <div class="legend-grid">
+                            <!-- Functional Zones -->
+                            <div>
+                                <h3 style="margin-top:0; color:var(--text-main);">Functional Zones</h3>
+                                <div style="display:grid; gap:8px;">
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <div style="width:16px; height:16px; background:var(--lego); border-radius:4px;"></div>
+                                        <div><strong>LEGO INPUTS</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Raw Assets & Manifests</span></div>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <div style="width:16px; height:16px; background:var(--tetrad); border-radius:4px;"></div>
+                                        <div><strong>TETRAD ENGINE</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Ontological Processing</span></div>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <div style="width:16px; height:16px; background:var(--wag); border-radius:4px;"></div>
+                                        <div><strong>WAG PEAKS</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Generative Output</span></div>
+                                    </div>
+                                    <div style="display:flex; align-items:center; gap:10px;">
+                                        <div style="width:16px; height:16px; background:var(--trail); border-radius:4px;"></div>
+                                        <div><strong>TRAIL OBSERVATORY</strong><br><span style="font-size:0.8rem; color:var(--ink-muted);">Project Meta-Cognition</span></div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Design Patterns -->
+                             <div>
+                                <h3 style="margin-top:0; color:var(--text-main);">Design Patterns</h3>
+                                <ul style="margin:0; padding-left:20px; color:var(--ink); font-size:0.9rem; line-height:1.6;">
+                                    <li><strong>Operative Ekphrasis</strong>: Words as Actions.</li>
+                                    <li><strong>Recursive Ecology</strong>: Output becomes Input.</li>
+                                    <li><strong>Ontology Logs (Ologs)</strong>: Category Theory structure.</li>
+                                    <li><strong>Repository Manifest</strong>: Constitutional reality.</li>
+                                    <li><strong>Agentic Generation</strong>: Systems that act.</li>
+                                </ul>
+                            </div>
+                        </div>
                     </div>
                 `;
             }
 
-            // 2. Hide Arc Diagram (User requested simpler view)
+            // 2. Hide Arc Diagram
             const arcSection = document.querySelector('.arc-section');
             if (arcSection) arcSection.style.display = 'none';
 
-            // 3. Render Timeline as the MAIN Experience
+            // 3. Render Timeline
             const timelineContainer = document.getElementById('timeline-container');
             timelineContainer.innerHTML = '';
 
-            // Collect ALL timeline events (Manual + Bursts)
             let allEvents = [...(data.timeline || [])];
-
-            // Also infer events from artifacts if they don't map to a burst?
-            // For now, relies on the `sequence_genome.js` having populated `data.timeline` with bursts.
-
-            // Sort by Date Descending (Newest First) for "Feed" feel
             allEvents.sort((a, b) => new Date(b.date) - new Date(a.date));
 
-            // Map Zone Colors
             const zoneColors = {
                 'lego-inputs': 'var(--lego)',
                 'tetrad-engine': 'var(--tetrad)',
@@ -3365,7 +3391,6 @@
                 'trail-observatory': 'var(--trail)'
             };
 
-            // Collect all artifacts
             const allArtifacts = [];
             data.zones.forEach(z => {
                 if (z.artifacts) allArtifacts.push(...z.artifacts.map(a => ({ ...a, zone: z.id })));
@@ -3376,19 +3401,12 @@
                 const activeZone = event.active ? event.active[0] : 'trail-observatory';
                 const color = zoneColors[activeZone] || 'var(--ink)';
 
-                // Find artifacts that match this event's date (approx)
-                // or if it's a "Burst" event, it likely generated from that date.
                 const relevantArtifacts = allArtifacts.filter(art => {
                     const artDate = new Date(art.modified || art.created);
                     return artDate.toISOString().split('T')[0] === event.date;
                 });
 
-                // PRIORITIZATION LOGIC
-                // 1. Presentations (*-presentation.html)
-                // 2. Tutorials (*-tutorial.html)
-                // 3. Tools (*.html)
-                // 4. Docs (*.md)
-                // 5. Data/Other
+                // Prioritization
                 relevantArtifacts.sort((a, b) => {
                     const getScore = (art) => {
                         const name = art.text.toLowerCase();
@@ -3402,72 +3420,68 @@
                 });
 
                 const article = document.createElement('article');
-                article.className = `era ${activeZone}`; // Re-use era styling
+                article.className = `era ${activeZone}`;
                 article.style.borderColor = color;
 
-                // Construct Artifacts List for this Date
+                // Construct Artifacts List
                 let artifactsHtml = '';
                 if (relevantArtifacts.length > 0) {
                     artifactsHtml = `
                         <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:15px; display:flex; flex-wrap:wrap; gap:8px;">
                             ${relevantArtifacts.map(art => {
                         const isPriority = art.text.toLowerCase().includes('tutorial') || art.text.toLowerCase().includes('presentation');
-                        const bg = isPriority ? color : 'var(--surface-3)';
-                        const fg = isPriority ? 'var(--bg)' : 'var(--text-main)';
-                        const border = isPriority ? 'none' : `1px solid ${color}`;
                         const icon = isPriority ? '🎓' : (art.type === 'tool' ? '🛠️' : '📄');
 
                         return `
-                                <a href="${art.path}" target="_blank" style="text-decoration:none;">
-                                    <div class="artifact-card" style="
-                                        background:${bg}; color:${fg}; border:${border};
-                                        padding:6px 12px; border-radius:16px; font-size:0.85rem;
-                                        display:flex; align-items:center; gap:6px; transition:transform 0.2s;
-                                        font-family:monospace; cursor:pointer;
-                                    " onmouseover="this.style.transform='scale(1.05)'" onmouseout="this.style.transform='scale(1)'">
-                                        <span>${icon}</span>
-                                        <span style="font-weight:bold;">${art.text}</span>
-                                    </div>
+                                <a href="${art.path}" target="_blank" class="lego-pill" style="color:${color}; border-color:${color};">
+                                    <div class="lego-stud" style="background:${color};">${icon}</div>
+                                    <div class="lego-text">${art.text}</div>
                                 </a>
-                                `;
+                        `;
                     }).join('')}
                         </div>
-                     `;
+                    `;
                 }
 
                 article.innerHTML = `
-                    <div class="era-header" style="border-bottom-color: ${color}">
-                        <div>
-                            <span class="era-meta" style="background:${color}; color:var(--bg); font-weight:bold;">${event.date}</span>
-                            ${event.ontology ? `<span class="era-meta" style="margin-left:8px; background:var(--ink-muted); color:var(--bg);">${event.ontology.join('')}</span>` : ''}
-                            <h2 class="era-name" style="color:${color}; margin-top:8px; font-size:1.6rem;">${event.label}</h2>
-                        </div>
-                    </div>
+    <div class="era-header" style="border-bottom-color: ${color}">
+        <div>
+            <span class="era-meta" style="background:${color}; color:var(--bg); font-weight:bold;">${event.date}</span>
+            ${event.ontology ? `<span class="era-meta"
+                style="margin-left:8px; background:var(--ink-muted); color:var(--bg);">${event.ontology.join('')}</span>`
+                        : ''}
+            <h2 class="era-name" style="color:${color}; margin-top:8px; font-size:1.6rem;">${event.label}</h2>
+        </div>
+    </div>
 
-                    ${event.quote ? `<blockquote style="font-style:italic; border-left:3px solid ${color}; padding-left:15px; color:var(--ink-dim); margin-bottom:15px;">"${event.quote}"</blockquote>` : ''}
-                    
-                    ${event.rich_genome ? renderRichGenome(event.rich_genome, color) :
+    ${event.quote ? `<blockquote
+        style="font-style:italic; border-left:3px solid ${color}; padding-left:15px; color:var(--ink-dim); margin-bottom:15px;">
+        "${event.quote}"</blockquote>` : ''}
+
+    ${event.rich_genome ? renderRichGenome(event.rich_genome, color) :
                         (event.decision ? `
-                        <div style="margin-bottom:12px; padding:8px 12px; border-left:3px solid var(--accent); background:var(--surface-2);">
-                            <strong style="color:var(--accent); font-size:0.8rem; text-transform:uppercase;">Decision</strong>
-                            <p style="font-size:0.9rem; margin-top:4px; font-style:italic;">${event.decision}</p>
-                        </div>` : '')
+    <div
+        style="margin-bottom:12px; padding:8px 12px; border-left:3px solid var(--accent); background:var(--surface-2);">
+        <strong style="color:var(--accent); font-size:0.8rem; text-transform:uppercase;">Decision</strong>
+        <p style="font-size:0.9rem; margin-top:4px; font-style:italic;">${event.decision}</p>
+    </div>` : '')
                     }
 
-                    <p class="era-tagline" style="border-left-color:${color}">${event.desc}</p>
-                    
-                    ${event.readings ? `
-                    <div style="margin-top:10px; font-size:0.85rem; color:var(--ink-dim);">
-                        <strong>📚 Readings:</strong>
-                        <ul style="margin:5px 0 0 20px; padding:0;">${event.readings.map(r => `<li>${r}</li>`).join('')}</ul>
-                    </div>` : ''}
-                    
-                    ${artifactsHtml}
-                `;
+    <p class="era-tagline" style="border-left-color:${color}">${event.desc}</p>
+
+    ${event.readings ? `
+    <div style="margin-top:10px; font-size:0.85rem; color:var(--ink-dim);">
+        <strong>📚 Readings:</strong>
+        <ul style="margin:5px 0 0 20px; padding:0;">${event.readings.map(r => `<li>${r}</li>`).join('')}</ul>
+    </div>` : ''}
+
+    ${artifactsHtml}
+    `;
                 timelineContainer.appendChild(article);
             });
 
-            document.getElementById('footer-text').textContent = `Generated by Trail Olog Sequencer 2.0 · ${data.repository} Repository Genome`;
+            document.getElementById('footer-text').textContent = `Generated by Trail Olog Sequencer 2.0 · ${data.repository}
+    Repository Genome`;
         }
 
         // Execute
