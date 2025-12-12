@@ -943,6 +943,7 @@
         <button class="ctrl-btn" id="btn-theme" title="Toggle theme">☀</button>
         <button class="ctrl-btn" id="btn-onto" title="Ontology">◎</button>
         <button class="ctrl-btn" id="btn-conn" title="Connections">⊶</button>
+        <button class="ctrl-btn" id="btn-pilgrims" title="Toggle Pilgrims" style="opacity:0.5">🚶</button>
         <button class="ctrl-btn" id="btn-legend" title="Toggle Key">K</button>
     </div>
 
@@ -1165,7 +1166,7 @@
                 }
 
                 init(); // Init canvas size FIRST
-                spawnPilgrims(); // Then spawn using correct W/H
+                // PILGRIMS are now lazy-loaded by the button
             }
 
             function getEmbeddedData() {
@@ -1247,6 +1248,7 @@
 
             // --- PILGRIM TOKENS (FLOW PARTICLES) ---
             let connectionsActive = false; // Global toggle state - Default OFF
+            let pilgrimsActive = false; // Pilgrims OFF by default
             const pilgrims = []; // Restored array
 
             class Pilgrim {
@@ -1503,8 +1505,8 @@
                     }
                 }
 
-                // Draw Pilgrims
-                if (pilgrims && pilgrims.length) {
+                // Draw Pilgrims (only if active)
+                if (pilgrimsActive && pilgrims && pilgrims.length) {
                     pilgrims.forEach(p => {
                         p.update();
                         p.draw(ctx);
@@ -1845,7 +1847,22 @@
                 const svg = document.getElementById('connections');
                 const isOn = svg.style.display !== 'none';
                 svg.style.display = isOn ? 'none' : 'block';
-                connectionsActive = !isOn; // Update global state for Pilgrims
+                connectionsActive = !isOn; // Update global state for Pilgrims (Legacy: now just for lines?)
+                // Actually, if we decouple, connectionsActive mainly toggles the SVG display.
+                // But Pilgrim logic in update() still uses connectionsActive to decide between "Path" vs "Wander".
+                // So we keep this variable update to drive that behavior.
+            };
+
+            // Toggle Pilgrims
+            document.getElementById('btn-pilgrims').onclick = () => {
+                pilgrimsActive = !pilgrimsActive;
+                const btn = document.getElementById('btn-pilgrims');
+                btn.style.opacity = pilgrimsActive ? '1' : '0.5';
+
+                // Lazy spawn on first activation
+                if (pilgrimsActive && pilgrims.length === 0) {
+                    spawnPilgrims();
+                }
             };
 
             // Toggle Legend
