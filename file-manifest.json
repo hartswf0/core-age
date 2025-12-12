@@ -1,7 +1,7 @@
 {
-  "generated": "2025-12-12T03:15:16.747Z",
+  "generated": "2025-12-12T03:22:40.603Z",
   "total_files": 279,
-  "total_size": 69729741,
+  "total_size": 69732719,
   "total_size_human": "66.5 MB",
   "summary": {
     "extensions": {
@@ -849,7 +849,7 @@
         "extension": ".json",
         "size": 85253,
         "size_human": "83.25 KB",
-        "modified": "2025-12-12T03:05:15.361Z",
+        "modified": "2025-12-12T03:15:16.748Z",
         "created": "2025-11-23T03:28:22.206Z"
       },
       {
@@ -1774,9 +1774,9 @@
         "name": "pattern-glossary.html",
         "path": "/Users/gaia/COURAGE/pattern-glossary.html",
         "extension": ".html",
-        "size": 60095,
-        "size_human": "58.69 KB",
-        "modified": "2025-12-11T06:44:40.473Z",
+        "size": 63073,
+        "size_human": "61.59 KB",
+        "modified": "2025-12-12T03:22:00.648Z",
         "created": "2025-12-11T05:20:23.130Z"
       },
       {
