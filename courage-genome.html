@@ -448,7 +448,7 @@
     <!-- Embedded Data Fallback -->
     <script>
         const FALLBACK_GENOME_DATA = {
-    "generated_at": "2025-12-12T02:05:28.844Z",
+    "generated_at": "2025-12-12T02:50:45.106Z",
     "thesis": "Operative Ekphrasis: This repository contains the tools, artifacts, and research for the CORE-AGE project, focusing on \"Words Become Worlds\" (WAG) — a framework for translating natural language into 3D spatial geometries and narrative ontologies.",
     "repository": "CORE-AGE",
     "genome_version": "2.0 (Deep Time)",
@@ -2206,33 +2206,33 @@
                     "text": "courage-genome.html",
                     "type": "tool",
                     "path": "courage-genome.html",
-                    "size": "134.5 KB",
+                    "size": "134.77 KB",
                     "created": "2025-12-11T21:42:17.067Z",
-                    "modified": "2025-12-12T01:49:33.795Z"
+                    "modified": "2025-12-12T02:05:28.886Z"
                 },
                 {
                     "text": "courage-trail-data.json",
                     "type": "data",
                     "path": "courage-trail-data.json",
-                    "size": "111.75 KB",
+                    "size": "112.02 KB",
                     "created": "2025-12-11T04:38:22.247Z",
-                    "modified": "2025-12-12T01:49:33.769Z"
+                    "modified": "2025-12-12T02:05:28.846Z"
                 },
                 {
                     "text": "sequence_genome.js",
                     "type": "artifact",
                     "path": "sequence_genome.js",
-                    "size": "22.83 KB",
+                    "size": "23.98 KB",
                     "created": "2025-12-11T22:03:41.572Z",
-                    "modified": "2025-12-12T01:47:56.035Z"
+                    "modified": "2025-12-12T01:56:52.560Z"
                 },
                 {
                     "text": "file-manifest.json",
                     "type": "meta",
                     "path": "file-manifest.json",
-                    "size": "83.26 KB",
+                    "size": "83.25 KB",
                     "created": "2025-11-23T03:28:22.206Z",
-                    "modified": "2025-12-12T01:45:18.954Z"
+                    "modified": "2025-12-12T01:50:05.182Z"
                 },
                 {
                     "text": "assemble_genome.js",
@@ -3369,14 +3369,50 @@
                 // Construct Artifacts List for this Date
                 let artifactsHtml = '';
                 if (relevantArtifacts.length > 0) {
+
+                    // Prioritize: HTML files first (Playable), then others
+                    const playable = relevantArtifacts.filter(art => art.path.endsWith('.html'));
+                    const passive = relevantArtifacts.filter(art => !art.path.endsWith('.html'));
+
+                    // Sort "Tutorials" to the top of Playable
+                    playable.sort((a, b) => (b.path.includes('tutorial') ? 1 : 0) - (a.path.includes('tutorial') ? 1 : 0));
+
                     artifactsHtml = `
-                        <div class="artifacts-list" style="margin-top:15px; border-top:1px dashed ${color}; padding-top:10px;">
-                            ${relevantArtifacts.map(art => `
-                                <div class="artifact-card" style="border-left:2px solid ${color}">
-                                    <a href="${art.path}" target="_blank">${art.text}</a>
-                                    <span>${art.type.toUpperCase()}</span>
+                        <div class="artifacts-list" style="margin-top:20px; border-top:1px dashed ${color}; padding-top:15px;">
+                            
+                            <!-- PLAYABLE TOOLS & TUTORIALS -->
+                            ${playable.length > 0 ? `
+                                <div style="display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;">
+                                    ${playable.map(art => {
+                        const isTutorial = art.text.toLowerCase().includes('tutorial');
+                        return `
+                                        <a href="${art.path}" target="_blank" class="artifact-btn" style="
+                                            display:inline-flex; align-items:center; gap:8px;
+                                            background:var(--surface-3); color:var(--text-main); 
+                                            padding:8px 16px; border-radius:20px; text-decoration:none;
+                                            border:1px solid ${color}; transition:transform 0.2s;
+                                            font-size:0.9rem; font-weight:bold;
+                                        " onmouseover="this.style.transform='translateY(-2px)'" onmouseout="this.style.transform='translateY(0)'">
+                                            <span style="font-size:1rem;">${isTutorial ? '🎓' : '▶'}</span>
+                                            <span>${art.text}</span>
+                                            ${isTutorial ? `<span style="font-size:0.7rem; background:${color}; color:var(--bg); padding:2px 6px; border-radius:4px; margin-left:4px;">TUTORIAL</span>` : ''}
+                                        </a>
+                                        `;
+                    }).join('')}
                                 </div>
-                            `).join('')}
+                            ` : ''}
+
+                            <!-- PASSIVE DOCS & DATA -->
+                            ${passive.length > 0 ? `
+                                <div style="display:grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap:8px; opacity:0.8;">
+                                    ${passive.map(art => `
+                                        <div class="artifact-card" style="border-left:2px solid var(--ink-muted); padding:4px 8px; font-size:0.85rem;">
+                                            <a href="${art.path}" target="_blank" style="color:var(--ink-dim); text-decoration:none;">📄 ${art.text}</a>
+                                            <span style="color:var(--ink-muted); font-size:0.7rem; float:right;">${art.type.toUpperCase()}</span>
+                                        </div>
+                                    `).join('')}
+                                </div>
+                            ` : ''}
                         </div>
                      `;
                 }
