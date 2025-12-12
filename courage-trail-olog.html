@@ -925,7 +925,7 @@
     <div id="viewport">
         <canvas id="c"></canvas>
         <div class="texture-overlay"></div>
-        <svg id="connections"></svg>
+        <svg id="connections" style="display:none"></svg>
         <div id="labels"></div>
     </div>
 
@@ -1246,7 +1246,7 @@
             }
 
             // --- PILGRIM TOKENS (FLOW PARTICLES) ---
-            let connectionsActive = true; // Global toggle state
+            let connectionsActive = false; // Global toggle state - Default OFF
             const pilgrims = []; // Restored array
 
             class Pilgrim {
